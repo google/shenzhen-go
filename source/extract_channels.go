@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package source
 
 import (
 	"crypto/rand"
@@ -110,10 +110,10 @@ func mapToSlice(m map[string]bool) (s []string) {
 	return
 }
 
-// extractChannelIdents extracts identifier names which could be involved in
+// ExtractChannelIdents extracts identifier names which could be involved in
 // channel reads (srcs) or writes (dsts). dsts only contains channel identifiers
 // written to, but srcs can contain false positives.
-func extractChannelIdents(src string) (srcs, dsts []string, err error) {
+func ExtractChannelIdents(src string) (srcs, dsts []string, err error) {
 	fset := token.NewFileSet()
 	rb := make([]byte, 8)
 	if _, err = rand.Read(rb); err != nil {

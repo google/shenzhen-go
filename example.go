@@ -14,14 +14,18 @@
 
 package main
 
-var exampleGraph = Graph{
+// TODO: Have this as a JSON file loaded at runtime.
+
+import "shenzhen-go/graph"
+
+var exampleGraph = &graph.Graph{
 	Name:        "Example",
 	PackageName: "example",
 	PackagePath: "example", // == $GOPATH/src/example
 	Imports: []string{
 		"fmt",
 	},
-	Nodes: map[string]*Node{
+	Nodes: map[string]*graph.Node{
 		"Generate integers ≥ 2": {
 			Name: "Generate integers ≥ 2",
 			Code: `for i:= 2; i<100; i++ {
@@ -60,7 +64,7 @@ close(out)`,
 			Wait: true,
 		},
 	},
-	Channels: map[string]*Channel{
+	Channels: map[string]*graph.Channel{
 		"raw": {
 			Name: "raw",
 			Type: "int",
@@ -81,6 +85,6 @@ close(out)`,
 
 func init() {
 	for _, n := range exampleGraph.Nodes {
-		n.updateChans(exampleGraph.Channels)
+		n.UpdateChans(exampleGraph.Channels)
 	}
 }

@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package graph
+
+import "shenzhen-go/source"
 
 // Node models a goroutine.
 type Node struct {
@@ -29,8 +31,9 @@ func (n *Node) ChannelsRead() []string { return n.chansRd }
 // ChannelsWritten returns the names of all channels written by this goroutine.
 func (n *Node) ChannelsWritten() []string { return n.chansWr }
 
-func (n *Node) updateChans(chans map[string]*Channel) error {
-	srcs, dsts, err := extractChannelIdents(n.Code)
+// UpdateChans refreshes the channels known to be used by the goroutine.
+func (n *Node) UpdateChans(chans map[string]*Channel) error {
+	srcs, dsts, err := source.ExtractChannelIdents(n.Code)
 	if err != nil {
 		return err
 	}

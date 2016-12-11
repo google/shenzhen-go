@@ -23,10 +23,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 )
-
-var identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
 // Channel models a channel.
 type Channel struct {

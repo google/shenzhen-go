@@ -77,16 +77,39 @@ type Node struct {
 	Name string
 	Code string
 	Wait bool
+
+	// Computed from Code - which channels are read from and written to.
+	chansRd, chansWr []string
+}
+
+func (n *Node) ChannelsRead() []string    { return n.chansRd }
+func (n *Node) ChannelsWritten() []string { return n.chansWr }
+
+func (n *Node) updateChans(chans map[string]*Channel) error {
+	srcs, dsts, err := extractChannelIdents(n.Code)
+	if err != nil {
+		return err
+	}
+	// dsts is definitely all the channels written by this goroutine.
+	n.chansWr = dsts
+
+	// srcs can include false positives, so filter them.
+	n.chansRd = make([]string, 0, len(srcs))
+	for _, s := range srcs {
+		if _, found := chans[s]; found {
+			n.chansRd = append(n.chansRd, s)
+		}
+	}
+	return nil
 }
 
 func (n *Node) String() string { return n.Name }
 
 // Channel models a channel.
 type Channel struct {
-	Src, Dst string
-	Name     string
-	Type     string
-	Cap      int
+	Name string
+	Type string
+	Cap  int
 }
 
 func open(args ...string) error {
@@ -162,20 +185,6 @@ func (g *Graph) handleChannelRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		s := r.FormValue("Src")
-		if _, ok := g.Nodes[s]; !ok {
-			log.Printf("Unknown node %v", s)
-			http.Error(w, "Unknown node", http.StatusBadRequest)
-			return
-		}
-
-		d := r.FormValue("Dst")
-		if _, ok := g.Nodes[d]; !ok {
-			log.Printf("Unknown node %v", d)
-			http.Error(w, "Unknown node", http.StatusBadRequest)
-			return
-		}
-
 		ci, err := strconv.Atoi(r.FormValue("Cap"))
 		if err != nil {
 			log.Printf("Capacity is not an integer: %v", err)
@@ -189,8 +198,6 @@ func (g *Graph) handleChannelRequest(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// ...update...
-		e.Src = s
-		e.Dst = d
 		e.Type = r.FormValue("Type")
 		e.Cap = ci
 
@@ -241,17 +248,14 @@ func (g *Graph) handleNodeRequest(w http.ResponseWriter, r *http.Request) {
 		n.Wait = (r.FormValue("Wait") == "on")
 		n.Code = r.FormValue("Code")
 
-		if nm == n.Name {
-			break
+		if err := n.updateChans(g.Channels); err != nil {
+			log.Printf("Unable to extract channels used from code: %v", err)
+			http.Error(w, "Unable to extract channels used from code", http.StatusBadRequest)
+			return
 		}
 
-		for _, e := range g.Channels {
-			if e.Src == n.Name {
-				e.Src = nm
-			}
-			if e.Dst == n.Name {
-				e.Dst = nm
-			}
+		if nm == n.Name {
+			break
 		}
 
 		delete(g.Nodes, n.Name)
@@ -452,27 +456,31 @@ close(out)`,
 		},
 		Channels: map[string]*Channel{
 			"raw": {
-				Src:  "Generate integers ≥ 2",
-				Dst:  "Filter divisible by 2",
+				//Src:  "Generate integers ≥ 2",
+				//Dst:  "Filter divisible by 2",
 				Name: "raw",
 				Type: "int",
 				Cap:  0,
 			},
 			"div2": {
-				Src:  "Filter divisible by 2",
-				Dst:  "Filter divisible by 3",
+				//Src:  "Filter divisible by 2",
+				//Dst:  "Filter divisible by 3",
 				Name: "div2",
 				Type: "int",
 				Cap:  0,
 			},
 			"out": {
-				Src:  "Filter divisible by 3",
-				Dst:  "Print output",
+				//Src:  "Filter divisible by 3",
+				//Dst:  "Print output",
 				Name: "out",
 				Type: "int",
 				Cap:  0,
 			},
 		},
+	}
+
+	for _, n := range exampleGraph.Nodes {
+		n.updateChans(exampleGraph.Channels)
 	}
 
 	http.HandleFunc("/channel/", exampleGraph.handleChannelRequest)

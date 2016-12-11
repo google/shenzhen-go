@@ -84,6 +84,9 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
+// extractChannelIdents extracts identifier names which could be involved in
+// channel reads (srcs) or writes (dsts). dsts only contains channel identifiers
+// written to, but srcs can contain false positives.
 func extractChannelIdents(src string) (srcs, dsts []string, err error) {
 	fset := token.NewFileSet()
 	rb := make([]byte, 8)

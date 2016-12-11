@@ -1,11 +1,11 @@
 // Copyright 2016 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,14 +45,14 @@ var (
 	identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 )
 
-// Graph models a collection of goroutines (nodes) and channels (edges).
+// Graph models a collection of goroutines (nodes) and channels (channels).
 type Graph struct {
 	Name        string
 	PackageName string
 	PackagePath string
 	Imports     []string
 	Nodes       map[string]*Node
-	Edges       map[string]*Edge
+	Channels    map[string]*Channel
 }
 
 func (g *Graph) renderToDot(dst io.Writer) error { return dotTemplate.Execute(dst, g) }
@@ -65,10 +65,10 @@ func (g *Graph) renderNodeEditor(dst io.Writer, n *Node) error {
 	}{g, n})
 }
 
-func (g *Graph) renderEdgeEditor(dst io.Writer, e *Edge) error {
-	return edgeEditorTemplate.Execute(dst, struct {
-		Graph *Graph
-		Edge  *Edge
+func (g *Graph) renderChannelEditor(dst io.Writer, e *Channel) error {
+	return channelEditorTemplate.Execute(dst, struct {
+		Graph   *Graph
+		Channel *Channel
 	}{g, e})
 }
 
@@ -81,8 +81,8 @@ type Node struct {
 
 func (n *Node) String() string { return n.Name }
 
-// Edge models a channel.
-type Edge struct {
+// Channel models a channel.
+type Channel struct {
 	Src, Dst string
 	Name     string
 	Type     string
@@ -130,25 +130,20 @@ func goimports(dst io.Writer, src io.Reader) error {
 	return pipeThru(dst, exec.Command(`goimports`), src)
 }
 
-func favIcon(w http.ResponseWriter, r *http.Request) {
+func (g *Graph) handleChannelRequest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
-	w.Write([]byte(faviconSrc))
-}
+	nm := strings.TrimPrefix(r.URL.Path, "/channel/")
 
-func (g *Graph) handleEdgeRequest(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s %s", r.Method, r.URL)
-	nm := strings.TrimPrefix(r.URL.Path, "/edge/")
-
-	e, found := g.Edges[nm]
+	e, found := g.Channels[nm]
 	if nm != "new" && !found {
-		http.Error(w, fmt.Sprintf("Edge %q not found", nm), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("Channel %q not found", nm), http.StatusNotFound)
 		return
 	}
 
 	switch r.Method {
 	case "POST":
 		if e == nil {
-			e = new(Edge)
+			e = new(Channel)
 		}
 
 		// Parse...
@@ -203,14 +198,14 @@ func (g *Graph) handleEdgeRequest(w http.ResponseWriter, r *http.Request) {
 		if nn == e.Name {
 			break
 		}
-		delete(g.Edges, e.Name)
+		delete(g.Channels, e.Name)
 		e.Name = nn
-		g.Edges[nn] = e
-		http.Redirect(w, r, "/edge/"+nn, http.StatusSeeOther) // should cause GET
+		g.Channels[nn] = e
+		http.Redirect(w, r, "/channel/"+nn, http.StatusSeeOther) // should cause GET
 		return
 	}
 
-	if err := g.renderEdgeEditor(w, e); err != nil {
+	if err := g.renderChannelEditor(w, e); err != nil {
 		log.Printf("Could not render source editor: %v", err)
 		http.Error(w, "Could not render source editor", http.StatusInternalServerError)
 		return
@@ -250,7 +245,7 @@ func (g *Graph) handleNodeRequest(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		for _, e := range g.Edges {
+		for _, e := range g.Channels {
 			if e.Src == n.Name {
 				e.Src = nm
 			}
@@ -455,7 +450,7 @@ close(out)`,
 				Wait: true,
 			},
 		},
-		Edges: map[string]*Edge{
+		Channels: map[string]*Channel{
 			"raw": {
 				Src:  "Generate integers ≥ 2",
 				Dst:  "Filter divisible by 2",
@@ -480,7 +475,7 @@ close(out)`,
 		},
 	}
 
-	http.HandleFunc("/edge/", exampleGraph.handleEdgeRequest)
+	http.HandleFunc("/channel/", exampleGraph.handleChannelRequest)
 	http.HandleFunc("/node/", exampleGraph.handleNodeRequest)
 	http.HandleFunc("/", exampleGraph.handleRootRequest)
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {

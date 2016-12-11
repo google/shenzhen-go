@@ -23,11 +23,10 @@ const (
 	dotTemplateSrc = `digraph {
 	graph[rankdir="UD",fontname="Go"];
 	node[shape=box,fontname="Go"];
-	edge[fontname="Go Mono"];
 	{{range .Nodes}}
 	"{{.Name}}"[URL="/node/{{.Name}}"];{{end}}
 	{{range .Channels}}
-	"{{.Name}}" [URL="/channel/{{.Name}}",shape=oval];{{end}}
+	"{{.Name}}" [URL="/channel/{{.Name}}",shape=oval,fontname="Go Mono"];{{end}}
 	{{range $n := .Nodes}}{{range .ChannelsRead}}
 	"{{.}}" -> "{{$n.Name}}";{{end}}{{range .ChannelsWritten}}
 	"{{$n.Name}}" -> "{{.}}";{{end}}{{end}}
@@ -53,8 +52,7 @@ func main() {
 	}()
 	{{end}}
 	wg.Wait()
-}
-`
+}`
 
 	css = `
 	body {

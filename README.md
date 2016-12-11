@@ -16,7 +16,7 @@ SHENZHEN GO requires:
 
 After setting up your `$GOPATH`, run:
 
-    go get -u TODO-PACKAGE-PATH-HERE
+    go get -u github.com/google/shenzhen-go
 
 This should build the `shenzhen-go` binary in your `$GOPATH/bin` directory.
 Run it and a web browser should appear with the SHENZHEN GO editor.

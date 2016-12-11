@@ -51,7 +51,7 @@ func (v *findFunc) Visit(node ast.Node) ast.Visitor {
 }
 
 type chanIdents struct {
-	srcs, dsts []string
+	srcs, dsts map[string]bool
 }
 
 func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
@@ -61,7 +61,7 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return v
 		}
-		v.dsts = append(v.dsts, id.Name)
+		v.dsts[id.Name] = true
 
 	case *ast.UnaryExpr:
 		if s.Op != token.ARROW {
@@ -71,17 +71,43 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return nil
 		}
-		v.srcs = append(v.srcs, id.Name)
+		v.srcs[id.Name] = true
 
 	case *ast.RangeStmt:
 		id, ok := s.X.(*ast.Ident)
 		if !ok {
 			return v
 		}
-		v.srcs = append(v.srcs, id.Name)
+		v.srcs[id.Name] = true
+
+	case *ast.CallExpr:
+		// close(ch) is interpreted as writing to ch.
+		if len(s.Args) != 1 {
+			return v
+		}
+		fi, ok := s.Fun.(*ast.Ident)
+		if !ok {
+			return v
+		}
+		if fi.Name != "close" {
+			return v
+		}
+		id, ok := s.Args[0].(*ast.Ident)
+		if !ok {
+			return v
+		}
+		v.dsts[id.Name] = true
 
 	}
 	return v
+}
+
+func mapToSlice(m map[string]bool) (s []string) {
+	s = make([]string, 0, len(m))
+	for k := range m {
+		s = append(s, k)
+	}
+	return
 }
 
 // extractChannelIdents extracts identifier names which could be involved in
@@ -106,7 +132,7 @@ func extractChannelIdents(src string) (srcs, dsts []string, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	ci := &chanIdents{}
+	ci := &chanIdents{srcs: make(map[string]bool), dsts: make(map[string]bool)}
 	ast.Walk(&findFunc{funcName: rn, subvis: ci}, f)
-	return ci.srcs, ci.dsts, nil
+	return mapToSlice(ci.srcs), mapToSlice(ci.dsts), nil
 }

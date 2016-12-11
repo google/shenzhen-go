@@ -16,6 +16,7 @@ package main
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -30,6 +31,8 @@ for range baz {
 	if err != nil {
 		t.Fatalf("extractChannelIdents err = %v", err)
 	}
+	sort.Strings(srcs)
+	sort.Strings(dsts)
 	if got, want := srcs, []string{"bar", "baz", "qux"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("extractChannelIdents srcs = %v, want %v", got, want)
 	}

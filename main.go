@@ -417,6 +417,11 @@ func main() {
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
 	})
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s", r.Method, r.URL)
+		// TODO: serve a favicon properly
+		http.Redirect(w, r, "http://golang.org/favicon.ico", http.StatusFound)
+	})
 
 	// As soon as we're serving, launch a web browser.
 	// Generally expected to work on macOS...

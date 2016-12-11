@@ -27,7 +27,9 @@ for range baz {
     case blarp := <-qux:
     case tuz <- sax:
     }
-}`)
+}
+close(zoop)
+`)
 	if err != nil {
 		t.Fatalf("extractChannelIdents err = %v", err)
 	}
@@ -36,7 +38,7 @@ for range baz {
 	if got, want := srcs, []string{"bar", "baz", "qux"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("extractChannelIdents srcs = %v, want %v", got, want)
 	}
-	if got, want := dsts, []string{"foo", "tuz"}; !reflect.DeepEqual(got, want) {
+	if got, want := dsts, []string{"foo", "tuz", "zoop"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("extractChannelIdents srcs = %v, want %v", got, want)
 	}
 }

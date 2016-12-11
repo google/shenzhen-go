@@ -103,10 +103,10 @@ func main() {
 <body>
 	<h1>{{with .Channel}}{{.Name}}{{else}}[New]{{end}}</h1>
 	<form method="post">
-	<div class="formfield"><label for="Name">Name</label><input type="text" name="Name" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{with .Channel}}{{.Name}}{{end}}"></div>
-	<div class="formfield"><label for="Type">Type</label><input type="text" name="Type" required value="{{with .Channel}}{{.Type}}{{end}}"></div>
-	<div class="formfield"><label for="Cap">Capacity</label><input type="text" name="Cap" required value="{{with .Channel}}{{.Cap}}{{end}}"></div>
-	<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='/'"></div>
+		<div class="formfield"><label for="Name">Name</label><input type="text" name="Name" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{with .Channel}}{{.Name}}{{end}}"></div>
+		<div class="formfield"><label for="Type">Type</label><input type="text" name="Type" required value="{{with .Channel}}{{.Type}}{{end}}"></div>
+		<div class="formfield"><label for="Cap">Capacity</label><input type="text" name="Cap" required value="{{with .Channel}}{{.Cap}}{{end}}"></div>
+		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='/'"></div>
 	</form>
 </body>
 `
@@ -117,10 +117,10 @@ func main() {
 	{{with .Node}}
 	<h1>{{.Name}}</h1>
 	<form method="post">
-	<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{.Name}}"></div>
-	<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}></div>
-	<div class="formfield"><textarea name="Code" rows="25" cols="80">{{.Code}}</textarea></div>
-	<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='/'"></div>
+		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{.Name}}"></div>
+		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}></div>
+		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{.Code}}</textarea></div>
+		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='/'"></div>
 	</form>
 	{{end}}
 </body>
@@ -131,8 +131,7 @@ func main() {
 </head>
 <body>
 <h1>SHENZHEN GO</h1>
-<div>
-View as: <a href="/?go">Go</a> <a href="/?dot">Dot</a> <a href="/?json">JSON</a> | <a href="?run">Run</a><br>
+<div>View as: <a href="/?go">Go</a> <a href="/?dot">Dot</a> <a href="/?json">JSON</a> | <a href="?run">Run</a><br>
 {{.}}
 </div>
 </body>

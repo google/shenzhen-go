@@ -17,6 +17,7 @@ package graph
 // Part abstracts the implementation of a node.
 type Part interface {
 	Channels() (read, written []string)
+	Impl() string
 	Refresh(g *Graph) error
 }
 

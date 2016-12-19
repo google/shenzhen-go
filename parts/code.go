@@ -30,6 +30,9 @@ type Code struct {
 // Channels returns the names of all channels used by this goroutine.
 func (c *Code) Channels() (read, written []string) { return c.chansRd, c.chansWr }
 
+// Impl returns the implementation of the goroutine.
+func (c *Code) Impl() string { return c.Code }
+
 // Refresh refreshes cached informatioc.
 func (c *Code) Refresh(g *graph.Graph) error {
 	srcs, dsts, err := source.ExtractChannelIdents(c.Code)

@@ -47,7 +47,7 @@ func main() {
 	{{if .Wait}}wg.Add(1)
 	{{end}}go func() {
 		{{if .Wait}}defer wg.Done()
-		{{end}}{{.Code}}
+		{{end}}{{.Impl}}
 	}()
 	{{end}}
 	wg.Wait()

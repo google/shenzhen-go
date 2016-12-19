@@ -15,7 +15,7 @@
 package parts
 
 import (
-	"io"
+	"bytes"
 	"text/template"
 )
 
@@ -43,9 +43,11 @@ type Multiplexer struct {
 	Output string
 }
 
-// WriteGoroutine outputs the content of a goroutine implementing the component.
-func (m *Multiplexer) WriteGoroutine(w io.Writer) error {
-	return multiplexerTmpl.Execute(w, m)
+// Impl returns the content of a goroutine implementing the multiplexer.
+func (m *Multiplexer) Impl() string {
+	b := new(bytes.Buffer)
+	multiplexerTmpl.Execute(b, m)
+	return b.String()
 }
 
 // ChannelsRead returns the names of all channels read by this goroutine.

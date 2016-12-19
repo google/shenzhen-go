@@ -17,6 +17,8 @@ package parts
 import (
 	"bytes"
 	"text/template"
+
+	"shenzhen-go/graph"
 )
 
 const multiplexerTmplSrc = `var mxwg sync.WaitGroup
@@ -33,7 +35,12 @@ mxwg.Wait()
 close({{$.Output}})
 `
 
-var multiplexerTmpl = template.Must(template.New("multiplexer").Parse(multiplexerTmplSrc))
+var (
+	multiplexerTmpl = template.Must(template.New("multiplexer").Parse(multiplexerTmplSrc))
+
+	// While being developed, check the interface is matched.
+	_ = graph.Part(&Multiplexer{})
+)
 
 // Multiplexer reads from N input channels and writes values into a single output
 // channel. All the channels must have the same or compatible types. Once all input
@@ -43,6 +50,9 @@ type Multiplexer struct {
 	Output string
 }
 
+// Channels returns the names of all channels used by this goroutine.
+func (m *Multiplexer) Channels() (read, written []string) { return m.Inputs, []string{m.Output} }
+
 // Impl returns the content of a goroutine implementing the multiplexer.
 func (m *Multiplexer) Impl() string {
 	b := new(bytes.Buffer)
@@ -50,8 +60,7 @@ func (m *Multiplexer) Impl() string {
 	return b.String()
 }
 
-// ChannelsRead returns the names of all channels read by this goroutine.
-func (m *Multiplexer) ChannelsRead() []string { return m.Inputs }
-
-// ChannelsWritten returns the names of all channels written by this goroutine.
-func (m *Multiplexer) ChannelsWritten() []string { return []string{m.Output} }
+// Refresh refreshes any cached information.
+func (m *Multiplexer) Refresh(g *graph.Graph) error {
+	return nil
+}

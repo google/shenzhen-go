@@ -84,7 +84,7 @@ const (
 	<form method="post">
 		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{.Name}}"></div>
 		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}></div>
-		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{.Code}}</textarea></div>
+		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{.Part.Code}}</textarea></div>
 		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='/'"></div>
 	</form>
 	{{end}}

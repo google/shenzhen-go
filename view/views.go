@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"shenzhen-go/graph"
+	"shenzhen-go/parts"
 )
 
 var identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
@@ -209,9 +210,11 @@ func HandleNodeRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		}
 
 		n.Wait = (r.FormValue("Wait") == "on")
-		n.Code = r.FormValue("Code")
+		if p, ok := n.Part.(*parts.Code); ok {
+			p.Code = r.FormValue("Code")
+		}
 
-		if err := n.UpdateChans(g.Channels); err != nil {
+		if err := n.Refresh(g); err != nil {
 			log.Printf("Unable to extract channels used from code: %v", err)
 			http.Error(w, "Unable to extract channels used from code", http.StatusBadRequest)
 			return

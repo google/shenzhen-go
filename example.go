@@ -16,7 +16,10 @@ package main
 
 // TODO: Have this as a JSON file loaded at runtime.
 
-import "shenzhen-go/graph"
+import (
+	"shenzhen-go/graph"
+	"shenzhen-go/parts"
+)
 
 var exampleGraph = &graph.Graph{
 	Name:        "Example",
@@ -28,39 +31,44 @@ var exampleGraph = &graph.Graph{
 	Nodes: map[string]*graph.Node{
 		"Generate integers ≥ 2": {
 			Name: "Generate integers ≥ 2",
-			Code: `for i:= 2; i<100; i++ {
+			Part: &parts.Code{
+				Code: `for i:= 2; i<100; i++ {
 	raw <- i
 }
 close(raw)`,
+			},
 			Wait: true,
 		},
 		"Filter divisible by 2": {
 			Name: "Filter divisible by 2",
-			Code: `for n := range raw {
+			Part: &parts.Code{Code: `for n := range raw {
 	if n > 2 && n % 2 == 0 {
 		continue
 	}
 	div2 <- n
 }
 close(div2)`,
+			},
 			Wait: true,
 		},
 		"Filter divisible by 3": {
 			Name: "Filter divisible by 3",
-			Code: `for n := range div2 {
+			Part: &parts.Code{Code: `for n := range div2 {
 	if n > 3 && n % 3 == 0 {
 		continue
 	}
 	out <- n
 }
 close(out)`,
+			},
 			Wait: true,
 		},
 		"Print output": {
 			Name: "Print output",
-			Code: `for n := range out {
+			Part: &parts.Code{Code: `for n := range out {
 	fmt.Println(n)
 }`,
+			},
 			Wait: true,
 		},
 	},
@@ -85,6 +93,6 @@ close(out)`,
 
 func init() {
 	for _, n := range exampleGraph.Nodes {
-		n.UpdateChans(exampleGraph.Channels)
+		n.Refresh(exampleGraph)
 	}
 }

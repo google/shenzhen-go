@@ -14,40 +14,32 @@
 
 package graph
 
-import "shenzhen-go/source"
+// Part abstracts the implementation of a node.
+type Part interface {
+	Channels() (read, written []string)
+	Refresh(g *Graph) error
+}
 
 // Node models a goroutine.
 type Node struct {
-	Name, Code string
-	Wait       bool
+	Part
 
-	// Computed from Code - which channels are read from and written to.
-	chansRd, chansWr []string
+	Name string
+	Wait bool
 }
 
-// ChannelsRead returns the names of all channels read by this goroutine.
-func (n *Node) ChannelsRead() []string { return n.chansRd }
+// ChannelsRead returns the channels read from by this node. It is a convenience
+// function for the templates, which can't do multiple returns.
+func (n *Node) ChannelsRead() []string {
+	r, _ := n.Part.Channels()
+	return r
+}
 
-// ChannelsWritten returns the names of all channels written by this goroutine.
-func (n *Node) ChannelsWritten() []string { return n.chansWr }
-
-// UpdateChans refreshes the channels known to be used by the goroutine.
-func (n *Node) UpdateChans(chans map[string]*Channel) error {
-	srcs, dsts, err := source.ExtractChannelIdents(n.Code)
-	if err != nil {
-		return err
-	}
-	// dsts is definitely all the channels written by this goroutine.
-	n.chansWr = dsts
-
-	// srcs can include false positives, so filter them.
-	n.chansRd = make([]string, 0, len(srcs))
-	for _, s := range srcs {
-		if _, found := chans[s]; found {
-			n.chansRd = append(n.chansRd, s)
-		}
-	}
-	return nil
+// ChannelsWritten returns the channels written to by this node. It is a convenience
+// function for the templates, which can't do multiple returns.
+func (n *Node) ChannelsWritten() []string {
+	_, w := n.Part.Channels()
+	return w
 }
 
 func (n *Node) String() string { return n.Name }

@@ -83,12 +83,12 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if err := json.Unmarshal(j, &mp); err != nil {
 		return err
 	}
-	pm, ok := parts.UnmarshalParts[mp.PartType]
+	pf, ok := parts.PartFactories[mp.PartType]
 	if !ok {
 		return fmt.Errorf("unknown part type %q", mp.PartType)
 	}
-	p, err := pm(mp.Part)
-	if err != nil {
+	p := pf()
+	if err := json.Unmarshal(mp.Part, p); err != nil {
 		return err
 	}
 	ip, ok := p.(Part)

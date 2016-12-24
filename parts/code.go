@@ -43,4 +43,4 @@ func (c *Code) Refresh() error {
 }
 
 // TypeKey returns "Code".
-func (*Code) TypeKey() string { return "Multiplexer" }
+func (*Code) TypeKey() string { return "Code" }

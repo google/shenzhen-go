@@ -14,17 +14,9 @@
 
 package parts
 
-import "encoding/json"
+type PartFactory func() interface{}
 
-type PartUnmarshaler func([]byte) (interface{}, error)
-
-var UnmarshalParts = map[string]PartUnmarshaler{
-	"Code": func(j []byte) (interface{}, error) {
-		p := new(Code)
-		return p, json.Unmarshal(j, p)
-	},
-	"Multiplexer": func(j []byte) (interface{}, error) {
-		p := new(Multiplexer)
-		return p, json.Unmarshal(j, p)
-	},
+var PartFactories = map[string]PartFactory{
+	"Code":        func() interface{} { return new(Code) },
+	"Multiplexer": func() interface{} { return new(Multiplexer) },
 }

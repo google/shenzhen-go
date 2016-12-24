@@ -57,10 +57,10 @@ func (n *Node) ChannelsWritten() []string {
 func (n *Node) String() string { return n.Name }
 
 type jsonNode struct {
-	Name     string
-	Wait     bool
-	Part     json.RawMessage
-	PartType string
+	Name     string          `json:"name"`
+	Wait     bool            `json:"wait"`
+	Part     json.RawMessage `json:"part"`
+	PartType string          `json:"part_type"`
 }
 
 // MarshalJSON encodes the node and part as JSON.

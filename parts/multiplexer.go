@@ -42,8 +42,8 @@ var (
 // channel. All the channels must have the same or compatible types. Once all input
 // channels are closed, the output channel is also closed.
 type Multiplexer struct {
-	Inputs []string
-	Output string
+	Inputs []string `json:"inputs"`
+	Output string   `json:"output"`
 }
 
 // Channels returns the names of all channels used by this goroutine.

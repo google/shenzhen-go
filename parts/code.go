@@ -20,7 +20,7 @@ import (
 
 // Code is a component containing arbitrary code.
 type Code struct {
-	Code string
+	Code string `json:"code"`
 
 	// Computed from Code - which channels are read from and written to.
 	chansRd, chansWr []string

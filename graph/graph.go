@@ -27,18 +27,19 @@ import (
 
 // Channel models a channel.
 type Channel struct {
-	Name, Type string
-	Cap        int
+	Name string `json:"name"`
+	Type string `json:"type"`
+	Cap  int    `json:"cap"`
 }
 
 // Graph describes a Go program as a graph.
 type Graph struct {
-	Name        string
-	PackageName string
-	PackagePath string
-	Imports     []string
-	Nodes       map[string]*Node
-	Channels    map[string]*Channel
+	Name        string              `json:"name"`
+	PackageName string              `json:"package_name"`
+	PackagePath string              `json:"package_path"`
+	Imports     []string            `json:"imports"`
+	Nodes       map[string]*Node    `json:"nodes"`
+	Channels    map[string]*Channel `json:"channels"`
 }
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.

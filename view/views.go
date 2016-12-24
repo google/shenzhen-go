@@ -214,9 +214,9 @@ func HandleNodeRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 			p.Code = r.FormValue("Code")
 		}
 
-		if err := n.Refresh(g); err != nil {
-			log.Printf("Unable to extract channels used from code: %v", err)
-			http.Error(w, "Unable to extract channels used from code", http.StatusBadRequest)
+		if err := n.Refresh(); err != nil {
+			log.Printf("Unable to refresh node: %v", err)
+			http.Error(w, "Unable to refresh node", http.StatusBadRequest)
 			return
 		}
 

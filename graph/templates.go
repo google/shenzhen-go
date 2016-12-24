@@ -26,8 +26,8 @@ const (
 	"{{.Name}}"[URL="/node/{{.Name}}"];{{end}}
 	{{range .Channels}}
 	"{{.Name}}" [URL="/channel/{{.Name}}",shape=oval,fontname="Go Mono"];{{end}}
-	{{range $n := .Nodes}}{{range .ChannelsRead}}
-	"{{.}}" -> "{{$n.Name}}";{{end}}{{range .ChannelsWritten}}
+	{{range $n := .Nodes}}{{range $.DeclaredChannels .ChannelsRead}}
+	"{{.}}" -> "{{$n.Name}}";{{end}}{{range $.DeclaredChannels .ChannelsWritten}}
 	"{{$n.Name}}" -> "{{.}}";{{end}}{{end}}
 }`
 

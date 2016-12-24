@@ -15,7 +15,6 @@
 package parts
 
 import (
-	"shenzhen-go/graph"
 	"shenzhen-go/source"
 )
 
@@ -34,25 +33,14 @@ func (c *Code) Channels() (read, written []string) { return c.chansRd, c.chansWr
 func (c *Code) Impl() string { return c.Code }
 
 // Refresh refreshes cached informatioc.
-func (c *Code) Refresh(g *graph.Graph) error {
-	srcs, dsts, err := source.ExtractChannelIdents(c.Code)
+func (c *Code) Refresh() error {
+	s, d, err := source.ExtractChannelIdents(c.Code)
 	if err != nil {
 		return err
 	}
-
-	// Filter to only declared channels.
-	c.chansWr = make([]string, 0, len(dsts))
-	for _, d := range dsts {
-		if _, found := g.Channels[d]; found {
-			c.chansWr = append(c.chansWr, d)
-		}
-	}
-
-	c.chansRd = make([]string, 0, len(srcs))
-	for _, s := range srcs {
-		if _, found := g.Channels[s]; found {
-			c.chansRd = append(c.chansRd, s)
-		}
-	}
+	c.chansRd, c.chansWr = s, d
 	return nil
 }
+
+// TypeKey returns "Code".
+func (*Code) TypeKey() string { return "Multiplexer" }

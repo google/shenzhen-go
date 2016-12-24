@@ -14,11 +14,22 @@
 
 package graph
 
+import (
+	"encoding/json"
+	"fmt"
+
+	"shenzhen-go/parts"
+)
+
+// While being developed, check the interface is matched.
+var _ = Part(&parts.Multiplexer{})
+
 // Part abstracts the implementation of a node.
 type Part interface {
 	Channels() (read, written []string)
 	Impl() string
-	Refresh(g *Graph) error
+	Refresh() error
+	TypeKey() string
 }
 
 // Node models a goroutine.
@@ -44,3 +55,48 @@ func (n *Node) ChannelsWritten() []string {
 }
 
 func (n *Node) String() string { return n.Name }
+
+type jsonNode struct {
+	Name     string
+	Wait     bool
+	Part     json.RawMessage
+	PartType string
+}
+
+// MarshalJSON encodes the node and part as JSON.
+func (n *Node) MarshalJSON() ([]byte, error) {
+	p, err := json.Marshal(n.Part)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(&jsonNode{
+		Part:     p,
+		PartType: n.Part.TypeKey(),
+		Name:     n.Name,
+		Wait:     n.Wait,
+	})
+}
+
+// UnmarshalJSON decodes the node and part as JSON.
+func (n *Node) UnmarshalJSON(j []byte) error {
+	var mp jsonNode
+	if err := json.Unmarshal(j, &mp); err != nil {
+		return err
+	}
+	pm, ok := parts.UnmarshalParts[mp.PartType]
+	if !ok {
+		return fmt.Errorf("unknown part type %q", mp.PartType)
+	}
+	p, err := pm(mp.Part)
+	if err != nil {
+		return err
+	}
+	ip, ok := p.(Part)
+	if !ok {
+		return fmt.Errorf("unmarshalled to a non-part [%T !~ Part]", p)
+	}
+	n.Name = mp.Name
+	n.Wait = mp.Wait
+	n.Part = ip
+	return nil
+}

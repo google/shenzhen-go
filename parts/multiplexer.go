@@ -17,13 +17,12 @@ package parts
 import (
 	"bytes"
 	"text/template"
-
-	"shenzhen-go/graph"
 )
 
+// Surely there's no problem you can't solve by smothering everything in goroutines...
 const multiplexerTmplSrc = `var mxwg sync.WaitGroup
+mxwg.Add({{len $.Inputs}})
 {{range $.Inputs}}
-mxwg.Add(1)
 go func() {
     for x := range {{.}} {
         {{$.Output}} <- x
@@ -37,9 +36,6 @@ close({{$.Output}})
 
 var (
 	multiplexerTmpl = template.Must(template.New("multiplexer").Parse(multiplexerTmplSrc))
-
-	// While being developed, check the interface is matched.
-	_ = graph.Part(&Multiplexer{})
 )
 
 // Multiplexer reads from N input channels and writes values into a single output
@@ -61,6 +57,7 @@ func (m *Multiplexer) Impl() string {
 }
 
 // Refresh refreshes any cached information.
-func (m *Multiplexer) Refresh(g *graph.Graph) error {
-	return nil
-}
+func (m *Multiplexer) Refresh() error { return nil }
+
+// TypeKey returns "Multiplexer".
+func (*Multiplexer) TypeKey() string { return "Multiplexer" }

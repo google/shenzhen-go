@@ -93,6 +93,6 @@ close(out)`,
 
 func init() {
 	for _, n := range exampleGraph.Nodes {
-		n.Refresh(exampleGraph)
+		n.Refresh()
 	}
 }

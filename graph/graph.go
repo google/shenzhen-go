@@ -89,3 +89,14 @@ func (g *Graph) SaveBuildAndRun() error {
 	// TODO: Be less lazy about the output binary path
 	return open("./" + g.PackageName)
 }
+
+// DeclaredChannels returns the given channels which exist in g.Channels.
+func (g *Graph) DeclaredChannels(chans []string) []string {
+	r := make([]string, 0, len(chans))
+	for _, d := range chans {
+		if _, found := g.Channels[d]; found {
+			r = append(r, d)
+		}
+	}
+	return r
+}

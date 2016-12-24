@@ -28,6 +28,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"shenzhen-go/graph"
 	"shenzhen-go/parts"
 )
@@ -78,9 +80,12 @@ func renderChannelEditor(dst io.Writer, g *graph.Graph, e *graph.Channel) error 
 	}{g, e})
 }
 
-// HandleRootRequest handles the overview / root page requests.
-func HandleRootRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+// RootHandler presents a graph for the root request.
+type RootHandler graph.Graph
+
+func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
+	g := (*graph.Graph)(h)
 	q := r.URL.Query()
 	if _, t := q["dot"]; t {
 		outputDotSrc(g, w)
@@ -115,10 +120,14 @@ func HandleRootRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleChannelRequest handles channel viewer/editor requests.
-func HandleChannelRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+// ChannelHandler handles channel viewer/editor requests.
+type ChannelHandler graph.Graph
+
+func (h *ChannelHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
-	nm := strings.TrimPrefix(r.URL.Path, "/channel/")
+	g := (*graph.Graph)(h)
+
+	nm := mux.Vars(r)["chan"]
 
 	e, found := g.Channels[nm]
 	if nm != "new" && !found {
@@ -183,10 +192,14 @@ func HandleChannelRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request
 	return
 }
 
-// HandleNodeRequest handles node viewer/editor requests.
-func HandleNodeRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+// NodeHandler handles node viewer/editor requests.
+type NodeHandler graph.Graph
+
+func (h *NodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
-	nm := strings.TrimPrefix(r.URL.Path, "/node/")
+	g := (*graph.Graph)(h)
+	nm := mux.Vars(r)["node"]
+
 	n, found := g.Nodes[nm]
 	if !found {
 		http.Error(w, fmt.Sprintf("Node %q not found", nm), http.StatusNotFound)

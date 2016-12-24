@@ -26,6 +26,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"shenzhen-go/view"
 )
 
@@ -67,23 +69,21 @@ func main() {
 	flag.Parse()
 	addr := net.JoinHostPort(*serveAddr, strconv.Itoa(*servePort))
 
-	http.HandleFunc("/channel/", func(w http.ResponseWriter, r *http.Request) {
-		view.HandleChannelRequest(exampleGraph, w, r)
-	})
-	http.HandleFunc("/node/", func(w http.ResponseWriter, r *http.Request) {
-		view.HandleNodeRequest(exampleGraph, w, r)
-	})
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		view.HandleRootRequest(exampleGraph, w, r)
-	})
-	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
+	r := mux.NewRouter()
+	r.Handle("/channel/{chan}", (*view.ChannelHandler)(exampleGraph))
+	r.Handle("/node/{node}", (*view.NodeHandler)(exampleGraph))
+	r.Handle("/", (*view.RootHandler)(exampleGraph))
+
+	r.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
 	})
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s", r.Method, r.URL)
 		// TODO: serve a favicon properly
 		http.Redirect(w, r, "http://golang.org/favicon.ico", http.StatusFound)
 	})
+
+	http.Handle("/", r)
 
 	// As soon as we're serving, launch a web browser.
 	// Generally expected to work on macOS...

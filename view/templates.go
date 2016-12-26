@@ -103,7 +103,7 @@ const (
 <h2>{{$.Base}}</h2>
 <table class="browse">
 {{range $.Entries}}
-<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="/{{.Path}}">{{.Name}}</a></td></tr>{{end}}
+<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="{{.Path}}">{{.Name}}</a></td></tr>{{end}}
 </table>
 </div>
 </body>`
@@ -113,7 +113,7 @@ const (
 </head>
 <body>
 <h1>{{$.Graph.Name}}</h1>
-<div>View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> | <a href="?run">Run</a><br>
+<div><a href="?save">Save</a> | <a href="?run">Run</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br>
 {{$.Diagram}}
 </div>
 </body>`

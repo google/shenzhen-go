@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -35,6 +36,7 @@ type Channel struct {
 
 // Graph describes a Go program as a graph. It can be marshalled and unmarshalled to JSON sensibly.
 type Graph struct {
+	SourcePath  string              `json:"-"` // path to the JSON source.
 	Name        string              `json:"name"`
 	PackageName string              `json:"package_name"`
 	PackagePath string              `json:"package_path"`
@@ -44,12 +46,13 @@ type Graph struct {
 }
 
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.
-func LoadJSON(r io.Reader) (*Graph, error) {
+func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
 	dec := json.NewDecoder(r)
 	var g Graph
 	if err := dec.Decode(&g); err != nil {
 		return nil, err
 	}
+	g.SourcePath = sourcePath
 	return &g, nil
 }
 
@@ -60,7 +63,25 @@ func LoadJSONFile(path string) (*Graph, error) {
 		return nil, err
 	}
 	defer f.Close()
-	return LoadJSON(f)
+	return LoadJSON(f, path)
+}
+
+// SaveJSONFile saves the JSON-encoded Graph to the SourcePath.
+func (g *Graph) SaveJSONFile() error {
+	f, err := ioutil.TempFile(filepath.Dir(g.SourcePath), filepath.Base(g.SourcePath))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	enc := json.NewEncoder(f)
+	enc.SetIndent("", "\t") // For diffability!
+	if err := enc.Encode(g); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(f.Name(), g.SourcePath)
 }
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.

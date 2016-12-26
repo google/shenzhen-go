@@ -21,8 +21,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
-
 	"shenzhen-go/graph"
 )
 
@@ -46,7 +44,7 @@ type entry struct {
 func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
-	path := mux.Vars(r)["path"]
+	path := r.URL.Path
 	if g, ok := b.loadedGraphs[path]; ok {
 		Graph(g, w, r)
 		return
@@ -67,7 +65,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !fi.IsDir() {
-		g, err := graph.LoadJSON(f)
+		g, err := graph.LoadJSON(f, base)
 		if err != nil {
 			log.Printf("Not a directory or a valid JSON graph: %v", err)
 			http.NotFound(w, r)

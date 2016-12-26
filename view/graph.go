@@ -40,6 +40,16 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	if _, t := q["run"]; t {
 		if err := g.SaveBuildAndRun(); err != nil {
 			log.Printf("Failed to save, build, run: %v", err)
+			// TODO: expose error better
+		}
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
+		return
+	}
+	if _, t := q["save"]; t {
+		if err := g.SaveJSONFile(); err != nil {
+			log.Printf("Failed to save JSON file: %v", err)
 		}
 		u := *r.URL
 		u.RawQuery = ""

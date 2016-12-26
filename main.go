@@ -26,8 +26,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"shenzhen-go/view"
 )
 
@@ -69,18 +67,15 @@ func main() {
 	flag.Parse()
 	addr := net.JoinHostPort(*serveAddr, strconv.Itoa(*servePort))
 
-	r := mux.NewRouter()
-	r.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
+	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
 	})
-	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s", r.Method, r.URL)
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	r.Handle("/{path:.*}", view.NewBrowser())
-
-	http.Handle("/", r)
+	http.Handle("/", view.NewBrowser())
 
 	// As soon as we're serving, launch a web browser.
 	// Generally expected to work on macOS...

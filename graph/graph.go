@@ -17,6 +17,7 @@ package graph
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -25,14 +26,14 @@ import (
 	"path/filepath"
 )
 
-// Channel models a channel.
+// Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.
 type Channel struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
 	Cap  int    `json:"cap"`
 }
 
-// Graph describes a Go program as a graph.
+// Graph describes a Go program as a graph. It can be marshalled and unmarshalled to JSON sensibly.
 type Graph struct {
 	Name        string              `json:"name"`
 	PackageName string              `json:"package_name"`
@@ -40,6 +41,26 @@ type Graph struct {
 	Imports     []string            `json:"imports"`
 	Nodes       map[string]*Node    `json:"nodes"`
 	Channels    map[string]*Channel `json:"channels"`
+}
+
+// LoadJSON loads a JSON-encoded Graph from an io.Reader.
+func LoadJSON(r io.Reader) (*Graph, error) {
+	dec := json.NewDecoder(r)
+	var g Graph
+	if err := dec.Decode(&g); err != nil {
+		return nil, err
+	}
+	return &g, nil
+}
+
+// LoadJSONFile loads a JSON-encoded Graph from a file at a given path.
+func LoadJSONFile(path string) (*Graph, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return LoadJSON(f)
 }
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.

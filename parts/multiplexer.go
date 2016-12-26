@@ -34,9 +34,7 @@ mxwg.Wait()
 close({{$.Output}})
 `
 
-var (
-	multiplexerTmpl = template.Must(template.New("multiplexer").Parse(multiplexerTmplSrc))
-)
+var multiplexerTmpl = template.Must(template.New("multiplexer").Parse(multiplexerTmplSrc))
 
 // Multiplexer reads from N input channels and writes values into a single output
 // channel. All the channels must have the same or compatible types. Once all input

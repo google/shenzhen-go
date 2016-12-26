@@ -24,7 +24,8 @@ import (
 // While being developed, check the interface is matched.
 var _ = Part(&parts.Multiplexer{})
 
-// Part abstracts the implementation of a node.
+// Part abstracts the implementation of a node. Concrete implementations should be
+// able to be marshalled and unmarshalled to JSON sensibly.
 type Part interface {
 	Channels() (read, written []string)
 	Impl() string
@@ -32,7 +33,7 @@ type Part interface {
 	TypeKey() string
 }
 
-// Node models a goroutine.
+// Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.
 type Node struct {
 	Part
 
@@ -98,5 +99,5 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	n.Name = mp.Name
 	n.Wait = mp.Wait
 	n.Part = ip
-	return nil
+	return n.Part.Refresh()
 }

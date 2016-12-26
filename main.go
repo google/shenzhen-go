@@ -70,19 +70,18 @@ func main() {
 	addr := net.JoinHostPort(*serveAddr, strconv.Itoa(*servePort))
 
 	r := mux.NewRouter()
-	r.Handle("/channel/{chan}", (*view.ChannelHandler)(exampleGraph))
-	r.Handle("/node/{node}", (*view.NodeHandler)(exampleGraph))
-	r.Handle("/browse/", http.StripPrefix("/browse/", view.DirBrowser{}))
-	r.Handle("/", (*view.GraphHandler)(exampleGraph))
-
 	r.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
 	})
 	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s", r.Method, r.URL)
-		// TODO: serve a favicon properly
-		http.Redirect(w, r, "http://golang.org/favicon.ico", http.StatusFound)
+		w.WriteHeader(http.StatusNoContent)
 	})
+
+	r.Handle("/{path:.*}", view.NewBrowser())
+	//r.Handle("/{path:.*}", http.StripPrefix("/graph", (*view.GraphHandler)(exampleGraph)))
+	//r.Handle("/channel/{chan}", (*view.ChannelHandler)(exampleGraph))
+	//r.Handle("/node/{node}", (*view.NodeHandler)(exampleGraph))
 
 	http.Handle("/", r)
 

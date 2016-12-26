@@ -26,8 +26,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
-
 	"shenzhen-go/graph"
 	"shenzhen-go/parts"
 )
@@ -78,14 +76,8 @@ func renderChannelEditor(dst io.Writer, g *graph.Graph, e *graph.Channel) error 
 	}{g, e})
 }
 
-// ChannelHandler handles channel viewer/editor requests.
-type ChannelHandler graph.Graph
-
-func (h *ChannelHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func ViewChannel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
-	g := (*graph.Graph)(h)
-
-	nm := mux.Vars(r)["chan"]
 
 	e, found := g.Channels[nm]
 	if nm != "new" && !found {
@@ -150,13 +142,8 @@ func (h *ChannelHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// NodeHandler handles node viewer/editor requests.
-type NodeHandler graph.Graph
-
-func (h *NodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func ViewNode(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
-	g := (*graph.Graph)(h)
-	nm := mux.Vars(r)["node"]
 
 	n, found := g.Nodes[nm]
 	if !found {

@@ -101,10 +101,9 @@ const (
 <h1>SHENZHEN GO</h1>
 <div>
 <h2>{{$.Base}}</h2>
-<table>
+<table class="browse">
 {{range $.Entries}}
-<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="/browse/{{$.Base}}/{{.}}>{{.}}</a></td></tr>
-{{else}}Nothing here.{{end}}
+<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="/{{.Path}}">{{.Name}}</a></td></tr>{{end}}
 </table>
 </div>
 </body>`
@@ -114,7 +113,7 @@ const (
 </head>
 <body>
 <h1>{{$.Graph.Name}}</h1>
-<div>View as: <a href="/?go">Go</a> <a href="/?dot">Dot</a> <a href="/?json">JSON</a> | <a href="?run">Run</a><br>
+<div>View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> | <a href="?run">Run</a><br>
 {{$.Diagram}}
 </div>
 </body>`

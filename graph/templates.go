@@ -23,9 +23,9 @@ const (
 	graph[rankdir="UD",fontname="Go"];
 	node[shape=box,fontname="Go"];
 	{{range .Nodes}}
-	"{{.Name}}"[URL="/node/{{.Name}}"];{{end}}
+	"{{.Name}}"[URL="?node={{.Name}}"];{{end}}
 	{{range .Channels}}
-	"{{.Name}}" [URL="/channel/{{.Name}}",shape=oval,fontname="Go Mono"];{{end}}
+	"{{.Name}}" [URL="?channel={{.Name}}",shape=oval,fontname="Go Mono"];{{end}}
 	{{range $n := .Nodes}}{{range $.DeclaredChannels .ChannelsRead}}
 	"{{.}}" -> "{{$n.Name}}";{{end}}{{range $.DeclaredChannels .ChannelsWritten}}
 	"{{$n.Name}}" -> "{{.}}";{{end}}{{end}}

@@ -22,12 +22,8 @@ import (
 	"shenzhen-go/graph"
 )
 
-// GraphHandler presents a graph for the root request.
-type GraphHandler graph.Graph
-
-func (h *GraphHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s %s", r.Method, r.URL)
-	g := (*graph.Graph)(h)
+func ViewGraph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s graph: %s", r.Method, r.URL)
 	q := r.URL.Query()
 	if _, t := q["dot"]; t {
 		outputDotSrc(g, w)
@@ -45,16 +41,28 @@ func (h *GraphHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err := g.SaveBuildAndRun(); err != nil {
 			log.Printf("Failed to save, build, run: %v", err)
 		}
+		http.Redirect(w, r, r.URL.Path, http.StatusFound)
+		return
+	}
+	if n := q["node"]; len(n) == 1 {
+		ViewNode(g, n[0], w, r)
+		return
+	}
+	if n := q["channel"]; len(n) == 1 {
+		ViewChannel(g, n[0], w, r)
+		return
 	}
 
 	var dot, svg bytes.Buffer
 	if err := g.WriteDotTo(&dot); err != nil {
 		log.Printf("Could not render to dot: %v", err)
 		http.Error(w, "Could not render to dot", http.StatusInternalServerError)
+		return
 	}
 	if err := dotToSVG(&svg, &dot); err != nil {
 		log.Printf("Could not render dot to SVG: %v", err)
 		http.Error(w, "Could not render dot to SVG", http.StatusInternalServerError)
+		return
 	}
 	d := &struct {
 		Diagram template.HTML
@@ -66,5 +74,6 @@ func (h *GraphHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
 		http.Error(w, "Could not execute graph editor template", http.StatusInternalServerError)
+		return
 	}
 }

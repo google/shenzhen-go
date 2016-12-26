@@ -111,7 +111,7 @@ const (
 </head>
 <body>
 <h1>{{$.Graph.Name}}</h1>
-<div><a href="?save">Save</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br>
+<div><a href="?save">Save</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br><br>
 {{$.Diagram}}
 </div>
 </body>`

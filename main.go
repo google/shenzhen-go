@@ -70,10 +70,7 @@ func main() {
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
 	})
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.URL)
-		w.WriteHeader(http.StatusNoContent)
-	})
+	http.Handle("/favicon.ico", view.Favicon)
 
 	http.Handle("/", view.NewBrowser())
 

@@ -16,7 +16,6 @@
 package view
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -33,36 +32,6 @@ import (
 
 var identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
-func outputDotSrc(g *graph.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/vnd.graphviz")
-	if err := g.WriteDotTo(w); err != nil {
-		log.Printf("Could not render to dot: %v", err)
-		http.Error(w, "Could not render to dot", http.StatusInternalServerError)
-	}
-}
-
-func outputGoSrc(g *graph.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/golang")
-	if err := g.WriteGoTo(w); err != nil {
-		log.Printf("Could not render to Go: %v", err)
-		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
-	}
-}
-
-func outputJSON(g *graph.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "\t")
-	if err := enc.Encode(g); err != nil {
-		log.Printf("Could not encode JSON: %v", err)
-		http.Error(w, "Could not encode JSON", http.StatusInternalServerError)
-		return
-	}
-}
-
 func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
 	return nodeEditorTemplate.Execute(dst, struct {
 		Graph *graph.Graph
@@ -77,12 +46,13 @@ func renderChannelEditor(dst io.Writer, g *graph.Graph, e *graph.Channel) error 
 	}{g, e})
 }
 
-func Channel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
+// Channel handles viewing/editing a channel.
+func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
-	e, found := g.Channels[nm]
-	if nm != "new" && !found {
-		http.Error(w, fmt.Sprintf("Channel %q not found", nm), http.StatusNotFound)
+	e, found := g.Channels[name]
+	if name != "new" && !found {
+		http.Error(w, fmt.Sprintf("Channel %q not found", name), http.StatusNotFound)
 		return
 	}
 
@@ -150,12 +120,13 @@ func Channel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) 
 	return
 }
 
-func Node(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
+// Node handles viewing/editing a node.
+func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
-	n, found := g.Nodes[nm]
+	n, found := g.Nodes[name]
 	if !found {
-		http.Error(w, fmt.Sprintf("Node %q not found", nm), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
 		return
 	}
 

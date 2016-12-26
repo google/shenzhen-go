@@ -29,6 +29,8 @@ type dirBrowser struct {
 	loadedGraphs map[string]*graph.Graph
 }
 
+// NewBrowser makes a Handler that can browse the filesystem and also multiple
+// graphs stored in the filesystem.
 func NewBrowser() http.Handler {
 	return &dirBrowser{
 		loadedGraphs: make(map[string]*graph.Graph),

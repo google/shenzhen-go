@@ -66,6 +66,13 @@ func LoadJSONFile(path string) (*Graph, error) {
 	return LoadJSON(f, path)
 }
 
+// WriteJSONTo writes nicely-formatted JSON to the given Writer.
+func (g *Graph) WriteJSONTo(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "\t") // For diffability!
+	return enc.Encode(g)
+}
+
 // SaveJSONFile saves the JSON-encoded Graph to the SourcePath.
 func (g *Graph) SaveJSONFile() error {
 	f, err := ioutil.TempFile(filepath.Dir(g.SourcePath), filepath.Base(g.SourcePath))
@@ -73,9 +80,7 @@ func (g *Graph) SaveJSONFile() error {
 		return err
 	}
 	defer f.Close()
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "\t") // For diffability!
-	if err := enc.Encode(g); err != nil {
+	if err := g.WriteJSONTo(f); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {

@@ -41,7 +41,9 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		if err := g.SaveBuildAndRun(); err != nil {
 			log.Printf("Failed to save, build, run: %v", err)
 		}
-		http.Redirect(w, r, r.URL.Path, http.StatusFound)
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
 		return
 	}
 	if n := q["node"]; len(n) == 1 {

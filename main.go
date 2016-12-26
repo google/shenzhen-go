@@ -79,9 +79,6 @@ func main() {
 	})
 
 	r.Handle("/{path:.*}", view.NewBrowser())
-	//r.Handle("/{path:.*}", http.StripPrefix("/graph", (*view.GraphHandler)(exampleGraph)))
-	//r.Handle("/channel/{chan}", (*view.ChannelHandler)(exampleGraph))
-	//r.Handle("/node/{node}", (*view.NodeHandler)(exampleGraph))
 
 	http.Handle("/", r)
 

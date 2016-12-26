@@ -21,6 +21,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -130,7 +131,14 @@ func Channel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) 
 		delete(g.Channels, e.Name)
 		e.Name = nn
 		g.Channels[nn] = e
-		http.Redirect(w, r, "/channel/"+nn, http.StatusSeeOther) // should cause GET
+
+		q := url.Values{
+			"channel": []string{nn},
+		}
+		u := *r.URL
+		u.RawQuery = q.Encode()
+		log.Printf("redirecting to %v", u)
+		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
 		return
 	}
 
@@ -186,7 +194,11 @@ func Node(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
 		n.Name = nm
 		g.Nodes[nm] = n
 
-		http.Redirect(w, r, "/node/"+nm, http.StatusSeeOther) // should cause GET
+		q := url.Values{"node": []string{nm}}
+		u := *r.URL
+		u.RawQuery = q.Encode()
+		log.Printf("redirecting to %v", u)
+		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
 		return
 	}
 

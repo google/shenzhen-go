@@ -22,7 +22,7 @@ import (
 	"shenzhen-go/graph"
 )
 
-func ViewGraph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s graph: %s", r.Method, r.URL)
 	q := r.URL.Query()
 	if _, t := q["dot"]; t {
@@ -45,11 +45,11 @@ func ViewGraph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if n := q["node"]; len(n) == 1 {
-		ViewNode(g, n[0], w, r)
+		Node(g, n[0], w, r)
 		return
 	}
 	if n := q["channel"]; len(n) == 1 {
-		ViewChannel(g, n[0], w, r)
+		Channel(g, n[0], w, r)
 		return
 	}
 

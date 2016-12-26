@@ -76,7 +76,7 @@ func renderChannelEditor(dst io.Writer, g *graph.Graph, e *graph.Channel) error 
 	}{g, e})
 }
 
-func ViewChannel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
+func Channel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	e, found := g.Channels[nm]
@@ -142,7 +142,7 @@ func ViewChannel(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Reque
 	return
 }
 
-func ViewNode(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
+func Node(g *graph.Graph, nm string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	n, found := g.Nodes[nm]

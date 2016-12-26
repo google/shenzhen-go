@@ -48,7 +48,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	path := mux.Vars(r)["path"]
 	if g, ok := b.loadedGraphs[path]; ok {
-		ViewGraph(g, w, r)
+		Graph(g, w, r)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 		}
 		b.loadedGraphs[path] = g
-		ViewGraph(g, w, r)
+		Graph(g, w, r)
 		return
 	}
 	fis, err := f.Readdir(0)

@@ -38,14 +38,19 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	n, found := g.Nodes[name]
-	if !found {
+	if name != "new" && !found {
 		http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
 		return
 	}
 
 	switch r.Method {
 	case "POST":
-		// Update the node.
+		if n == nil {
+			n = &graph.Node{
+				Part: &parts.Code{},
+			}
+		}
+
 		if err := r.ParseForm(); err != nil {
 			log.Printf("Could not parse form: %v", err)
 			http.Error(w, "Could not parse", http.StatusBadRequest)

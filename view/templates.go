@@ -80,18 +80,16 @@ const (
 </body>`
 
 	nodeEditorTemplateSrc = `<head>
-	<title>{{.Node.Name}}</title><style>` + css + `</style>
+	<title>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
 </head>
 <body>
-	{{with .Node}}
-	<h1>{{.Name}}</h1>
+	<h1>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</h1>
 	<form method="post">
-		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{.Name}}"></div>
-		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}></div>
-		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{.Impl}}</textarea></div>
+		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{with .Node}}{{.Name}}{{end}}"></div>
+		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{with .Node}}{{if .Wait}}checked{{end}}{{end}}></div>
+		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{with .Node}}{{.Impl}}{{end}}</textarea></div>
 		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
 	</form>
-	{{end}}
 </body>`
 
 	browseTemplateSrc = `<head>

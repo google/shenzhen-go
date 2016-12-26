@@ -16,10 +16,8 @@
 package view
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -78,46 +76,6 @@ func renderChannelEditor(dst io.Writer, g *graph.Graph, e *graph.Channel) error 
 		Graph   *graph.Graph
 		Channel *graph.Channel
 	}{g, e})
-}
-
-// RootHandler presents a graph for the root request.
-type RootHandler graph.Graph
-
-func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s %s", r.Method, r.URL)
-	g := (*graph.Graph)(h)
-	q := r.URL.Query()
-	if _, t := q["dot"]; t {
-		outputDotSrc(g, w)
-		return
-	}
-	if _, t := q["go"]; t {
-		outputGoSrc(g, w)
-		return
-	}
-	if _, t := q["json"]; t {
-		outputJSON(g, w)
-		return
-	}
-	if _, t := q["run"]; t {
-		if err := g.SaveBuildAndRun(); err != nil {
-			log.Printf("Failed to save, build, run: %v", err)
-		}
-	}
-
-	var dot, svg bytes.Buffer
-	if err := g.WriteDotTo(&dot); err != nil {
-		log.Printf("Could not render to dot: %v", err)
-		http.Error(w, "Could not render to dot", http.StatusInternalServerError)
-	}
-	if err := dotToSVG(&svg, &dot); err != nil {
-		log.Printf("Could not render dot to SVG: %v", err)
-		http.Error(w, "Could not render dot to SVG", http.StatusInternalServerError)
-	}
-	if err := rootTemplate.Execute(w, template.HTML(svg.String())); err != nil {
-		log.Printf("Could not execute root template: %v", err)
-		http.Error(w, "Could not execute root template", http.StatusInternalServerError)
-	}
 }
 
 // ChannelHandler handles channel viewer/editor requests.

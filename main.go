@@ -72,7 +72,8 @@ func main() {
 	r := mux.NewRouter()
 	r.Handle("/channel/{chan}", (*view.ChannelHandler)(exampleGraph))
 	r.Handle("/node/{node}", (*view.NodeHandler)(exampleGraph))
-	r.Handle("/", (*view.RootHandler)(exampleGraph))
+	r.Handle("/browse/", http.StripPrefix("/browse/", view.DirBrowser{}))
+	r.Handle("/", (*view.GraphHandler)(exampleGraph))
 
 	r.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)

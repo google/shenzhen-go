@@ -60,6 +60,10 @@ const (
 	div.hcentre {
 		text-align: center;
 	}
+	table.browse {
+		font-family: "Go Mono","Fira Code",sans-serif;
+		font-size: 12pt;
+	}
 	`
 
 	channelEditorTemplateSrc = `<head>
@@ -90,19 +94,35 @@ const (
 	{{end}}
 </body>`
 
-	rootTemplateSrc = `<head>
+	browseTemplateSrc = `<head>
 	<title>SHENZHEN GO</title><style>` + css + `</style>
 </head>
 <body>
 <h1>SHENZHEN GO</h1>
+<div>
+<h2>{{$.Base}}</h2>
+<table>
+{{range $.Entries}}
+<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="/browse/{{$.Base}}/{{.}}>{{.}}</a></td></tr>
+{{else}}Nothing here.{{end}}
+</table>
+</div>
+</body>`
+
+	graphEditorTemplateSrc = `<head>
+	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
+</head>
+<body>
+<h1>{{$.Graph.Name}}</h1>
 <div>View as: <a href="/?go">Go</a> <a href="/?dot">Dot</a> <a href="/?json">JSON</a> | <a href="?run">Run</a><br>
-{{.}}
+{{$.Diagram}}
 </div>
 </body>`
 )
 
 var (
-	rootTemplate          = template.Must(template.New("root").Parse(rootTemplateSrc))
+	browseTemplate        = template.Must(template.New("browse").Parse(browseTemplateSrc))
+	graphEditorTemplate   = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
 	nodeEditorTemplate    = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 	channelEditorTemplate = template.Must(template.New("channelEditor").Parse(channelEditorTemplateSrc))
 )

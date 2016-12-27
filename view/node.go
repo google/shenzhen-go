@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"shenzhen-go/graph"
@@ -64,6 +65,19 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		mult, err := strconv.Atoi(r.FormValue("Multiplicity"))
+		if err != nil {
+			log.Printf("Multiplicity is not an integer: %v", err)
+			http.Error(w, "Multiplicity is not an integer", http.StatusBadRequest)
+			return
+		}
+		if mult < 1 {
+			log.Printf("Must specify positive Multiplicity [%d < 1]", mult)
+			http.Error(w, "Multiplicity must be positive", http.StatusBadRequest)
+			return
+		}
+
+		n.Multiplicity = uint(mult)
 		n.Wait = (r.FormValue("Wait") == "on")
 		if p, ok := n.Part.(*parts.Code); ok {
 			p.Code = r.FormValue("Code")

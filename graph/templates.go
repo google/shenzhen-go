@@ -23,7 +23,7 @@ const (
 	graph[rankdir="UD",fontname="Go"];
 	node[shape=box,fontname="Go"];
 	{{range .Nodes}}
-	"{{.Name}}"[URL="?node={{.Name}}"];{{end}}
+	"{{.Name}}"[URL="?node={{.Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];{{end}}
 	{{range .Channels}}
 	"{{.Name}}" [URL="?channel={{.Name}}",shape=oval,fontname="Go Mono"];{{end}}
 	{{range $n := .Nodes}}{{range $.DeclaredChannels .ChannelsRead}}
@@ -44,11 +44,19 @@ func main() {
 	{{.Name}} := make(chan {{.Type}}, {{.Cap}}){{end}}
 	var wg sync.WaitGroup
 	{{range .Nodes}}
-	{{if .Wait}}wg.Add(1)
-	{{end}}go func() {
+	// {{.Name}}
+	{{if .Wait}}wg.Add({{.Multiplicity}})
+	{{end}}{{if gt .Multiplicity 1}}for n:=0; n<{{.Multiplicity}}; n++ {
+		go func(instanceNumber int) {
+			{{if .Wait}}defer wg.Done()
+			{{end}}{{.Impl}}
+		}(n)
+	}
+	{{else}}go func() {
 		{{if .Wait}}defer wg.Done()
 		{{end}}{{.Impl}}
 	}()
+	{{end}}
 	{{end}}
 	wg.Wait()
 }`

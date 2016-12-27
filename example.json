@@ -9,6 +9,7 @@
 		"Filter divisible by 2": {
 			"name": "Filter divisible by 2",
 			"wait": true,
+			"multiplicity": 1,
 			"part": {
 				"code": "for n := range raw {\n\tif n \u003e 2 \u0026\u0026 n % 2 == 0 {\n\t\tcontinue\n\t}\n\tdiv2 \u003c- n\n}\nclose(div2)"
 			},
@@ -17,22 +18,25 @@
 		"Filter divisible by 3": {
 			"name": "Filter divisible by 3",
 			"wait": true,
+			"multiplicity": 1,
 			"part": {
-				"code": "for n := range div2 {\n\tif n \u003e 3 \u0026\u0026 n % 3 == 0 {\n\t\tcontinue\n\t}\n\tout \u003c- n\n}\nclose(out)"
+				"code": "for n := range div2 {\r\n\tif n \u003e 3 \u0026\u0026 n % 3 == 0 {\r\n\t\tcontinue\r\n\t}\r\n\tout \u003c- n\r\n}\r\nclose(out)"
 			},
 			"part_type": "Code"
 		},
 		"Generate integers ≥ 2": {
 			"name": "Generate integers ≥ 2",
 			"wait": true,
+			"multiplicity": 1,
 			"part": {
-				"code": "for i:= 2; i\u003c100; i++ {\n\traw \u003c- i\n}\nclose(raw)"
+				"code": "for i := 2; i\u003c50; i++ {\r\n\traw \u003c- i\r\n}\r\nclose(raw)"
 			},
 			"part_type": "Code"
 		},
 		"Print output": {
 			"name": "Print output",
 			"wait": true,
+			"multiplicity": 1,
 			"part": {
 				"code": "for n := range out {\n\tfmt.Println(n)\n}"
 			},

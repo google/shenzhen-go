@@ -22,7 +22,10 @@ import (
 )
 
 // While being developed, check the interface is matched.
-var _ = Part(&parts.Multiplexer{})
+var (
+	_ = Part(&parts.Code{})
+	_ = Part(&parts.Multiplexer{})
+)
 
 // Part abstracts the implementation of a node. Concrete implementations should be
 // able to be marshalled and unmarshalled to JSON sensibly.
@@ -37,8 +40,9 @@ type Part interface {
 type Node struct {
 	Part
 
-	Name string
-	Wait bool
+	Name         string
+	Multiplicity uint
+	Wait         bool
 }
 
 // ChannelsRead returns the channels read from by this node. It is a convenience
@@ -58,10 +62,11 @@ func (n *Node) ChannelsWritten() []string {
 func (n *Node) String() string { return n.Name }
 
 type jsonNode struct {
-	Name     string          `json:"name"`
-	Wait     bool            `json:"wait"`
-	Part     json.RawMessage `json:"part"`
-	PartType string          `json:"part_type"`
+	Name         string          `json:"name"`
+	Wait         bool            `json:"wait"`
+	Multiplicity uint            `json:"multiplicity"`
+	Part         json.RawMessage `json:"part"`
+	PartType     string          `json:"part_type"`
 }
 
 // MarshalJSON encodes the node and part as JSON.
@@ -70,11 +75,15 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if n.Multiplicity < 1 {
+		n.Multiplicity = 1
+	}
 	return json.Marshal(&jsonNode{
-		Part:     p,
-		PartType: n.Part.TypeKey(),
-		Name:     n.Name,
-		Wait:     n.Wait,
+		Part:         p,
+		PartType:     n.Part.TypeKey(),
+		Name:         n.Name,
+		Wait:         n.Wait,
+		Multiplicity: n.Multiplicity,
 	})
 }
 
@@ -96,8 +105,12 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if !ok {
 		return fmt.Errorf("unmarshalled to a non-part [%T !~ Part]", p)
 	}
+	if mp.Multiplicity < 1 {
+		mp.Multiplicity = 1
+	}
 	n.Name = mp.Name
 	n.Wait = mp.Wait
+	n.Multiplicity = mp.Multiplicity
 	n.Part = ip
 	return n.Part.Refresh()
 }

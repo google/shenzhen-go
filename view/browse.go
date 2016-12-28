@@ -96,9 +96,11 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d := &struct {
+		Up      string
 		Base    string
 		Entries []entry
 	}{
+		Up:      filepath.Dir(base),
 		Base:    base,
 		Entries: e,
 	}

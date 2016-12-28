@@ -63,6 +63,7 @@ const (
 	table.browse {
 		font-family: "Go Mono","Fira Code",sans-serif;
 		font-size: 12pt;
+		margin-top: 16pt;
 	}
 	`
 

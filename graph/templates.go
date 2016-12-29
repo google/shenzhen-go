@@ -19,12 +19,11 @@ import (
 )
 
 const (
-	// Channels as nodes - full representation
 	dotTemplateSrc = `digraph {
 	graph[rankdir="UD",fontname="Go"];
 	node[shape=box,fontname="Go"];
 	{{range .Nodes}}
-	"{{.Name}}"[URL="?node={{.Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];{{end}}
+	"{{.Name}}" [URL="?node={{.Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];{{end}}
 	{{range .Channels}}
 	"{{.Name}}" [xlabel="{{.Name}}",URL="?channel={{.Name}}",shape=point,fontname="Go Mono"];{{end}}
 	{{range $n := .Nodes}}{{range $.DeclaredChannels .ChannelsRead}}

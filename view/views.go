@@ -20,6 +20,54 @@ import (
 	"os/exec"
 )
 
+const css = `
+	body {
+		font-family: "Go","San Francisco","Helvetica Neue",Helvetica,sans-serif;
+		float: none;
+		max-width: 800px;
+		margin: 20 auto 0;
+	}
+	form {
+		float: none;
+		max-width: 800px;
+		margin: 0 auto;
+	}
+	div.formfield {
+		margin-top: 12px;
+		margin-bottom: 12px;
+	}
+	label {
+		float: left;
+		text-align: right;
+		margin-right: 15px;
+		width: 50%;
+	}
+	input {
+		font-family: "Go Mono","Fira Code",sans-serif;
+		font-size: 12pt;
+	}
+	select {
+		font-family: "Go Mono","Fira Code",sans-serif;
+		font-size: 12pt;
+	}
+	textarea {
+		font-family: "Go Mono","Fira Code",sans-serif;
+		font-size: 12pt;
+	}
+	div svg {
+		display: block;
+		margin: 0 auto;
+	}
+	div.hcentre {
+		text-align: center;
+	}
+	table.browse {
+		font-family: "Go Mono","Fira Code",sans-serif;
+		font-size: 12pt;
+		margin-top: 16pt;
+	}
+`
+
 func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

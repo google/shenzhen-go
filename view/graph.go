@@ -23,6 +23,18 @@ import (
 	"shenzhen-go/graph"
 )
 
+const graphEditorTemplateSrc = `<head>
+	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
+</head>
+<body>
+<h1>{{$.Graph.Name}}</h1>
+<div><a href="?save">Save</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br><br>
+{{$.Diagram}}
+</div>
+</body>`
+
+var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
+
 // Graph handles displaying/editing a graph.
 func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s graph: %s", r.Method, r.URL)

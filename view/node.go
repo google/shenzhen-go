@@ -16,6 +16,7 @@ package view
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -26,6 +27,22 @@ import (
 	"shenzhen-go/graph"
 	"shenzhen-go/parts"
 )
+
+const nodeEditorTemplateSrc = `<head>
+	<title>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
+</head>
+<body>
+	<h1>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</h1>
+	<form method="post">
+		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{with .Node}}{{.Name}}{{end}}"></div>
+		<div class="formfield"><label for="Multiplicity">Multiplicity</label><input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{with .Node}}{{.Multiplicity}}{{end}}"></div>
+		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{with .Node}}{{if .Wait}}checked{{end}}{{end}}></div>
+		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{with .Node}}{{.Impl}}{{end}}</textarea></div>
+		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
+	</form>
+</body>`
+
+var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
 func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
 	return nodeEditorTemplate.Execute(dst, struct {

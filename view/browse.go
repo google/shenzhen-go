@@ -15,6 +15,7 @@
 package view
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -23,6 +24,23 @@ import (
 
 	"shenzhen-go/graph"
 )
+
+const browseTemplateSrc = `<head>
+	<title>SHENZHEN GO</title><style>` + css + `</style>
+</head>
+<body>
+<h1>SHENZHEN GO</h1>
+<div>
+<h2>{{$.Base}}</h2>
+<a href="{{.Up}}">Up</a> | <a href="?new">New</a>
+<table class="browse">
+{{range $.Entries}}
+<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="{{.Path}}">{{.Name}}</a></td></tr>{{end}}
+</table>
+</div>
+</body>`
+
+var browseTemplate = template.Must(template.New("browse").Parse(browseTemplateSrc))
 
 // dirBrowser serves a way of visually navigating the filesystem.
 type dirBrowser struct {

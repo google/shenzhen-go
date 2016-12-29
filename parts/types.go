@@ -20,5 +20,6 @@ type PartFactory func() interface{}
 // PartFactories translates part type strings into part factories.
 var PartFactories = map[string]PartFactory{
 	"Code":        func() interface{} { return new(Code) },
+	"Filter":      func() interface{} { return new(Filter) },
 	"Multiplexer": func() interface{} { return new(Multiplexer) },
 }

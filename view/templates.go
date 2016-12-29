@@ -14,12 +14,7 @@
 
 package view
 
-import (
-	"html/template"
-)
-
-const (
-	css = `
+const css = `
 	body {
 		font-family: "Go","San Francisco","Helvetica Neue",Helvetica,sans-serif;
 		float: none;
@@ -65,64 +60,4 @@ const (
 		font-size: 12pt;
 		margin-top: 16pt;
 	}
-	`
-
-	channelEditorTemplateSrc = `<head>
-	<title>{{with .Channel}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
-</head>
-<body>
-	<h1>{{with .Channel}}{{.Name}}{{else}}[New]{{end}}</h1>
-	<form method="post">
-		<div class="formfield"><label for="Name">Name</label><input type="text" name="Name" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{with .Channel}}{{.Name}}{{end}}"></div>
-		<div class="formfield"><label for="Type">Type</label><input type="text" name="Type" required value="{{with .Channel}}{{.Type}}{{end}}"></div>
-		<div class="formfield"><label for="Cap">Capacity</label><input type="text" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{with .Channel}}{{.Cap}}{{end}}"></div>
-		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
-	</form>
-</body>`
-
-	nodeEditorTemplateSrc = `<head>
-	<title>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
-</head>
-<body>
-	<h1>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</h1>
-	<form method="post">
-		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{with .Node}}{{.Name}}{{end}}"></div>
-		<div class="formfield"><label for="Multiplicity">Multiplicity</label><input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{with .Node}}{{.Multiplicity}}{{end}}"></div>
-		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{with .Node}}{{if .Wait}}checked{{end}}{{end}}></div>
-		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{with .Node}}{{.Impl}}{{end}}</textarea></div>
-		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
-	</form>
-</body>`
-
-	browseTemplateSrc = `<head>
-	<title>SHENZHEN GO</title><style>` + css + `</style>
-</head>
-<body>
-<h1>SHENZHEN GO</h1>
-<div>
-<h2>{{$.Base}}</h2>
-<a href="{{.Up}}">Up</a> | <a href="?new">New</a>
-<table class="browse">
-{{range $.Entries}}
-<tr><td>{{if .IsDir}}&lt;dir&gt;{{end}}</td><td><a href="{{.Path}}">{{.Name}}</a></td></tr>{{end}}
-</table>
-</div>
-</body>`
-
-	graphEditorTemplateSrc = `<head>
-	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
-</head>
-<body>
-<h1>{{$.Graph.Name}}</h1>
-<div><a href="?save">Save</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br><br>
-{{$.Diagram}}
-</div>
-</body>`
-)
-
-var (
-	browseTemplate        = template.Must(template.New("browse").Parse(browseTemplateSrc))
-	graphEditorTemplate   = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
-	nodeEditorTemplate    = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
-	channelEditorTemplate = template.Must(template.New("channelEditor").Parse(channelEditorTemplateSrc))
-)
+`

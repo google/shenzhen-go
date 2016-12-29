@@ -20,7 +20,16 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for n := range div2 {\r\n\tif n \u003e 3 \u0026\u0026 n % 3 == 0 {\r\n\t\tcontinue\r\n\t}\r\n\tout \u003c- n\r\n}\r\nclose(out)"
+				"code": "for n := range div2 {\r\n\tif n \u003e 3 \u0026\u0026 n % 3 == 0 {\r\n\t\tcontinue\r\n\t}\r\n\tdiv3 \u003c- n\r\n}\r\nclose(div3)"
+			},
+			"part_type": "Code"
+		},
+		"Filter divisible by 5": {
+			"name": "Filter divisible by 5",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"code": "for n := range div3 {\r\n\tif n \u003e 5 \u0026\u0026 n % 5 == 0 {\r\n\t\tcontinue\r\n\t}\r\n\tout \u003c- n\r\n}\r\nclose(out)"
 			},
 			"part_type": "Code"
 		},
@@ -46,6 +55,11 @@
 	"channels": {
 		"div2": {
 			"name": "div2",
+			"type": "int",
+			"cap": 0
+		},
+		"div3": {
+			"name": "div3",
 			"type": "int",
 			"cap": 0
 		},

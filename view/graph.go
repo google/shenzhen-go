@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/http"
 
+	"fmt"
 	"shenzhen-go/graph"
 )
 
@@ -28,7 +29,7 @@ const graphEditorTemplateSrc = `<head>
 </head>
 <body>
 <h1>{{$.Graph.Name}}</h1>
-<div><a href="?save">Save</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br><br>
+<div><a href="?save">Save</a> | <a href="?build">Build</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br><br>
 {{$.Diagram}}
 </div>
 </body>`
@@ -51,10 +52,24 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		outputJSON(g, w)
 		return
 	}
+	if _, t := q["build"]; t {
+		if err := g.Build(); err != nil {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error building:\n%v", err)
+			return
+		}
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
+		return
+	}
 	if _, t := q["run"]; t {
-		if err := g.SaveBuildAndRun(); err != nil {
-			log.Printf("Failed to save, build, run: %v", err)
-			// TODO: expose error better
+		if err := g.BuildAndRun(); err != nil {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error building or running:\n%v", err)
+			return
 		}
 		u := *r.URL
 		u.RawQuery = ""

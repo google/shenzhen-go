@@ -117,7 +117,8 @@ func (g *Graph) WriteGoRunnerTo(w io.Writer) error {
 	return goRunnerTemplate.Execute(w, g)
 }
 
-func (g *Graph) saveGoSrc() error {
+// Build saves the graph as Go source code and tries to build it.
+func (g *Graph) Build() error {
 	gopath, ok := os.LookupEnv("GOPATH")
 	if !ok || gopath == "" {
 		return errors.New("cannot use $GOPATH; empty or undefined")
@@ -135,10 +136,9 @@ func (g *Graph) saveGoSrc() error {
 	if err := g.WriteGoTo(f); err != nil {
 		return err
 	}
-	return f.Close()
-}
-
-func (g *Graph) build() error {
+	if err := f.Close(); err != nil {
+		return err
+	}
 	return exec.Command(`go`, `build`, g.PackagePath).Run()
 }
 
@@ -158,12 +158,9 @@ func (g *Graph) run() error {
 	return exec.Command(`go`, `run`, fn).Run()
 }
 
-// SaveBuildAndRun saves the project as Go source code, builds it, and runs it.
-func (g *Graph) SaveBuildAndRun() error {
-	if err := g.saveGoSrc(); err != nil {
-		return err
-	}
-	if err := g.build(); err != nil {
+// BuildAndRun saves the project as Go source code, builds it, and runs it.
+func (g *Graph) BuildAndRun() error {
+	if err := g.Build(); err != nil {
 		return err
 	}
 	return g.run()

@@ -46,13 +46,16 @@ import (
 	"sync"
 )
 
+var (
+	{{- range .Channels}}
+	{{.Name}} = make(chan {{.Type}}, {{.Cap}})
+	{{- end}}
+)
+
 // Run executes all the goroutines associated with the graph that generated 
 // this package, and waits for any that were marked as "wait for this to 
 // finish" to finish before returning.
 func Run() {
-	{{- range .Channels}}
-	{{.Name}} := make(chan {{.Type}}, {{.Cap}})
-	{{- end}}
 	var wg sync.WaitGroup
 	{{range .Nodes}}
 	

@@ -19,12 +19,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.
@@ -38,11 +40,19 @@ type Channel struct {
 type Graph struct {
 	SourcePath  string              `json:"-"` // path to the JSON source.
 	Name        string              `json:"name"`
-	PackageName string              `json:"package_name"`
 	PackagePath string              `json:"package_path"`
 	Imports     []string            `json:"imports"`
 	Nodes       map[string]*Node    `json:"nodes"`
 	Channels    map[string]*Channel `json:"channels"`
+}
+
+// PackageName extracts the name of the package from the package path ("full" package name).
+func (g *Graph) PackageName() string {
+	i := strings.LastIndex(g.PackagePath, "/")
+	if i < 0 {
+		return g.PackagePath
+	}
+	return g.PackagePath[i:]
 }
 
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.
@@ -101,6 +111,12 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 	return goimports(w, buf)
 }
 
+// WriteGoRunnerTo outputs a simple main package and function for calling Run on
+// a generated Go package.
+func (g *Graph) WriteGoRunnerTo(w io.Writer) error {
+	return goRunnerTemplate.Execute(w, g)
+}
+
 func (g *Graph) saveGoSrc() error {
 	gopath, ok := os.LookupEnv("GOPATH")
 	if !ok || gopath == "" {
@@ -110,7 +126,7 @@ func (g *Graph) saveGoSrc() error {
 	if err := os.Mkdir(pp, os.FileMode(0755)); err != nil {
 		log.Printf("Could not make path %q, continuing: %v", pp, err)
 	}
-	mp := filepath.Join(pp, "main.go")
+	mp := filepath.Join(pp, "generated.go")
 	f, err := os.Create(mp)
 	if err != nil {
 		return err
@@ -126,6 +142,22 @@ func (g *Graph) build() error {
 	return exec.Command(`go`, `build`, g.PackagePath).Run()
 }
 
+func (g *Graph) run() error {
+	fn := filepath.Join(os.TempDir(), fmt.Sprintf("shenzhen-go-runner.%s.go", g.PackageName()))
+	f, err := os.Create(fn)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if err := g.WriteGoRunnerTo(f); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return exec.Command(`go`, `run`, fn).Run()
+}
+
 // SaveBuildAndRun saves the project as Go source code, builds it, and runs it.
 func (g *Graph) SaveBuildAndRun() error {
 	if err := g.saveGoSrc(); err != nil {
@@ -134,8 +166,7 @@ func (g *Graph) SaveBuildAndRun() error {
 	if err := g.build(); err != nil {
 		return err
 	}
-	// TODO: Be less lazy about the output binary path
-	return open("./" + g.PackageName)
+	return g.run()
 }
 
 // DeclaredChannels returns the given channels which exist in g.Channels.

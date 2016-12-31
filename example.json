@@ -1,6 +1,5 @@
 {
 	"name": "Example",
-	"package_name": "example",
 	"package_path": "example",
 	"imports": [
 		"fmt"

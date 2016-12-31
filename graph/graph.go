@@ -139,7 +139,12 @@ func (g *Graph) Build() error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	return exec.Command(`go`, `build`, g.PackagePath).Run()
+	o, err := exec.Command(`go`, `build`, g.PackagePath).CombinedOutput()
+	if err != nil {
+		// TODO: better error type
+		return fmt.Errorf("go build: %v:\n%s", err, o)
+	}
+	return nil
 }
 
 func (g *Graph) run() error {

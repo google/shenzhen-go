@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"time"
 
-	"shenzhen-go/view"
+	"github.com/google/shenzhen-go/view"
 )
 
 const pingMsg = "Pong!"

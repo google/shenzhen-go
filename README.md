@@ -19,7 +19,10 @@ After setting up your `$GOPATH`, run:
     go get -u github.com/google/shenzhen-go
 
 This should build the `shenzhen-go` binary in your `$GOPATH/bin` directory.
-Run it and a web browser should appear with the SHENZHEN GO editor.
+Run it and a web browser should appear with the SHENZHEN GO browser (or navigate to 
+http://[::1]:8088/).
+
+Navigate to the example.json file - this is an example program (a prime number sieve).
 
 
 ## Notes

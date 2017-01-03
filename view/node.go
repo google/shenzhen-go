@@ -24,8 +24,8 @@ import (
 	"strconv"
 	"strings"
 
-	"shenzhen-go/graph"
-	"shenzhen-go/parts"
+	"github.com/google/shenzhen-go/graph"
+	"github.com/google/shenzhen-go/parts"
 )
 
 const nodeEditorTemplateSrc = `<head>

@@ -18,12 +18,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"shenzhen-go/parts"
+	"github.com/google/shenzhen-go/parts"
 )
 
 // While being developed, check the interface is matched.
 var (
 	_ = Part(&parts.Code{})
+	_ = Part(&parts.Filter{})
 	_ = Part(&parts.Multiplexer{})
 )
 

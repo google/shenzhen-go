@@ -21,7 +21,7 @@ import (
 	"log"
 	"net/http"
 
-	"shenzhen-go/graph"
+	"github.com/google/shenzhen-go/graph"
 )
 
 const graphEditorTemplateSrc = `<head>

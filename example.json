@@ -1,6 +1,6 @@
 {
 	"name": "Example",
-	"package_path": "example",
+	"package_path": "github.com/google/shenzhen-go/example",
 	"imports": [
 		"fmt"
 	],

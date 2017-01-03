@@ -24,7 +24,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"shenzhen-go/graph"
+	"github.com/google/shenzhen-go/graph"
 )
 
 const channelEditorTemplateSrc = `<head>

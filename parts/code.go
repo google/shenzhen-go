@@ -14,9 +14,7 @@
 
 package parts
 
-import (
-	"shenzhen-go/source"
-)
+import "github.com/google/shenzhen-go/source"
 
 // Code is a component containing arbitrary code.
 type Code struct {

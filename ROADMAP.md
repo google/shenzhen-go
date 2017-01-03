@@ -2,8 +2,9 @@
 
 Here's a bunch of TODOs in no particular order.
 
-* Complete "new parts": Node editor that is based on the Part (does not assume parts.Code)
-* Improve the style of the UI 
+* Actually, really really for reals write some documentation.
+* Complete Node editor that is based on the Part (does not assume parts.Code)
+* Improve the style and implementation of the UI (Polymer?)
 * Consider a different name for the project (or not!).
 * Ability to delete nodes and channels
 * More Parts, less code?

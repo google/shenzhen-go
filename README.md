@@ -14,16 +14,18 @@ SHENZHEN GO requires:
 
 ## Installation
 
-After setting up your `$GOPATH`, run:
+This assumes you have set your `$GOPATH` (a common choice is `$HOME/go`, but it's up to you).
+
+To install, run:
 
     go get -u github.com/google/shenzhen-go
 
-This should build the `shenzhen-go` binary in your `$GOPATH/bin` directory.
-Run it and a web browser should appear with the SHENZHEN GO browser (or navigate to 
-http://[::1]:8088/).
+This should create the `shenzhen-go` binary in your `$GOPATH/bin` directory.
+Run it and a web browser should appear with SHENZHEN GO (or navigate to 
+http://[::1]:8088/ manually).
 
-Navigate to the example.json file - this is an example program (a prime number sieve).
-
+Navigate to the `$GOPATH/src/github.com/google/shenzhen-go/example.szgo` 
+file and play around - this demonstrates an example program (a prime number sieve).
 
 ## Notes
 

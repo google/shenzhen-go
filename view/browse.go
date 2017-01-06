@@ -87,7 +87,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !fi.IsDir() {
 		g, err := graph.LoadJSON(f, base)
 		if err != nil {
-			log.Printf("Not a directory or a valid JSON graph: %v", err)
+			log.Printf("Not a directory or a valid JSON-encoded graph: %v", err)
 			http.NotFound(w, r)
 		}
 		b.loadedGraphs[path] = g

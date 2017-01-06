@@ -30,6 +30,7 @@ import (
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
 // TODO: Some way of deleting nodes.
+// TODO: More parts, ability to switch between part types.
 const nodeEditorTemplateSrc = `{{with .Node -}}
 <head>
 	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
@@ -50,10 +51,13 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 			<input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}>
 		</div>
 		<div class="formfield">
-			{{block "part_view" $ -}}
-			<textarea name="Code" rows="25" cols="80">{{.Impl}}</textarea>
-			{{- end}}
+			<label for="PartType">Type</label>
+			<select>
+				<option value="Code" {{if eq .Part.TypeKey "Code"}}selected{{end}}>Code</option>
+				<option value="Filter" {{if eq .Part.TypeKey "Filter"}}selected{{end}}>Filter</option>
+			</select>
 		</div>
+		{{template "part_view" $ }}
 		<div class="formfield hcentre">
 			<input type="submit" value="Save">
 			<input type="button" value="Return" onclick="window.location.href='?'">
@@ -65,7 +69,14 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
 func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
-	return nodeEditorTemplate.Execute(dst, &struct {
+	t, err := nodeEditorTemplate.Clone()
+	if err != nil {
+		return err
+	}
+	if err := n.Part.AssociateEditor(t); err != nil {
+		return err
+	}
+	return t.Execute(dst, &struct {
 		*graph.Graph
 		*graph.Node
 	}{g, n})

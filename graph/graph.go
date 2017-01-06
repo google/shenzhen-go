@@ -109,6 +109,7 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 		return err
 	}
 	return goimports(w, buf)
+	//return goTemplate.Execute(w, g)
 }
 
 // WriteGoRunnerTo outputs a simple main package and function for calling Run on

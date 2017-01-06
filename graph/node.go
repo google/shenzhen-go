@@ -17,6 +17,7 @@ package graph
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 
 	"github.com/google/shenzhen-go/parts"
 )
@@ -25,15 +26,25 @@ import (
 var (
 	_ = Part(&parts.Code{})
 	_ = Part(&parts.Filter{})
-	_ = Part(&parts.Multiplexer{})
+	//_ = Part(&parts.Multiplexer{})
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be
-// able to be marshalled and unmarshalled to JSON sensibly.
+// able to be marshalled to and unmarshalled from JSON sensibly.
 type Part interface {
+	// AssociateEditor associates a template called "part_view" with the given template.
+	AssociateEditor(*template.Template) error
+
+	// Channels returns any channels used. Anything returned that is not a channel is ignored.
 	Channels() (read, written []string)
+
+	// Impl returns Go source code implementing the part.
 	Impl() string
+
+	// Refresh asks the part to recompute any cached information.
 	Refresh() error
+
+	// TypeKey returns the "type" of part.
 	TypeKey() string
 }
 

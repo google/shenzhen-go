@@ -13,18 +13,19 @@ package parts
 
 import (
 	"bytes"
+	html "html/template"
 	"text/template"
 )
 
-const filterTemplateSrc = `
-for x := range {{.Input}} {
-    {{range .Paths}}
+const filterTemplateSrc = `for x := range {{.Input}} {
+    {{range .Paths -}}
     if {{.Pred}} {
         {{.Output}} <- x
     }{{end}}
 }
+{{- range .Paths}}
 close({{.Output}})
-`
+{{- end}}`
 
 var filterTemplate = template.Must(template.New("filter").Parse(filterTemplateSrc))
 
@@ -38,6 +39,36 @@ type pathway struct {
 type Filter struct {
 	Input string    `json:"input"`
 	Paths []pathway `json:"paths"`
+}
+
+// AssociateEditor adds a "part_view" template to the given template.
+func (f *Filter) AssociateEditor(tmpl *html.Template) error {
+	// TODO: Method of adding and removing output paths.
+	_, err := tmpl.New("part_view").Parse(`<div class="formfield">
+		<label for="FilterInput">Input</label>
+		<select name="FilterInput">
+			{{range .Graph.Channels -}}
+			<option value=".Name" {{if eq .Name $.Node.Part.Input}}selected{{end}}>{{.Name}}</option>
+			{{- end}}
+		</select>
+	</div>
+	{{range $index, $path := .Node.Part.Paths}}
+	<fieldset>
+		<div class="formfield">
+			<label for="FilterPath{{$index}}Output">Output</label>
+			<select name="FilterPath{{$index}}Output">
+				{{range $.Graph.Channels -}}
+				<option value=".Name" {{if eq .Name $path.Output}}selected{{end}}>{{.Name}}</option>
+				{{- end}}
+			</select>
+		</div>
+		<div class="formfield">
+			<label for="FilterPath{{$index}}Predicate">Predicate</label>
+			<input type="text" name="FilterPath{{$index}}Predicate" required value="{{$path.Pred}}">
+		</div>
+	</fieldset>
+	{{- end}}`)
+	return err
 }
 
 // Channels returns the names of all channels used by this goroutine.

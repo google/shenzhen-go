@@ -10,9 +10,15 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for n := range raw {\n\tif n \u003e 2 \u0026\u0026 n % 2 == 0 {\n\t\tcontinue\n\t}\n\tdiv2 \u003c- n\n}\nclose(div2)"
+				"input": "raw",
+				"paths": [
+					{
+						"pred": "x == 2 || x % 2 != 0",
+						"output": "div2"
+					}
+				]
 			},
-			"part_type": "Code"
+			"part_type": "Filter"
 		},
 		"Filter divisible by 3": {
 			"name": "Filter divisible by 3",

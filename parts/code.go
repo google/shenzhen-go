@@ -14,7 +14,11 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/source"
+import (
+	"html/template"
+
+	"github.com/google/shenzhen-go/source"
+)
 
 // Code is a component containing arbitrary code.
 type Code struct {
@@ -22,6 +26,12 @@ type Code struct {
 
 	// Computed from Code - which channels are read from and written to.
 	chansRd, chansWr []string
+}
+
+// AssociateEditor adds a "part_view" template to the given template.
+func (c *Code) AssociateEditor(tmpl *template.Template) error {
+	_, err := tmpl.New("part_view").Parse(`<textarea name="Code" rows="25" cols="80">{{.Node.Impl}}</textarea>`)
+	return err
 }
 
 // Channels returns the names of all channels used by this goroutine.

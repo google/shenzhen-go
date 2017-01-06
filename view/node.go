@@ -29,8 +29,7 @@ import (
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
-const nodeEditorTemplateSrc = `{{with .Node}}
-<head>
+const nodeEditorTemplateSrc = `<head>
 	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
 </head>
 <body>
@@ -58,16 +57,12 @@ const nodeEditorTemplateSrc = `{{with .Node}}
 			<input type="button" value="Return" onclick="window.location.href='?'">
 		</div>
 	</form>
-</body>
-{{end}}`
+</body>`
 
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
-func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
-	return nodeEditorTemplate.Execute(dst, struct {
-		Graph *graph.Graph
-		Node  *graph.Node
-	}{g, n})
+func renderNodeEditor(dst io.Writer, n *graph.Node) error {
+	return nodeEditorTemplate.Execute(dst, n)
 }
 
 // Node handles viewing/editing a node.
@@ -142,7 +137,7 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := renderNodeEditor(w, g, n); err != nil {
+	if err := renderNodeEditor(w, n); err != nil {
 		log.Printf("Could not render source editor: %v", err)
 		http.Error(w, "Could not render source editor", http.StatusInternalServerError)
 		return

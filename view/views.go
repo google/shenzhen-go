@@ -46,6 +46,9 @@ const css = `
 		font-family: "Go Mono","Fira Code",sans-serif;
 		font-size: 12pt;
 	}
+	input[type=text] {
+		width: 45%;
+	}
 	select {
 		font-family: "Go Mono","Fira Code",sans-serif;
 		font-size: 12pt;

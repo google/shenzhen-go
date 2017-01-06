@@ -30,35 +30,66 @@ const (
 </head>
 <body>
 <h1>{{$.Graph.Name}}</h1>
-<div><a href="?save">Save</a> | <a href="?build">Build</a> | <a href="?run">Run</a> | New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a> <br><br>
-{{$.Diagram}}
+<div>
+	<a href="?props">Properties</a> | 
+	<a href="?save">Save</a> | 
+	<a href="?build">Build</a> | 
+	<a href="?run">Run</a> | 
+	New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | 
+	View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a>
+	<br><br>
+	{{$.Diagram}}
 </div>
 </body>`
 
-	graphPropertiesTemplateSrc = `{{with .Graph}}<head>
-	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
+	graphPropertiesTemplateSrc = `<head>
+	<title>{{.Name}}</title><style>` + css + `</style>
 </head>
 <body>
 <h1>{{.Name}} Properties</h1>
 {{.SourcePath}}
 <div>
     <form method="post">
-		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{.Name}}"></div>
-		<div class="formfield"><label for="PackagePath">Package path</label><input name="PackagePath" type="text" required value="{{.PackagePath}}"></div>
-		<div class="formfield"><label for="Imports">Imports</label><input name="Imports" type=""></div>
-		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
+		<div class="formfield">
+		    <label for="Name">Name</label>
+			<input name="Name" type="text" required value="{{.Name}}">
+		</div>
+		<div class="formfield">
+		    <label for="PackagePath">Package path</label>
+			<input name="PackagePath" type="text" required value="{{.PackagePath}}">
+		</div>
+		<div class="formfield">
+		    <label for="Imports">Imports</label>
+			<textarea name="Imports" rows="10" cols="36">
+				{{- range .Imports}}{{.}}{{"\n"}}{{end -}}
+			</textarea>
+		</div>
+		<div class="formfield hcentre">
+		    <input type="submit" value="Save">
+			<input type="button" value="Return" onclick="window.location.href='?'">
+		</div>
 	</form>
 </div>
-</body>
-{{end}}`
+</body>`
 )
 
-var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
+var (
+	graphEditorTemplate     = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
+	graphPropertiesTemplate = template.Must(template.New("graphProperties").Parse(graphPropertiesTemplateSrc))
+)
 
 // Graph handles displaying/editing a graph.
 func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s graph: %s", r.Method, r.URL)
 	q := r.URL.Query()
+
+	if _, t := q["props"]; t {
+		if err := graphPropertiesTemplate.Execute(w, g); err != nil {
+			log.Printf("Could not execute graph properties editor template: %v", err)
+			http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
+		}
+		return
+	}
 	if _, t := q["dot"]; t {
 		outputDotSrc(g, w)
 		return

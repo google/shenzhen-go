@@ -27,16 +27,29 @@ import (
 	"github.com/google/shenzhen-go/graph"
 )
 
+// TODO: Replace these cobbled-together UIs with Polymer or something.
 const channelEditorTemplateSrc = `<head>
 	<title>{{with .Channel}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
 </head>
 <body>
 	<h1>{{with .Channel}}{{.Name}}{{else}}[New]{{end}}</h1>
 	<form method="post">
-		<div class="formfield"><label for="Name">Name</label><input type="text" name="Name" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{with .Channel}}{{.Name}}{{end}}"></div>
-		<div class="formfield"><label for="Type">Type</label><input type="text" name="Type" required value="{{with .Channel}}{{.Type}}{{end}}"></div>
-		<div class="formfield"><label for="Cap">Capacity</label><input type="text" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{with .Channel}}{{.Cap}}{{end}}"></div>
-		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
+		<div class="formfield">
+			<label for="Name">Name</label>
+			<input type="text" name="Name" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{with .Channel}}{{.Name}}{{end}}">
+		</div>
+		<div class="formfield">
+			<label for="Type">Type</label>
+			<input type="text" name="Type" required value="{{with .Channel}}{{.Type}}{{end}}">
+		</div>
+		<div class="formfield">
+			<label for="Cap">Capacity</label>
+			<input type="text" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{with .Channel}}{{.Cap}}{{end}}">
+		</div>
+		<div class="formfield hcentre">
+			<input type="submit" value="Save">
+			<input type="button" value="Return" onclick="window.location.href='?'">
+		</div>
 	</form>
 </body>`
 

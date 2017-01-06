@@ -42,6 +42,7 @@ const (
 </div>
 </body>`
 
+	// TODO: Replace these cobbled-together UIs with Polymer or something.
 	graphPropertiesTemplateSrc = `<head>
 	<title>{{.Name}}</title><style>` + css + `</style>
 </head>

@@ -28,19 +28,38 @@ import (
 	"github.com/google/shenzhen-go/parts"
 )
 
-const nodeEditorTemplateSrc = `<head>
-	<title>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
+// TODO: Replace these cobbled-together UIs with Polymer or something.
+const nodeEditorTemplateSrc = `{{with .Node}}
+<head>
+	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
 </head>
 <body>
-	<h1>{{with .Node}}{{.Name}}{{else}}[New]{{end}}</h1>
+	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
 	<form method="post">
-		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{with .Node}}{{.Name}}{{end}}"></div>
-		<div class="formfield"><label for="Multiplicity">Multiplicity</label><input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{with .Node}}{{.Multiplicity}}{{end}}"></div>
-		<div class="formfield"><label for="Wait">Wait for this to finish</label><input name="Wait" type="checkbox" {{with .Node}}{{if .Wait}}checked{{end}}{{end}}></div>
-		<div class="formfield"><textarea name="Code" rows="25" cols="80">{{with .Node}}{{.Impl}}{{end}}</textarea></div>
-		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
+		<div class="formfield">
+			<label for="Name">Name</label>
+			<input name="Name" type="text" required value="{{.Name}}">
+		</div>
+		<div class="formfield">
+			<label for="Multiplicity">Multiplicity</label>
+			<input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{.Multiplicity}}">
+		</div>
+		<div class="formfield">
+			<label for="Wait">Wait for this to finish</label>
+			<input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}>
+		</div>
+		<div class="formfield">
+			{{block "part_view" .Part -}}
+			<textarea name="Code" rows="25" cols="80">{{.Impl}}</textarea>
+			{{- end}}
+		</div>
+		<div class="formfield hcentre">
+			<input type="submit" value="Save">
+			<input type="button" value="Return" onclick="window.location.href='?'">
+		</div>
 	</form>
-</body>`
+</body>
+{{end}}`
 
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
@@ -60,15 +79,14 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
 		return
 	}
+	if n == nil {
+		n = &graph.Node{
+			Part: &parts.Code{},
+		}
+	}
 
 	switch r.Method {
 	case "POST":
-		if n == nil {
-			n = &graph.Node{
-				Part: &parts.Code{},
-			}
-		}
-
 		if err := r.ParseForm(); err != nil {
 			log.Printf("Could not parse form: %v", err)
 			http.Error(w, "Could not parse", http.StatusBadRequest)
@@ -110,7 +128,9 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		delete(g.Nodes, n.Name)
+		if n.Name != "" {
+			delete(g.Nodes, n.Name)
+		}
 		n.Name = nm
 		g.Nodes[nm] = n
 

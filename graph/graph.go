@@ -52,7 +52,7 @@ func (g *Graph) PackageName() string {
 	if i < 0 {
 		return g.PackagePath
 	}
-	return g.PackagePath[i:]
+	return g.PackagePath[i+1:]
 }
 
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.

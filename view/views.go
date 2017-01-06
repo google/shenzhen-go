@@ -71,6 +71,7 @@ const css = `
 	}
 `
 
+// TODO: Deduplicate.
 func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

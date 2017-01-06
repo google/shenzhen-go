@@ -32,7 +32,7 @@ import (
 const pingMsg = "Pong!"
 
 var (
-	serveAddr = flag.String("addr", "::1", "Address to bind server to")
+	serveAddr = flag.String("addr", "localhost", "Address to bind server to")
 	servePort = flag.Int("port", 8088, "Port to serve from")
 )
 
@@ -41,6 +41,7 @@ func open(args ...string) error {
 	return cmd.Run()
 }
 
+// TODO: Implement this better.
 func openWhenUp(addr string) {
 	base := fmt.Sprintf("http://%s/", addr)
 	t := time.NewTicker(100 * time.Millisecond)

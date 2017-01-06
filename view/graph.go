@@ -24,7 +24,8 @@ import (
 	"github.com/google/shenzhen-go/graph"
 )
 
-const graphEditorTemplateSrc = `<head>
+const (
+	graphEditorTemplateSrc = `<head>
 	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
 </head>
 <body>
@@ -33,6 +34,24 @@ const graphEditorTemplateSrc = `<head>
 {{$.Diagram}}
 </div>
 </body>`
+
+	graphPropertiesTemplateSrc = `{{with .Graph}}<head>
+	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
+</head>
+<body>
+<h1>{{.Name}} Properties</h1>
+{{.SourcePath}}
+<div>
+    <form method="post">
+		<div class="formfield"><label for="Name">Name</label><input name="Name" type="text" required value="{{.Name}}"></div>
+		<div class="formfield"><label for="PackagePath">Package path</label><input name="PackagePath" type="text" required value="{{.PackagePath}}"></div>
+		<div class="formfield"><label for="Imports">Imports</label><input name="Imports" type=""></div>
+		<div class="formfield hcentre"><input type="submit" value="Save"> <input type="button" value="Return" onclick="window.location.href='?'"></div>
+	</form>
+</div>
+</body>
+{{end}}`
+)
 
 var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
 

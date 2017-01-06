@@ -53,9 +53,11 @@ func dotToSVG(dst io.Writer, src io.Reader) error {
 }
 
 func gofmt(dst io.Writer, src io.Reader) error {
+	// TODO: Use go/format package instead.
 	return pipeThru(dst, exec.Command(`gofmt`), src)
 }
 
 func goimports(dst io.Writer, src io.Reader) error {
+	// TODO: Use golang.org/x/tools/imports package instead.
 	return pipeThru(dst, exec.Command(`goimports`), src)
 }

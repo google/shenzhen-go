@@ -29,7 +29,9 @@ import (
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
-const nodeEditorTemplateSrc = `<head>
+// TODO: Some way of deleting nodes.
+const nodeEditorTemplateSrc = `{{with .Node -}}
+<head>
 	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
 </head>
 <body>
@@ -41,14 +43,14 @@ const nodeEditorTemplateSrc = `<head>
 		</div>
 		<div class="formfield">
 			<label for="Multiplicity">Multiplicity</label>
-			<input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{.Multiplicity}}">
+			<input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{if .Multiplicity}}{{.Multiplicity}}{{else}}1{{end}}">
 		</div>
 		<div class="formfield">
 			<label for="Wait">Wait for this to finish</label>
 			<input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}>
 		</div>
 		<div class="formfield">
-			{{block "part_view" .Part -}}
+			{{block "part_view" $ -}}
 			<textarea name="Code" rows="25" cols="80">{{.Impl}}</textarea>
 			{{- end}}
 		</div>
@@ -57,12 +59,16 @@ const nodeEditorTemplateSrc = `<head>
 			<input type="button" value="Return" onclick="window.location.href='?'">
 		</div>
 	</form>
-</body>`
+</body>
+{{- end}}`
 
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
-func renderNodeEditor(dst io.Writer, n *graph.Node) error {
-	return nodeEditorTemplate.Execute(dst, n)
+func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
+	return nodeEditorTemplate.Execute(dst, &struct {
+		*graph.Graph
+		*graph.Node
+	}{g, n})
 }
 
 // Node handles viewing/editing a node.
@@ -137,7 +143,7 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := renderNodeEditor(w, n); err != nil {
+	if err := renderNodeEditor(w, g, n); err != nil {
 		log.Printf("Could not render source editor: %v", err)
 		http.Error(w, "Could not render source editor", http.StatusInternalServerError)
 		return

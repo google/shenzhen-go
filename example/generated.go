@@ -7,11 +7,10 @@ import (
 )
 
 var (
-	div2   = make(chan int, 0)
-	div3   = make(chan int, 0)
-	foobar = make(chan string, 0)
-	out    = make(chan int, 0)
-	raw    = make(chan int, 0)
+	div2 = make(chan int, 0)
+	div3 = make(chan int, 0)
+	out  = make(chan int, 0)
+	raw  = make(chan int, 0)
 )
 
 // Run executes all the goroutines associated with the graph that generated
@@ -83,18 +82,12 @@ func Run() {
 		}
 	}()
 
-	// baaaaar
-
+	// foooo
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 
-		fmt.Println(<-foobar)
-	}()
-
-	// fooooo
-
-	go func() {
-
-		foobar <- "Hello, world!"
+		lkasdjfklajsdf
 	}()
 
 	// Wait for the end

@@ -85,10 +85,7 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	if _, t := q["props"]; t {
-		if err := graphPropertiesTemplate.Execute(w, g); err != nil {
-			log.Printf("Could not execute graph properties editor template: %v", err)
-			http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
-		}
+		handlePropsRequest(g, w, r)
 		return
 	}
 	if _, t := q["dot"]; t {
@@ -162,7 +159,13 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
 		http.Error(w, "Could not execute graph editor template", http.StatusInternalServerError)
-		return
+	}
+}
+
+func handlePropsRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+	if err := graphPropertiesTemplate.Execute(w, g); err != nil {
+		log.Printf("Could not execute graph properties editor template: %v", err)
+		http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
 	}
 }
 

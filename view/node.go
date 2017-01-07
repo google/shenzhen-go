@@ -97,67 +97,68 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var err error
 	switch r.Method {
 	case "POST":
-		if err := r.ParseForm(); err != nil {
-			log.Printf("Could not parse form: %v", err)
-			http.Error(w, "Could not parse", http.StatusBadRequest)
-			return
-		}
-
-		nm := strings.TrimSpace(r.FormValue("Name"))
-		if nm == "" {
-			log.Printf("Name invalid [%q == \"\"]", nm)
-			http.Error(w, "Name invalid", http.StatusBadRequest)
-			return
-		}
-
-		mult, err := strconv.Atoi(r.FormValue("Multiplicity"))
-		if err != nil {
-			log.Printf("Multiplicity is not an integer: %v", err)
-			http.Error(w, "Multiplicity is not an integer", http.StatusBadRequest)
-			return
-		}
-		if mult < 1 {
-			log.Printf("Must specify positive Multiplicity [%d < 1]", mult)
-			http.Error(w, "Multiplicity must be positive", http.StatusBadRequest)
-			return
-		}
-
-		n.Multiplicity = uint(mult)
-		n.Wait = (r.FormValue("Wait") == "on")
-		if p, ok := n.Part.(*parts.Code); ok {
-			p.Code = r.FormValue("Code")
-		}
-
-		if err := n.Refresh(); err != nil {
-			log.Printf("Unable to refresh node: %v", err)
-			http.Error(w, "Unable to refresh node", http.StatusBadRequest)
-			return
-		}
-
-		if nm == n.Name {
-			break
-		}
-
-		if n.Name != "" {
-			delete(g.Nodes, n.Name)
-		}
-		n.Name = nm
-		g.Nodes[nm] = n
-
-		q := url.Values{"node": []string{nm}}
-		u := *r.URL
-		u.RawQuery = q.Encode()
-		log.Printf("redirecting to %v", u)
-		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
-		return
+		err = handleNodePost(g, n, w, r)
+	case "GET":
+		err = renderNodeEditor(w, g, n)
+	default:
+		err = fmt.Errorf("unsupported verb %q", r.Method)
 	}
 
-	if err := renderNodeEditor(w, g, n); err != nil {
-		log.Printf("Could not render source editor: %v", err)
-		http.Error(w, "Could not render source editor", http.StatusInternalServerError)
-		return
+	if err != nil {
+		log.Printf("Could not handle request: %v", err)
+		http.Error(w, "Could not handle request", http.StatusInternalServerError)
 	}
-	return
+}
+
+func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
+	nm := strings.TrimSpace(r.FormValue("Name"))
+	if nm == "" {
+		return fmt.Errorf(`name is empty [%q == ""]`, nm)
+	}
+
+	mult, err := strconv.Atoi(r.FormValue("Multiplicity"))
+	if err != nil {
+		return err
+	}
+	if mult < 1 {
+		return fmt.Errorf("multiplicity too small [%d < 1]", mult)
+	}
+
+	n.Multiplicity = uint(mult)
+	n.Wait = (r.FormValue("Wait") == "on")
+
+	// TODO: Generalise to other parts.
+	if p, ok := n.Part.(*parts.Code); ok {
+		p.Code = r.FormValue("Code")
+	}
+
+	if err := n.Refresh(); err != nil {
+		return err
+	}
+
+	// No name change? No need to readjust the map or redirect.
+	// So render the usual editor.
+	if nm == n.Name {
+		return renderNodeEditor(w, g, n)
+	}
+
+	if n.Name != "" {
+		delete(g.Nodes, n.Name)
+	}
+	n.Name = nm
+	g.Nodes[nm] = n
+
+	q := url.Values{"node": []string{nm}}
+	u := *r.URL
+	u.RawQuery = q.Encode()
+	log.Printf("redirecting to %v", u)
+	http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
+	return nil
 }

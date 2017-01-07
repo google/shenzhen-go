@@ -20,6 +20,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/google/shenzhen-go/graph"
 )
@@ -85,7 +86,10 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	if _, t := q["props"]; t {
-		handlePropsRequest(g, w, r)
+		if err := handlePropsRequest(g, w, r); err != nil {
+			log.Printf("Could not execute graph properties editor template: %v", err)
+			http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
+		}
 		return
 	}
 	if _, t := q["dot"]; t {
@@ -162,11 +166,50 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePropsRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
-	if err := graphPropertiesTemplate.Execute(w, g); err != nil {
-		log.Printf("Could not execute graph properties editor template: %v", err)
-		http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
+func handlePropsRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case "POST":
+		return handlePropsPost(g, w, r)
+	case "GET":
+		return graphPropertiesTemplate.Execute(w, g)
+	default:
+		return fmt.Errorf("unsupported verb %q", r.Method)
 	}
+}
+
+func handlePropsPost(g *graph.Graph, w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
+	// Validate.
+	nm := strings.TrimSpace(r.FormValue("Name"))
+	if nm == "" {
+		return fmt.Errorf(`name is empty [%q == ""]`, nm)
+	}
+	pp := strings.TrimSpace(r.FormValue("PackagePath"))
+	if pp == "" {
+		return fmt.Errorf(`package path is empty [%q == ""]`, pp)
+	}
+
+	imps := strings.Split(r.FormValue("Imports"), "\n")
+	i := 0
+	for _, imp := range imps {
+		imp = strings.TrimSpace(imp)
+		if imp == "" {
+			continue
+		}
+		imps[i] = imp
+		i++
+	}
+	imps = imps[:i]
+
+	// Update.
+	g.Name = nm
+	g.PackagePath = pp
+	g.Imports = imps
+
+	return graphPropertiesTemplate.Execute(w, g)
 }
 
 func outputDotSrc(g *graph.Graph, w http.ResponseWriter) {

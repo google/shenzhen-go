@@ -25,18 +25,30 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for n := range div2 {\r\n\tif n \u003e 3 \u0026\u0026 n % 3 == 0 {\r\n\t\tcontinue\r\n\t}\r\n\tdiv3 \u003c- n\r\n}\r\nclose(div3)"
+				"input": "div2",
+				"paths": [
+					{
+						"pred": "x == 3 || x % 3 != 0",
+						"output": "div3"
+					}
+				]
 			},
-			"part_type": "Code"
+			"part_type": "Filter"
 		},
 		"Filter divisible by 5": {
 			"name": "Filter divisible by 5",
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for n := range div3 {\r\n\tif n \u003e 5 \u0026\u0026 n % 5 == 0 {\r\n\t\tcontinue\r\n\t}\r\n\tout \u003c- n\r\n}\r\nclose(out)"
+				"input": "div3",
+				"paths": [
+					{
+						"pred": "x == 5 || x % 5 != 0",
+						"output": "out"
+					}
+				]
 			},
-			"part_type": "Code"
+			"part_type": "Filter"
 		},
 		"Generate integers ≥ 2": {
 			"name": "Generate integers ≥ 2",

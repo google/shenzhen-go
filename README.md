@@ -19,7 +19,8 @@ SHENZHEN GO requires:
 
 ## Installation
 
-This assumes you have set your `$GOPATH` (a common choice is `$HOME/go`, but it's up to you).
+This assumes you have set your `$GOPATH` (a common choice is `$HOME/go`, but 
+it's up to you).
 
 To install, open a terminal and run:
 
@@ -33,24 +34,25 @@ Run it:
 and a web browser should appear with SHENZHEN GO (if not, navigate to 
 http://localhost:8088/ manually).
 
-Navigate to the `$GOPATH/src/github.com/google/shenzhen-go/examples/primes.szgo` 
-file and play around - this demonstrates an example prime number sieve program.
+Navigate to the `examples/primes.szgo` file and play around - this demonstrates 
+an example prime number sieve program.
 
 ## Notes
 
 This is not an official Google product.
 
-This is an experimental project - expect plenty of rough edges and bugs, and no support.
+This is an experimental project - expect plenty of rough edges and bugs, and 
+no support.
 
-*   SHENZHEN GO is a strictly one-way process. You *cannot* import Go code that you 
-    wrote into SHENZHEN GO. 
-*   You *can* write snippets of Go in your SHENZHEN GO graph, which then appear in the 
-    Go output.
-*   One day it should be possible to write zero Go code, yet produce wonderful graphs
-    that do useful things.
-*   You can always save a copy of your program as Go, continue working on that, and 
-    never touch SHENZHEN GO again. I won't even judge you.
+*   SHENZHEN GO is a strictly one-way process. You *cannot* import Go code 
+    that you wrote into SHENZHEN GO. 
+*   You *can* write snippets of Go in your SHENZHEN GO graph, which then appear 
+    in the Go output.
+*   One day it should be possible to write zero Go code, yet produce wonderful 
+    graphs that do useful things.
+*   You can always save a copy of your program as Go, continue working on that, 
+    and never touch SHENZHEN GO again. I won't even judge you.
 *   Don't treat the Go output as a virtuous paragon of how to code in Go. It is
     "machine-generated" and therefore held to a lower standard than "hand-made".
-*   The JSON-based file format aims to be *diffable*, or at least *not ugly*, for the 
-    benefit of source control and code review.
+*   The JSON-based file format aims to be *diffable*, or at least *not ugly*, 
+    for the  benefit of source control and code review.

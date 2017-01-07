@@ -70,7 +70,9 @@ func openWhenUp(addr string) {
 		if string(msg) != pingMsg {
 			continue
 		}
-		open(base)
+		if err := open(base); err != nil {
+			fmt.Printf("Ready to open %s\n", base)
+		}
 		t.Stop()
 		return
 	}

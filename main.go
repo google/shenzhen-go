@@ -41,12 +41,12 @@ var (
 func open(args ...string) error {
 	switch runtime.GOOS {
 	case "darwin":
-		return exec.Command(`open`, args...).Run()
+		return exec.Command("open", args...).Run()
 	case "linux":
 		// TODO: Just guessing, fix later.
-		return exec.Command(`xdg-open`, args...).Run()
+		return exec.Command("xdg-open", args...).Run()
 	case "windows":
-		return exec.Command(`start`, args...).Run()
+		return exec.Command("start", args...).Run()
 	default:
 		fmt.Printf("Ready to open %s\n", strings.Join(args, " "))
 		return nil

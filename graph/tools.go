@@ -19,11 +19,6 @@ import (
 	"os/exec"
 )
 
-func open(args ...string) error {
-	cmd := exec.Command(`open`, args...)
-	return cmd.Run()
-}
-
 func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

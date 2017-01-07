@@ -118,6 +118,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 		return err
 	}
 
+	// Validate.
 	nm := strings.TrimSpace(r.FormValue("Name"))
 	if nm == "" {
 		return fmt.Errorf(`name is empty [%q == ""]`, nm)
@@ -131,6 +132,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 		return fmt.Errorf("multiplicity too small [%d < 1]", mult)
 	}
 
+	// Update.
 	n.Multiplicity = uint(mult)
 	n.Wait = (r.FormValue("Wait") == "on")
 
@@ -149,6 +151,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 		return renderNodeEditor(w, g, n)
 	}
 
+	// Do name changes last since they cause a redirect.
 	if n.Name != "" {
 		delete(g.Nodes, n.Name)
 	}

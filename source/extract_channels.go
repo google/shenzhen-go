@@ -27,10 +27,11 @@ import (
 // There isn't a "parser.ParseArbitraryBlob" convenience function so we make do with
 // ParseFile. This requires a "go file" complete with "package" and statements in a
 // function body.
-const wrapperTmplSrc = `package {{.RandIdent}}
-func {{.RandIdent}}() {
-    {{.Content}}
-}`
+//
+// This puts the package and function declaration on the first line. This should
+// preserve line numbers for any errors (a trick learned from
+// golang.org/x/tools/imports/imports.go).
+const wrapperTmplSrc = `package {{.RandIdent}}; func {{.RandIdent}}() { {{.Content}} }`
 
 var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
 

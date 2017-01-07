@@ -108,8 +108,9 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Printf("Could not handle request: %v", err)
-		http.Error(w, "Could not handle request", http.StatusInternalServerError)
+		msg := fmt.Sprintf("Could not handle request: %v", err)
+		log.Printf(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 	}
 }
 

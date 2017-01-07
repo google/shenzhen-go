@@ -116,15 +116,11 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, t := q["run"]; t {
-		if err := g.BuildAndRun(); err != nil {
-			w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "text/plain")
+		if err := g.Run(w, w); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building or running:\n%v", err)
-			return
 		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
 		return
 	}
 	if _, t := q["save"]; t {

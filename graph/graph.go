@@ -148,28 +148,45 @@ func (g *Graph) Build() error {
 	return nil
 }
 
-func (g *Graph) run() error {
+func (g *Graph) writeTempRunner() (string, error) {
 	fn := filepath.Join(os.TempDir(), fmt.Sprintf("shenzhen-go-runner.%s.go", g.PackageName()))
 	f, err := os.Create(fn)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer f.Close()
 	if err := g.WriteGoRunnerTo(f); err != nil {
-		return err
+		return "", err
 	}
 	if err := f.Close(); err != nil {
-		return err
+		return "", err
 	}
-	return exec.Command(`go`, `run`, fn).Run()
+	return fn, nil
 }
 
-// BuildAndRun saves the project as Go source code, builds it, and runs it.
-func (g *Graph) BuildAndRun() error {
-	if err := g.Build(); err != nil {
+// Run writes a temporary "runner" file, and runs it.
+func (g *Graph) Run(stdout, stderr io.Writer) error {
+	// Run the runner using go run.
+	// TODO: Support stdin?
+	p, err := g.writeTempRunner()
+	if err != nil {
 		return err
 	}
-	return g.run()
+	cmd := exec.Command(`go`, `run`, p)
+	o, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	e, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	go io.Copy(stdout, o)
+	go io.Copy(stderr, e)
+	return cmd.Wait()
 }
 
 // DeclaredChannels returns the given channels which exist in g.Channels.

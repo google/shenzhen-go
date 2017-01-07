@@ -23,7 +23,9 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/shenzhen-go/view"
@@ -37,8 +39,18 @@ var (
 )
 
 func open(args ...string) error {
-	cmd := exec.Command(`open`, args...)
-	return cmd.Run()
+	switch runtime.GOOS {
+	case "darwin":
+		return exec.Command(`open`, args...).Run()
+	case "linux":
+		// TODO: Just guessing, fix later.
+		return exec.Command(`xdg-open`, args...).Run()
+	case "windows":
+		return exec.Command(`start`, args...).Run()
+	default:
+		fmt.Printf("Ready to open %s\n", strings.Join(args, " "))
+		return nil
+	}
 }
 
 // TODO: Implement this better.
@@ -75,8 +87,8 @@ func main() {
 
 	http.Handle("/", view.NewBrowser())
 
-	// As soon as we're serving, launch a web browser.
-	// Generally expected to work on macOS...
+	// As soon as we're serving, launch "open" which should launch a browser,
+	// or ask the user to do so.
 	go openWhenUp(addr)
 
 	if err := http.ListenAndServe(addr, nil); err != nil {

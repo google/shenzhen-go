@@ -46,6 +46,8 @@ This is not an official Google product.
 This is an experimental project - expect plenty of rough edges and bugs, and 
 no support.
 
+## More notes
+
 *   SHENZHEN GO is a strictly one-way process. You *cannot* import Go code 
     that you wrote into SHENZHEN GO. 
 *   You *can* write snippets of Go in your SHENZHEN GO graph, which then appear 
@@ -57,4 +59,4 @@ no support.
 *   Don't treat the Go output as a virtuous paragon of how to code in Go. It is
     "machine-generated" and therefore held to a lower standard than "hand-made".
 *   The JSON-based file format aims to be *diffable*, or at least *not ugly*, 
-    for the  benefit of source control and code review.
+    for the benefit of source control and code review.

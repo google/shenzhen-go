@@ -15,7 +15,9 @@
 package graph
 
 import (
+	"go/format"
 	"io"
+	"io/ioutil"
 	"os/exec"
 )
 
@@ -48,8 +50,16 @@ func dotToSVG(dst io.Writer, src io.Reader) error {
 }
 
 func gofmt(dst io.Writer, src io.Reader) error {
-	// TODO: Use go/format package instead.
-	return pipeThru(dst, exec.Command(`gofmt`), src)
+	in, err := ioutil.ReadAll(src)
+	if err != nil {
+		return err
+	}
+	out, err := format.Source(in)
+	if err != nil {
+		return err
+	}
+	_, err = dst.Write(out)
+	return err
 }
 
 func goimports(dst io.Writer, src io.Reader) error {

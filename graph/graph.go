@@ -118,8 +118,9 @@ func (g *Graph) WriteGoRunnerTo(w io.Writer) error {
 	return goRunnerTemplate.Execute(w, g)
 }
 
-// Build saves the graph as Go source code and tries to build it.
-func (g *Graph) Build() error {
+// GeneratePackage writes the Go view of the graph to a file called generated.go in
+// ${GOPATH}/src/${g.PackagePath}/.
+func (g *Graph) GeneratePackage() error {
 	gopath, ok := os.LookupEnv("GOPATH")
 	if !ok || gopath == "" {
 		return errors.New("cannot use $GOPATH; empty or undefined")
@@ -137,7 +138,12 @@ func (g *Graph) Build() error {
 	if err := g.WriteGoTo(f); err != nil {
 		return err
 	}
-	if err := f.Close(); err != nil {
+	return f.Close()
+}
+
+// Build saves the graph as Go source code and tries to build it.
+func (g *Graph) Build() error {
+	if err := g.GeneratePackage(); err != nil {
 		return err
 	}
 	o, err := exec.Command(`go`, `build`, g.PackagePath).CombinedOutput()
@@ -164,9 +170,16 @@ func (g *Graph) writeTempRunner() (string, error) {
 	return fn, nil
 }
 
-// Run writes a temporary "runner" file, and runs it.
+// Run saves the graph as Go source code, creates a temporary runner, and tries to run it.
+// The stdout and stderr pipes are copied to the given io.Writers.
 func (g *Graph) Run(stdout, stderr io.Writer) error {
-	// Run the runner using go run.
+	// Don't have to explicitly build, but must at least have the file ready
+	// so that go run can build it.
+	if err := g.GeneratePackage(); err != nil {
+		return err
+	}
+
+	// Run the temporary runner using go run.
 	// TODO: Support stdin?
 	p, err := g.writeTempRunner()
 	if err != nil {

@@ -24,7 +24,7 @@ it's up to you).
 
 To install, open a terminal and run:
 
-    go get -u github.com/google/shenzhen-go
+    go install github.com/google/shenzhen-go/cmd/shenzhen-go
 
 This should create the `shenzhen-go` binary in your `$GOPATH/bin` directory.
 Run it:
@@ -32,7 +32,9 @@ Run it:
     $GOPATH/bin/shenzhen-go
 
 and a web browser should appear with SHENZHEN GO (if not, navigate to 
-http://localhost:8088/ manually).
+http://localhost:8088/ manually). 
+
+The file browser is based on (and limited to) the directory you started in.
 
 Navigate to the `examples/primes.szgo` file and play around - this demonstrates 
 an example prime number sieve program.

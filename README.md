@@ -33,8 +33,8 @@ Run it:
 and a web browser should appear with SHENZHEN GO (if not, navigate to 
 http://localhost:8088/ manually).
 
-Navigate to the `$GOPATH/src/github.com/google/shenzhen-go/example.szgo` 
-file and play around - this demonstrates an example program (a prime number sieve).
+Navigate to the `$GOPATH/src/github.com/google/shenzhen-go/examples/primes.szgo` 
+file and play around - this demonstrates an example prime number sieve program.
 
 ## Notes
 

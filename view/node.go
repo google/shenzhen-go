@@ -52,7 +52,7 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 		</div>
 		<div class="formfield">
 			<label for="PartType">Type</label>
-			<select>
+			<select name="PartType">
 				<option value="Code" {{if eq .Part.TypeKey "Code"}}selected{{end}}>Code</option>
 				<option value="Filter" {{if eq .Part.TypeKey "Filter"}}selected{{end}}>Filter</option>
 			</select>
@@ -133,18 +133,26 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 		return fmt.Errorf("multiplicity too small [%d < 1]", mult)
 	}
 
+	// Validate PartType
+	pt := r.FormValue("PartType")
+	pf, ok := parts.PartFactories[pt]
+	if !ok {
+		return fmt.Errorf("unknown part type %q", pt)
+	}
+
+	// Validate Part itself.
+	part := n.Part
+	if n.Part.TypeKey() != pt {
+		part = pf().(graph.Part)
+	}
+	if err := part.Update(r); err != nil {
+		return err
+	}
+
 	// Update.
 	n.Multiplicity = uint(mult)
 	n.Wait = (r.FormValue("Wait") == "on")
-
-	// TODO: Generalise to other parts.
-	if p, ok := n.Part.(*parts.Code); ok {
-		p.Code = r.FormValue("Code")
-	}
-
-	if err := n.Refresh(); err != nil {
-		return err
-	}
+	n.Part = part
 
 	// No name change? No need to readjust the map or redirect.
 	// So render the usual editor.

@@ -13,7 +13,9 @@ package parts
 
 import (
 	"bytes"
+	"fmt"
 	html "html/template"
+	"net/http"
 	"text/template"
 )
 
@@ -43,12 +45,12 @@ type Filter struct {
 
 // AssociateEditor adds a "part_view" template to the given template.
 func (f *Filter) AssociateEditor(tmpl *html.Template) error {
-	// TODO: Method of adding and removing output paths.
+	// TODO: UI method of adjusting how many output paths there are.
 	_, err := tmpl.New("part_view").Parse(`<div class="formfield">
 		<label for="FilterInput">Input</label>
 		<select name="FilterInput">
 			{{range .Graph.Channels -}}
-			<option value=".Name" {{if eq .Name $.Node.Part.Input}}selected{{end}}>{{.Name}}</option>
+			<option value="{{.Name}}" {{if eq .Name $.Node.Part.Input}}selected{{end}}>{{.Name}}</option>
 			{{- end}}
 		</select>
 	</div>
@@ -58,7 +60,7 @@ func (f *Filter) AssociateEditor(tmpl *html.Template) error {
 			<label for="FilterPath{{$index}}Output">Output</label>
 			<select name="FilterPath{{$index}}Output">
 				{{range $.Graph.Channels -}}
-				<option value=".Name" {{if eq .Name $path.Output}}selected{{end}}>{{.Name}}</option>
+				<option value="{{.Name}}" {{if eq .Name $path.Output}}selected{{end}}>{{.Name}}</option>
 				{{- end}}
 			</select>
 		</div>
@@ -87,8 +89,24 @@ func (f *Filter) Impl() string {
 	return b.String()
 }
 
-// Refresh refreshes any cached information.
-func (f *Filter) Refresh() error { return nil }
+// Update sets fields bsed on the given Request.
+func (f *Filter) Update(r *http.Request) error {
+	if r == nil {
+		// No secret cached information to refresh.
+		return nil
+	}
+	f.Input = r.FormValue("FilterInput")
+	f.Paths = nil
+	for i := 0; ; i++ {
+		out := r.FormValue(fmt.Sprintf("FilterPath%dOutput", i))
+		pred := r.FormValue(fmt.Sprintf("FilterPath%dPredicate", i))
+		if out == "" {
+			break
+		}
+		f.Paths = append(f.Paths, pathway{Output: out, Pred: pred})
+	}
+	return nil
+}
 
 // TypeKey returns "Filter".
 func (*Filter) TypeKey() string { return "Filter" }

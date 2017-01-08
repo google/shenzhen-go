@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"net/http"
 
 	"github.com/google/shenzhen-go/parts"
 )
@@ -41,8 +42,8 @@ type Part interface {
 	// Impl returns Go source code implementing the part.
 	Impl() string
 
-	// Refresh asks the part to recompute any cached information.
-	Refresh() error
+	// Update sets fields in the part based on info in the given Request.
+	Update(*http.Request) error
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string
@@ -124,5 +125,5 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	n.Wait = mp.Wait
 	n.Multiplicity = mp.Multiplicity
 	n.Part = ip
-	return n.Part.Refresh()
+	return n.Part.Update(nil)
 }

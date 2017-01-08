@@ -16,6 +16,7 @@ package parts
 
 import (
 	"html/template"
+	"net/http"
 
 	"github.com/google/shenzhen-go/source"
 )
@@ -40,12 +41,17 @@ func (c *Code) Channels() (read, written []string) { return c.chansRd, c.chansWr
 // Impl returns the implementation of the goroutine.
 func (c *Code) Impl() string { return c.Code }
 
-// Refresh refreshes cached informatioc.
-func (c *Code) Refresh() error {
-	s, d, err := source.ExtractChannelIdents(c.Code)
+// Update sets relevant fields based on the given Request.
+func (c *Code) Update(r *http.Request) error {
+	code := c.Code
+	if r != nil {
+		code = r.FormValue("Code")
+	}
+	s, d, err := source.ExtractChannelIdents(code)
 	if err != nil {
 		return err
 	}
+	c.Code = code
 	c.chansRd, c.chansWr = s, d
 	return nil
 }

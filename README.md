@@ -6,7 +6,7 @@ inspired by programming puzzle games such as TIS-100 and SHENZHEN I/O.
 SHENZHEN GO provides a UI for editing a "graph," where the nodes are 
 goroutines and the arrows are channel reads and writes. (This is analogous
 to multiple "microcontrollers" communicating electrically in a circuit.)
-It can also convert a graph into pure Go source code which can be compiled 
+It can also convert a graph into pure Go source code, which can be compiled 
 and run, or used as a library in a regular Go program.
 
 ## Dependencies
@@ -19,8 +19,8 @@ SHENZHEN GO requires:
 
 ## Installation
 
-This assumes you have set your `$GOPATH` (a common choice is `$HOME/go`, but 
-it's up to you).
+This assumes you have set your `$GOPATH` (common choices are `$HOME` and 
+`$HOME/go`, but it's up to you).∂
 
 To install, open a terminal and run:
 

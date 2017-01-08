@@ -77,6 +77,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	base := filepath.Join(".", path)
 	f, err := os.Open(base)
 	if err != nil {
+		// TODO: If query == "?new", then ask to create a new file.
 		log.Printf("Couldn't open: %v", err)
 		http.NotFound(w, r)
 		return

@@ -40,14 +40,14 @@ const css = `
 		float: left;
 		text-align: right;
 		margin-right: 15px;
-		width: 50%;
+		width: 30%;
 	}
 	input {
 		font-family: "Go Mono","Fira Code",sans-serif;
 		font-size: 12pt;
 	}
 	input[type=text] {
-		width: 45%;
+		width: 65%;
 	}
 	select {
 		font-family: "Go Mono","Fira Code",sans-serif;

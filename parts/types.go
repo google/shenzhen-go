@@ -14,11 +14,11 @@
 
 package parts
 
-// PartFactory creates a part.
-type PartFactory func() interface{}
+// Factory creates a part.
+type Factory func() interface{}
 
-// PartFactories translates part type strings into part factories.
-var PartFactories = map[string]PartFactory{
+// Factories translates part type strings into part factories.
+var Factories = map[string]Factory{
 	"Code":        func() interface{} { return new(Code) },
 	"Filter":      func() interface{} { return new(Filter) },
 	"Multiplexer": func() interface{} { return new(Multiplexer) },

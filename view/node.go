@@ -135,7 +135,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 
 	// Validate PartType
 	pt := r.FormValue("PartType")
-	pf, ok := parts.PartFactories[pt]
+	pf, ok := parts.Factories[pt]
 	if !ok {
 		return fmt.Errorf("unknown part type %q", pt)
 	}

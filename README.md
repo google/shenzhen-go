@@ -24,7 +24,7 @@ This assumes you have set your `$GOPATH` (common choices are `$HOME` and
 
 To install, open a terminal and run:
 
-    go install github.com/google/shenzhen-go/cmd/shenzhen-go
+    go get -u github.com/google/shenzhen-go/cmd/shenzhen-go
 
 This should create the `shenzhen-go` binary in your `$GOPATH/bin` directory.
 Run it:

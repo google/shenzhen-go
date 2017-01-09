@@ -30,13 +30,13 @@ import (
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
 // TODO: Some way of deleting nodes.
-// TODO: More parts, ability to switch between part types.
 const nodeEditorTemplateSrc = `{{with .Node -}}
 <head>
 	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
+	Part type: {{.Part.TypeKey}}
 	<form method="post">
 		<div class="formfield">
 			<label for="Name">Name</label>
@@ -49,13 +49,6 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 		<div class="formfield">
 			<label for="Wait">Wait for this to finish</label>
 			<input name="Wait" type="checkbox" {{if .Wait}}checked{{end}}>
-		</div>
-		<div class="formfield">
-			<label for="PartType">Type</label>
-			<select name="PartType">
-				<option value="Code" {{if eq .Part.TypeKey "Code"}}selected{{end}}>Code</option>
-				<option value="Filter" {{if eq .Part.TypeKey "Filter"}}selected{{end}}>Filter</option>
-			</select>
 		</div>
 		{{template "part_view" $ }}
 		<div class="formfield hcentre">
@@ -135,15 +128,14 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 
 	// Validate PartType
 	pt := r.FormValue("PartType")
-	pf, ok := parts.Factories[pt]
-	if !ok {
+	if _, ok := parts.Factories[pt]; !ok {
 		return fmt.Errorf("unknown part type %q", pt)
 	}
 
 	// Validate Part itself.
 	part := n.Part
-	if n.Part.TypeKey() != pt {
-		part = pf().(graph.Part)
+	if want := n.Part.TypeKey(); pt != want {
+		return fmt.Errorf("cannot change part types [%q != %q]", pt, want)
 	}
 	if err := part.Update(r); err != nil {
 		return err

@@ -14,7 +14,6 @@ package parts
 import (
 	"bytes"
 	html "html/template"
-	"log"
 	"net/http"
 	"regexp"
 	"sort"
@@ -176,9 +175,6 @@ func (f *Filter) Update(r *http.Request) error {
 	}
 	// Ensure the inputs stay in relative order.
 	sort.Ints(ks)
-
-	log.Print(p)
-	log.Print(ks)
 
 	f.Input = r.FormValue("FilterInput")
 	f.Paths = nil

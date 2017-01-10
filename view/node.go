@@ -136,17 +136,10 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 		return fmt.Errorf("multiplicity too small [%d < 1]", mult)
 	}
 
-	// Validate PartType
-	pt := r.FormValue("PartType")
-	if _, ok := graph.PartFactories[pt]; !ok {
-		return fmt.Errorf("unknown part type %q", pt)
-	}
-
-	// Validate Part itself.
-	part := n.Part
-	if want := n.Part.TypeKey(); pt != want {
-		return fmt.Errorf("cannot change part types [%q != %q]", pt, want)
-	}
+	// Create a new part of the same type, and update it.
+	// This ensures the settings for the part are valid before
+	// updating the node.
+	part := graph.PartFactories[n.Part.TypeKey()]()
 	if err := part.Update(r); err != nil {
 		return err
 	}

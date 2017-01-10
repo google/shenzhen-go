@@ -57,16 +57,16 @@ func (f *Filter) AssociateEditor(tmpl *html.Template) error {
 	{{range $index, $path := .Node.Part.Paths}}
 	<fieldset>
 		<div class="formfield">
-			<label for="FilterPath{{$index}}Output">Output</label>
-			<select name="FilterPath{{$index}}Output">
+			<label for="FilterOutput{{$index}}">Output</label>
+			<select name="FilterOutput{{$index}}">
 				{{range $.Graph.Channels -}}
 				<option value="{{.Name}}" {{if eq .Name $path.Output}}selected{{end}}>{{.Name}}</option>
 				{{- end}}
 			</select>
 		</div>
 		<div class="formfield">
-			<label for="FilterPath{{$index}}Predicate">Predicate</label>
-			<input type="text" name="FilterPath{{$index}}Predicate" required value="{{$path.Pred}}">
+			<label for="FilterPredicate{{$index}}">Predicate</label>
+			<input type="text" name="FilterPredicate{{$index}}" required value="{{$path.Pred}}">
 		</div>
 	</fieldset>
 	{{- end}}`)
@@ -98,8 +98,8 @@ func (f *Filter) Update(r *http.Request) error {
 	f.Input = r.FormValue("FilterInput")
 	f.Paths = nil
 	for i := 0; ; i++ {
-		out := r.FormValue(fmt.Sprintf("FilterPath%dOutput", i))
-		pred := r.FormValue(fmt.Sprintf("FilterPath%dPredicate", i))
+		out := r.FormValue(fmt.Sprintf("FilterOutput%d", i))
+		pred := r.FormValue(fmt.Sprintf("FilterPredicate%d", i))
 		if out == "" {
 			break
 		}

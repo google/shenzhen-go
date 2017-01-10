@@ -25,7 +25,6 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/graph"
-	"github.com/google/shenzhen-go/parts"
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
@@ -79,14 +78,25 @@ func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
 func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
-	n, found := g.Nodes[name]
-	if name != "new" && !found {
-		http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
-		return
-	}
-	if n == nil {
+	q := r.URL.Query()
+
+	var n *graph.Node
+	if name != "new" {
+		n1, found := g.Nodes[name]
+		if !found {
+			http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
+			return
+		}
+		n = n1
+	} else {
+		t := q.Get("type")
+		pf, ok := graph.PartFactories[t]
+		if !ok {
+			http.Error(w, "Asked for a new node, but didn't supply a valid type", http.StatusBadRequest)
+			return
+		}
 		n = &graph.Node{
-			Part: &parts.Code{},
+			Part: pf(),
 		}
 	}
 
@@ -128,7 +138,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 
 	// Validate PartType
 	pt := r.FormValue("PartType")
-	if _, ok := parts.Factories[pt]; !ok {
+	if _, ok := graph.PartFactories[pt]; !ok {
 		return fmt.Errorf("unknown part type %q", pt)
 	}
 

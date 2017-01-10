@@ -23,13 +23,6 @@ import (
 	"github.com/google/shenzhen-go/parts"
 )
 
-// While being developed, check the interface is matched.
-var (
-	_ = Part(&parts.Code{})
-	_ = Part(&parts.Filter{})
-	//_ = Part(&parts.Multiplexer{})
-)
-
 // Part abstracts the implementation of a node. Concrete implementations should be
 // able to be marshalled to and unmarshalled from JSON sensibly.
 type Part interface {
@@ -47,6 +40,16 @@ type Part interface {
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string
+}
+
+// PartFactory creates a part.
+type PartFactory func() Part
+
+// PartFactories translates part type strings into part factories.
+var PartFactories = map[string]PartFactory{
+	"Code":   func() Part { return new(parts.Code) },
+	"Filter": func() Part { return new(parts.Filter) },
+	// "Multiplexer": func() Part { return new(parts.Multiplexer) },
 }
 
 // Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.
@@ -106,7 +109,7 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if err := json.Unmarshal(j, &mp); err != nil {
 		return err
 	}
-	pf, ok := parts.Factories[mp.PartType]
+	pf, ok := PartFactories[mp.PartType]
 	if !ok {
 		return fmt.Errorf("unknown part type %q", mp.PartType)
 	}
@@ -114,16 +117,12 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if err := json.Unmarshal(mp.Part, p); err != nil {
 		return err
 	}
-	ip, ok := p.(Part)
-	if !ok {
-		return fmt.Errorf("unmarshalled to a non-part [%T !~ Part]", p)
-	}
 	if mp.Multiplicity < 1 {
 		mp.Multiplicity = 1
 	}
 	n.Name = mp.Name
 	n.Wait = mp.Wait
 	n.Multiplicity = mp.Multiplicity
-	n.Part = ip
-	return n.Part.Update(nil)
+	n.Part = p
+	return p.Update(nil)
 }

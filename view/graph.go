@@ -36,7 +36,17 @@ const (
 	<a href="?save">Save</a> | 
 	<a href="?build">Build</a> | 
 	<a href="?run">Run</a> | 
-	New: <a href="?node=new">Goroutine</a> <a href="?channel=new">Channel</a> | 
+	New: <span class="dropdown">
+		<a href="javascript:void(0)">Goroutine</a> 
+		<div class="dropdown-content">
+			<ul>
+			{{range $t, $null := $.PartTypes -}}
+				<li><a href="?node=new&type={{$t}}">{{$t}}</a></li>
+			{{- end}}
+			</ul>
+		</div>
+	</span>
+	<a href="?channel=new">Channel</a> | 
 	View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a>
 	<br><br>
 	{{$.Diagram}}
@@ -133,12 +143,12 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, u.String(), http.StatusFound)
 		return
 	}
-	if n := q["node"]; len(n) == 1 {
-		Node(g, n[0], w, r)
+	if n := q.Get("node"); n != "" {
+		Node(g, n, w, r)
 		return
 	}
-	if n := q["channel"]; len(n) == 1 {
-		Channel(g, n[0], w, r)
+	if n := q.Get("channel"); n != "" {
+		Channel(g, n, w, r)
 		return
 	}
 
@@ -154,11 +164,13 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	d := &struct {
-		Diagram template.HTML
-		Graph   *graph.Graph
+		Diagram   template.HTML
+		Graph     *graph.Graph
+		PartTypes map[string]graph.PartFactory
 	}{
-		Diagram: template.HTML(svg.String()),
-		Graph:   g,
+		Diagram:   template.HTML(svg.String()),
+		Graph:     g,
+		PartTypes: graph.PartFactories,
 	}
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)

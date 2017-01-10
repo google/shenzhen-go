@@ -69,6 +69,31 @@ const css = `
 		font-size: 12pt;
 		margin-top: 16pt;
 	}
+
+	.dropdown {
+	    position: relative;
+	    display: inline-block;
+	}
+	
+	.dropdown-content {
+	    display: none;
+	    position: absolute;
+	    background-color: #fff;
+	    box-shadow: 0px 6px 12px 0px rgba(0,0,0,0.2);
+	    padding: 4px 4px;
+	    z-index: 1;
+	}
+	
+	.dropdown:hover .dropdown-content {
+	    display: block;
+	}
+
+	.dropdown-content ul {
+		list-style-type: none;
+    	margin: 0;
+    	padding: 0;
+    	overflow: hidden;
+	}
 `
 
 // TODO: Deduplicate.

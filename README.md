@@ -55,7 +55,7 @@ no support.
 *   One day it should be possible to write zero Go code, yet produce wonderful 
     graphs that do useful things.
 *   You can always save a copy of your program as Go, continue working on that, 
-    and never touch SHENZHEN GO again. I won't even judge you. 
+    and never touch SHENZHEN GO again. I won't even judge you, but others might.
 *   However, modifications to the generated output won't be preserved if 
     SHENZHEN GO builds or runs the design again.
 *   Don't treat the Go output as a virtuous paragon of how to code in Go. It is

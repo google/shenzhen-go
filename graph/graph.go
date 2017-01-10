@@ -42,6 +42,7 @@ type Graph struct {
 	Name        string              `json:"name"`
 	PackagePath string              `json:"package_path"`
 	Imports     []string            `json:"imports"`
+	IsCommand   bool                `json:"is_command"`
 	Nodes       map[string]*Node    `json:"nodes"`
 	Channels    map[string]*Channel `json:"channels"`
 }
@@ -118,11 +119,11 @@ func (g *Graph) WriteGoRunnerTo(w io.Writer) error {
 }
 
 // GeneratePackage writes the Go view of the graph to a file called generated.go in
-// ${GOPATH}/src/${g.PackagePath}/.
-func (g *Graph) GeneratePackage() error {
+// ${GOPATH}/src/${g.PackagePath}/, returning the full path.
+func (g *Graph) GeneratePackage() (string, error) {
 	gopath, ok := os.LookupEnv("GOPATH")
 	if !ok || gopath == "" {
-		return errors.New("cannot use $GOPATH; empty or undefined")
+		return "", errors.New("cannot use $GOPATH; empty or undefined")
 	}
 	pp := filepath.Join(gopath, "src", g.PackagePath)
 	if err := os.Mkdir(pp, os.FileMode(0755)); err != nil {
@@ -131,18 +132,21 @@ func (g *Graph) GeneratePackage() error {
 	mp := filepath.Join(pp, "generated.go")
 	f, err := os.Create(mp)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer f.Close()
 	if err := g.WriteGoTo(f); err != nil {
-		return err
+		return "", err
 	}
-	return f.Close()
+	if err := f.Close(); err != nil {
+		return "", err
+	}
+	return mp, nil
 }
 
 // Build saves the graph as Go source code and tries to build it.
 func (g *Graph) Build() error {
-	if err := g.GeneratePackage(); err != nil {
+	if _, err := g.GeneratePackage(); err != nil {
 		return err
 	}
 	o, err := exec.Command(`go`, `build`, g.PackagePath).CombinedOutput()
@@ -174,17 +178,23 @@ func (g *Graph) writeTempRunner() (string, error) {
 func (g *Graph) Run(stdout, stderr io.Writer) error {
 	// Don't have to explicitly build, but must at least have the file ready
 	// so that go run can build it.
-	if err := g.GeneratePackage(); err != nil {
-		return err
-	}
-
-	// Run the temporary runner using go run.
-	// TODO: Support stdin?
-	p, err := g.writeTempRunner()
+	gp, err := g.GeneratePackage()
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(`go`, `run`, p)
+
+	// TODO: Support stdin?
+
+	if !g.IsCommand {
+		// Since it's a library which needs Run to be called,
+		// generate and run the temporary runner.
+		p, err := g.writeTempRunner()
+		if err != nil {
+			return err
+		}
+		gp = p
+	}
+	cmd := exec.Command(`go`, `run`, gp)
 	o, err := cmd.StdoutPipe()
 	if err != nil {
 		return err

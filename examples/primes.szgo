@@ -4,6 +4,7 @@
 	"imports": [
 		"fmt"
 	],
+	"is_command": true,
 	"nodes": {
 		"Filter divisible by 2": {
 			"name": "Filter divisible by 2",

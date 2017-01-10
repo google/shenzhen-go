@@ -76,6 +76,10 @@ const (
 				{{- range .Imports}}{{.}}{{"\n"}}{{end -}}
 			</textarea>
 		</div>
+		<div class="formfield">
+		    <label for="IsCommand">Is a command?</label>
+			<input name="IsCommand" type="checkbox" {{if .IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
+		</div>
 		<div class="formfield hcentre">
 		    <input type="submit" value="Save">
 			<input type="button" value="Return" onclick="window.location.href='?'">
@@ -220,6 +224,7 @@ func handlePropsPost(g *graph.Graph, w http.ResponseWriter, r *http.Request) err
 	g.Name = nm
 	g.PackagePath = pp
 	g.Imports = imps
+	g.IsCommand = (r.FormValue("IsCommand") == "on")
 
 	return graphPropertiesTemplate.Execute(w, g)
 }

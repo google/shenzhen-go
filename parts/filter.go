@@ -13,23 +13,102 @@ package parts
 
 import (
 	"bytes"
-	"fmt"
 	html "html/template"
 	"net/http"
+	"regexp"
+	"sort"
+	"strconv"
 	"text/template"
 )
 
-const filterTemplateSrc = `for x := range {{.Input}} {
-    {{range .Paths -}}
+const (
+	filterTemplateSrc = `for x := range {{.Input}} {
+    {{range .Paths}}{{if and .Pred .Output}}
     if {{.Pred}} {
         {{.Output}} <- x
-    }{{end}}
+    }{{end}}{{end}}
 }
 {{- range .Paths}}
 close({{.Output}})
 {{- end}}`
 
-var filterTemplate = template.Must(template.New("filter").Parse(filterTemplateSrc))
+	filterEditorTemplateSrc = `<div class="formfield">
+		<label for="FilterInput">Input</label>
+		<select name="FilterInput">
+			{{range .Graph.Channels -}}
+			<option value="{{.Name}}" {{if eq .Name $.Node.Part.Input}}selected{{end}}>{{.Name}}</option>
+			{{- end}}
+		</select>
+	</div>
+	<script>
+	var nextFieldset = {{len .Node.Part.Paths}};
+	function anotherFieldsetPlease() {
+		nf = document.getElementById('pathtemplate').cloneNode(true);
+		nf.id = '';
+		var nfc = nf.children;
+		for (var i=0; i<nfc.length; i++) {
+			var dc = nfc[i].children
+			for (var j=0; j<dc.length; j++) {
+				var n = dc[j].name;
+				if (n) {
+					dc[j].name = n + nextFieldset;
+					dc[j].htmlRequired = true;
+				}
+				var f = dc[j].htmlFor;
+				if (f) {
+					dc[j].htmlFor = f + nextFieldset;
+				}
+			}
+		}
+		var ib = document.getElementById('addmoreplz');
+		ib.parentNode.insertBefore(nf,ib);
+		nextFieldset++;
+	}
+    function removeMePlease(el) {
+		el.parentNode.parentNode.removeChild(el.parentNode);
+	}
+	</script>
+	<fieldset id="pathtemplate">
+		<div class="formfield">
+			<label for="FilterOutput">Output</label>
+			<select name="FilterOutput">
+				{{range $.Graph.Channels -}}
+				<option value="{{.Name}}">{{.Name}}</option>
+				{{- end}}
+			</select>
+		</div>
+		<div class="formfield">
+			<label for="FilterPredicate">Predicate</label>
+			<input type="text" name="FilterPredicate">
+		</div>
+		<a href="javascript:void(0)" onclick="removeMePlease(this)">Remove this output</a>
+	</fieldset>
+	{{range $index, $path := .Node.Part.Paths}}
+	<fieldset>
+		<div class="formfield">
+			<label for="FilterOutput{{$index}}">Output</label>
+			<select name="FilterOutput{{$index}}">
+				{{range $.Graph.Channels -}}
+				<option value="{{.Name}}" {{if eq .Name $path.Output}}selected{{end}}>{{.Name}}</option>
+				{{- end}}
+			</select>
+		</div>
+		<div class="formfield">
+			<label for="FilterPredicate{{$index}}">Predicate</label>
+			<input type="text" name="FilterPredicate{{$index}}" required value="{{$path.Pred}}">
+		</div>
+		<a href="javascript:void(0)" onclick="removeMePlease(this)">Remove this output</a>
+	</fieldset>
+	{{- end }}
+	<a id="addmoreplz" href="javascript:void(0)" onclick="anotherFieldsetPlease()">Add output</a>`
+)
+
+var (
+	filterTemplate = template.Must(template.New("filter").Parse(filterTemplateSrc))
+
+	pathOutputNameRE = regexp.MustCompile(`^FilterOutput(\d+)$`)
+	pathPredNameRE   = regexp.MustCompile(`^FilterPredicate(\d+)$`)
+)
 
 type pathway struct {
 	Pred   string `json:"pred"`
@@ -45,31 +124,7 @@ type Filter struct {
 
 // AssociateEditor adds a "part_view" template to the given template.
 func (f *Filter) AssociateEditor(tmpl *html.Template) error {
-	// TODO: UI method of adjusting how many output paths there are.
-	_, err := tmpl.New("part_view").Parse(`<div class="formfield">
-		<label for="FilterInput">Input</label>
-		<select name="FilterInput">
-			{{range .Graph.Channels -}}
-			<option value="{{.Name}}" {{if eq .Name $.Node.Part.Input}}selected{{end}}>{{.Name}}</option>
-			{{- end}}
-		</select>
-	</div>
-	{{range $index, $path := .Node.Part.Paths}}
-	<fieldset>
-		<div class="formfield">
-			<label for="FilterOutput{{$index}}">Output</label>
-			<select name="FilterOutput{{$index}}">
-				{{range $.Graph.Channels -}}
-				<option value="{{.Name}}" {{if eq .Name $path.Output}}selected{{end}}>{{.Name}}</option>
-				{{- end}}
-			</select>
-		</div>
-		<div class="formfield">
-			<label for="FilterPredicate{{$index}}">Predicate</label>
-			<input type="text" name="FilterPredicate{{$index}}" required value="{{$path.Pred}}">
-		</div>
-	</fieldset>
-	{{- end}}`)
+	_, err := tmpl.New("part_view").Parse(filterEditorTemplateSrc)
 	return err
 }
 
@@ -89,21 +144,47 @@ func (f *Filter) Impl() string {
 	return b.String()
 }
 
-// Update sets fields bsed on the given Request.
+// Update sets fields based on the given Request.
 func (f *Filter) Update(r *http.Request) error {
 	if r == nil {
 		// No secret cached information to refresh.
 		return nil
 	}
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	p := make(map[int]pathway)
+	var ks []int
+	for k := range r.Form {
+		if s := pathOutputNameRE.FindStringSubmatch(k); s != nil {
+			o, err := strconv.Atoi(s[1])
+			if err != nil {
+				return err
+			}
+			ks = append(ks, o)
+			p[o] = pathway{Pred: p[o].Pred, Output: r.FormValue(k)}
+			continue
+		}
+		if s := pathPredNameRE.FindStringSubmatch(k); s != nil {
+			o, err := strconv.Atoi(s[1])
+			if err != nil {
+				return err
+			}
+			ks = append(ks, o)
+			p[o] = pathway{Pred: r.FormValue(k), Output: p[o].Output}
+		}
+	}
+	// Ensure the inputs stay in relative order.
+	sort.Ints(ks)
+
 	f.Input = r.FormValue("FilterInput")
 	f.Paths = nil
-	for i := 0; ; i++ {
-		out := r.FormValue(fmt.Sprintf("FilterOutput%d", i))
-		pred := r.FormValue(fmt.Sprintf("FilterPredicate%d", i))
-		if out == "" {
-			break
+	for k := range ks {
+		v := p[k]
+		if v.Output == "" || v.Pred == "" {
+			continue
 		}
-		f.Paths = append(f.Paths, pathway{Output: out, Pred: pred})
+		f.Paths = append(f.Paths, v)
 	}
 	return nil
 }

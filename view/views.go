@@ -70,11 +70,17 @@ const css = `
 		margin-top: 16pt;
 	}
 
+	fieldset {
+		margin: 4px;
+	}
+	fieldset#pathtemplate {
+		display: none;
+	}
+
 	.dropdown {
 	    position: relative;
 	    display: inline-block;
 	}
-	
 	.dropdown-content {
 	    display: none;
 	    position: absolute;
@@ -83,11 +89,9 @@ const css = `
 	    padding: 4px 4px;
 	    z-index: 1;
 	}
-	
 	.dropdown:hover .dropdown-content {
 	    display: block;
 	}
-
 	.dropdown-content ul {
 		list-style-type: none;
     	margin: 0;

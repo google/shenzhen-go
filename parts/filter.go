@@ -14,6 +14,7 @@ package parts
 import (
 	"bytes"
 	html "html/template"
+	"log"
 	"net/http"
 	"regexp"
 	"sort"
@@ -170,16 +171,18 @@ func (f *Filter) Update(r *http.Request) error {
 			if err != nil {
 				return err
 			}
-			ks = append(ks, o)
 			p[o] = pathway{Pred: r.FormValue(k), Output: p[o].Output}
 		}
 	}
 	// Ensure the inputs stay in relative order.
 	sort.Ints(ks)
 
+	log.Print(p)
+	log.Print(ks)
+
 	f.Input = r.FormValue("FilterInput")
 	f.Paths = nil
-	for k := range ks {
+	for _, k := range ks {
 		v := p[k]
 		if v.Output == "" || v.Pred == "" {
 			continue

@@ -69,7 +69,6 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	q := r.URL.Query()
-
 	_, clone := q["clone"]
 	_, del := q["delete"]
 

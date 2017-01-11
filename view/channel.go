@@ -32,6 +32,10 @@ const channelEditorTemplateSrc = `<head>
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
+	{{if .Name}}
+	<a href="?channel={{.Name}}&clone">Clone</a> | 
+	<a href="?channel={{.Name}}&delete">Delete</a>
+	{{end}}
 	<form method="post">
 		<div class="formfield">
 			<label for="Name">Name</label>
@@ -62,14 +66,38 @@ var (
 func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
-	e, found := g.Channels[name]
-	if name != "new" && !found {
-		http.Error(w, fmt.Sprintf("Channel %q not found", name), http.StatusNotFound)
-		return
+	q := r.URL.Query()
+	_, clone := q["clone"]
+	_, del := q["delete"]
+
+	var e *graph.Channel
+	if name == "new" {
+		if clone || del {
+			http.Error(w, "Asked for a new channel, but also to clone or delete the channel", http.StatusBadRequest)
+			return
+		}
+		e = new(graph.Channel)
+	} else {
+		e1, ok := g.Channels[name]
+		if !ok {
+			http.Error(w, fmt.Sprintf("Channel %q not found", name), http.StatusNotFound)
+			return
+		}
+		e = e1
 	}
 
-	if e == nil {
-		e = new(graph.Channel)
+	switch {
+	case clone:
+		e2 := *e
+		e2.Name = ""
+		e = &e2
+	case del:
+		delete(g.Channels, e.Name)
+		u := *r.URL
+		u.RawQuery = ""
+		log.Printf("redirecting to %v", &u)
+		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
+		return
 	}
 
 	var err error

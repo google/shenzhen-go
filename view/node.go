@@ -35,8 +35,10 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
+	{{if .Name}}
 	<a href="?node={{.Name}}&clone">Clone</a> | 
 	<a href="?node={{.Name}}&delete">Delete</a> | 
+	{{end}}
 	Part type: {{.Part.TypeKey}}
 	<form method="post">
 		<div class="formfield">

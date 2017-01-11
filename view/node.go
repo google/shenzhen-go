@@ -60,20 +60,6 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
-func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
-	t, err := nodeEditorTemplate.Clone()
-	if err != nil {
-		return err
-	}
-	if err := n.Part.AssociateEditor(t); err != nil {
-		return err
-	}
-	return t.Execute(dst, &struct {
-		*graph.Graph
-		*graph.Node
-	}{g, n})
-}
-
 // Node handles viewing/editing a node.
 func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
@@ -81,14 +67,7 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	var n *graph.Node
-	if name != "new" {
-		n1, found := g.Nodes[name]
-		if !found {
-			http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
-			return
-		}
-		n = n1
-	} else {
+	if name == "new" {
 		t := q.Get("type")
 		pf, ok := graph.PartFactories[t]
 		if !ok {
@@ -98,6 +77,13 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		n = &graph.Node{
 			Part: pf(),
 		}
+	} else {
+		n1, found := g.Nodes[name]
+		if !found {
+			http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
+			return
+		}
+		n = n1
 	}
 
 	var err error
@@ -115,6 +101,20 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		log.Printf(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
 	}
+}
+
+func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
+	t, err := nodeEditorTemplate.Clone()
+	if err != nil {
+		return err
+	}
+	if err := n.Part.AssociateEditor(t); err != nil {
+		return err
+	}
+	return t.Execute(dst, &struct {
+		*graph.Graph
+		*graph.Node
+	}{g, n})
 }
 
 func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *http.Request) error {

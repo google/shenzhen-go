@@ -137,6 +137,14 @@ func (f *Filter) Channels() (read, written []string) {
 	return []string{f.Input}, o
 }
 
+// Clone returns a copy of this Filter part.
+func (f *Filter) Clone() interface{} {
+	return &Filter{
+		Input: f.Input,
+		Paths: append([]pathway(nil), f.Paths...),
+	}
+}
+
 // Impl returns the content of a goroutine implementation.
 func (f *Filter) Impl() string {
 	b := new(bytes.Buffer)

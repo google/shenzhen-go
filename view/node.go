@@ -35,6 +35,8 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
+	<a href="?node={{.Name}}&clone">Clone</a> | 
+	<a href="?node={{.Name}}&delete">Delete</a> | 
 	Part type: {{.Part.TypeKey}}
 	<form method="post">
 		<div class="formfield">
@@ -66,8 +68,15 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 
+	_, clone := q["clone"]
+	_, del := q["delete"]
+
 	var n *graph.Node
 	if name == "new" {
+		if clone || del {
+			http.Error(w, "Asked for a new node, but also to clone or delete the node", http.StatusBadRequest)
+			return
+		}
 		t := q.Get("type")
 		pf, ok := graph.PartFactories[t]
 		if !ok {
@@ -84,6 +93,18 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		n = n1
+	}
+
+	switch {
+	case clone:
+		n = n.Copy()
+	case del:
+		delete(g.Nodes, n.Name)
+		u := *r.URL
+		u.RawQuery = ""
+		log.Printf("redirecting to %v", &u)
+		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
+		return
 	}
 
 	var err error
@@ -165,7 +186,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 	q := url.Values{"node": []string{nm}}
 	u := *r.URL
 	u.RawQuery = q.Encode()
-	log.Printf("redirecting to %v", u)
+	log.Printf("redirecting to %v", &u)
 	http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
 	return nil
 }

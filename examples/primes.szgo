@@ -56,7 +56,7 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for i := 2; i\u003c50; i++ {\r\n\traw \u003c- i\r\n}\r\nclose(raw)"
+				"code": "for i := 2; i\u003c49; i++ {\r\n\traw \u003c- i\r\n}\r\nclose(raw)"
 			},
 			"part_type": "Code"
 		},

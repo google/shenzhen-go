@@ -38,6 +38,15 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 // Channels returns the names of all channels used by this goroutine.
 func (c *Code) Channels() (read, written []string) { return c.chansRd, c.chansWr }
 
+// Clone returns a copy of this Code part.
+func (c *Code) Clone() interface{} {
+	return &Code{
+		Code:    c.Code,
+		chansRd: c.chansRd,
+		chansWr: c.chansWr,
+	}
+}
+
 // Impl returns the implementation of the goroutine.
 func (c *Code) Impl() string { return c.Code }
 

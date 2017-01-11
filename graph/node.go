@@ -32,6 +32,9 @@ type Part interface {
 	// Channels returns any channels used. Anything returned that is not a channel is ignored.
 	Channels() (read, written []string)
 
+	// Clone returns a copy of this part.
+	Clone() interface{}
+
 	// Impl returns Go source code implementing the part.
 	Impl() string
 
@@ -73,6 +76,16 @@ func (n *Node) ChannelsRead() []string {
 func (n *Node) ChannelsWritten() []string {
 	_, w := n.Part.Channels()
 	return w
+}
+
+// Copy returns a copy of this node, but with an empty name and a clone of the Part.
+func (n *Node) Copy() *Node {
+	return &Node{
+		Name:         "",
+		Multiplicity: n.Multiplicity,
+		Wait:         n.Wait,
+		Part:         n.Part.Clone().(Part),
+	}
 }
 
 func (n *Node) String() string { return n.Name }

@@ -86,6 +86,7 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 		}
 		n = &graph.Node{
 			Part: pf(),
+			Wait: true,
 		}
 	} else {
 		n1, found := g.Nodes[name]

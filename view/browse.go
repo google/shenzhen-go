@@ -32,7 +32,14 @@ const browseTemplateSrc = `<head>
 <h1>SHENZHEN GO</h1>
 	<div>
 		<h2>{{$.Base}}</h2>
-		<a href="{{.Up}}">Up</a> | <a href="?new">New</a>
+		<a href="{{.Up}}">Up</a> |
+		<div class="dropdown"> 
+			<a href="javascript:void(0)">New</a>
+			<form method="GET" class="dropdown-content">
+				<input type="text" name="new" required style="width:200px">
+				<a href="javascript:void(0)" onclick="form.submit()">Create</a>
+			</form>
+		</div>
 		<table class="browse">
 			{{range $.Entries -}}
 			<tr>
@@ -77,7 +84,6 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	base := filepath.Join(".", path)
 	f, err := os.Open(base)
 	if err != nil {
-		// TODO: If query == "?new", then ask to create a new file.
 		log.Printf("Couldn't open: %v", err)
 		http.NotFound(w, r)
 		return
@@ -99,6 +105,21 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Graph(g, w, r)
 		return
 	}
+
+	if nu := r.URL.Query().Get("new"); nu != "" {
+		// Check for an existing file.
+		nfp := filepath.Join(base, nu)
+		if _, err := os.Stat(nfp); !os.IsNotExist(err) {
+			log.Printf("Asked to create %q but it already exists", nfp)
+			http.Error(w, "File already exists", http.StatusNotModified)
+			return
+		}
+		path = filepath.Join(path, nu)
+		b.loadedGraphs[path] = graph.New(nfp)
+		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
+		return
+	}
+
 	fis, err := f.Readdir(0)
 	if err != nil {
 		log.Printf("Couldn't readdir: %s", err)

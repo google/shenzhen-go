@@ -37,7 +37,7 @@ const browseTemplateSrc = `<head>
 			<a href="javascript:void(0)">New</a>
 			<form method="GET" class="dropdown-content">
 				<input type="text" name="new" required style="width:200px">
-				<a href="javascript:void(0)" onclick="form.submit()">Create</a>
+				<a href="javascript:void(0)" onclick="this.parentElement.submit();">Create</a>
 			</form>
 		</div>
 		<table class="browse">

@@ -26,7 +26,9 @@ import (
 type Code struct {
 	// Code = the implementation, line by line.
 	// You may be wondering why Code isn't just typed "string" instead of []string.
-	// It used to be, but then the JSON file would
+	// It used to be, but then the JSON file would include blobs of strings with
+	// no separation of lines.
+	// encoding/json still escapes things like \t and \u003c, but whatevs.
 	Code []string `json:"code"`
 
 	// Computed from Code - which channels are read from and written to.
@@ -65,9 +67,16 @@ func (c *Code) Update(r *http.Request) error {
 		return err
 	}
 	c.Code = strings.Split(code, "\n")
+	stripCR(c.Code)
 	c.chansRd, c.chansWr = s, d
 	return nil
 }
 
 // TypeKey returns "Code".
 func (*Code) TypeKey() string { return "Code" }
+
+func stripCR(in []string) {
+	for i := range in {
+		in[i] = strings.TrimSuffix(in[i], "\r")
+	}
+}

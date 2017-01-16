@@ -31,7 +31,7 @@ import (
 // This puts the package and function declaration on the first line. This should
 // preserve line numbers for any errors (a trick learned from
 // golang.org/x/tools/imports/imports.go).
-const wrapperTmplSrc = `package {{.RandIdent}}; func {{.RandIdent}}() { {{.Content}} }`
+const wrapperTmplSrc = "package {{.RandIdent}}; func {{.RandIdent}}() { {{.Content}} \n}"
 
 var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
 

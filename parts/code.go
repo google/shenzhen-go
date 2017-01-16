@@ -17,13 +17,17 @@ package parts
 import (
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/google/shenzhen-go/source"
 )
 
 // Code is a component containing arbitrary code.
 type Code struct {
-	Code string `json:"code"`
+	// Code = the implementation, line by line.
+	// You may be wondering why Code isn't just typed "string" instead of []string.
+	// It used to be, but then the JSON file would
+	Code []string `json:"code"`
 
 	// Computed from Code - which channels are read from and written to.
 	chansRd, chansWr []string
@@ -48,11 +52,11 @@ func (c *Code) Clone() interface{} {
 }
 
 // Impl returns the implementation of the goroutine.
-func (c *Code) Impl() string { return c.Code }
+func (c *Code) Impl() string { return strings.Join(c.Code, "\n") }
 
 // Update sets relevant fields based on the given Request.
 func (c *Code) Update(r *http.Request) error {
-	code := c.Code
+	code := c.Impl()
 	if r != nil {
 		code = r.FormValue("Code")
 	}
@@ -60,7 +64,7 @@ func (c *Code) Update(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	c.Code = code
+	c.Code = strings.Split(code, "\n")
 	c.chansRd, c.chansWr = s, d
 	return nil
 }

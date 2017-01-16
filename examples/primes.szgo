@@ -56,7 +56,12 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for i := 2; i\u003c49; i++ {\r\n\traw \u003c- i\r\n}\r\nclose(raw)"
+				"code": [
+					"for i := 2; i\u003c49; i++ {",
+					"\traw \u003c- i",
+					"}",
+					"close(raw)"
+				]
 			},
 			"part_type": "Code"
 		},
@@ -65,7 +70,11 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"code": "for n := range out {\n\tfmt.Println(n)\n}"
+				"code": [
+					"for n := range out {",
+					"\tfmt.Println(n)",
+					"}"
+				]
 			},
 			"part_type": "Code"
 		}

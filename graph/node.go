@@ -36,7 +36,19 @@ type Part interface {
 	Clone() interface{}
 
 	// Impl returns Go source code implementing the part.
-	Impl() string
+	// Loosely, the code will be inserted into the template as follows:
+	//
+	// 		go {
+	// 		    {{head}}
+	// 		    for n:=0; n<Multiplicity; n++ {
+	//			    go {
+	//					{{body}}
+	//				}
+	// 		    }
+	// 		    {{tail}}
+	// 		}
+	// This allows cleanly closing channels for nodes with Multiplicity > 1.
+	Impl() (head, body, tail string)
 
 	// Update sets fields in the part based on info in the given Request.
 	Update(*http.Request) error
@@ -86,6 +98,24 @@ func (n *Node) Copy() *Node {
 		Wait:         n.Wait,
 		Part:         n.Part.Clone().(Part),
 	}
+}
+
+// ImplHead returns the Head part of the implementation.
+func (n *Node) ImplHead() string {
+	h, _, _ := n.Part.Impl()
+	return h
+}
+
+// ImplBody returns the Body part of the implementation.
+func (n *Node) ImplBody() string {
+	_, b, _ := n.Part.Impl()
+	return b
+}
+
+// ImplTail returns the Tail part of the implementation.
+func (n *Node) ImplTail() string {
+	_, _, t := n.Part.Impl()
+	return t
 }
 
 func (n *Node) String() string { return n.Name }

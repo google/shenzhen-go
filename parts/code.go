@@ -15,6 +15,7 @@
 package parts
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -22,22 +23,34 @@ import (
 	"github.com/google/shenzhen-go/source"
 )
 
+const codePartEditTemplateSrc = `
+<h4>Head</h4>
+<textarea name="Head" rows="{{len .Node.Part.Head}}" cols="80">{{.Node.ImplHead}}</textarea>
+<h4>Body</h4>
+<textarea name="Body" rows="{{len .Node.Part.Body}}" cols="80">{{.Node.ImplBody}}</textarea>
+<h4>Tail</h4>
+<textarea name="Tail" rows="{{len .Node.Part.Tail}}" cols="80">{{.Node.ImplTail}}</textarea>
+`
+
 // Code is a component containing arbitrary code.
 type Code struct {
-	// Code = the implementation, line by line.
-	// You may be wondering why Code isn't just typed "string" instead of []string.
+	// You may be wondering why {Head, Body, Tail} aren't just typed "string"
+	// instead of []string.
 	// It used to be, but then the JSON file would include blobs of strings with
 	// no separation of lines.
 	// encoding/json still escapes things like \t and \u003c, but whatevs.
-	Code []string `json:"code"`
 
-	// Computed from Code - which channels are read from and written to.
+	Head []string `json:"head"`
+	Body []string `json:"body"`
+	Tail []string `json:"tail"`
+
+	// Computed from Head + Body + Tail - which channels are read from and written to.
 	chansRd, chansWr []string
 }
 
 // AssociateEditor adds a "part_view" template to the given template.
 func (c *Code) AssociateEditor(tmpl *template.Template) error {
-	_, err := tmpl.New("part_view").Parse(`<textarea name="Code" rows="25" cols="80">{{.Node.Impl}}</textarea>`)
+	_, err := tmpl.New("part_view").Parse(codePartEditTemplateSrc)
 	return err
 }
 
@@ -47,28 +60,48 @@ func (c *Code) Channels() (read, written []string) { return c.chansRd, c.chansWr
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
 	return &Code{
-		Code:    c.Code,
+		Head:    append([]string(nil), c.Head...),
+		Body:    append([]string(nil), c.Body...),
+		Tail:    append([]string(nil), c.Tail...),
 		chansRd: c.chansRd,
 		chansWr: c.chansWr,
 	}
 }
 
 // Impl returns the implementation of the goroutine.
-func (c *Code) Impl() string { return strings.Join(c.Code, "\n") }
+func (c *Code) Impl() (head, body, tail string) {
+	return strings.Join(c.Head, "\n"),
+		strings.Join(c.Body, "\n"),
+		strings.Join(c.Tail, "\n")
+}
 
 // Update sets relevant fields based on the given Request.
 func (c *Code) Update(r *http.Request) error {
-	code := c.Impl()
+	// TODO: Do this less long-windedly
+	h, b, t := c.Impl()
 	if r != nil {
-		code = r.FormValue("Code")
+		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
 	}
-	s, d, err := source.ExtractChannelIdents(code)
+	hs, hd, err := source.ExtractChannelIdents(h)
 	if err != nil {
-		return err
+		return fmt.Errorf("extracting channels from head: %v", err)
 	}
-	c.Code = strings.Split(code, "\n")
-	stripCR(c.Code)
-	c.chansRd, c.chansWr = s, d
+	bs, bd, err := source.ExtractChannelIdents(b)
+	if err != nil {
+		return fmt.Errorf("extracting channels from body: %v", err)
+	}
+	ts, td, err := source.ExtractChannelIdents(t)
+	if err != nil {
+		return fmt.Errorf("extracting channels from tail: %v", err)
+	}
+	c.Head = strings.Split(h, "\n")
+	stripCR(c.Head)
+	c.Body = strings.Split(b, "\n")
+	stripCR(c.Body)
+	c.Tail = strings.Split(t, "\n")
+	stripCR(c.Tail)
+	c.chansRd = append(append(hs, bs...), ts...)
+	c.chansWr = append(append(hd, bd...), td...)
 	return nil
 }
 

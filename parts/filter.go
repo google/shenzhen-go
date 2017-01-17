@@ -22,15 +22,16 @@ import (
 )
 
 const (
-	filterTemplateSrc = `for x := range {{.Input}} {
+	filterBodyTemplateSrc = `for x := range {{.Input}} {
     {{range .Paths}}{{if and .Pred .Output}}
     if {{.Pred}} {
         {{.Output}} <- x
     }{{end}}{{end}}
-}
-{{- range .Paths}}
+}`
+
+	filterTailTemplateSrc = `{{range .Paths}}
 close({{.Output}})
-{{- end}}`
+{{end}}`
 
 	filterEditorTemplateSrc = `<div class="formfield">
 		<label for="FilterInput">Input</label>
@@ -104,7 +105,8 @@ close({{.Output}})
 )
 
 var (
-	filterTemplate = template.Must(template.New("filter").Parse(filterTemplateSrc))
+	filterBodyTemplate = template.Must(template.New("filter").Parse(filterBodyTemplateSrc))
+	filterTailTemplate = template.Must(template.New("filter").Parse(filterTailTemplateSrc))
 
 	pathOutputNameRE = regexp.MustCompile(`^FilterOutput(\d+)$`)
 	pathPredNameRE   = regexp.MustCompile(`^FilterPredicate(\d+)$`)
@@ -146,10 +148,11 @@ func (f *Filter) Clone() interface{} {
 }
 
 // Impl returns the content of a goroutine implementation.
-func (f *Filter) Impl() string {
-	b := new(bytes.Buffer)
-	filterTemplate.Execute(b, f)
-	return b.String()
+func (f *Filter) Impl() (head, body, tail string) {
+	b, t := new(bytes.Buffer), new(bytes.Buffer)
+	filterBodyTemplate.Execute(b, f)
+	filterTailTemplate.Execute(t, f)
+	return "", b.String(), t.String()
 }
 
 // Update sets fields based on the given Request.

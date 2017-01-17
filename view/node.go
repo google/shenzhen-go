@@ -47,7 +47,7 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 		</div>
 		<div class="formfield">
 			<label for="Multiplicity">Multiplicity</label>
-			<input name="Multiplicity" type="text" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{if .Multiplicity}}{{.Multiplicity}}{{else}}1{{end}}">
+			<input name="Multiplicity" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="{{if .Multiplicity}}{{.Multiplicity}}{{else}}1{{end}}">
 		</div>
 		<div class="formfield">
 			<label for="Wait">Wait for this to finish</label>

@@ -70,23 +70,29 @@ func Run() {
 	
 	// {{.Name}}
 	{{if .Wait -}}
-	wg.Add({{.Multiplicity}})
+	wg.Add(1)
 	{{- end}}
-	{{if gt .Multiplicity 1 -}}for n:=0; n<{{.Multiplicity}}; n++ {
-		go func(instanceNumber int) {
-			{{if .Wait -}}
-			defer wg.Done()
-			{{end}}
-			{{.Impl}}
-		}(n)
-	}
-	{{- else -}}go func() {
+
+	go func() {
 		{{if .Wait -}}
 		defer wg.Done()
 		{{end}}
-		{{.Impl}}
+		{{.ImplHead}}
+		{{if eq .Multiplicity 1 -}}
+		{{.ImplBody}}
+		{{- else -}}
+		var multWG sync.WaitGroup
+		multWG.Add({{.Multiplicity}})
+		for n:=0; n<{{.Multiplicity}}; n++ {
+			go func(instanceNumber int) {
+				defer multWG.Done()
+				{{.ImplBody}}
+			}(n)
+		}
+		multWG.Wait()
+		{{- end}}
+		{{.ImplTail}}
 	}()
-	{{- end}}
 	{{- end}}
 
 	// Wait for the end

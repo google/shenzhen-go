@@ -56,7 +56,9 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"head": [],
+				"head": [
+					""
+				],
 				"body": [
 					"for i := 2; i\u003c49; i++ {",
 					"\traw \u003c- i",
@@ -73,13 +75,17 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"head": [],
+				"head": [
+					""
+				],
 				"body": [
 					"for n := range out {",
 					"\tfmt.Println(n)",
 					"}"
 				],
-				"tail": []
+				"tail": [
+					""
+				]
 			},
 			"part_type": "Code"
 		}

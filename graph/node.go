@@ -47,6 +47,7 @@ type Part interface {
 	// 		    }
 	// 		    {{tail}}
 	// 		}
+	//
 	// This allows cleanly closing channels for nodes with Multiplicity > 1.
 	Impl() (head, body, tail string)
 

@@ -47,7 +47,7 @@ const channelEditorTemplateSrc = `<head>
 		</div>
 		<div class="formfield">
 			<label for="Cap">Capacity</label>
-			<input type="text" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{.Cap}}">
+			<input type="number" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{.Cap}}">
 		</div>
 		<div class="formfield hcentre">
 			<input type="submit" value="Save">

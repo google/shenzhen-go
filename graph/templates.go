@@ -46,7 +46,7 @@ package {{.PackageName}} {{if ne .PackagePath .PackageName}} // import "{{.Packa
 
 import (
 	{{range .Imports}}
-	"{{.}}"
+	{{.}}
 	{{- end}}
 	"sync"
 )

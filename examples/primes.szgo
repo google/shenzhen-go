@@ -2,7 +2,7 @@
 	"name": "Prime number generator",
 	"package_path": "github.com/google/shenzhen-go/examples/primes",
 	"imports": [
-		"fmt"
+		"\"fmt\""
 	],
 	"is_command": true,
 	"nodes": {

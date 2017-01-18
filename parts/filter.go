@@ -155,6 +155,9 @@ func (f *Filter) Impl() (head, body, tail string) {
 	return "", b.String(), t.String()
 }
 
+// Imports returns a nil slice.
+func (*Filter) Imports() []string { return nil }
+
 // Update sets fields based on the given Request.
 func (f *Filter) Update(r *http.Request) error {
 	if r == nil {

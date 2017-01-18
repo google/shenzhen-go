@@ -75,6 +75,9 @@ func (c *Code) Impl() (head, body, tail string) {
 		strings.Join(c.Tail, "\n")
 }
 
+// Imports returns a nil slice.
+func (*Code) Imports() []string { return nil }
+
 // Update sets relevant fields based on the given Request.
 func (c *Code) Update(r *http.Request) error {
 	// TODO: Do this less long-windedly

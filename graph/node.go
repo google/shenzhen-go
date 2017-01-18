@@ -51,6 +51,9 @@ type Part interface {
 	// This allows cleanly closing channels for nodes with Multiplicity > 1.
 	Impl() (head, body, tail string)
 
+	// Imports returns any extra import lines needed for the Part.
+	Imports() []string
+
 	// Update sets fields in the part based on info in the given Request.
 	Update(*http.Request) error
 

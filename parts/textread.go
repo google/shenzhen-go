@@ -13,3 +13,88 @@
 // limitations under the License.
 
 package parts
+
+import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"text/template"
+)
+
+const textFileReaderBodyImplSrc = `
+f, err := os.Open("{{.Path}}")
+if err != nil {
+    {{.Error}} <- err
+    return
+}
+defer f.Close()
+sc := bufio.NewScanner(f)
+for sc.Scan() {
+    {{.Output}} <- sc.Text()
+}
+if err := sc.Err(); err != nil {
+    {{.Error}} <- err
+    return
+}
+if err := f.Close(); err != nil {
+    {{.Error}} <- err
+}
+`
+
+var textFileReaderBodyImpl = template.Must(template.New("textfilereader").Parse(textFileReaderBodyImplSrc))
+
+// TextFileReader waits for an input channel to close or send a value, then
+// reads a file, and streams the lines of text to an output channel typed string,
+// closing the output channel when done. If an error occurs, it stops reading and
+// the error is sent to an error channel, which is not closed.
+type TextFileReader struct {
+	WaitFor string `json:"wait_for"`
+	Path    string `json:"path"`
+	Output  string `json:"output"`
+	Error   string `json:"errors"`
+}
+
+// AssociateEditor associates a template called "part_view" with the given template.
+func (r *TextFileReader) AssociateEditor(*template.Template) error {
+	return nil
+}
+
+// Channels returns any channels used. Anything returned that is not a channel is ignored.
+func (r *TextFileReader) Channels() (read, written []string) {
+	return []string{r.WaitFor}, []string{r.Output}
+}
+
+// Clone returns a copy of this part.
+func (r *TextFileReader) Clone() interface{} {
+	s := *r
+	return &s
+}
+
+// Impl returns Go source code implementing the part.
+func (r *TextFileReader) Impl() (head, body, tail string) {
+	if r.WaitFor != "" {
+		head = fmt.Sprintf("<-%s", r.WaitFor)
+	}
+	buf := new(bytes.Buffer)
+	textFileReaderBodyImpl.Execute(buf, r)
+	tail = fmt.Sprintf("close(%s)", r.Output)
+	return head, buf.String(), tail
+}
+
+// Imports returns any extra import lines needed.
+func (*TextFileReader) Imports() []string {
+	return []string{
+		`"os"`,
+		`"bufio"`,
+	}
+}
+
+// Update sets fields in the part based on info in the given Request.
+func (r *TextFileReader) Update(*http.Request) error {
+	return nil
+}
+
+// TypeKey returns the string "TextFileReader"
+func (*TextFileReader) TypeKey() string {
+	return "TextFileReader"
+}

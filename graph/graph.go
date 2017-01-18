@@ -65,6 +65,28 @@ func (g *Graph) PackageName() string {
 	return g.PackagePath[i+1:]
 }
 
+// AllImports combines all desired imports into one slice.
+// It doesn't fix conflicting names, but dedupes any whole lines.
+// TODO: Put nodes in separate files to solve all import issues.
+func (g *Graph) AllImports() []string {
+	m := map[string]bool{
+		`"sync"`: true,
+	}
+	for _, i := range g.Imports {
+		m[i] = true
+	}
+	for _, n := range g.Nodes {
+		for _, i := range n.Part.Imports() {
+			m[i] = true
+		}
+	}
+	r := make([]string, 0, len(m))
+	for k := range m {
+		r = append(r, k)
+	}
+	return r
+}
+
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.
 func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
 	dec := json.NewDecoder(r)

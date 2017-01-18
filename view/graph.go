@@ -32,10 +32,11 @@ const (
 <body>
 <h1>{{$.Graph.Name}}</h1>
 <div>
-	<a href="?props">Properties</a> | 
-	<a href="?save">Save</a> | 
-	<a href="?build">Build</a> | 
-	<a href="?run">Run</a> | 
+	<a href="?props" title="Edit the properties of this graph">Properties</a> | 
+	<a href="?save" title="Save current changes to disk">Save</a> | 
+	<a href="?reload" title="Revert to last saved file">Revert</a> |
+	<a href="?build" title="Export the graph to a Go package and build it">Build</a> | 
+	<a href="?run" title="Export the graph to a Go package and execute it">Run</a> | 
 	New: <span class="dropdown">
 		<a href="javascript:void(0)">Goroutine</a> 
 		<div class="dropdown-content">
@@ -46,7 +47,7 @@ const (
 			</ul>
 		</div>
 	</span>
-	<a href="?channel=new">Channel</a> | 
+	<a href="?channel=new" title="Create a new channel">Channel</a> | 
 	View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a>
 	<br><br>
 	{{$.Diagram}}

@@ -76,7 +76,8 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
 	path := r.URL.Path
-	if g, ok := b.loadedGraphs[path]; ok {
+	_, reload := r.URL.Query()["reload"]
+	if g, ok := b.loadedGraphs[path]; ok && !reload {
 		Graph(g, w, r)
 		return
 	}

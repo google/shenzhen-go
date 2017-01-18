@@ -36,19 +36,13 @@ type Part interface {
 	Clone() interface{}
 
 	// Impl returns Go source code implementing the part.
-	// Loosely, the code will be inserted into the template as follows:
-	//
-	// 		go {
-	// 		    {{head}}
-	// 		    for n:=0; n<Multiplicity; n++ {
-	//			    go {
-	//					{{body}}
-	//				}
-	// 		    }
-	// 		    {{tail}}
-	// 		}
+	// The head is executed, then the body is executed (# Multiplicity
+	// instances of the body concurrently), then the tail (once the body/bodies
+	// are finished).
 	//
 	// This allows cleanly closing channels for nodes with Multiplicity > 1.
+	// The tail is deferred so that the body can use "return" and it is still
+	// executed.
 	Impl() (head, body, tail string)
 
 	// Imports returns any extra import lines needed for the Part.

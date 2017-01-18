@@ -77,6 +77,9 @@ func Run() {
 		defer wg.Done()
 		{{end}}
 		{{.ImplHead}}
+		defer func() {
+			{{.ImplTail}}
+		}()
 		{{if eq .Multiplicity 1 -}}
 		{{.ImplBody}}
 		{{- else -}}
@@ -90,7 +93,6 @@ func Run() {
 		}
 		multWG.Wait()
 		{{- end}}
-		{{.ImplTail}}
 	}()
 	{{- end}}
 

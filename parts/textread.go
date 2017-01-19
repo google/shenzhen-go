@@ -15,33 +15,10 @@
 package parts
 
 import (
-	"bytes"
 	"fmt"
+	"html/template"
 	"net/http"
-	"text/template"
 )
-
-const textFileReaderBodyImplSrc = `
-f, err := os.Open("{{.Path}}")
-if err != nil {
-    {{.Error}} <- err
-    return
-}
-defer f.Close()
-sc := bufio.NewScanner(f)
-for sc.Scan() {
-    {{.Output}} <- sc.Text()
-}
-if err := sc.Err(); err != nil {
-    {{.Error}} <- err
-    return
-}
-if err := f.Close(); err != nil {
-    {{.Error}} <- err
-}
-`
-
-var textFileReaderBodyImpl = template.Must(template.New("textfilereader").Parse(textFileReaderBodyImplSrc))
 
 // TextFileReader waits for an input channel to close or send a value, then
 // reads a file, and streams the lines of text to an output channel typed string,
@@ -75,17 +52,15 @@ func (r *TextFileReader) Impl() (head, body, tail string) {
 	if r.WaitFor != "" {
 		head = fmt.Sprintf("<-%s", r.WaitFor)
 	}
-	buf := new(bytes.Buffer)
-	textFileReaderBodyImpl.Execute(buf, r)
+	body = fmt.Sprintf(`partlib.StreamTextFile("%s", %s, %s)`, r.Path, r.Output, r.Error)
 	tail = fmt.Sprintf("close(%s)", r.Output)
-	return head, buf.String(), tail
+	return head, body, tail
 }
 
 // Imports returns any extra import lines needed.
 func (*TextFileReader) Imports() []string {
 	return []string{
-		`"os"`,
-		`"bufio"`,
+		`"github.com/google/shenzhen-go/parts/partlib"`,
 	}
 }
 

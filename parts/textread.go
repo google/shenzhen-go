@@ -20,6 +20,42 @@ import (
 	"net/http"
 )
 
+const textFileReaderEditTemplateSrc = `
+<div class="formfield">
+	<label for="WaitFor">Wait for</label>
+	<select name="WaitFor">
+		<option value="">[None]</option>
+		{{range .Graph.Channels -}}
+		<option value="{{.Name}}" {{if eq .Name $.Node.Part.WaitFor}}selected{{end}}>{{.Name}}</option>
+		{{- end}}
+	</select>
+</div>
+<div class="formfield">
+	<label for="FilePath">File path</label>
+	<input type="text" name="FilePath" required>{{.Path}}</input>
+</div>
+<div class="formfield">
+	<label for="Output">Output</label>
+	<select name="Output">
+		{{range .Graph.Channels -}}
+		{{if eq .Type "string" }}
+		<option value="{{.Name}}" {{if eq .Name $.Node.Part.Output}}selected{{end}}>{{.Name}}</option>
+		{{- end}}
+		{{- end}}
+	</select>
+</div>
+<div class="formfield">
+	<label for="Error">Error</label>
+	<select name="Error">
+		{{range .Graph.Channels -}}
+		{{if eq .Type "error"}}
+		<option value="{{.Name}}" {{if eq .Name $.Node.Part.Error}}selected{{end}}>{{.Name}}</option>
+		{{- end}}
+		{{- end}}
+	</select>
+</div>
+`
+
 // TextFileReader waits for an input channel to close or send a value, then
 // reads a file, and streams the lines of text to an output channel typed string,
 // closing the output channel when done. If an error occurs, it stops reading and
@@ -32,13 +68,14 @@ type TextFileReader struct {
 }
 
 // AssociateEditor associates a template called "part_view" with the given template.
-func (r *TextFileReader) AssociateEditor(*template.Template) error {
-	return nil
+func (r *TextFileReader) AssociateEditor(t *template.Template) error {
+	_, err := t.New("part_view").Parse(textFileReaderEditTemplateSrc)
+	return err
 }
 
 // Channels returns any channels used. Anything returned that is not a channel is ignored.
 func (r *TextFileReader) Channels() (read, written []string) {
-	return []string{r.WaitFor}, []string{r.Output}
+	return []string{r.WaitFor}, []string{r.Output, r.Error}
 }
 
 // Clone returns a copy of this part.
@@ -65,7 +102,17 @@ func (*TextFileReader) Imports() []string {
 }
 
 // Update sets fields in the part based on info in the given Request.
-func (r *TextFileReader) Update(*http.Request) error {
+func (r *TextFileReader) Update(req *http.Request) error {
+	if req == nil {
+		return nil
+	}
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	r.WaitFor = req.FormValue("WaitFor")
+	r.Output = req.FormValue("Output")
+	r.Error = req.FormValue("Error")
+	r.Path = req.FormValue("FilePath")
 	return nil
 }
 

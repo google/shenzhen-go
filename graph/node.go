@@ -63,6 +63,7 @@ var PartFactories = map[string]PartFactory{
 	"Code":   func() Part { return new(parts.Code) },
 	"Filter": func() Part { return new(parts.Filter) },
 	// "Multiplexer": func() Part { return new(parts.Multiplexer) },
+	"TextFileReader": func() Part { return new(parts.TextFileReader) },
 }
 
 // Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.

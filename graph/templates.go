@@ -21,17 +21,17 @@ const (
 	graph[rankdir="UD",fontname="Go"];
 	node[shape=box,fontname="Go"];
 	{{range .Nodes}}
-	"{{.Name}}" [URL="?node={{.Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];
+	"{{.Name}}" [URL="?node={{urlquery .Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];
 	{{- end}}
 	{{range .Channels}}
-	"{{.Name}}" [xlabel="{{.Name}}",URL="?channel={{.Name}}",shape=point,fontname="Go Mono"];
+	"{{.Name}}" [xlabel="{{.Name}}",URL="?channel={{urlquery .Name}}",shape=point,fontname="Go Mono"];
 	{{- end}}
 	{{range $n := .Nodes -}}
 	{{range $.DeclaredChannels .ChannelsRead}}
-	"{{.}}" -> "{{$n.Name}}" [URL="?channel={{.}}"];
+	"{{.}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .}}"];
 	{{- end}}
 	{{- range $.DeclaredChannels .ChannelsWritten}}
-	"{{$n.Name}}" -> "{{.}}" [URL="?channel={{.}}"];
+	"{{$n.Name}}" -> "{{.}}" [URL="?channel={{urlquery .}}"];
 	{{- end}}
 	{{- end}}
 }`

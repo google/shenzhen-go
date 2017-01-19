@@ -15,7 +15,7 @@ and run, or used as a library in a regular Go program.
 
 SHENZHEN GO requires:
 
-*   [Go](https://golang.org/)
+*   [Go 1.7+](https://golang.org/)
 *   [Graphviz](http://graphviz.org/)
 *   A web browser (e.g. [Chrome](https://www.google.com/chrome)).
 

@@ -1,0 +1,84 @@
+{
+	"name": "Word counter",
+	"package_path": "github.com/google/shenzhen-go/examples/wc",
+	"imports": [
+		"\"fmt\"",
+		"\"strings\"",
+		"\"os\""
+	],
+	"is_command": true,
+	"nodes": {
+		"Count lines, words, characters": {
+			"name": "Count lines, words, characters",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"// Note that the \"words\" and \"chars\" won't match output from the usual wc command",
+					"// for various reasons (the scanner trims \\n, strings.Split doesn't consider other",
+					"// whitespace chars).",
+					"",
+					"lines, words, chars := 0, 0, 0",
+					"for l := range Strings {",
+					"    lines++",
+					"    words += len(strings.Split(l, \" \"))",
+					"    chars += len(l)",
+					"}",
+					"fmt.Printf(\"%d\\t%d\\t%d\\n\", lines, words, chars)",
+					""
+				],
+				"tail": [
+					""
+				]
+			},
+			"part_type": "Code"
+		},
+		"Report error \u0026 exit": {
+			"name": "Report error \u0026 exit",
+			"wait": false,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"if err := \u003c-Errors; err != nil {",
+					"    fmt.Printf(\"Couldn't count: %v\", err)",
+					"    os.Exit(1)",
+					"}"
+				],
+				"tail": [
+					""
+				]
+			},
+			"part_type": "Code"
+		},
+		"wc.szgo as text": {
+			"name": "wc.szgo as text",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"wait_for": "",
+				"path": "examples/wc.szgo",
+				"output": "Strings",
+				"errors": "Errors"
+			},
+			"part_type": "TextFileReader"
+		}
+	},
+	"channels": {
+		"Errors": {
+			"name": "Errors",
+			"type": "error",
+			"cap": 0
+		},
+		"Strings": {
+			"name": "Strings",
+			"type": "string",
+			"cap": 0
+		}
+	}
+}

@@ -24,7 +24,7 @@ const textFileReaderEditTemplateSrc = `
 <div class="formfield">
 	<label for="WaitFor">Wait for</label>
 	<select name="WaitFor">
-		<option value="">[None]</option>
+		<option value="" {{if eq "" $.Node.Part.WaitFor}}selected{{end}}>[None]</option>
 		{{range .Graph.Channels -}}
 		<option value="{{.Name}}" {{if eq .Name $.Node.Part.WaitFor}}selected{{end}}>{{.Name}}</option>
 		{{- end}}
@@ -32,7 +32,7 @@ const textFileReaderEditTemplateSrc = `
 </div>
 <div class="formfield">
 	<label for="FilePath">File path</label>
-	<input type="text" name="FilePath" required>{{.Path}}</input>
+	<input type="text" name="FilePath" value="{{$.Node.Part.Path}}" required></input>
 </div>
 <div class="formfield">
 	<label for="Output">Output</label>
@@ -75,7 +75,10 @@ func (r *TextFileReader) AssociateEditor(t *template.Template) error {
 
 // Channels returns any channels used. Anything returned that is not a channel is ignored.
 func (r *TextFileReader) Channels() (read, written []string) {
-	return []string{r.WaitFor}, []string{r.Output, r.Error}
+	if r.WaitFor == "" {
+		read = []string{r.WaitFor}
+	}
+	return read, []string{r.Output, r.Error}
 }
 
 // Clone returns a copy of this part.

@@ -19,25 +19,40 @@ import (
 	"os"
 )
 
-// StreamTextFile tries to read the file at the given path, and streams
-// text lines from the file as string to the output.
-func StreamTextFile(path string, output chan<- string, errors chan<- error) {
-	f, err := os.Open(path)
-	if err != nil {
-		errors <- err
-		return
-	}
-	defer f.Close()
-	// TODO: switch to bufio.Reader since it can handle longer lines.
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		output <- sc.Text()
-	}
-	if err := sc.Err(); err != nil {
-		errors <- err
-		return
-	}
-	if err := f.Close(); err != nil {
-		errors <- err
+// FileLine represents a single line from a text file. It includes the file path,
+// the line itself, and the line number starting from 0.
+type FileLine struct {
+	Path, Line string
+	LineNum    int
+}
+
+// StreamTextFile reads files to read from an input channel, and streams
+// text lines from the file as strings to the output.
+func StreamTextFile(pathIn <-chan string, output chan<- FileLine, errors chan<- error) {
+	for path := range pathIn {
+		f, err := os.Open(path)
+		if err != nil {
+			errors <- err
+			continue
+		}
+		defer f.Close()
+		// TODO: switch to bufio.Reader since it can handle longer lines.
+		sc := bufio.NewScanner(f)
+		ln := 0
+		for sc.Scan() {
+			output <- FileLine{
+				Path:    path,
+				Line:    sc.Text(),
+				LineNum: ln,
+			}
+			ln++
+		}
+		if err := sc.Err(); err != nil {
+			errors <- err
+			continue
+		}
+		if err := f.Close(); err != nil {
+			errors <- err
+		}
 	}
 }

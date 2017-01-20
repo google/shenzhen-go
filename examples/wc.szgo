@@ -21,14 +21,40 @@
 					"// for various reasons (the scanner trims \\n, strings.Split doesn't consider other",
 					"// whitespace chars).",
 					"",
-					"lines, words, chars := 0, 0, 0",
-					"for l := range Strings {",
-					"    lines++",
-					"    words += len(strings.Split(l, \" \"))",
-					"    chars += len(l)",
+					"sum := make(map[string]struct{lines, words, chars int})",
+					"for fl := range Lines {",
+					"    s := sum[fl.Path]",
+					"    s.lines++",
+					"    s.words += len(strings.Split(fl.Line, \" \"))",
+					"    s.chars += len(fl.Line)",
+					"    sum[fl.Path] = s",
 					"}",
-					"fmt.Printf(\"%d\\t%d\\t%d\\n\", lines, words, chars)",
+					"for f, s := range sum {",
+					"    fmt.Printf(\"%s\\t%d\\t%d\\t%d\\n\", f, s.lines, s.words, s.chars)",
+					"}",
 					""
+				],
+				"tail": [
+					""
+				]
+			},
+			"part_type": "Code"
+		},
+		"Get paths from os.Args": {
+			"name": "Get paths from os.Args",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"for i, p := range os.Args {",
+					"    if i == 0 {",
+					"        continue",
+					"    }",
+					"    Paths \u003c- p",
+					"}"
 				],
 				"tail": [
 					""
@@ -56,14 +82,13 @@
 			},
 			"part_type": "Code"
 		},
-		"wc.szgo as text": {
-			"name": "wc.szgo as text",
+		"Text File Reader": {
+			"name": "Text File Reader",
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"wait_for": "",
-				"path": "examples/wc.szgo",
-				"output": "Strings",
+				"path_input": "Paths",
+				"output": "Lines",
 				"errors": "Errors"
 			},
 			"part_type": "TextFileReader"
@@ -75,8 +100,13 @@
 			"type": "error",
 			"cap": 0
 		},
-		"Strings": {
-			"name": "Strings",
+		"Lines": {
+			"name": "Lines",
+			"type": "partlib.FileLine",
+			"cap": 0
+		},
+		"Paths": {
+			"name": "Paths",
 			"type": "string",
 			"cap": 0
 		}

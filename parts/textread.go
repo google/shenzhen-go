@@ -22,23 +22,20 @@ import (
 
 const textFileReaderEditTemplateSrc = `
 <div class="formfield">
-	<label for="WaitFor">Wait for</label>
-	<select name="WaitFor">
-		<option value="" {{if eq "" $.Node.Part.WaitFor}}selected{{end}}>[None]</option>
+	<label for="PathInput">File paths to read</label>
+	<select name="PathInput">
 		{{range .Graph.Channels -}}
-		<option value="{{.Name}}" {{if eq .Name $.Node.Part.WaitFor}}selected{{end}}>{{.Name}}</option>
+		{{if eq .Type "string" }}
+		<option value="{{.Name}}" {{if eq .Name $.Node.Part.PathInput}}selected{{end}}>{{.Name}}</option>
+		{{- end}}
 		{{- end}}
 	</select>
-</div>
-<div class="formfield">
-	<label for="FilePath">File path</label>
-	<input type="text" name="FilePath" value="{{$.Node.Part.Path}}" required></input>
 </div>
 <div class="formfield">
 	<label for="Output">Output</label>
 	<select name="Output">
 		{{range .Graph.Channels -}}
-		{{if eq .Type "string" }}
+		{{if eq .Type "partlib.FileLine" }}
 		<option value="{{.Name}}" {{if eq .Name $.Node.Part.Output}}selected{{end}}>{{.Name}}</option>
 		{{- end}}
 		{{- end}}
@@ -56,15 +53,14 @@ const textFileReaderEditTemplateSrc = `
 </div>
 `
 
-// TextFileReader waits for an input channel to close or send a value, then
-// reads a file, and streams the lines of text to an output channel typed string,
+// TextFileReader waits for the path of a file to read to arrive, the
+// reads the file, and streams the lines of text to an output channel typed string,
 // closing the output channel when done. If an error occurs, it stops reading and
 // the error is sent to an error channel, which is not closed.
 type TextFileReader struct {
-	WaitFor string `json:"wait_for"`
-	Path    string `json:"path"`
-	Output  string `json:"output"`
-	Error   string `json:"errors"`
+	PathInput string `json:"path_input"`
+	Output    string `json:"output"`
+	Error     string `json:"errors"`
 }
 
 // AssociateEditor associates a template called "part_view" with the given template.
@@ -75,10 +71,7 @@ func (r *TextFileReader) AssociateEditor(t *template.Template) error {
 
 // Channels returns any channels used. Anything returned that is not a channel is ignored.
 func (r *TextFileReader) Channels() (read, written []string) {
-	if r.WaitFor == "" {
-		read = []string{r.WaitFor}
-	}
-	return read, []string{r.Output, r.Error}
+	return []string{r.PathInput}, []string{r.Output, r.Error}
 }
 
 // Clone returns a copy of this part.
@@ -89,12 +82,9 @@ func (r *TextFileReader) Clone() interface{} {
 
 // Impl returns Go source code implementing the part.
 func (r *TextFileReader) Impl() (head, body, tail string) {
-	if r.WaitFor != "" {
-		head = fmt.Sprintf("<-%s", r.WaitFor)
-	}
-	body = fmt.Sprintf(`partlib.StreamTextFile("%s", %s, %s)`, r.Path, r.Output, r.Error)
+	body = fmt.Sprintf(`partlib.StreamTextFile(%s, %s, %s)`, r.PathInput, r.Output, r.Error)
 	tail = fmt.Sprintf("close(%s)", r.Output)
-	return head, body, tail
+	return "", body, tail
 }
 
 // Imports returns any extra import lines needed.
@@ -112,10 +102,9 @@ func (r *TextFileReader) Update(req *http.Request) error {
 	if err := req.ParseForm(); err != nil {
 		return err
 	}
-	r.WaitFor = req.FormValue("WaitFor")
+	r.PathInput = req.FormValue("PathInput")
 	r.Output = req.FormValue("Output")
 	r.Error = req.FormValue("Error")
-	r.Path = req.FormValue("FilePath")
 	return nil
 }
 

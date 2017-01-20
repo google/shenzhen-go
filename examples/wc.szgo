@@ -29,10 +29,18 @@
 					"    s.chars += len(fl.Line)",
 					"    sum[fl.Path] = s",
 					"}",
+					"",
+					"l, w, c := 0, 0, 0",
 					"for f, s := range sum {",
-					"    fmt.Printf(\"%s\\t%d\\t%d\\t%d\\n\", f, s.lines, s.words, s.chars)",
+					"    fmt.Printf(\"%d\\t%d\\t%d\\t%s\\n\", s.lines, s.words, s.chars, f)",
+					"    l += s.lines",
+					"    w += s.words",
+					"    c += s.chars",
 					"}",
-					""
+					"",
+					"if len(sum) \u003e 1 {",
+					"    fmt.Printf(\"%d\\t%d\\t%d\\ttotal\\n\", l, w, c)",
+					"}"
 				],
 				"tail": [
 					""
@@ -54,7 +62,8 @@
 					"        continue",
 					"    }",
 					"    Paths \u003c- p",
-					"}"
+					"}",
+					"close(Paths)"
 				],
 				"tail": [
 					""

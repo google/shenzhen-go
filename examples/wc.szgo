@@ -94,7 +94,7 @@
 		"Text File Reader": {
 			"name": "Text File Reader",
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": 4,
 			"part": {
 				"path_input": "Paths",
 				"output": "Lines",

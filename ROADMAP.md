@@ -4,6 +4,7 @@ Here's a bunch of TODOs in no particular order.
 
 * Actually really really **for reals** write some documentation, Josh.
     * Help text in part editor, title text on part menu
+* Write an installer? (Obtains necessary components on demand? Or bundles them? Or one of each?)
 * Quick channel creator (embed channel UI into a dropdown, default name, interface{}, cap 0)
 * Improve the style and implementation of the UI (Polymer?)
 * Consider a different name for the project (or not!).

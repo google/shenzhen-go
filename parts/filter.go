@@ -16,6 +16,7 @@ package parts
 
 import (
 	"bytes"
+	"github.com/google/shenzhen-go/source"
 	html "html/template"
 	"net/http"
 	"regexp"
@@ -134,12 +135,12 @@ func (f *Filter) AssociateEditor(tmpl *html.Template) error {
 }
 
 // Channels returns the names of all channels used by this goroutine.
-func (f *Filter) Channels() (read, written []string) {
-	o := make([]string, 0, len(f.Paths))
+func (f *Filter) Channels() (read, written source.StringSet) {
+	o := make(source.StringSet, len(f.Paths))
 	for _, p := range f.Paths {
-		o = append(o, p.Output)
+		o.Add(p.Output)
 	}
-	return []string{f.Input}, o
+	return source.NewStringSet(f.Input), o
 }
 
 // Clone returns a copy of this Filter part.

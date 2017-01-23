@@ -21,7 +21,7 @@ import (
 )
 
 type chanIdents struct {
-	srcs, dsts map[string]bool
+	srcs, dsts StringSet
 }
 
 func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
@@ -31,7 +31,7 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return v
 		}
-		v.dsts[id.Name] = true
+		v.dsts.Add(id.Name)
 
 	case *ast.UnaryExpr:
 		if s.Op != token.ARROW {
@@ -41,14 +41,14 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return nil
 		}
-		v.srcs[id.Name] = true
+		v.srcs.Add(id.Name)
 
 	case *ast.RangeStmt:
 		id, ok := s.X.(*ast.Ident)
 		if !ok {
 			return v
 		}
-		v.srcs[id.Name] = true
+		v.srcs.Add(id.Name)
 
 	case *ast.CallExpr:
 		// close(ch) is interpreted as writing to ch.
@@ -66,8 +66,7 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return v
 		}
-		v.dsts[id.Name] = true
-
+		v.dsts.Add(id.Name)
 	}
 	return v
 }
@@ -75,13 +74,13 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 // ExtractChannelIdents extracts identifier names which could be involved in
 // channel reads (srcs) or writes (dsts). dsts only contains channel identifiers
 // written to, but srcs can contain false positives.
-func ExtractChannelIdents(src, funcname string) (srcs, dsts []string, err error) {
+func ExtractChannelIdents(src, funcname string) (srcs, dsts StringSet, err error) {
 	fset := token.NewFileSet()
 	f, err := parseSnippet(src, funcname, fset, 0)
 	if err != nil {
 		return nil, nil, fmt.Errorf("parsing snippet: %v", err)
 	}
-	ci := &chanIdents{srcs: make(map[string]bool), dsts: make(map[string]bool)}
+	ci := &chanIdents{srcs: make(map[string]struct{}), dsts: make(map[string]struct{})}
 	ast.Walk(&findFunc{funcName: funcname, subvis: ci}, f)
-	return mapToSlice(ci.srcs), mapToSlice(ci.dsts), nil
+	return ci.srcs, ci.dsts, nil
 }

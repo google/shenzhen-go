@@ -16,6 +16,7 @@ package parts
 
 import (
 	"fmt"
+	"github.com/google/shenzhen-go/source"
 	"html/template"
 	"net/http"
 )
@@ -70,8 +71,8 @@ func (r *TextFileReader) AssociateEditor(t *template.Template) error {
 }
 
 // Channels returns any channels used. Anything returned that is not a channel is ignored.
-func (r *TextFileReader) Channels() (read, written []string) {
-	return []string{r.PathInput}, []string{r.Output, r.Error}
+func (r *TextFileReader) Channels() (read, written source.StringSet) {
+	return source.NewStringSet(r.PathInput), source.NewStringSet(r.Output, r.Error)
 }
 
 // Clone returns a copy of this part.

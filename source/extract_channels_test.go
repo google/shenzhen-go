@@ -16,7 +16,6 @@ package source
 
 import (
 	"reflect"
-	"sort"
 	"testing"
 )
 
@@ -31,14 +30,12 @@ for range baz {
 close(zoop)
 `, "demo")
 	if err != nil {
-		t.Fatalf("extractChannelIdents err = %v", err)
+		t.Fatalf("ExtractChannelIdents error = %v", err)
 	}
-	sort.Strings(srcs)
-	sort.Strings(dsts)
-	if got, want := srcs, []string{"bar", "baz", "qux"}; !reflect.DeepEqual(got, want) {
-		t.Errorf("extractChannelIdents srcs = %v, want %v", got, want)
+	if got, want := srcs, NewStringSet("bar", "baz", "qux"); !reflect.DeepEqual(got, want) {
+		t.Errorf("ExtractChannelIdents srcs = %v, want %v", got, want)
 	}
-	if got, want := dsts, []string{"foo", "tuz", "zoop"}; !reflect.DeepEqual(got, want) {
-		t.Errorf("extractChannelIdents srcs = %v, want %v", got, want)
+	if got, want := dsts, NewStringSet("foo", "tuz", "zoop"); !reflect.DeepEqual(got, want) {
+		t.Errorf("ExtractChannelIdents dsts = %v, want %v", got, want)
 	}
 }

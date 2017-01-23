@@ -21,6 +21,7 @@ import (
 	"net/http"
 
 	"github.com/google/shenzhen-go/parts"
+	"github.com/google/shenzhen-go/source"
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be
@@ -30,7 +31,7 @@ type Part interface {
 	AssociateEditor(*template.Template) error
 
 	// Channels returns any channels used. Anything returned that is not a channel is ignored.
-	Channels() (read, written []string)
+	Channels() (read, written source.StringSet)
 
 	// Clone returns a copy of this part.
 	Clone() interface{}
@@ -82,14 +83,14 @@ type Node struct {
 // function for the templates, which can't do multiple returns.
 func (n *Node) ChannelsRead() []string {
 	r, _ := n.Part.Channels()
-	return r
+	return r.Slice()
 }
 
 // ChannelsWritten returns the channels written to by this node. It is a convenience
 // function for the templates, which can't do multiple returns.
 func (n *Node) ChannelsWritten() []string {
 	_, w := n.Part.Channels()
-	return w
+	return w.Slice()
 }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.

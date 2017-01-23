@@ -46,7 +46,7 @@ type Code struct {
 	Tail []string `json:"tail"`
 
 	// Computed from Head + Body + Tail - which channels are read from and written to.
-	chansRd, chansWr []string
+	chansRd, chansWr source.StringSet
 }
 
 // AssociateEditor adds a "part_view" template to the given template.
@@ -56,7 +56,7 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 }
 
 // Channels returns the names of all channels used by this goroutine.
-func (c *Code) Channels() (read, written []string) { return c.chansRd, c.chansWr }
+func (c *Code) Channels() (read, written source.StringSet) { return c.chansRd, c.chansWr }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
@@ -103,15 +103,13 @@ func (c *Code) RenameChannel(from, to string) {
 	c.Tail = strings.Split(t1, "\n")
 
 	// Simple update of cached values
-	for i := range c.chansRd {
-		if c.chansRd[i] == from {
-			c.chansRd[i] = to
-		}
+	if c.chansRd.Ni(from) {
+		c.chansRd.Del(from)
+		c.chansRd.Add(to)
 	}
-	for i := range c.chansWr {
-		if c.chansWr[i] == from {
-			c.chansWr[i] = to
-		}
+	if c.chansWr.Ni(from) {
+		c.chansWr.Del(from)
+		c.chansWr.Add(to)
 	}
 }
 
@@ -143,8 +141,8 @@ func (c *Code) Update(r *http.Request) error {
 	stripCR(c.Body)
 	c.Tail = strings.Split(t, "\n")
 	stripCR(c.Tail)
-	c.chansRd = append(append(hs, bs...), ts...)
-	c.chansWr = append(append(hd, bd...), td...)
+	c.chansRd = source.Union(hs, bs, ts)
+	c.chansWr = source.Union(hd, bd, td)
 	return nil
 }
 

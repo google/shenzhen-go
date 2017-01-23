@@ -34,14 +34,6 @@ const wrapperTmplSrc = "package {{.FuncName}}; func {{.FuncName}}() { {{.Content
 
 var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
 
-func mapToSlice(m map[string]bool) (s []string) {
-	s = make([]string, 0, len(m))
-	for k := range m {
-		s = append(s, k)
-	}
-	return
-}
-
 func parseSnippet(src, funcname string, fset *token.FileSet, mode parser.Mode) (*ast.File, error) {
 	pr, pw := io.Pipe()
 	go func() {

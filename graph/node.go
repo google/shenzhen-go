@@ -48,11 +48,14 @@ type Part interface {
 	// Imports returns any extra import lines needed for the Part.
 	Imports() []string
 
-	// Update sets fields in the part based on info in the given Request.
-	Update(*http.Request) error
+	// RenameChannel informs the part that a channel has been renamed.
+	RenameChannel(from, to string)
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string
+
+	// Update sets fields in the part based on info in the given Request.
+	Update(*http.Request) error
 }
 
 // PartFactory creates a part.

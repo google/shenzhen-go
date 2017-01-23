@@ -161,6 +161,21 @@ func (f *Filter) Impl() (head, body, tail string) {
 // Imports returns a nil slice.
 func (*Filter) Imports() []string { return nil }
 
+// RenameChannel renames a channel possibly used by the input or any outputs.
+func (f *Filter) RenameChannel(from, to string) {
+	if f.Input == from {
+		f.Input = to
+	}
+	for i := range f.Paths {
+		if f.Paths[i].Output == from {
+			f.Paths[i].Output = to
+		}
+	}
+}
+
+// TypeKey returns "Filter".
+func (*Filter) TypeKey() string { return "Filter" }
+
 // Update sets fields based on the given Request.
 func (f *Filter) Update(r *http.Request) error {
 	if r == nil {
@@ -204,6 +219,3 @@ func (f *Filter) Update(r *http.Request) error {
 	}
 	return nil
 }
-
-// TypeKey returns "Filter".
-func (*Filter) TypeKey() string { return "Filter" }

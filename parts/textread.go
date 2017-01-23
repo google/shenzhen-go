@@ -94,6 +94,22 @@ func (*TextFileReader) Imports() []string {
 	}
 }
 
+// RenameChannel renames any uses of the channel "from" to the channel "to".
+func (r *TextFileReader) RenameChannel(from, to string) {
+	if r.PathInput == from {
+		r.PathInput = to
+	}
+	if r.Output == from {
+		r.Output = to
+	}
+	if r.Error == from {
+		r.Output = to
+	}
+}
+
+// TypeKey returns the string "TextFileReader"
+func (*TextFileReader) TypeKey() string { return "TextFileReader" }
+
 // Update sets fields in the part based on info in the given Request.
 func (r *TextFileReader) Update(req *http.Request) error {
 	if req == nil {
@@ -106,9 +122,4 @@ func (r *TextFileReader) Update(req *http.Request) error {
 	r.Output = req.FormValue("Output")
 	r.Error = req.FormValue("Error")
 	return nil
-}
-
-// TypeKey returns the string "TextFileReader"
-func (*TextFileReader) TypeKey() string {
-	return "TextFileReader"
 }

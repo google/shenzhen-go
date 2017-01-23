@@ -148,6 +148,9 @@ func handleChannelPost(g *graph.Graph, e *graph.Channel, w http.ResponseWriter, 
 	// Do name changes last since they cause a redirect.
 	if e.Name != "" {
 		delete(g.Channels, e.Name)
+		for _, n := range g.Nodes {
+			n.Part.RenameChannel(e.Name, nn)
+		}
 	}
 	e.Name = nn
 	g.Channels[nn] = e

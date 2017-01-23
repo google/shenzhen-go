@@ -78,6 +78,16 @@ func (c *Code) Impl() (head, body, tail string) {
 // Imports returns a nil slice.
 func (*Code) Imports() []string { return nil }
 
+// RenameChannel currently does nothing.
+func (c *Code) RenameChannel(from, to string) {
+	// TODO: Parse the contents into an AST,
+	// replace all instances of the identifier "from" with "to",
+	// and then format back into Go.
+}
+
+// TypeKey returns "Code".
+func (*Code) TypeKey() string { return "Code" }
+
 // Update sets relevant fields based on the given Request.
 func (c *Code) Update(r *http.Request) error {
 	// TODO: Do this less long-windedly
@@ -107,9 +117,6 @@ func (c *Code) Update(r *http.Request) error {
 	c.chansWr = append(append(hd, bd...), td...)
 	return nil
 }
-
-// TypeKey returns "Code".
-func (*Code) TypeKey() string { return "Code" }
 
 func stripCR(in []string) {
 	for i := range in {

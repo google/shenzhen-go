@@ -21,7 +21,7 @@ import (
 )
 
 func TestExtractChannelIdents(t *testing.T) {
-	srcs, dsts, err := extractChannelIdents(`foo <- <-bar
+	srcs, dsts, err := ExtractChannelIdents(`foo <- <-bar
 for range baz {
     select {
     case blarp := <-qux:
@@ -29,7 +29,7 @@ for range baz {
     }
 }
 close(zoop)
-`)
+`, "demo")
 	if err != nil {
 		t.Fatalf("extractChannelIdents err = %v", err)
 	}

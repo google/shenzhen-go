@@ -85,15 +85,15 @@ func (c *Code) Update(r *http.Request) error {
 	if r != nil {
 		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
 	}
-	hs, hd, err := source.ExtractChannelIdents(h)
+	hs, hd, err := source.ExtractChannelIdents(h, "head")
 	if err != nil {
 		return fmt.Errorf("extracting channels from head: %v", err)
 	}
-	bs, bd, err := source.ExtractChannelIdents(b)
+	bs, bd, err := source.ExtractChannelIdents(b, "body")
 	if err != nil {
 		return fmt.Errorf("extracting channels from body: %v", err)
 	}
-	ts, td, err := source.ExtractChannelIdents(t)
+	ts, td, err := source.ExtractChannelIdents(t, "tail")
 	if err != nil {
 		return fmt.Errorf("extracting channels from tail: %v", err)
 	}

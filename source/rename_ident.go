@@ -21,6 +21,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"strings"
 )
 
 type renameIdent struct {
@@ -53,10 +54,25 @@ func RenameIdent(src, funcname, from, to string) (string, error) {
 	ast.Walk(ff, f)
 	buf := new(bytes.Buffer)
 
-	// Note: This method of printing ignores f.Comments, and therefore destroys comments.
-	// But it's simple. Trimming the output of format.Node(..., f) would work, I guess, but...
-	if err := format.Node(buf, fset, ff.node.Body.List); err != nil {
+	if err := format.Node(buf, fset, f); err != nil {
 		return "", fmt.Errorf("formatting output: %v", err)
 	}
-	return buf.String(), nil
+
+	out := strings.Split(buf.String(), "\n")
+	// The first three lines should be
+	//   package $funcname
+	//
+	//   func $funcname() {
+	// and the last two lines should be
+	//   }
+	//
+	// (The final } has a trailing \n)
+	out = out[3:]
+	out = out[:len(out)-2]
+
+	// Each line in the function will be \t-indented 1 extra level.
+	for i := range out {
+		out[i] = strings.TrimPrefix(out[i], "\t")
+	}
+	return strings.Join(out, "\n"), nil
 }

@@ -17,6 +17,7 @@ package parts
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 
@@ -80,22 +81,24 @@ func (c *Code) Impl() (head, body, tail string) {
 func (*Code) Imports() []string { return nil }
 
 // RenameChannel does fancy footwork to rename the channel in the code,
-// with a side-effect of nicely formatting it.
+// with a side-effect of nicely formatting it. If a rename issue occurs
+// e.g. because the user's code has a syntax error, the rename is aborted
+// and logged.
 func (c *Code) RenameChannel(from, to string) {
 	h, b, t := c.Impl()
 	h1, err := source.RenameIdent(h, "head", from, to)
 	if err != nil {
-		// TODO: handle
+		log.Printf("Couldn't do rename on head: %v", err)
 		return
 	}
 	b1, err := source.RenameIdent(b, "body", from, to)
 	if err != nil {
-		// TODO: handle
+		log.Printf("Couldn't do rename on body: %v", err)
 		return
 	}
 	t1, err := source.RenameIdent(t, "tail", from, to)
 	if err != nil {
-		// TODO: handle
+		log.Printf("Couldn't do rename on tail: %v", err)
 		return
 	}
 	c.Head = strings.Split(h1, "\n")

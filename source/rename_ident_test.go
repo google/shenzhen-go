@@ -31,8 +31,8 @@ close(foop)
 	if err != nil {
 		t.Fatalf("RenameIdent(%q, %q) error = %v", "foo", "quuuux", err)
 	}
-	want := "quuuux <- <-bar\nfor range bar {\n\tselect {\n\tcase quuuux := <-quuuux:\n\tcase art <- os.foo:\n\t}\n}\nclose(foop)"
+	want := "quuuux <- <-bar\nfor range bar {\n\tselect {\n\tcase quuuux := <-quuuux:\n\tcase art <- os.foo:\n\t}\n}\nclose(foop)\n"
 	if got != want {
-		t.Errorf("RenameIdent(%q, %q) = %q, want %q", "foo", "quuuux", got, want)
+		t.Errorf("RenameIdent(%q, %q) = \n%q, want \n%q", "foo", "quuuux", got, want)
 	}
 }

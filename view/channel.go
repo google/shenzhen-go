@@ -149,7 +149,10 @@ func handleChannelPost(g *graph.Graph, e *graph.Channel, w http.ResponseWriter, 
 	if e.Name != "" {
 		delete(g.Channels, e.Name)
 		for _, n := range g.Nodes {
-			n.Part.RenameChannel(e.Name, nn)
+			cr, cw := n.Part.Channels()
+			if cr.Ni(e.Name) || cw.Ni(e.Name) {
+				n.Part.RenameChannel(e.Name, nn)
+			}
 		}
 	}
 	e.Name = nn

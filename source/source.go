@@ -14,3 +14,60 @@
 
 // Package source helps deal with Go source code.
 package source
+
+import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"io"
+	"text/template"
+)
+
+// There isn't a "parser.ParseArbitraryBlob" convenience function so we make do with
+// ParseFile. This requires a "go file" complete with "package" and statements in a
+// function body.
+//
+// This puts the package and function declaration on the first line. This should
+// preserve line numbers for any errors (a trick learned from
+// golang.org/x/tools/imports/imports.go).
+const wrapperTmplSrc = "package {{.FuncName}}; func {{.FuncName}}() { {{.Content}} \n}"
+
+var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
+
+func mapToSlice(m map[string]bool) (s []string) {
+	s = make([]string, 0, len(m))
+	for k := range m {
+		s = append(s, k)
+	}
+	return
+}
+
+func parseSnippet(src, funcname string, fset *token.FileSet, mode parser.Mode) (*ast.File, error) {
+	pr, pw := io.Pipe()
+	go func() {
+		wrapperTmpl.Execute(pw, struct{ FuncName, Content string }{
+			FuncName: funcname,
+			Content:  src,
+		})
+		pw.Close()
+	}()
+	return parser.ParseFile(fset, funcname+".go", pr, mode)
+}
+
+type findFunc struct {
+	funcName string
+	subvis   ast.Visitor
+	node     *ast.FuncDecl
+}
+
+func (v *findFunc) Visit(node ast.Node) ast.Visitor {
+	f, ok := node.(*ast.FuncDecl)
+	if !ok {
+		return v
+	}
+	if f.Name.Name != v.funcName {
+		return nil
+	}
+	v.node = f
+	return v.subvis
+}

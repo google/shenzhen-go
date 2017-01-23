@@ -15,39 +15,10 @@
 package source
 
 import (
+	"fmt"
 	"go/ast"
-	"go/parser"
 	"go/token"
-	"io"
-	"text/template"
 )
-
-// There isn't a "parser.ParseArbitraryBlob" convenience function so we make do with
-// ParseFile. This requires a "go file" complete with "package" and statements in a
-// function body.
-//
-// This puts the package and function declaration on the first line. This should
-// preserve line numbers for any errors (a trick learned from
-// golang.org/x/tools/imports/imports.go).
-const wrapperTmplSrc = "package {{.FuncName}}; func {{.FuncName}}() { {{.Content}} \n}"
-
-var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
-
-type findFunc struct {
-	funcName string
-	subvis   ast.Visitor
-}
-
-func (v *findFunc) Visit(node ast.Node) ast.Visitor {
-	f, ok := node.(*ast.FuncDecl)
-	if !ok {
-		return v
-	}
-	if f.Name.Name != v.funcName {
-		return nil
-	}
-	return v.subvis
-}
 
 type chanIdents struct {
 	srcs, dsts map[string]bool
@@ -101,30 +72,14 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
-func mapToSlice(m map[string]bool) (s []string) {
-	s = make([]string, 0, len(m))
-	for k := range m {
-		s = append(s, k)
-	}
-	return
-}
-
 // ExtractChannelIdents extracts identifier names which could be involved in
 // channel reads (srcs) or writes (dsts). dsts only contains channel identifiers
 // written to, but srcs can contain false positives.
 func ExtractChannelIdents(src, funcname string) (srcs, dsts []string, err error) {
 	fset := token.NewFileSet()
-	pr, pw := io.Pipe()
-	go func() {
-		wrapperTmpl.Execute(pw, struct{ FuncName, Content string }{
-			FuncName: funcname,
-			Content:  src,
-		})
-		pw.Close()
-	}()
-	f, err := parser.ParseFile(fset, funcname+".go", pr, 0)
+	f, err := parseSnippet(src, funcname, fset, 0)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("parsing snippet: %v", err)
 	}
 	ci := &chanIdents{srcs: make(map[string]bool), dsts: make(map[string]bool)}
 	ast.Walk(&findFunc{funcName: funcname, subvis: ci}, f)

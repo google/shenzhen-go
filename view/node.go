@@ -32,6 +32,18 @@ import (
 const nodeEditorTemplateSrc = `{{with .Node -}}
 <head>
 	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
+	<script>
+	function showhidehelp(l) {
+		d = document.getElementById('help');
+		if (d.style.display == 'none') {
+			d.style.display = 'block';
+			l.innerText = 'Hide Help';
+		} else {
+			d.style.display = 'none';
+			l.innerText = 'Show Help';
+		}
+	}
+	</script>
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
@@ -39,7 +51,12 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 	<a href="?node={{.Name}}&clone">Clone</a> | 
 	<a href="?node={{.Name}}&delete">Delete</a> | 
 	{{end}}
-	Part type: {{.Part.TypeKey}}
+	Part type: {{.Part.TypeKey}} | 
+	<a id="helplink" href="javascript:void(0);" onclick="showhidehelp(this);">Show Help</a>
+	<div id="help" style="display:none">
+		<h3>{{.Part.TypeKey}}</h3>
+		{{.Part.Help}}
+	</div>
 	<form method="post">
 		<div class="formfield">
 			<label for="Name">Name</label>

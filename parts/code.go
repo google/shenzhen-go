@@ -107,6 +107,31 @@ func (c *Code) Clone() interface{} {
 	}
 }
 
+// Help returns a helpful explanation.
+func (*Code) Help() template.HTML {
+	return `<p>
+	A Code part runs (executes) any Go code that you write.
+	</p><p>
+	It consists of 3 parts: a head, a body, and a tail. 
+	The head runs first, and only runs once, no matter what number Multiplicity is set to. 
+	The body runs next. The number of concurrent copies of the body that run is set by Multiplicity.
+	Finally, when all copies of the body return, the tail runs. 
+	</p><p>
+	The head and tail are useful for operations that should only be done once. For example, any 
+	output channels written to in the body can be correctly closed (if desired) in the tail.
+	</p><p>
+	Any channels referred to will automatically be detected and shown in the graph, and
+	when channels are renamed, these will be safely updated in the Code where they are
+	referred to.
+	</p><p>
+	The <code>return</code> statement is allowed but optional in Code. There are no values that
+	need to be returned.
+	Using <code>return</code> in the head will prevent the body or tail from executing, but 
+	using <code>return</code> in the body won't affect whether the tail is executed.
+	</p>
+	`
+}
+
 // Impl returns the implementation of the goroutine.
 func (c *Code) Impl() (head, body, tail string) {
 	return c.head, c.body, c.tail

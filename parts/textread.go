@@ -81,6 +81,11 @@ func (r *TextFileReader) Clone() interface{} {
 	return &s
 }
 
+// Help returns useful help information.
+func (*TextFileReader) Help() template.HTML {
+	return `TODO`
+}
+
 // Impl returns Go source code implementing the part.
 func (r *TextFileReader) Impl() (head, body, tail string) {
 	body = fmt.Sprintf(`partlib.StreamTextFile(%s, %s, %s)`, r.PathInput, r.Output, r.Error)

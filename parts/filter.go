@@ -33,8 +33,8 @@ const (
     }{{end}}{{end}}
 }`
 
-	filterTailTemplateSrc = `{{range .Paths}}
-close({{.Output}})
+	filterTailTemplateSrc = `{{range .ChannelsWritten}}
+close({{.}})
 {{end}}`
 
 	filterEditorTemplateSrc = `<div class="formfield">
@@ -83,7 +83,7 @@ close({{.Output}})
 			</select>
 		</div>
 		<div class="formfield">
-			<label for="FilterPredicate">Predicate</label>
+			<label for="FilterPredicate">Predicate(x)</label>
 			<input type="text" name="FilterPredicate">
 		</div>
 		<a href="javascript:void(0)" onclick="removeMePlease(this)">Remove this output</a>
@@ -99,7 +99,7 @@ close({{.Output}})
 			</select>
 		</div>
 		<div class="formfield">
-			<label for="FilterPredicate{{$index}}">Predicate</label>
+			<label for="FilterPredicate{{$index}}">Predicate(x)</label>
 			<input type="text" name="FilterPredicate{{$index}}" required value="{{$path.Pred}}">
 		</div>
 		<a href="javascript:void(0)" onclick="removeMePlease(this)">Remove this output</a>
@@ -143,12 +143,60 @@ func (f *Filter) Channels() (read, written source.StringSet) {
 	return source.NewStringSet(f.Input), o
 }
 
+// ChannelsWritten is a convenience function for the template: allows closing outputs only once.
+// (More than one close per channel panics.)
+func (f *Filter) ChannelsWritten() []string {
+	o := make(source.StringSet, len(f.Paths))
+	for _, p := range f.Paths {
+		o.Add(p.Output)
+	}
+	return o.Slice()
+}
+
 // Clone returns a copy of this Filter part.
 func (f *Filter) Clone() interface{} {
 	return &Filter{
 		Input: f.Input,
 		Paths: append([]pathway(nil), f.Paths...),
 	}
+}
+
+// Help returns useful help information.
+func (*Filter) Help() html.HTML {
+	return `<p>
+	A Filter reads values from the input channel until it is closed, and 
+	tests each value <code>x</code> using any number of <em>predicates in <code>x</code></em> 
+	(Go boolean expressions).
+	Whenever a predicate evaluates to <code>true</code>, the value <code>x</code> is written to the
+	corresponding output channel.
+	</p><p>
+	For example, if the value <code>2</code> (i.e. <code>x = 2</code>) appears in the input, 
+	then all these predicates will evaluate to <code>true</code> (for different reasons):
+	<ul>
+	    <li><code>x == 2</code></li>
+		<li><code>x != 3</code></li>
+		<li><code>x % 2 == 0</code></li>
+		<li><code>x &gt; 0 && x &lt; 3</code></li>
+        <li><code>true</code></li>
+		<li><code>x == x</code></li>
+	</ul>
+	but these all evaluate to <code>false</code>:
+	<ul>
+	    <li><code>x != 2</code></li>
+		<li><code>x == 3</code></li>
+		<li><code>x % 2 == 1</code></li>
+		<li><code>x &lt; 0 || x &gt; 3</code></li>
+        <li><code>false</code></li>
+		<li><code>x != x</code></li>
+	</ul>
+	</p><p>
+	When the input is closed and every value (that matched a predicate) has been written to its output, all the outputs are closed.
+	</p><p>
+	An input value doesn't need to match a predicate, and it can match more than one. 
+	If it doesn't match, it isn't written to any output.
+	If it matches more than one predicate, it is written to all that match.
+	</p>
+	`
 }
 
 // Impl returns the content of a goroutine implementation.

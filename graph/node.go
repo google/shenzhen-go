@@ -36,6 +36,9 @@ type Part interface {
 	// Clone returns a copy of this part.
 	Clone() interface{}
 
+	// Help returns a helpful description of what this part can do.
+	Help() template.HTML
+
 	// Impl returns Go source code implementing the part.
 	// The head is executed, then the body is executed (# Multiplicity
 	// instances of the body concurrently), then the tail (once the body/bodies

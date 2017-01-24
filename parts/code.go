@@ -15,6 +15,7 @@
 package parts
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -24,30 +25,66 @@ import (
 	"github.com/google/shenzhen-go/source"
 )
 
-const codePartEditTemplateSrc = `
+const codePartEditTemplateSrc = `{{$lines := .Node.Part.LineCount}}
 <h4>Head</h4>
-<textarea name="Head" rows="{{len .Node.Part.Head}}" cols="80">{{.Node.ImplHead}}</textarea>
+<textarea name="Head" rows="{{$lines.H}}" cols="80">{{.Node.ImplHead}}</textarea>
 <h4>Body</h4>
-<textarea name="Body" rows="{{len .Node.Part.Body}}" cols="80">{{.Node.ImplBody}}</textarea>
+<textarea name="Body" rows="{{$lines.B}}" cols="80">{{.Node.ImplBody}}</textarea>
 <h4>Tail</h4>
-<textarea name="Tail" rows="{{len .Node.Part.Tail}}" cols="80">{{.Node.ImplTail}}</textarea>
+<textarea name="Tail" rows="{{$lines.T}}" cols="80">{{.Node.ImplTail}}</textarea>
 `
 
 // Code is a component containing arbitrary code.
 type Code struct {
-	// You may be wondering why {Head, Body, Tail} aren't just typed "string"
-	// instead of []string.
-	// It used to be, but then the JSON file would include blobs of strings with
-	// no separation of lines.
-	// encoding/json still escapes things like \t and \u003c, but whatevs.
-	// TODO: go back to storing strings, implement marshal/unmarshal JSON.
-
-	Head []string `json:"head"`
-	Body []string `json:"body"`
-	Tail []string `json:"tail"`
+	head, body, tail string
 
 	// Computed from Head + Body + Tail - which channels are read from and written to.
 	chansRd, chansWr source.StringSet
+}
+
+type jsonCode struct {
+	Head []string `json:"head"`
+	Body []string `json:"body"`
+	Tail []string `json:"tail"`
+}
+
+// MarshalJSON encodes the Code component as JSON.
+func (c *Code) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&jsonCode{
+		Head: strings.Split(c.head, "\n"),
+		Body: strings.Split(c.body, "\n"),
+		Tail: strings.Split(c.tail, "\n"),
+	})
+}
+
+// UnmarshalJSON decodes the Code component from JSON.
+func (c *Code) UnmarshalJSON(j []byte) error {
+	var mp jsonCode
+	if err := json.Unmarshal(j, &mp); err != nil {
+		return err
+	}
+	c.head = strings.Join(mp.Head, "\n")
+	c.body = strings.Join(mp.Body, "\n")
+	c.tail = strings.Join(mp.Tail, "\n")
+	if err := c.refresh(c.head, c.body, c.tail); err != nil {
+		// refresh would error if it can't get used channels,
+		// say, because of a syntax error preventing parsing.
+		// Returning error would stop the graph being loaded,
+		// and the user might need to fix their syntax error,
+		// via the interface...
+		log.Printf("Couldn't determine channels used: %v", err)
+	}
+	return nil
+}
+
+// LineCount is number of lines in c.head, c.body, c.tail
+// (conveneince function for templates.)
+func (c *Code) LineCount() struct{ H, B, T int } {
+	return struct{ H, B, T int }{
+		H: strings.Count(c.head, "\n") + 1,
+		B: strings.Count(c.body, "\n") + 1,
+		T: strings.Count(c.tail, "\n") + 1,
+	}
 }
 
 // AssociateEditor adds a "part_view" template to the given template.
@@ -62,19 +99,17 @@ func (c *Code) Channels() (read, written source.StringSet) { return c.chansRd, c
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
 	return &Code{
-		Head:    append([]string(nil), c.Head...),
-		Body:    append([]string(nil), c.Body...),
-		Tail:    append([]string(nil), c.Tail...),
-		chansRd: c.chansRd,
-		chansWr: c.chansWr,
+		head:    c.head,
+		body:    c.body,
+		tail:    c.tail,
+		chansRd: source.Union(c.chansRd),
+		chansWr: source.Union(c.chansWr),
 	}
 }
 
 // Impl returns the implementation of the goroutine.
 func (c *Code) Impl() (head, body, tail string) {
-	return strings.Join(c.Head, "\n"),
-		strings.Join(c.Body, "\n"),
-		strings.Join(c.Tail, "\n")
+	return c.head, c.body, c.tail
 }
 
 // Imports returns a nil slice.
@@ -85,25 +120,22 @@ func (*Code) Imports() []string { return nil }
 // e.g. because the user's code has a syntax error, the rename is aborted
 // and logged.
 func (c *Code) RenameChannel(from, to string) {
-	h, b, t := c.Impl()
-	h1, err := source.RenameIdent(h, "head", from, to)
+	h, err := source.RenameIdent(c.head, "head", from, to)
 	if err != nil {
 		log.Printf("Couldn't do rename on head: %v", err)
 		return
 	}
-	b1, err := source.RenameIdent(b, "body", from, to)
+	b, err := source.RenameIdent(c.body, "body", from, to)
 	if err != nil {
 		log.Printf("Couldn't do rename on body: %v", err)
 		return
 	}
-	t1, err := source.RenameIdent(t, "tail", from, to)
+	t, err := source.RenameIdent(c.tail, "tail", from, to)
 	if err != nil {
 		log.Printf("Couldn't do rename on tail: %v", err)
 		return
 	}
-	c.Head = strings.Split(h1, "\n")
-	c.Body = strings.Split(b1, "\n")
-	c.Tail = strings.Split(t1, "\n")
+	c.head, c.body, c.tail = h, b, t
 
 	// Simple update of cached values
 	if c.chansRd.Ni(from) {
@@ -119,34 +151,32 @@ func (c *Code) RenameChannel(from, to string) {
 // TypeKey returns "Code".
 func (*Code) TypeKey() string { return "Code" }
 
-// Update sets relevant fields based on the given Request.
-func (c *Code) Update(r *http.Request) error {
-	// TODO: Do this less long-windedly
-	h, b, t := c.Impl()
-	if r != nil {
-		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
-	}
-	hs, hd, err := source.ExtractChannelIdents(h, "head")
+func (c *Code) refresh(head, body, tail string) error {
+	hs, hd, err := source.ExtractChannelIdents(head, "head")
 	if err != nil {
 		return fmt.Errorf("extracting channels from head: %v", err)
 	}
-	bs, bd, err := source.ExtractChannelIdents(b, "body")
+	bs, bd, err := source.ExtractChannelIdents(body, "body")
 	if err != nil {
 		return fmt.Errorf("extracting channels from body: %v", err)
 	}
-	ts, td, err := source.ExtractChannelIdents(t, "tail")
+	ts, td, err := source.ExtractChannelIdents(tail, "tail")
 	if err != nil {
 		return fmt.Errorf("extracting channels from tail: %v", err)
 	}
-	c.Head = strings.Split(h, "\n")
-	stripCR(c.Head)
-	c.Body = strings.Split(b, "\n")
-	stripCR(c.Body)
-	c.Tail = strings.Split(t, "\n")
-	stripCR(c.Tail)
+	c.head, c.body, c.tail = head, body, tail
 	c.chansRd = source.Union(hs, bs, ts)
 	c.chansWr = source.Union(hd, bd, td)
 	return nil
+}
+
+// Update sets relevant fields based on the given Request.
+func (c *Code) Update(r *http.Request) error {
+	h, b, t := c.head, c.body, c.tail
+	if r != nil {
+		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
+	}
+	return c.refresh(h, b, t)
 }
 
 func stripCR(in []string) {

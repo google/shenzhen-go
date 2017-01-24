@@ -83,7 +83,17 @@ func (r *TextFileReader) Clone() interface{} {
 
 // Help returns useful help information.
 func (*TextFileReader) Help() template.HTML {
-	return `TODO`
+	return `<p>
+	The TextFileReader waits until it receives a path to a file (File paths to read).
+	For each path, it tries to open the file at that path, separate it into multiple lines of text,
+	and send each line of text to the output (as a value of type <code>partlib.FileLine</code>).
+	When the channel with file-paths is closed, the output channel will be closed (once all the files have been read).
+	</p><p>
+	If an error occurs, the error is sent to the error channel. An error can occur if the file couldn't be opened,
+	the file couldn't be split into lines of text, or the file couldn't be closed.
+	</p><p>
+	The Multiplicity parameter can be used to allow the TextFileReader to read multiple files concurrently.
+	</p>`
 }
 
 // Impl returns Go source code implementing the part.

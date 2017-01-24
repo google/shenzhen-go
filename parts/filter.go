@@ -171,7 +171,8 @@ func (*Filter) Help() html.HTML {
 	corresponding output channel.
 	</p><p>
 	For example, if the value <code>2</code> (i.e. <code>x = 2</code>) appears in the input, 
-	then all these predicates will evaluate to <code>true</code> (for different reasons):
+	then all these predicates (which can be used in the Predicate(x) field as-is) will evaluate 
+	to <code>true</code> (for different reasons):
 	<ul>
 	    <li><code>x == 2</code></li>
 		<li><code>x != 3</code></li>
@@ -189,6 +190,14 @@ func (*Filter) Help() html.HTML {
         <li><code>false</code></li>
 		<li><code>x != x</code></li>
 	</ul>
+	</p><p>
+	An optional statement can appear before the expression (exactly like a Go <code>if</code> test, since that's how it works). 
+	This is	useful for doing type assertions. For example, if the input channel has type <code>interface{}</code>, then
+	<code>y, ok := x.(string); ok && y == "banana"</code>
+	checks if <code>x</code> contains a string, and matches if it is a string and the string is <code>"banana"</code>.
+	Note that even if a type assertion is used, <code>x</code> is sent to the output (not <code>y</code>), and 
+	<code>x</code> has the type of the input channel.
+	If the input channel has type <code>string</code>, then the type assertion is unnecessary and just <code>x == "banana"</code> works.
 	</p><p>
 	When the input is closed and every value (that matched a predicate) has been written to its output, all the outputs are closed.
 	</p><p>

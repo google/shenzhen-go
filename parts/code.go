@@ -120,6 +120,10 @@ func (*Code) Help() template.HTML {
 	The head and tail are useful for operations that should only be done once. For example, any 
 	output channels written to in the body can be correctly closed (if desired) in the tail.
 	</p><p>
+	Each instance of the body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
+	to distinguish which instance is running and how many are running, if necessary. 
+	<code>0 <= instanceNumber < multiplicity</code>
+	</p><p>
 	Any channels referred to will automatically be detected and shown in the graph, and
 	when channels are renamed, these will be safely updated in the Code where they are
 	referred to.

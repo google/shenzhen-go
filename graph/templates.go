@@ -77,22 +77,22 @@ func Run() {
 		defer wg.Done()
 		{{end}}
 		{{.ImplHead}}
-		defer func() {
-			{{.ImplTail}}
-		}()
 		{{if eq .Multiplicity 1 -}}
-		{{.ImplBody}}
+		func(instanceNumber, multiplicity int) {
+			{{.ImplBody}}
+		}(0, 1)
 		{{- else -}}
 		var multWG sync.WaitGroup
 		multWG.Add({{.Multiplicity}})
 		for n:=0; n<{{.Multiplicity}}; n++ {
-			go func(instanceNumber int) {
+			go func(instanceNumber, multiplicity int) {
 				defer multWG.Done()
 				{{.ImplBody}}
-			}(n)
+			}(n, {{.Multiplicity}})
 		}
 		multWG.Wait()
 		{{- end}}
+		{{.ImplTail}}
 	}()
 	{{- end}}
 

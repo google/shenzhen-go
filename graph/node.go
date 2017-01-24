@@ -170,5 +170,5 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	n.Wait = mp.Wait
 	n.Multiplicity = mp.Multiplicity
 	n.Part = p
-	return p.Update(nil)
+	return nil
 }

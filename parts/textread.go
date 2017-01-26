@@ -16,9 +16,10 @@ package parts
 
 import (
 	"fmt"
-	"github.com/google/shenzhen-go/source"
 	"html/template"
 	"net/http"
+
+	"github.com/google/shenzhen-go/source"
 )
 
 const textFileReaderEditTemplateSrc = `

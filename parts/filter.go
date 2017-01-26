@@ -16,13 +16,14 @@ package parts
 
 import (
 	"bytes"
-	"github.com/google/shenzhen-go/source"
 	html "html/template"
 	"net/http"
 	"regexp"
 	"sort"
 	"strconv"
 	"text/template"
+
+	"github.com/google/shenzhen-go/source"
 )
 
 const (

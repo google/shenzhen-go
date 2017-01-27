@@ -14,3 +14,13 @@
 
 // Package parts contains various pre-made bits and pieces to combine into the graph.
 package parts
+
+import (
+	"strings"
+)
+
+func stripCR(in []string) {
+	for i := range in {
+		in[i] = strings.TrimSuffix(in[i], "\r")
+	}
+}

@@ -207,9 +207,3 @@ func (c *Code) Update(r *http.Request) error {
 	}
 	return c.refresh(h, b, t)
 }
-
-func stripCR(in []string) {
-	for i := range in {
-		in[i] = strings.TrimSuffix(in[i], "\r")
-	}
-}

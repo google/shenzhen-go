@@ -48,29 +48,6 @@
 			},
 			"part_type": "Code"
 		},
-		"Get paths from os.Args": {
-			"name": "Get paths from os.Args",
-			"wait": true,
-			"multiplicity": 1,
-			"part": {
-				"head": [
-					""
-				],
-				"body": [
-					"for i, p := range os.Args {",
-					"\tif i == 0 {",
-					"\t\tcontinue",
-					"\t}",
-					"\tPaths \u003c- p",
-					"}",
-					"close(Paths)"
-				],
-				"tail": [
-					""
-				]
-			},
-			"part_type": "Code"
-		},
 		"Report error \u0026 exit": {
 			"name": "Report error \u0026 exit",
 			"wait": false,
@@ -91,6 +68,26 @@
 			},
 			"part_type": "Code"
 		},
+		"Split items": {
+			"name": "Split items",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"for _, p := range \u003c-Args {\r",
+					"\tPaths \u003c- p\r",
+					"}\r",
+					""
+				],
+				"tail": [
+					"close(Paths)"
+				]
+			},
+			"part_type": "Code"
+		},
 		"Text File Reader": {
 			"name": "Text File Reader",
 			"wait": true,
@@ -101,9 +98,26 @@
 				"errors": "Errors"
 			},
 			"part_type": "TextFileReader"
+		},
+		"os.Args[1:]": {
+			"name": "os.Args[1:]",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"output": "Args",
+				"items": [
+					"os.Args[1:]"
+				]
+			},
+			"part_type": "StaticSend"
 		}
 	},
 	"channels": {
+		"Args": {
+			"name": "Args",
+			"type": "[]string",
+			"cap": 0
+		},
 		"Errors": {
 			"name": "Errors",
 			"type": "error",

@@ -91,7 +91,9 @@ func (p *StaticSend) Impl() (head, body, tail string) {
 	buf := new(bytes.Buffer)
 	for _, i := range p.Items {
 		i = strings.TrimSpace(i)
-		if i == "" {
+		// Preserve comments and blank lines.
+		if i == "" || strings.HasPrefix(i, "//") {
+			fmt.Fprintln(buf, i)
 			continue
 		}
 		fmt.Fprintf(buf, "%s <- %s\n", p.Output, i)

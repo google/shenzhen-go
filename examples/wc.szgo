@@ -77,6 +77,10 @@
 			"part": {
 				"output": "Args",
 				"items": [
+					"// os.Args is a slice where os.Args[0] = the path to the program.",
+					"// We don't need to count that (it would be pointless) so send",
+					"// any other args using a subslice.",
+					"",
 					"os.Args[1:]"
 				]
 			},

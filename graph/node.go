@@ -67,11 +67,11 @@ type PartFactory func() Part
 
 // PartFactories translates part type strings into part factories.
 var PartFactories = map[string]PartFactory{
-	"Code":   func() Part { return new(parts.Code) },
-	"Filter": func() Part { return new(parts.Filter) },
-	// "Multiplexer": func() Part { return new(parts.Multiplexer) },
+	"Code":           func() Part { return new(parts.Code) },
+	"Filter":         func() Part { return new(parts.Filter) },
 	"StaticSend":     func() Part { return new(parts.StaticSend) },
 	"TextFileReader": func() Part { return new(parts.TextFileReader) },
+	"Unslicer":       func() Part { return new(parts.Unslicer) },
 }
 
 // Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.

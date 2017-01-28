@@ -48,8 +48,8 @@
 			},
 			"part_type": "Code"
 		},
-		"Report error \u0026 exit": {
-			"name": "Report error \u0026 exit",
+		"Report errors": {
+			"name": "Report errors",
 			"wait": false,
 			"multiplicity": 1,
 			"part": {
@@ -57,9 +57,11 @@
 					""
 				],
 				"body": [
-					"if err := \u003c-Errors; err != nil {",
-					"\tfmt.Printf(\"Couldn't count: %v\", err)",
-					"\tos.Exit(1)",
+					"for err := range Errors {\r",
+					"        if err == nil {\r",
+					"                continue\r",
+					"        }\r",
+					"\tfmt.Fprintf(os.Stderr, \"Couldn't count: %v\", err)\r",
 					"}"
 				],
 				"tail": [
@@ -68,25 +70,27 @@
 			},
 			"part_type": "Code"
 		},
-		"Split items": {
-			"name": "Split items",
+		"Send os.Args[1:]": {
+			"name": "Send os.Args[1:]",
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"head": [
-					""
-				],
-				"body": [
-					"for _, p := range \u003c-Args {\r",
-					"\tPaths \u003c- p\r",
-					"}\r",
-					""
-				],
-				"tail": [
-					"close(Paths)"
+				"output": "Args",
+				"items": [
+					"os.Args[1:]"
 				]
 			},
-			"part_type": "Code"
+			"part_type": "StaticSend"
+		},
+		"Split args": {
+			"name": "Split args",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"input": "Args",
+				"output": "Paths"
+			},
+			"part_type": "Unslicer"
 		},
 		"Text File Reader": {
 			"name": "Text File Reader",
@@ -98,18 +102,6 @@
 				"errors": "Errors"
 			},
 			"part_type": "TextFileReader"
-		},
-		"os.Args[1:]": {
-			"name": "os.Args[1:]",
-			"wait": true,
-			"multiplicity": 1,
-			"part": {
-				"output": "Args",
-				"items": [
-					"os.Args[1:]"
-				]
-			},
-			"part_type": "StaticSend"
 		}
 	},
 	"channels": {

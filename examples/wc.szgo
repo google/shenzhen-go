@@ -50,7 +50,7 @@
 		},
 		"Report errors": {
 			"name": "Report errors",
-			"wait": false,
+			"wait": true,
 			"multiplicity": 1,
 			"part": {
 				"head": [

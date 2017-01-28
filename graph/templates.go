@@ -18,7 +18,7 @@ import "text/template"
 
 const (
 	dotTemplateSrc = `digraph {
-	graph[rankdir="UD",fontname="Go"];
+	graph[fontname="Go"];
 	node[shape=box,fontname="Go"];
 	{{range .Nodes}}
 	"{{.Name}}" [URL="?node={{urlquery .Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];
@@ -27,12 +27,22 @@ const (
 	"{{.Name}}" [xlabel="{{.Name}}",URL="?channel={{urlquery .Name}}",shape=point,fontname="Go Mono"];
 	{{- end}}
 	{{range $n := .Nodes -}}
-	{{range $.DeclaredChannels .ChannelsRead}}
-	"{{.}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .}}"];
-	{{- end}}
-	{{- range $.DeclaredChannels .ChannelsWritten}}
-	"{{$n.Name}}" -> "{{.}}" [URL="?channel={{urlquery .}}"];
-	{{- end}}
+		{{range $.DeclaredChannels .ChannelsRead}}
+			{{if eq .Type "error"}}
+	"{{.Name}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .Name}}",color="red"];
+	{rank=same "{{.Name}}" "{{$n.Name}}"}
+			{{else}}
+	"{{.Name}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .Name}}"];
+			{{- end}}
+		{{- end}}
+		{{- range $.DeclaredChannels .ChannelsWritten}}
+		    {{if eq .Type "error"}}
+	"{{$n.Name}}" -> "{{.Name}}" [URL="?channel={{urlquery .Name}}",color="red"];
+	{rank=same "{{.Name}}" "{{$n.Name}}"}
+			{{else}}
+	"{{$n.Name}}" -> "{{.Name}}" [URL="?channel={{urlquery .Name}}"];
+			{{- end}}	
+		{{- end}}
 	{{- end}}
 }`
 

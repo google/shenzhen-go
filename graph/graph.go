@@ -243,12 +243,14 @@ func (g *Graph) Run(stdout, stderr io.Writer) error {
 }
 
 // DeclaredChannels returns the given channels which exist in g.Channels.
-func (g *Graph) DeclaredChannels(chans []string) []string {
-	r := make([]string, 0, len(chans))
+func (g *Graph) DeclaredChannels(chans []string) []*Channel {
+	r := make([]*Channel, 0, len(chans))
 	for _, d := range chans {
-		if _, found := g.Channels[d]; found {
-			r = append(r, d)
+		c := g.Channels[d]
+		if c == nil {
+			continue
 		}
+		r = append(r, c)
 	}
 	return r
 }

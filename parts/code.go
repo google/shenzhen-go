@@ -219,9 +219,7 @@ func (c *Code) refresh(h, b, t string) error {
 		return err
 	}
 
-	c.head = string(hf)
-	c.body = string(bf)
-	c.tail = string(tf)
+	c.head, c.body, c.tail = string(hf), string(bf), string(tf)
 	return nil
 }
 

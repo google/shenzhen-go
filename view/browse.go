@@ -26,7 +26,9 @@ import (
 )
 
 const browseTemplateSrc = `<head>
-	<title>SHENZHEN GO</title><style>` + css + `</style>
+	<title>SHENZHEN GO</title>
+	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
+	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
 <h1>SHENZHEN GO</h1>

@@ -27,7 +27,9 @@ import (
 
 const (
 	graphEditorTemplateSrc = `<head>
-	<title>{{$.Graph.Name}}</title><style>` + css + `</style>
+	<title>{{$.Graph.Name}}</title>
+	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
+	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
 <h1>{{$.Graph.Name}}</h1>
@@ -56,7 +58,9 @@ const (
 
 	// TODO: Replace these cobbled-together UIs with Polymer or something.
 	graphPropertiesTemplateSrc = `<head>
-	<title>{{.Name}}</title><style>` + css + `</style>
+	<title>{{.Name}}</title>
+	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
+	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
 <h1>{{.Name}} Properties</h1>

@@ -28,7 +28,9 @@ import (
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
 const channelEditorTemplateSrc = `<head>
-	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title><style>` + css + `</style>
+	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title>
+	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
+	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>

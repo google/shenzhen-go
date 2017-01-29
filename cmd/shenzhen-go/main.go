@@ -86,7 +86,7 @@ func main() {
 		fmt.Fprintf(w, pingMsg)
 	})
 	http.Handle("/favicon.ico", view.Favicon)
-
+	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 	http.Handle("/", view.NewBrowser())
 
 	// As soon as we're serving, launch "open" which should launch a browser,

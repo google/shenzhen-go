@@ -9,7 +9,7 @@ to multiple "microcontrollers" communicating electrically in a circuit.)
 It can also convert a graph into pure Go source code, which can be compiled 
 and run, or used as a library in a regular Go program.
 
-![Example Graph](example_graph.png)
+![Example Graph](example_graph2.png)
 
 ## Dependencies
 

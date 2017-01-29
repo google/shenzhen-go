@@ -106,19 +106,19 @@
 					"",
 					"if len(lc) == 1 {",
 					"\tfor f := range lc {",
-					"\t\tfmt.Printf(\"%d\\t%d\\t%d\\t%s\\n\", lc[f], wc[f], cc[f], f)",
+					"\t\tfmt.Printf(\"%8d%8d%8d %s\\n\", lc[f], wc[f], cc[f], f)",
 					"\t}",
 					"\treturn",
 					"}",
 					"",
 					"l, w, c := 0, 0, 0",
 					"for f := range lc {",
-					"\tfmt.Printf(\"%d\\t%d\\t%d\\t%s\\n\", lc[f], wc[f], cc[f], f)",
+					"\tfmt.Printf(\"%8d%8d%8d %s\\n\", lc[f], wc[f], cc[f], f)",
 					"\tl += lc[f]",
 					"\tw += wc[f]",
 					"\tc += cc[f]",
 					"}",
-					"fmt.Printf(\"%d\\t%d\\t%d\\ttotal\\n\", l, w, c)"
+					"fmt.Printf(\"%8d%8d%8d total\\n\", l, w, c)"
 				],
 				"tail": [
 					""

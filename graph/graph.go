@@ -34,7 +34,24 @@ type Channel struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
 	Cap  int    `json:"cap"`
+
+	in, out []*Node
 }
+
+// IsSimple returns true if its in-degree and out-degree are both 1.
+// This causes the channel to appear as a single arrow instead of an intermediate node.
+// Only correct after calling ComputeDegrees.
+func (c *Channel) IsSimple() bool {
+	return len(c.in) == 1 && len(c.out) == 1
+}
+
+// Readers returns nodes that read from this channel.
+// Only correct after calling ComputeDegrees.
+func (c *Channel) Readers() []*Node { return c.out }
+
+// Writers returns nodes that write to or close this channel.
+// Only correct after calling ComputeDegrees.
+func (c *Channel) Writers() []*Node { return c.in }
 
 // Graph describes a Go program as a graph. It can be marshalled and unmarshalled to JSON sensibly.
 type Graph struct {
@@ -53,6 +70,22 @@ func New(srcPath string) *Graph {
 		SourcePath: srcPath,
 		Nodes:      make(map[string]*Node),
 		Channels:   make(map[string]*Channel),
+	}
+}
+
+// ComputeDegrees analyses how nodes and channels are related.
+func (g *Graph) ComputeDegrees() {
+	for _, c := range g.Channels {
+		c.in, c.out = nil, nil
+	}
+	for _, n := range g.Nodes {
+		rd, wr := n.Channels()
+		for _, r := range g.DeclaredChannels(rd.Slice()) {
+			r.out = append(r.out, n)
+		}
+		for _, w := range g.DeclaredChannels(wr.Slice()) {
+			w.in = append(w.in, n)
+		}
 	}
 }
 
@@ -132,7 +165,10 @@ func (g *Graph) SaveJSONFile() error {
 }
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.
-func (g *Graph) WriteDotTo(dst io.Writer) error { return dotTemplate.Execute(dst, g) }
+func (g *Graph) WriteDotTo(dst io.Writer) error {
+	g.ComputeDegrees()
+	return dotTemplate.Execute(dst, g)
+}
 
 // WriteGoTo writes the Go language view of the graph to the io.Writer.
 func (g *Graph) WriteGoTo(w io.Writer) error {

@@ -18,6 +18,7 @@ import (
 	"go/format"
 	"io"
 	"io/ioutil"
+	"os"
 	"os/exec"
 )
 
@@ -30,9 +31,14 @@ func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
 	if err != nil {
 		return err
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+	go io.Copy(os.Stderr, stderr)
 	if _, err := io.Copy(stdin, src); err != nil {
 		return err
 	}

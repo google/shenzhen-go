@@ -24,24 +24,37 @@ const (
 	"{{.Name}}" [URL="?node={{urlquery .Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];
 	{{- end}}
 	{{range .Channels}}
+		{{if .IsSimple}}
+			{{if eq .Type "error"}}
+	"{{index .Writers 0}}" -> "{{index .Readers 0}}" [label="{{.Name}}",URL="?channel={{urlquery .Name}}",fontname="Go Mono",color="red"];
+	{rank=same "{{index .Writers 0}}" "{{index .Readers 0}}"}
+			{{- else}}
+	"{{index .Writers 0}}"-> "{{index .Readers 0}}" [label="{{.Name}}",URL="?channel={{urlquery .Name}}",fontname="Go Mono"];
+			{{- end}}
+	    {{- else}}
 	"{{.Name}}" [xlabel="{{.Name}}",URL="?channel={{urlquery .Name}}",shape=point,fontname="Go Mono"];
+		{{- end}}
 	{{- end}}
 	{{range $n := .Nodes -}}
 		{{range $.DeclaredChannels .ChannelsRead}}
-			{{if eq .Type "error"}}
+			{{if not .IsSimple }}
+				{{if eq .Type "error"}}
 	"{{.Name}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .Name}}",color="red"];
 	{rank=same "{{.Name}}" "{{$n.Name}}"}
-			{{else}}
+				{{- else}}
 	"{{.Name}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .Name}}"];
+				{{- end}}
 			{{- end}}
 		{{- end}}
 		{{- range $.DeclaredChannels .ChannelsWritten}}
-		    {{if eq .Type "error"}}
+			{{if not .IsSimple }}
+		    	{{if eq .Type "error"}}
 	"{{$n.Name}}" -> "{{.Name}}" [URL="?channel={{urlquery .Name}}",color="red"];
 	{rank=same "{{.Name}}" "{{$n.Name}}"}
-			{{else}}
+				{{- else}}
 	"{{$n.Name}}" -> "{{.Name}}" [URL="?channel={{urlquery .Name}}"];
-			{{- end}}	
+				{{- end}}	
+			{{- end}}
 		{{- end}}
 	{{- end}}
 }`

@@ -17,6 +17,7 @@ package parts
 import (
 	"encoding/json"
 	"fmt"
+	"go/format"
 	"html/template"
 	"log"
 	"net/http"
@@ -50,11 +51,15 @@ type jsonCode struct {
 
 // MarshalJSON encodes the Code component as JSON.
 func (c *Code) MarshalJSON() ([]byte, error) {
-	return json.Marshal(&jsonCode{
+	k := &jsonCode{
 		Head: strings.Split(c.head, "\n"),
 		Body: strings.Split(c.body, "\n"),
 		Tail: strings.Split(c.tail, "\n"),
-	})
+	}
+	stripCR(k.Head)
+	stripCR(k.Body)
+	stripCR(k.Tail)
+	return json.Marshal(k)
 }
 
 // UnmarshalJSON decodes the Code component from JSON.
@@ -63,16 +68,16 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 	if err := json.Unmarshal(j, &mp); err != nil {
 		return err
 	}
-	c.head = strings.Join(mp.Head, "\n")
-	c.body = strings.Join(mp.Body, "\n")
-	c.tail = strings.Join(mp.Tail, "\n")
-	if err := c.refresh(c.head, c.body, c.tail); err != nil {
+	h := strings.Join(mp.Head, "\n")
+	b := strings.Join(mp.Body, "\n")
+	t := strings.Join(mp.Tail, "\n")
+	if err := c.refresh(h, b, t); err != nil {
 		// refresh would error if it can't get used channels,
 		// say, because of a syntax error preventing parsing.
 		// Returning error would stop the graph being loaded,
 		// and the user might need to fix their syntax error,
 		// via the interface...
-		log.Printf("Couldn't determine channels used: %v", err)
+		log.Printf("Couldn't format or determine channels used: %v", err)
 	}
 	return nil
 }
@@ -180,22 +185,43 @@ func (c *Code) RenameChannel(from, to string) {
 // TypeKey returns "Code".
 func (*Code) TypeKey() string { return "Code" }
 
-func (c *Code) refresh(head, body, tail string) error {
-	hs, hd, err := source.ExtractChannelIdents(head, "head")
+func (c *Code) refresh(h, b, t string) error {
+	// At least save what the user entered.
+	c.head, c.body, c.tail = h, b, t
+
+	// It can probably have channels extracted...
+	hs, hd, err := source.ExtractChannelIdents(h, "head")
 	if err != nil {
 		return fmt.Errorf("extracting channels from head: %v", err)
 	}
-	bs, bd, err := source.ExtractChannelIdents(body, "body")
+	bs, bd, err := source.ExtractChannelIdents(b, "body")
 	if err != nil {
 		return fmt.Errorf("extracting channels from body: %v", err)
 	}
-	ts, td, err := source.ExtractChannelIdents(tail, "tail")
+	ts, td, err := source.ExtractChannelIdents(t, "tail")
 	if err != nil {
 		return fmt.Errorf("extracting channels from tail: %v", err)
 	}
-	c.head, c.body, c.tail = head, body, tail
 	c.chansRd = source.Union(hs, bs, ts)
 	c.chansWr = source.Union(hd, bd, td)
+
+	// Try to format it.
+	hf, err := format.Source([]byte(h))
+	if err != nil {
+		return err
+	}
+	bf, err := format.Source([]byte(b))
+	if err != nil {
+		return err
+	}
+	tf, err := format.Source([]byte(t))
+	if err != nil {
+		return err
+	}
+
+	c.head = string(hf)
+	c.body = string(bf)
+	c.tail = string(tf)
 	return nil
 }
 

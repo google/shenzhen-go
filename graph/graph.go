@@ -27,6 +27,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/google/shenzhen-go/source"
 )
 
 // Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.
@@ -102,22 +104,14 @@ func (g *Graph) PackageName() string {
 // It doesn't fix conflicting names, but dedupes any whole lines.
 // TODO: Put nodes in separate files to solve all import issues.
 func (g *Graph) AllImports() []string {
-	m := map[string]bool{
-		`"sync"`: true,
-	}
-	for _, i := range g.Imports {
-		m[i] = true
-	}
+	m := source.NewStringSet(g.Imports...)
+	m.Add(`"sync"`)
 	for _, n := range g.Nodes {
 		for _, i := range n.Part.Imports() {
-			m[i] = true
+			m.Add(i)
 		}
 	}
-	r := make([]string, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	return r
+	return m.Slice()
 }
 
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.

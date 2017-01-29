@@ -208,5 +208,8 @@ func (staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
+	w.Header().Add("Cache-Control", "public")
+	w.Header().Add("Cache-Control", "max-age=86400")
+	w.WriteHeader(http.StatusOK)
 	w.Write(d)
 }

@@ -6,10 +6,11 @@ Here's a bunch of TODOs in no particular order.
     * Help text in part editor, title text on part menu
 * Write an installer? (Obtains necessary components on demand? Or bundles them? Or one of each?)
 * Quick channel creator (embed channel UI into a dropdown, default name, interface{}, cap 0)
+* Other "kinds" of channel (e.g. io.Pipe)
 * Improve the style and implementation of the UI (Polymer?)
 * Consider a different name for the project (or not!).
 * More Parts, less code!
-    * Static source (sends statically-defined data then closes - allow send ones / loop infinitely / loop n times)
+    * Data repeater (read data, then repeat infinitely / n times)
     * /dev/null sink (reads until close, does nothing)
     * Matching sink (reads, compares to statically-defined data with optional looping - potential basis for testing)
     * Expression (x -> f(x)), allows for grouping function output into a struct, or sending on multiple different channels...

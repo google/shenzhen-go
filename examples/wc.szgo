@@ -8,8 +8,22 @@
 	],
 	"is_command": true,
 	"nodes": {
-		"Count lines, words, characters": {
-			"name": "Count lines, words, characters",
+		"Broadcast": {
+			"name": "Broadcast",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"input": "Lines",
+				"outputs": [
+					"Lines1",
+					"Lines2",
+					"Lines3"
+				]
+			},
+			"part_type": "Broadcast"
+		},
+		"Count characters": {
+			"name": "Count characters",
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
@@ -21,26 +35,90 @@
 					"// for various reasons (the scanner trims \\n, strings.Split doesn't consider other",
 					"// whitespace chars).",
 					"",
-					"sum := make(map[string]struct{ lines, words, chars int })",
-					"for fl := range Lines {",
-					"\ts := sum[fl.Path]",
-					"\ts.lines++",
-					"\ts.words += len(strings.Split(fl.Line, \" \"))",
-					"\ts.chars += len(fl.Line)",
-					"\tsum[fl.Path] = s",
+					"sum := make(map[string]int)",
+					"for fl := range Lines3 {",
+					"\tsum[fl.Path] += len(fl.Line)",
 					"}",
+					"CharCount \u003c- sum"
+				],
+				"tail": [
+					"close(CharCount)"
+				]
+			},
+			"part_type": "Code"
+		},
+		"Count lines": {
+			"name": "Count lines",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"sum := make(map[string]int)\r",
+					"for fl := range Lines1 {\r",
+					"\tsum[fl.Path] ++\r",
+					"}\r",
+					"LineCount \u003c- sum"
+				],
+				"tail": [
+					"close(LineCount)"
+				]
+			},
+			"part_type": "Code"
+		},
+		"Count words": {
+			"name": "Count words",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"// Note that the \"words\" and \"chars\" won't match output from the usual wc command",
+					"// for various reasons (the scanner trims \\n, strings.Split doesn't consider other",
+					"// whitespace chars).",
 					"",
-					"l, w, c := 0, 0, 0",
-					"for f, s := range sum {",
-					"\tfmt.Printf(\"%d\\t%d\\t%d\\t%s\\n\", s.lines, s.words, s.chars, f)",
-					"\tl += s.lines",
-					"\tw += s.words",
-					"\tc += s.chars",
+					"sum := make(map[string]int)",
+					"for fl := range Lines2 {",
+					"\tsum[fl.Path] += len(strings.Split(fl.Line, \" \"))",
 					"}",
-					"",
-					"if len(sum) \u003e 1 {",
-					"\tfmt.Printf(\"%d\\t%d\\t%d\\ttotal\\n\", l, w, c)",
-					"}"
+					"WordCount \u003c- sum"
+				],
+				"tail": [
+					"close(WordCount)"
+				]
+			},
+			"part_type": "Code"
+		},
+		"Print summary": {
+			"name": "Print summary",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"lc, wc, cc := \u003c-LineCount, \u003c-WordCount, \u003c-CharCount\r",
+					"\r",
+					"if len(lc) == 1 {\r",
+					"for f := range lc {\r",
+					"\tfmt.Printf(\"%d\\t%d\\t%d\\t%s\\n\", lc[f], wc[f], cc[f], f)\r",
+					"}\r",
+					" return\r",
+					"}\r",
+					"\r",
+					"l, w, c := 0, 0, 0\r",
+					"for f := range lc {\r",
+					"\tfmt.Printf(\"%d\\t%d\\t%d\\t%s\\n\", lc[f], wc[f], cc[f], f)\r",
+					"\tl += lc[f]\r",
+					"\tw += wc[f]\r",
+					"\tc += cc[f]\r",
+					"}\r",
+					"fmt.Printf(\"%d\\t%d\\t%d\\ttotal\\n\", l, w, c)"
 				],
 				"tail": [
 					""
@@ -114,9 +192,19 @@
 			"type": "[]string",
 			"cap": 0
 		},
+		"CharCount": {
+			"name": "CharCount",
+			"type": "map[string]int",
+			"cap": 0
+		},
 		"Errors": {
 			"name": "Errors",
 			"type": "error",
+			"cap": 0
+		},
+		"LineCount": {
+			"name": "LineCount",
+			"type": "map[string]int",
 			"cap": 0
 		},
 		"Lines": {
@@ -124,9 +212,29 @@
 			"type": "partlib.FileLine",
 			"cap": 0
 		},
+		"Lines1": {
+			"name": "Lines1",
+			"type": "partlib.FileLine",
+			"cap": 0
+		},
+		"Lines2": {
+			"name": "Lines2",
+			"type": "partlib.FileLine",
+			"cap": 0
+		},
+		"Lines3": {
+			"name": "Lines3",
+			"type": "partlib.FileLine",
+			"cap": 0
+		},
 		"Paths": {
 			"name": "Paths",
 			"type": "string",
+			"cap": 0
+		},
+		"WordCount": {
+			"name": "WordCount",
+			"type": "map[string]int",
 			"cap": 0
 		}
 	}

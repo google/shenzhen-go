@@ -9,6 +9,9 @@ to multiple "microcontrollers" communicating electrically in a circuit.)
 It can also convert a graph into pure Go source code, which can be compiled 
 and run, or used as a library in a regular Go program.
 
+[SHENZHEN GO was unveiled](https://www.youtube.com/watch?v=AB9AUAmMlDo) at 
+the [linux.conf.au 2017 Open Source & Games Miniconf](https://linux.conf.au/schedule/presentation/8/).
+
 ![Example Graph](example_graph2.png)
 
 ## Dependencies

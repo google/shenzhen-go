@@ -2,6 +2,11 @@
 
 Here's a bunch of TODOs in no particular order.
 
+* Be smarter about identifiers and types (i.e. start playing with go/types).
+    * Channel extractor should do identifier resolution to remove false positives
+    * Renamer should probably also do identifier resolution
+    * Type-checking channel writes & reads
+* Report errors to the user better (for instance, highlighting nodes with broken syntax in them)
 * Actually really really **for reals** write some documentation, Josh.
     * Help text in part editor, title text on part menu
 * Write an installer? (Obtains necessary components on demand? Or bundles them? Or one of each?)

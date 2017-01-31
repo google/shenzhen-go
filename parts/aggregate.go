@@ -153,7 +153,7 @@ func (*Aggregator) Help() template.HTML {
 	<h4>Example 3 (Loading puppies into a wheelbarrow)</h4>
 	Suppose Input is a <code>string</code> channel,
 	Output is a <code>map[string][]string</code> channel, the Aggregation is "Append",
-    the Value(x) expression is <code>x</code>, the Value Type is <code>string</code>,
+    the Value(x) expression is <code>x</code>, the Value Type is <code>[]string</code>,
 	the Key(x) expression is <code>"wheelbarrow"</code>, and the Key Type is <code>string</code>.
 	Then the Input sequence
 	<p><code>"pupper", "doggo", "pupper", "pupper", (close)</code></p>

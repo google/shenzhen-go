@@ -107,6 +107,10 @@ const (
 	max-width: 800px;
 	margin: 20 auto 0;
 }
+code {
+	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
+	color: #066;
+}
 form {
 	float: none;
 	max-width: 800px;

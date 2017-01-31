@@ -27,71 +27,45 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"head": [
-					""
-				],
-				"body": [
-					"// Note that the \"words\" and \"chars\" won't match output from the usual wc command",
-					"// for various reasons (the scanner trims \\n, strings.Split doesn't consider other",
-					"// whitespace chars).",
-					"",
-					"sum := make(map[string]int)",
-					"for fl := range Lines3 {",
-					"\tsum[fl.Path] += len(fl.Line)",
-					"}",
-					"CharCount \u003c- sum"
-				],
-				"tail": [
-					"close(CharCount)"
-				]
+				"input": "Lines3",
+				"output": "CharCount",
+				"aggr": "Sum",
+				"value": "len(x.Line)",
+				"value_type": "int",
+				"key": "x.Path",
+				"key_type": "string"
 			},
-			"part_type": "Code"
+			"part_type": "Aggregator"
 		},
 		"Count lines": {
 			"name": "Count lines",
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"head": [
-					""
-				],
-				"body": [
-					"sum := make(map[string]int)",
-					"for fl := range Lines1 {",
-					"\tsum[fl.Path]++",
-					"}",
-					"LineCount \u003c- sum"
-				],
-				"tail": [
-					"close(LineCount)"
-				]
+				"input": "Lines1",
+				"output": "LineCount",
+				"aggr": "Sum",
+				"value": "1",
+				"value_type": "int",
+				"key": "x.Path",
+				"key_type": "string"
 			},
-			"part_type": "Code"
+			"part_type": "Aggregator"
 		},
 		"Count words": {
 			"name": "Count words",
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"head": [
-					""
-				],
-				"body": [
-					"// Note that the \"words\" and \"chars\" won't match output from the usual wc command",
-					"// for various reasons (the scanner trims \\n, strings.Split doesn't consider other",
-					"// whitespace chars).",
-					"",
-					"sum := make(map[string]int)",
-					"for fl := range Lines2 {",
-					"\tsum[fl.Path] += len(strings.Split(fl.Line, \" \"))",
-					"}",
-					"WordCount \u003c- sum"
-				],
-				"tail": [
-					"close(WordCount)"
-				]
+				"input": "Lines2",
+				"output": "WordCount",
+				"aggr": "Sum",
+				"value": "len(strings.Split(x.Line, \" \"))",
+				"value_type": "int",
+				"key": "x.Path",
+				"key_type": "string"
 			},
-			"part_type": "Code"
+			"part_type": "Aggregator"
 		},
 		"Print summary": {
 			"name": "Print summary",

@@ -67,6 +67,7 @@ type PartFactory func() Part
 
 // PartFactories translates part type strings into part factories.
 var PartFactories = map[string]PartFactory{
+	"Aggregator":     func() Part { return new(parts.Aggregator) },
 	"Broadcast":      func() Part { return new(parts.Broadcast) },
 	"Code":           func() Part { return new(parts.Code) },
 	"Filter":         func() Part { return new(parts.Filter) },

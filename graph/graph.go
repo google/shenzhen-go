@@ -205,7 +205,7 @@ func (g *Graph) GeneratePackage() (string, error) {
 	return mp, nil
 }
 
-// Build saves the graph as Go source code and tries to build it.
+// Build saves the graph as Go source code and tries to "go build" it.
 func (g *Graph) Build() error {
 	if _, err := g.GeneratePackage(); err != nil {
 		return err
@@ -214,6 +214,19 @@ func (g *Graph) Build() error {
 	if err != nil {
 		// TODO: better error type
 		return fmt.Errorf("go build: %v:\n%s", err, o)
+	}
+	return nil
+}
+
+// Install saves the graph as Go source code and tries to "go install" it.
+func (g *Graph) Install() error {
+	if _, err := g.GeneratePackage(); err != nil {
+		return err
+	}
+	o, err := exec.Command(`go`, `install`, g.PackagePath).CombinedOutput()
+	if err != nil {
+		// TODO: better error type
+		return fmt.Errorf("go install: %v:\n%s", err, o)
 	}
 	return nil
 }

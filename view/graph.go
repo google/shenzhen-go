@@ -37,7 +37,11 @@ const (
 	<a href="?props" title="Edit the properties of this graph">Properties</a> | 
 	<a href="?save" title="Save current changes to disk">Save</a> | 
 	<a href="?reload" title="Revert to last saved file">Revert</a> |
-	<a href="?build" title="Export the graph to a Go package and build it">Build</a> | 
+	{{if $.Graph.IsCommand -}}
+	<a href="?install" title="Export the graph to a Go package and 'go install' it">Install</a> | 
+	{{else -}}
+	<a href="?build" title="Export the graph to a Go package and 'go build' it">Build</a> | 
+	{{end -}}
 	<a href="?run" title="Export the graph to a Go package and execute it">Run</a> | 
 	New: <span class="dropdown">
 		<a href="javascript:void(0)">Goroutine</a> 
@@ -128,6 +132,18 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building:\n%v", err)
+			return
+		}
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
+		return
+	}
+	if _, t := q["install"]; t {
+		if err := g.Install(); err != nil {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error installing:\n%v", err)
 			return
 		}
 		u := *r.URL

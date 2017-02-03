@@ -1,5 +1,7 @@
 # "SHENZHEN GO" (working title)
 
+[![license](https://img.shields.io/github/license/google/shenzhen-go.svg?maxAge=2592000)](https://github.com/google/shenzhen-go/blob/master/LICENSE)
+
 SHENZHEN GO (working title) is an **experimental** visual Go environment, 
 inspired by programming puzzle games such as TIS-100 and SHENZHEN I/O.
 

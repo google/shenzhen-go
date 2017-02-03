@@ -66,7 +66,6 @@ func RenameChannel(src, funcname, from, to string) (string, error) {
 	pkg, _ := cfg.Check(funcname, fset, []*ast.File{f}, info)
 	scope := pkg.Scope()
 	fo := scope.Lookup(from)
-	fmt.Println(info.Uses)
 
 	rn := &renameIdent{
 		matchFrom: func(i *ast.Ident) bool {

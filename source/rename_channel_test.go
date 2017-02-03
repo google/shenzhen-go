@@ -18,21 +18,37 @@ import (
 	"testing"
 )
 
-func TestRenameIdent(t *testing.T) {
-	got, err := RenameIdent(`foo <- <-bar
-for range bar {
-    select {
-    case foo := <-foo:
-    case art <- os.foo:
-    }
-}
-close(foop)
-`, "test", "foo", "quuuux")
-	if err != nil {
-		t.Fatalf("RenameIdent(%q, %q) error = %v", "foo", "quuuux", err)
+func TestRenameChannel(t *testing.T) {
+	// Nonsense program, but has shadowing identifiers
+	snippet := `foo <- <-bar
+<-foo
+for range foo {
+	select {
+	case foo := <-foo:
+		<-(foo.(chan interface{}))
+	case art <- os.foo:
 	}
-	want := "quuuux <- <-bar\nfor range bar {\n\tselect {\n\tcase quuuux := <-quuuux:\n\tcase art <- os.foo:\n\t}\n}\nclose(foop)\n"
+}
+close(foo)
+close(foop)
+`
+	got, err := RenameChannel(snippet, "test", "foo", "quuuux")
+	if err != nil {
+		t.Fatalf("RenameChannel(%q, %q) error = %v", "foo", "quuuux", err)
+	}
+	want := `quuuux <- <-bar
+<-quuuux
+for range quuuux {
+	select {
+	case foo := <-quuuux:
+		<-(foo.(chan interface{}))
+	case art <- os.foo:
+	}
+}
+close(quuuux)
+close(foop)
+`
 	if got != want {
-		t.Errorf("RenameIdent(%q, %q) = \n%q, want \n%q", "foo", "quuuux", got, want)
+		t.Errorf("RenameChannel(%q, %q) = \n%q, want \n%q", "foo", "quuuux", got, want)
 	}
 }

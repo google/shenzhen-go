@@ -30,16 +30,17 @@ import (
 // This puts the package and function declaration on the first line. This should
 // preserve line numbers for any errors (a trick learned from
 // golang.org/x/tools/imports/imports.go).
-const wrapperTmplSrc = "package {{.FuncName}}; func {{.FuncName}}() {\n {{.Content}} \n}"
+const wrapperTmplSrc = "package {{.FuncName}}; func {{.FuncName}}() { {{.Content}}\n}\n{{.Defs}}\n"
 
 var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
 
-func parseSnippet(src, funcname string, fset *token.FileSet, mode parser.Mode) (*ast.File, error) {
+func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.Mode) (*ast.File, error) {
 	pr, pw := io.Pipe()
 	go func() {
-		wrapperTmpl.Execute(pw, struct{ FuncName, Content string }{
+		wrapperTmpl.Execute(pw, struct{ FuncName, Content, Defs string }{
 			FuncName: funcname,
 			Content:  src,
+			Defs:     defs,
 		})
 		pw.Close()
 	}()

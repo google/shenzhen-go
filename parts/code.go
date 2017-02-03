@@ -154,17 +154,17 @@ func (*Code) Imports() []string { return nil }
 // e.g. because the user's code has a syntax error, the rename is aborted
 // and logged.
 func (c *Code) RenameChannel(from, to string) {
-	h, err := source.RenameIdent(c.head, "head", from, to)
+	h, err := source.RenameChannel(c.head, "head", from, to)
 	if err != nil {
 		log.Printf("Couldn't do rename on head: %v", err)
 		return
 	}
-	b, err := source.RenameIdent(c.body, "body", from, to)
+	b, err := source.RenameChannel(c.body, "body", from, to)
 	if err != nil {
 		log.Printf("Couldn't do rename on body: %v", err)
 		return
 	}
-	t, err := source.RenameIdent(c.tail, "tail", from, to)
+	t, err := source.RenameChannel(c.tail, "tail", from, to)
 	if err != nil {
 		log.Printf("Couldn't do rename on tail: %v", err)
 		return

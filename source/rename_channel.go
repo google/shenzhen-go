@@ -19,39 +19,62 @@ import (
 	"fmt"
 	"go/ast"
 	"go/format"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
+	"log"
 	"strings"
 )
 
 type renameIdent struct {
-	from, to string
+	matchFrom func(*ast.Ident) bool
+	to        string
 }
 
 func (r *renameIdent) Visit(node ast.Node) ast.Visitor {
-	// Ignore "something.from"
-	if _, ok := node.(*ast.SelectorExpr); ok {
-		return nil
-	}
 	i, ok := node.(*ast.Ident)
 	if !ok {
 		return r
 	}
-	if i.Name == r.from {
+	if r.matchFrom(i) {
 		i.Name = r.to
 	}
-	return nil
+	return r
 }
 
-// RenameIdent renames an identifier in a snippet of code.
-func RenameIdent(src, funcname, from, to string) (string, error) {
+// RenameChannel renames a package-level channel variable in a snippet of code.
+func RenameChannel(src, funcname, from, to string) (string, error) {
 	fset := token.NewFileSet()
-	f, err := parseSnippet(src, funcname, fset, parser.ParseComments)
+	defs := fmt.Sprintf("var %s chan interface{}", from)
+	f, err := parseSnippet(src, funcname, defs, fset, parser.ParseComments)
 	if err != nil {
 		return "", fmt.Errorf("parsing snippet: %v", err)
 	}
-	ff := &findFunc{funcName: funcname, subvis: &renameIdent{from: from, to: to}}
-	ast.Walk(ff, f)
+
+	// To be extra sure we're adjusting the correct identifiers,
+	// use go/types to resolve them all.
+	cfg := types.Config{
+		Error:    func(err error) { log.Printf("Typecheck error: %s", err) },
+		Importer: importer.Default(),
+	}
+	info := &types.Info{
+		Uses: make(map[*ast.Ident]types.Object),
+	}
+	// Ignoring errors here since there's almost certainly going to be some
+	// (any channel declarations for used channels that are not "from").
+	pkg, _ := cfg.Check(funcname, fset, []*ast.File{f}, info)
+	scope := pkg.Scope()
+	fo := scope.Lookup(from)
+	fmt.Println(info.Uses)
+
+	rn := &renameIdent{
+		matchFrom: func(i *ast.Ident) bool {
+			return info.Uses[i] == fo
+		},
+		to: to,
+	}
+	ast.Walk(rn, f)
 	buf := new(bytes.Buffer)
 
 	if err := format.Node(buf, fset, f); err != nil {
@@ -59,16 +82,18 @@ func RenameIdent(src, funcname, from, to string) (string, error) {
 	}
 
 	out := strings.Split(buf.String(), "\n")
-	// The first three lines should be
+	// The first three lines should be:
 	//   package $funcname
 	//
 	//   func $funcname() {
-	// and the last two lines should be
+	// and the last 4+count \n(defs) lines should be:
 	//   }
 	//
-	// (The final } has a trailing \n)
+	//   $defs
+	//
+	// (The var line has a trailing \n, so four \n-separated segments)
 	out = out[3:]
-	out = out[:len(out)-2]
+	out = out[:len(out)-4-strings.Count(defs, "\n")]
 
 	// Each line in the function will be \t-indented 1 extra level.
 	for i := range out {

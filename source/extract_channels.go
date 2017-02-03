@@ -76,7 +76,7 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 // written to, but srcs can contain false positives.
 func ExtractChannelIdents(src, funcname string) (srcs, dsts StringSet, err error) {
 	fset := token.NewFileSet()
-	f, err := parseSnippet(src, funcname, fset, 0)
+	f, err := parseSnippet(src, funcname, "", fset, 0)
 	if err != nil {
 		return nil, nil, fmt.Errorf("parsing snippet: %v", err)
 	}

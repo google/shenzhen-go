@@ -1,6 +1,7 @@
 # Roadmap
 
-Contents
+Contents:
+
 * [Home](index.md)
 * [Getting Started](getting-started.md)
 * [Roadmap](roadmap.md)

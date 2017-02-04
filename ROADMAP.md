@@ -2,13 +2,11 @@
 
 Here's a bunch of TODOs in no particular order.
 
-* Be smarter about identifiers and types (i.e. start playing with go/types).
-    * Channel extractor should do identifier resolution to remove false positives
-    * Renamer should probably also do identifier resolution
-    * Type-checking channel writes & reads
+* Type-checking channel writes & reads
+* Checking for channel usage where channels are passed as arguments to functions
 * Report errors to the user better (for instance, highlighting nodes with broken syntax in them)
 * Actually really really **for reals** write some documentation, Josh.
-    * Help text in part editor, title text on part menu
+    * Title text on part menu
 * Write an installer? (Obtains necessary components on demand? Or bundles them? Or one of each?)
 * Quick channel creator (embed channel UI into a dropdown, default name, interface{}, cap 0)
 * Other "kinds" of channel (e.g. io.Pipe)
@@ -21,9 +19,7 @@ Here's a bunch of TODOs in no particular order.
     * Expression (x -> f(x)), allows for grouping function output into a struct, or sending on multiple different channels...
     * Map lookup (x -> m[x]), options for lookup failure (don't send, send 0 value, send struct{T, bool}...)
     * Multiplex / demultiplex / broadcast / first / last / ... (converting between 1 channel and many channels)
-    * Aggregate / statistics / count of records
-    * Accumulate into slices (T, T, T...close -> []T, []T, []T,...close), 
-    * Iterate slices ([]T, []T, []T,....close -> T, T, T...close)
+    * Statistics
     * Access to cmdline flags
     * Standard error logger
     * Text file reader (done!), text file writer

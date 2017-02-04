@@ -1,6 +1,9 @@
 # SHENZHEN GO
 
-<!-- gh-pages branch -->
+Contents
+* [Home](index.md)
+* [Getting Started](getting-started.md)
+* [Roadmap](roadmap.md)
 
 SHENZHEN GO (working title) is an **experimental** visual Go environment, 
 inspired by programming puzzle games such as TIS-100 and SHENZHEN I/O.

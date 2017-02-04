@@ -16,9 +16,12 @@
 package source
 
 import (
+	"fmt"
 	"go/ast"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"io"
 	"text/template"
 )
@@ -26,15 +29,18 @@ import (
 // There isn't a "parser.ParseArbitraryBlob" convenience function so we make do with
 // ParseFile. This requires a "go file" complete with "package" and statements in a
 // function body.
-//
-// This puts the package and function declaration on the first line. This should
-// preserve line numbers for any errors (a trick learned from
-// golang.org/x/tools/imports/imports.go).
-const wrapperTmplSrc = "package {{.FuncName}}; func {{.FuncName}}() { {{.Content}}\n}\n{{.Defs}}\n"
+const wrapperTmplSrc = `package {{.FuncName}}
+
+{{.Defs}}
+
+func {{.FuncName}}() { 
+	{{.Content}}
+}
+`
 
 var wrapperTmpl = template.Must(template.New("wrapper").Parse(wrapperTmplSrc))
 
-func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.Mode) (*ast.File, error) {
+func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.Mode, info *types.Info) (*ast.File, *types.Package, error) {
 	pr, pw := io.Pipe()
 	go func() {
 		wrapperTmpl.Execute(pw, struct{ FuncName, Content, Defs string }{
@@ -44,7 +50,20 @@ func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.M
 		})
 		pw.Close()
 	}()
-	return parser.ParseFile(fset, funcname+".go", pr, mode)
+	f, err := parser.ParseFile(fset, funcname+".go", pr, mode)
+	if err != nil {
+		return nil, nil, fmt.Errorf("parsing snippet: %v", err)
+	}
+	// To be extra sure we're looking at the correct identifiers,
+	// use go/types to resolve them all.
+	cfg := types.Config{
+		Error:    func(err error) {},
+		Importer: importer.Default(),
+	}
+	// Ignoring errors here since there's almost certainly going to be some
+	// (any channel declarations for used channels that are not "from", for instance).
+	pkg, _ := cfg.Check(funcname, fset, []*ast.File{f}, info)
+	return f, pkg, nil
 }
 
 type findFunc struct {

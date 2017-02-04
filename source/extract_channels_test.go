@@ -19,23 +19,26 @@ import (
 	"testing"
 )
 
-func TestExtractChannelIdents(t *testing.T) {
-	srcs, dsts, err := ExtractChannelIdents(`foo <- <-bar
+func TestExtractChannels(t *testing.T) {
+	srcs, dsts, err := ExtractChannels(`foo <- <-bar
 for range baz {
     select {
     case blarp := <-qux:
     case tuz <- sax:
     }
 }
+for range other {
+	// other is not a declared channel
+}
 close(zoop)
-`, "demo")
+`, "demo", `var bar, baz, foo, tuz, qux, zoop chan interface{}`)
 	if err != nil {
-		t.Fatalf("ExtractChannelIdents error = %v", err)
+		t.Fatalf("ExtractChannels error = %v", err)
 	}
 	if got, want := srcs, NewStringSet("bar", "baz", "qux"); !reflect.DeepEqual(got, want) {
-		t.Errorf("ExtractChannelIdents srcs = %v, want %v", got, want)
+		t.Errorf("ExtractChannels srcs = %v, want %v", got, want)
 	}
 	if got, want := dsts, NewStringSet("foo", "tuz", "zoop"); !reflect.DeepEqual(got, want) {
-		t.Errorf("ExtractChannelIdents dsts = %v, want %v", got, want)
+		t.Errorf("ExtractChannels dsts = %v, want %v", got, want)
 	}
 }

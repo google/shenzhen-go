@@ -30,7 +30,8 @@ type Part interface {
 	// AssociateEditor associates a template called "part_view" with the given template.
 	AssociateEditor(*template.Template) error
 
-	// Channels returns any channels used. Anything returned that is not a channel is ignored.
+	// Channels returns any additional channels the part thinks it uses.
+	// This should be unnecessary.
 	Channels() (read, written source.StringSet)
 
 	// Clone returns a copy of this part.
@@ -83,21 +84,55 @@ type Node struct {
 	Name         string
 	Multiplicity uint
 	Wait         bool
+
+	// Auto-extracted channel usage.
+	chansRd, chansWr source.StringSet
 }
+
+func (n *Node) extractChans(defs string) error {
+	h, b, t := n.Part.Impl()
+	n.chansRd, n.chansWr = n.Part.Channels()
+	hr, hw, err := source.ExtractChannels(h, "head", defs)
+	if err != nil {
+		return fmt.Errorf("extracting channels from head: %v", err)
+	}
+	br, bw, err := source.ExtractChannels(b, "body", defs)
+	if err != nil {
+		return fmt.Errorf("extracting channels from body: %v", err)
+	}
+	tr, tw, err := source.ExtractChannels(t, "tail", defs)
+	if err != nil {
+		return fmt.Errorf("extracting channels from tail: %v", err)
+	}
+	n.chansRd = source.Union(n.chansRd, hr, br, tr)
+	n.chansWr = source.Union(n.chansWr, hw, bw, tw)
+	return nil
+}
+
+// RenameChannel renames any uses of channel "from" to channel "to".
+func (n *Node) RenameChannel(from, to string) {
+	n.Part.RenameChannel(from, to)
+	// Simple update of cached values
+	if n.chansRd.Ni(from) {
+		n.chansRd.Del(from)
+		n.chansRd.Add(to)
+	}
+	if n.chansWr.Ni(from) {
+		n.chansWr.Del(from)
+		n.chansWr.Add(to)
+	}
+}
+
+// Channels returns all the channels this node uses.
+func (n *Node) Channels() (read, written source.StringSet) { return n.chansRd, n.chansWr }
 
 // ChannelsRead returns the channels read from by this node. It is a convenience
 // function for the templates, which can't do multiple returns.
-func (n *Node) ChannelsRead() []string {
-	r, _ := n.Part.Channels()
-	return r.Slice()
-}
+func (n *Node) ChannelsRead() []string { return n.chansRd.Slice() }
 
 // ChannelsWritten returns the channels written to by this node. It is a convenience
 // function for the templates, which can't do multiple returns.
-func (n *Node) ChannelsWritten() []string {
-	_, w := n.Part.Channels()
-	return w.Slice()
-}
+func (n *Node) ChannelsWritten() []string { return n.chansWr.Slice() }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.
 func (n *Node) Copy() *Node {

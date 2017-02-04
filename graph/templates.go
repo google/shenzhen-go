@@ -67,17 +67,7 @@ package main
 package {{.PackageName}} {{if ne .PackagePath .PackageName}} // import "{{.PackagePath}}"{{end}}
 {{end}}
 
-import (
-	{{range .AllImports}}
-	{{.}}
-	{{- end}}
-)
-
-var (
-	{{- range .Channels}}
-	{{.Name}} = make(chan {{.Type}}, {{.Cap}})
-	{{- end}}
-)
+{{template "golang-defs" .}}
 
 {{if .IsCommand}}
 func main() {
@@ -123,6 +113,18 @@ func Run() {
 	wg.Wait()
 }`
 
+	goDefinitionsTemplateSrc = `import (
+	{{range .AllImports}}
+	{{.}}
+	{{- end}}
+)
+
+var (
+	{{- range .Channels}}
+	{{.Name}} = make(chan {{.Type}}, {{.Cap}})
+	{{- end}}
+)`
+
 	goRunnerTemplateSrc = `package main
 
 	import "{{.PackagePath}}"
@@ -134,7 +136,8 @@ func Run() {
 )
 
 var (
-	dotTemplate      = template.Must(template.New("dot").Parse(dotTemplateSrc))
-	goTemplate       = template.Must(template.New("golang").Parse(goTemplateSrc))
-	goRunnerTemplate = template.Must(template.New("golang-runner").Parse(goRunnerTemplateSrc))
+	dotTemplate           = template.Must(template.New("dot").Parse(dotTemplateSrc))
+	goTemplate            = template.Must(template.New("golang").Parse(goTemplateSrc))
+	goRunnerTemplate      = template.Must(template.New("golang-runner").Parse(goRunnerTemplateSrc))
+	goDefinitionsTemplate = template.Must(goTemplate.New("golang-defs").Parse(goDefinitionsTemplateSrc))
 )

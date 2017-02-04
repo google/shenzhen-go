@@ -18,10 +18,12 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 )
 
 type chanIdents struct {
-	srcs, dsts StringSet
+	matchIdent    func(*ast.Ident) bool
+	read, written StringSet
 }
 
 func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
@@ -31,7 +33,10 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return v
 		}
-		v.dsts.Add(id.Name)
+		if !v.matchIdent(id) {
+			return v
+		}
+		v.written.Add(id.Name)
 
 	case *ast.UnaryExpr:
 		if s.Op != token.ARROW {
@@ -41,14 +46,20 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return nil
 		}
-		v.srcs.Add(id.Name)
+		if !v.matchIdent(id) {
+			return nil
+		}
+		v.read.Add(id.Name)
 
 	case *ast.RangeStmt:
 		id, ok := s.X.(*ast.Ident)
 		if !ok {
 			return v
 		}
-		v.srcs.Add(id.Name)
+		if !v.matchIdent(id) {
+			return v
+		}
+		v.read.Add(id.Name)
 
 	case *ast.CallExpr:
 		// close(ch) is interpreted as writing to ch.
@@ -66,21 +77,43 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 		if !ok {
 			return v
 		}
-		v.dsts.Add(id.Name)
+		if !v.matchIdent(id) {
+			return v
+		}
+		v.written.Add(id.Name)
 	}
 	return v
 }
 
-// ExtractChannelIdents extracts identifier names which could be involved in
-// channel reads (srcs) or writes (dsts). dsts only contains channel identifiers
-// written to, but srcs can contain false positives.
-func ExtractChannelIdents(src, funcname string) (srcs, dsts StringSet, err error) {
+// ExtractChannels extracts channel names used. The channel definitions are compared
+// against definitions in defs, to avoid false positives (shadowed, ranging over non-channels).
+func ExtractChannels(src, funcname, defs string) (read, written StringSet, err error) {
 	fset := token.NewFileSet()
-	f, err := parseSnippet(src, funcname, "", fset, 0)
+	info := &types.Info{
+		Uses: make(map[*ast.Ident]types.Object),
+	}
+	f, pkg, err := parseSnippet(src, funcname, defs, fset, 0, info)
 	if err != nil {
 		return nil, nil, fmt.Errorf("parsing snippet: %v", err)
 	}
-	ci := &chanIdents{srcs: make(map[string]struct{}), dsts: make(map[string]struct{})}
+	vars := make(map[string]types.Object)
+	scope := pkg.Scope()
+	for _, n := range scope.Names() {
+		o := scope.Lookup(n)
+		if _, ok := o.(*types.Var); !ok {
+			continue
+		}
+		vars[n] = o
+	}
+
+	ci := &chanIdents{
+		matchIdent: func(i *ast.Ident) bool {
+			// Is i a usage of the package variable (of the same name)?
+			return vars[i.Name] != nil && vars[i.Name] == info.Uses[i]
+		},
+		read:    make(StringSet),
+		written: make(StringSet),
+	}
 	ast.Walk(&findFunc{funcName: funcname, subvis: ci}, f)
-	return ci.srcs, ci.dsts, nil
+	return ci.read, ci.written, nil
 }

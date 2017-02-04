@@ -75,8 +75,13 @@ func New(srcPath string) *Graph {
 	}
 }
 
-// ComputeDegrees analyses how nodes and channels are related.
-func (g *Graph) ComputeDegrees() {
+// RecomputeNode gets the node to figure out what channels it uses.
+func (g *Graph) RecomputeNode(n *Node) error {
+	return n.extractChans(g.Definitions())
+}
+
+// RecomputeDegrees analyses how nodes and channels are related.
+func (g *Graph) RecomputeDegrees() {
 	for _, c := range g.Channels {
 		c.in, c.out = nil, nil
 	}
@@ -89,6 +94,14 @@ func (g *Graph) ComputeDegrees() {
 			w.in = append(w.in, n)
 		}
 	}
+}
+
+// Definitions returns the imports and channel var blocks from the Go program.
+// This is useful for advanced parsing and typechecking.
+func (g *Graph) Definitions() string {
+	b := new(bytes.Buffer)
+	goDefinitionsTemplate.Execute(b, g)
+	return b.String()
 }
 
 // PackageName extracts the name of the package from the package path ("full" package name).
@@ -122,6 +135,12 @@ func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
 		return nil, err
 	}
 	g.SourcePath = sourcePath
+	defs := g.Definitions()
+	for _, n := range g.Nodes {
+		if err := n.extractChans(defs); err != nil {
+			log.Printf("Recomputing channels used by node %s: %v", n.Name, err)
+		}
+	}
 	return &g, nil
 }
 
@@ -160,7 +179,7 @@ func (g *Graph) SaveJSONFile() error {
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.
 func (g *Graph) WriteDotTo(dst io.Writer) error {
-	g.ComputeDegrees()
+	g.RecomputeDegrees()
 	return dotTemplate.Execute(dst, g)
 }
 

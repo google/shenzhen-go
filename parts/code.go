@@ -16,7 +16,6 @@ package parts
 
 import (
 	"encoding/json"
-	"fmt"
 	"go/format"
 	"html/template"
 	"log"
@@ -38,9 +37,6 @@ const codePartEditTemplateSrc = `{{$lines := .Node.Part.LineCount}}
 // Code is a component containing arbitrary code.
 type Code struct {
 	head, body, tail string
-
-	// Computed from Head + Body + Tail - which channels are read from and written to.
-	chansRd, chansWr source.StringSet
 }
 
 type jsonCode struct {
@@ -98,17 +94,15 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 	return err
 }
 
-// Channels returns the names of all channels used by this goroutine.
-func (c *Code) Channels() (read, written source.StringSet) { return c.chansRd, c.chansWr }
+// Channels returns nil - all channel usage is expected to be auto extracted.
+func (c *Code) Channels() (read, written source.StringSet) { return nil, nil }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
 	return &Code{
-		head:    c.head,
-		body:    c.body,
-		tail:    c.tail,
-		chansRd: source.Union(c.chansRd),
-		chansWr: source.Union(c.chansWr),
+		head: c.head,
+		body: c.body,
+		tail: c.tail,
 	}
 }
 
@@ -170,16 +164,6 @@ func (c *Code) RenameChannel(from, to string) {
 		return
 	}
 	c.head, c.body, c.tail = h, b, t
-
-	// Simple update of cached values
-	if c.chansRd.Ni(from) {
-		c.chansRd.Del(from)
-		c.chansRd.Add(to)
-	}
-	if c.chansWr.Ni(from) {
-		c.chansWr.Del(from)
-		c.chansWr.Add(to)
-	}
 }
 
 // TypeKey returns "Code".
@@ -188,22 +172,6 @@ func (*Code) TypeKey() string { return "Code" }
 func (c *Code) refresh(h, b, t string) error {
 	// At least save what the user entered.
 	c.head, c.body, c.tail = h, b, t
-
-	// It can probably have channels extracted...
-	hs, hd, err := source.ExtractChannelIdents(h, "head")
-	if err != nil {
-		return fmt.Errorf("extracting channels from head: %v", err)
-	}
-	bs, bd, err := source.ExtractChannelIdents(b, "body")
-	if err != nil {
-		return fmt.Errorf("extracting channels from body: %v", err)
-	}
-	ts, td, err := source.ExtractChannelIdents(t, "tail")
-	if err != nil {
-		return fmt.Errorf("extracting channels from tail: %v", err)
-	}
-	c.chansRd = source.Union(hs, bs, ts)
-	c.chansWr = source.Union(hd, bd, td)
 
 	// Try to format it.
 	hf, err := format.Source([]byte(h))

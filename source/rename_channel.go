@@ -19,11 +19,9 @@ import (
 	"fmt"
 	"go/ast"
 	"go/format"
-	"go/importer"
 	"go/parser"
 	"go/token"
 	"go/types"
-	"log"
 	"strings"
 )
 
@@ -47,25 +45,14 @@ func (r *renameIdent) Visit(node ast.Node) ast.Visitor {
 func RenameChannel(src, funcname, from, to string) (string, error) {
 	fset := token.NewFileSet()
 	defs := fmt.Sprintf("var %s chan interface{}", from)
-	f, err := parseSnippet(src, funcname, defs, fset, parser.ParseComments)
-	if err != nil {
-		return "", fmt.Errorf("parsing snippet: %v", err)
-	}
-
-	// To be extra sure we're adjusting the correct identifiers,
-	// use go/types to resolve them all.
-	cfg := types.Config{
-		Error:    func(err error) { log.Printf("Typecheck error: %s", err) },
-		Importer: importer.Default(),
-	}
 	info := &types.Info{
 		Uses: make(map[*ast.Ident]types.Object),
 	}
-	// Ignoring errors here since there's almost certainly going to be some
-	// (any channel declarations for used channels that are not "from").
-	pkg, _ := cfg.Check(funcname, fset, []*ast.File{f}, info)
-	scope := pkg.Scope()
-	fo := scope.Lookup(from)
+	f, pkg, err := parseSnippet(src, funcname, defs, fset, parser.ParseComments, info)
+	if err != nil {
+		return "", fmt.Errorf("parsing snippet: %v", err)
+	}
+	fo := pkg.Scope().Lookup(from)
 
 	rn := &renameIdent{
 		matchFrom: func(i *ast.Ident) bool {
@@ -81,18 +68,18 @@ func RenameChannel(src, funcname, from, to string) (string, error) {
 	}
 
 	out := strings.Split(buf.String(), "\n")
-	// The first three lines should be:
+	// The first 4+N lines should be:
 	//   package $funcname
-	//
-	//   func $funcname() {
-	// and the last 4+count \n(defs) lines should be:
-	//   }
 	//
 	//   $defs
 	//
-	// (The var line has a trailing \n, so four \n-separated segments)
-	out = out[3:]
-	out = out[:len(out)-4-strings.Count(defs, "\n")]
+	//   func $funcname() {
+	// and the last 2 lines should be:
+	//   }
+	//
+	// (The } line has a trailing \n, so 2 \n-separated segments total)
+	out = out[5+strings.Count(defs, "\n"):]
+	out = out[:len(out)-2]
 
 	// Each line in the function will be \t-indented 1 extra level.
 	for i := range out {

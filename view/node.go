@@ -190,6 +190,9 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 	n.Multiplicity = uint(mult)
 	n.Wait = (r.FormValue("Wait") == "on")
 	n.Part = part
+	if err := g.RecomputeNode(n); err != nil {
+		log.Printf("Recomputing node %s: %v", nm, err)
+	}
 
 	// No name change? No need to readjust the map or redirect.
 	// So render the usual editor.

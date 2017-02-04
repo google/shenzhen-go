@@ -14,6 +14,8 @@ and run, or used as a library in a regular Go program.
 [SHENZHEN GO was unveiled](https://www.youtube.com/watch?v=AB9AUAmMlDo) at 
 the [linux.conf.au 2017 Open Source & Games Miniconf](https://linux.conf.au/schedule/presentation/8/).
 
+Read more at https://google.github.io/shenzhen-go.
+
 ![Example Graph](example_graph2.png)
 
 ## Dependencies
@@ -52,20 +54,3 @@ This is not an official Google product.
 
 This is an experimental project - expect plenty of rough edges and bugs, and 
 no support.
-
-## More notes
-
-*   SHENZHEN GO is a strictly one-way process. You *cannot* import Go code 
-    that you wrote into SHENZHEN GO. 
-*   You *can* write snippets of Go in your SHENZHEN GO graph, which then appear 
-    in the Go output.
-*   One day it should be possible to write zero Go code, yet produce wonderful 
-    graphs that do useful things.
-*   You can always save a copy of your program as Go, continue working on that, 
-    and never touch SHENZHEN GO again. 
-*   However, modifications to the generated output won't be preserved if 
-    SHENZHEN GO builds or runs the design again.
-*   Don't treat the Go output as a virtuous paragon of how to code in Go. It is
-    "machine-generated" and therefore held to a lower standard than "hand-made".
-*   The JSON-based file format aims to be *diffable*, or at least *not ugly*, 
-    for the benefit of source control and code review.

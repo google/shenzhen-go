@@ -88,6 +88,7 @@ func (v *chanIdents) Visit(node ast.Node) ast.Visitor {
 // ExtractChannels extracts channel names used. The channel definitions are compared
 // against definitions in defs, to avoid false positives (shadowed, ranging over non-channels).
 func ExtractChannels(src, funcname, defs string) (read, written StringSet, err error) {
+	// TODO: Inspect function calls for channel arguments.
 	fset := token.NewFileSet()
 	info := &types.Info{
 		Uses: make(map[*ast.Ident]types.Object),

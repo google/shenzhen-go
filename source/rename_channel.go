@@ -44,7 +44,7 @@ func (r *renameIdent) Visit(node ast.Node) ast.Visitor {
 // RenameChannel renames a package-level channel variable in a snippet of code.
 func RenameChannel(src, funcname, from, to string) (string, error) {
 	fset := token.NewFileSet()
-	defs := fmt.Sprintf("var %s chan interface{}", from)
+	defs := fmt.Sprintf("var %s chan interface{}", from) //hax
 	info := &types.Info{
 		Uses: make(map[*ast.Ident]types.Object),
 	}

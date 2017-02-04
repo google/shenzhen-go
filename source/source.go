@@ -61,7 +61,6 @@ func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.M
 		Importer: importer.Default(),
 	}
 	// Ignoring errors here since there's almost certainly going to be some
-	// (any channel declarations for used channels that are not "from", for instance).
 	pkg, _ := cfg.Check(funcname, fset, []*ast.File{f}, info)
 	return f, pkg, nil
 }

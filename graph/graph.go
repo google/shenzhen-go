@@ -192,6 +192,11 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 	return gofmt(w, buf)
 }
 
+// WriteRawGoTo writes the Go language view of the graph to the io.Writer, without formatting.
+func (g *Graph) WriteRawGoTo(w io.Writer) error {
+	return goTemplate.Execute(w, g)
+}
+
 // WriteGoRunnerTo outputs a simple main package and function for calling Run on
 // a generated Go package.
 func (g *Graph) WriteGoRunnerTo(w io.Writer) error {

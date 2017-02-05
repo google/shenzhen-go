@@ -123,6 +123,10 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		outputGoSrc(g, w)
 		return
 	}
+	if _, t := q["rawgo"]; t {
+		outputRawGoSrc(g, w)
+		return
+	}
 	if _, t := q["json"]; t {
 		outputJSON(g, w)
 		return
@@ -263,6 +267,15 @@ func outputGoSrc(g *graph.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "text/golang")
 	if err := g.WriteGoTo(w); err != nil {
+		log.Printf("Could not render to Go: %v", err)
+		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
+	}
+}
+
+func outputRawGoSrc(g *graph.Graph, w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "text/golang")
+	if err := g.WriteRawGoTo(w); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
 	}

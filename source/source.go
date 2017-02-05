@@ -52,7 +52,7 @@ func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.M
 	}()
 	f, err := parser.ParseFile(fset, funcname+".go", pr, mode)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parsing snippet: %v", err)
+		return nil, nil, fmt.Errorf("parsing file: %v", err)
 	}
 	// To be extra sure we're looking at the correct identifiers,
 	// use go/types to resolve them all.

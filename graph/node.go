@@ -72,6 +72,7 @@ var PartFactories = map[string]PartFactory{
 	"Broadcast":      func() Part { return new(parts.Broadcast) },
 	"Code":           func() Part { return new(parts.Code) },
 	"Filter":         func() Part { return new(parts.Filter) },
+	"HTTPServer":     func() Part { return new(parts.HTTPServer) },
 	"StaticSend":     func() Part { return new(parts.StaticSend) },
 	"TextFileReader": func() Part { return new(parts.TextFileReader) },
 	"Unslicer":       func() Part { return new(parts.Unslicer) },

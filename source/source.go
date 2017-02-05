@@ -18,7 +18,6 @@ package source
 import (
 	"fmt"
 	"go/ast"
-	"go/importer"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -57,8 +56,9 @@ func parseSnippet(src, funcname, defs string, fset *token.FileSet, mode parser.M
 	// To be extra sure we're looking at the correct identifiers,
 	// use go/types to resolve them all.
 	cfg := types.Config{
-		Error:    func(err error) {},
-		Importer: importer.Default(),
+		Error: func(err error) {},
+		// Not adding the importer because it's related to slowness (on my system with a zillion packages)
+		// Importer: importer.Default(),
 	}
 	// Ignoring errors here since there's almost certainly going to be some
 	pkg, _ := cfg.Check(funcname, fset, []*ast.File{f}, info)

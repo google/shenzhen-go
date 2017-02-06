@@ -34,7 +34,7 @@ const browseTemplateSrc = `<head>
 <h1>SHENZHEN GO</h1>
 	<div>
 		<h2>{{$.Base}}</h2>
-		<a href="{{.Up}}">Up</a> |
+		<a href="/{{.Up}}">Up</a> |
 		<div class="dropdown"> 
 			<a href="javascript:void(0)">New</a>
 			<form method="GET" class="dropdown-content">
@@ -102,7 +102,6 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		g, err := graph.LoadJSON(f, base)
 		if err != nil {
 			log.Printf("Not a directory or a valid JSON-encoded graph: %v", err)
-			//http.NotFound(w, r)
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
 			return
 		}

@@ -45,15 +45,22 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
-				"input": "div3",
-				"paths": [
-					{
-						"pred": "x == 5 || x % 5 != 0",
-						"output": "out"
-					}
+				"head": [
+					""
+				],
+				"body": [
+					"for x := range div3 {",
+					"\tif x == 5 || x%5 != 0 {",
+					"\t\tout \u003c- x",
+					"\t}",
+					"}"
+				],
+				"tail": [
+					"close(out)",
+					""
 				]
 			},
-			"part_type": "Filter"
+			"part_type": "Code"
 		},
 		"Generate integers ≥ 2": {
 			"name": "Generate integers ≥ 2",
@@ -64,7 +71,7 @@
 					""
 				],
 				"body": [
-					"for i := 2; i\u003c49; i++ {",
+					"for i := 2; i \u003c 49; i++ {",
 					"\traw \u003c- i",
 					"}"
 				],

@@ -36,7 +36,7 @@ const codePartEditTemplateSrc = `{{$lines := .Node.Part.LineCount}}
 
 // Code is a component containing arbitrary code.
 type Code struct {
-	head, body, tail string
+	Head, Body, Tail string
 }
 
 type jsonCode struct {
@@ -48,9 +48,9 @@ type jsonCode struct {
 // MarshalJSON encodes the Code component as JSON.
 func (c *Code) MarshalJSON() ([]byte, error) {
 	k := &jsonCode{
-		Head: strings.Split(c.head, "\n"),
-		Body: strings.Split(c.body, "\n"),
-		Tail: strings.Split(c.tail, "\n"),
+		Head: strings.Split(c.Head, "\n"),
+		Body: strings.Split(c.Body, "\n"),
+		Tail: strings.Split(c.Tail, "\n"),
 	}
 	stripCR(k.Head)
 	stripCR(k.Body)
@@ -78,13 +78,13 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 	return nil
 }
 
-// LineCount is number of lines in c.head, c.body, c.tail
+// LineCount is number of lines in c.Head, c.Body, c.Tail
 // (conveneince function for templates.)
 func (c *Code) LineCount() struct{ H, B, T int } {
 	return struct{ H, B, T int }{
-		H: strings.Count(c.head, "\n") + 1,
-		B: strings.Count(c.body, "\n") + 1,
-		T: strings.Count(c.tail, "\n") + 1,
+		H: strings.Count(c.Head, "\n") + 3,
+		B: strings.Count(c.Body, "\n") + 3,
+		T: strings.Count(c.Tail, "\n") + 3,
 	}
 }
 
@@ -100,9 +100,9 @@ func (c *Code) Channels() (read, written source.StringSet) { return nil, nil }
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
 	return &Code{
-		head: c.head,
-		body: c.body,
-		tail: c.tail,
+		Head: c.Head,
+		Body: c.Body,
+		Tail: c.Tail,
 	}
 }
 
@@ -111,15 +111,15 @@ func (*Code) Help() template.HTML {
 	return `<p>
 	A Code part runs (executes) any Go code that you write.
 	</p><p>
-	It consists of 3 parts: a head, a body, and a tail. 
-	The head runs first, and only runs once, no matter what number Multiplicity is set to. 
-	The body runs next. The number of concurrent copies of the body that run is set by Multiplicity.
-	Finally, when all copies of the body return, the tail runs. 
+	It consists of 3 parts: a Head, a Body, and a Tail. 
+	The Head runs first, and only runs once, no matter what number Multiplicity is set to. 
+	The Body runs next. The number of concurrent copies of the Body that run is set by Multiplicity.
+	Finally, when all copies of the Body return, the Tail runs. 
 	</p><p>
-	The head and tail are useful for operations that should only be done once. For example, any 
-	output channels written to in the body can be correctly closed (if desired) in the tail.
+	The Head and Tail are useful for operations that should only be done once. For example, any 
+	output channels written to in the Body can be correctly closed (if desired) in the Tail.
 	</p><p>
-	Each instance of the body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
+	Each instance of the Body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
 	to distinguish which instance is running and how many are running, if necessary. 
 	<code>0 <= instanceNumber < multiplicity</code>
 	</p><p>
@@ -129,15 +129,15 @@ func (*Code) Help() template.HTML {
 	</p><p>
 	The <code>return</code> statement is allowed but optional in Code. There are no values that
 	need to be returned.
-	Using <code>return</code> in the head will prevent the body or tail from executing, but 
-	using <code>return</code> in the body won't affect whether the tail is executed.
+	Using <code>return</code> in the Head will prevent the Body or Tail from executing, but 
+	using <code>return</code> in the Body won't affect whether the Tail is executed.
 	</p>
 	`
 }
 
 // Impl returns the implementation of the goroutine.
-func (c *Code) Impl() (head, body, tail string) {
-	return c.head, c.body, c.tail
+func (c *Code) Impl() (Head, Body, Tail string) {
+	return c.Head, c.Body, c.Tail
 }
 
 // Imports returns a nil slice.
@@ -148,22 +148,22 @@ func (*Code) Imports() []string { return nil }
 // e.g. because the user's code has a syntax error, the rename is aborted
 // and logged.
 func (c *Code) RenameChannel(from, to string) {
-	h, err := source.RenameChannel(c.head, "head", from, to)
+	h, err := source.RenameChannel(c.Head, "Head", from, to)
 	if err != nil {
-		log.Printf("Couldn't do rename on head: %v", err)
+		log.Printf("Couldn't do rename on Head: %v", err)
 		return
 	}
-	b, err := source.RenameChannel(c.body, "body", from, to)
+	b, err := source.RenameChannel(c.Body, "Body", from, to)
 	if err != nil {
-		log.Printf("Couldn't do rename on body: %v", err)
+		log.Printf("Couldn't do rename on Body: %v", err)
 		return
 	}
-	t, err := source.RenameChannel(c.tail, "tail", from, to)
+	t, err := source.RenameChannel(c.Tail, "Tail", from, to)
 	if err != nil {
-		log.Printf("Couldn't do rename on tail: %v", err)
+		log.Printf("Couldn't do rename on Tail: %v", err)
 		return
 	}
-	c.head, c.body, c.tail = h, b, t
+	c.Head, c.Body, c.Tail = h, b, t
 }
 
 // TypeKey returns "Code".
@@ -171,7 +171,7 @@ func (*Code) TypeKey() string { return "Code" }
 
 func (c *Code) refresh(h, b, t string) error {
 	// At least save what the user entered.
-	c.head, c.body, c.tail = h, b, t
+	c.Head, c.Body, c.Tail = h, b, t
 
 	// Try to format it.
 	hf, err := format.Source([]byte(h))
@@ -187,13 +187,13 @@ func (c *Code) refresh(h, b, t string) error {
 		return err
 	}
 
-	c.head, c.body, c.tail = string(hf), string(bf), string(tf)
+	c.Head, c.Body, c.Tail = string(hf), string(bf), string(tf)
 	return nil
 }
 
 // Update sets relevant fields based on the given Request.
 func (c *Code) Update(r *http.Request) error {
-	h, b, t := c.head, c.body, c.tail
+	h, b, t := c.Head, c.Body, c.Tail
 	if r != nil {
 		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
 	}

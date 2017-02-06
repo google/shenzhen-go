@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/graph"
+	"github.com/google/shenzhen-go/parts"
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
@@ -49,10 +50,13 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 </head>
 <body>
 	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
-	{{if .Name}}
-	<a href="?node={{.Name}}&clone">Clone</a> | 
-	<a href="?node={{.Name}}&delete">Delete</a> | 
-	{{end}}
+	{{if .Name -}}
+	<a href="?node={{.Name}}&clone" title="Make a copy of this goroutine.">Clone</a> | 
+	{{if ne .Part.TypeKey "Code" -}}
+	<a href="?node={{.Name}}&convert" class="destructive" title="Change this goroutine into a Code goroutine; it cannot be converted back.">Convert to Code</a> |
+	{{end -}}
+	<a href="?node={{.Name}}&delete" class="destructive" title="Delete this goroutine">Delete</a> | 
+	{{end -}}
 	Part type: {{.Part.TypeKey}} | 
 	<a id="helplink" href="javascript:void(0);" onclick="showhidehelp(this);">Show Help</a>
 	<div id="help" style="display:none">
@@ -89,12 +93,13 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 	_, clone := q["clone"]
+	_, convert := q["convert"]
 	_, del := q["delete"]
 
 	var n *graph.Node
 	if name == "new" {
-		if clone || del {
-			http.Error(w, "Asked for a new node, but also to clone or delete the node", http.StatusBadRequest)
+		if clone || convert || del {
+			http.Error(w, "Asked for a new node, but also to clone/convert/delete the node", http.StatusBadRequest)
 			return
 		}
 		t := q.Get("type")
@@ -119,6 +124,13 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	switch {
 	case clone:
 		n = n.Copy()
+	case convert:
+		h, b, t := n.Part.Impl()
+		n.Part = &parts.Code{
+			Head: h,
+			Body: b,
+			Tail: t,
+		}
 	case del:
 		delete(g.Nodes, n.Name)
 		u := *r.URL

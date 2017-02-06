@@ -107,6 +107,20 @@ const (
 	max-width: 800px;
 	margin: 20 auto 0;
 }
+a:link, a:visited {
+	color: #05d;
+	text-decoration: none;
+}
+a:hover {
+	color: #07f;
+	text-decoration: underline;
+}
+a.destructive:link, a.destructive:visited {
+    color: #d03;
+}
+a.destructive:hover {
+    color: #f04;
+}
 code {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	color: #066;

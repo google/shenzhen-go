@@ -68,11 +68,29 @@ type Graph struct {
 
 // New returns a new empty graph associated with a file path.
 func New(srcPath string) *Graph {
-	return &Graph{
+	g := &Graph{
 		SourcePath: srcPath,
 		Nodes:      make(map[string]*Node),
 		Channels:   make(map[string]*Channel),
 	}
+
+	// Attempt to find a sensible package path.
+	gopath, ok := os.LookupEnv("GOPATH")
+	if !ok || gopath == "" {
+		return g
+	}
+	abs, err := filepath.Abs(srcPath)
+	if err != nil {
+		log.Print(err)
+		return g
+	}
+	rel, err := filepath.Rel(gopath+"/src", abs)
+	if err != nil {
+		log.Print(err)
+		return g
+	}
+	g.PackagePath = strings.TrimSuffix(rel, filepath.Ext(rel))
+	return g
 }
 
 // RecomputeNode gets the node to figure out what channels it uses.

@@ -215,12 +215,6 @@ func (g *Graph) WriteRawGoTo(w io.Writer) error {
 	return goTemplate.Execute(w, g)
 }
 
-// WriteGoRunnerTo outputs a simple main package and function for calling Run on
-// a generated Go package.
-func (g *Graph) WriteGoRunnerTo(w io.Writer) error {
-	return goRunnerTemplate.Execute(w, g)
-}
-
 // GeneratePackage writes the Go view of the graph to a file called generated.go in
 // ${GOPATH}/src/${g.PackagePath}/, returning the full path.
 func (g *Graph) GeneratePackage() (string, error) {
@@ -280,7 +274,7 @@ func (g *Graph) writeTempRunner() (string, error) {
 		return "", err
 	}
 	defer f.Close()
-	if err := g.WriteGoRunnerTo(f); err != nil {
+	if err := goRunnerTemplate.Execute(f, g); err != nil {
 		return "", err
 	}
 	if err := f.Close(); err != nil {

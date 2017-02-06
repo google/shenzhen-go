@@ -102,7 +102,9 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		g, err := graph.LoadJSON(f, base)
 		if err != nil {
 			log.Printf("Not a directory or a valid JSON-encoded graph: %v", err)
-			http.NotFound(w, r)
+			//http.NotFound(w, r)
+			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
+			return
 		}
 		b.loadedGraphs[path] = g
 		Graph(g, w, r)

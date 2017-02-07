@@ -25,13 +25,59 @@ import (
 	"github.com/google/shenzhen-go/source"
 )
 
-const codePartEditTemplateSrc = `{{$lines := .Node.Part.LineCount}}
-<h4>Head</h4>
-<textarea name="Head" rows="{{$lines.H}}" cols="80">{{.Node.ImplHead}}</textarea>
-<h4>Body</h4>
-<textarea name="Body" rows="{{$lines.B}}" cols="80">{{.Node.ImplBody}}</textarea>
-<h4>Tail</h4>
-<textarea name="Tail" rows="{{$lines.T}}" cols="80">{{.Node.ImplTail}}</textarea>
+const codePartEditTemplateSrc = `
+<input type="hidden" id="hhead" name="Head" value="">
+<input type="hidden" id="hbody" name="Body" value="">
+<input type="hidden" id="htail" name="Tail" value="">
+<script>
+	function switchto(e) {
+		h = document.getElementById('headtab');
+		b = document.getElementById('bodytab');
+		t = document.getElementById('tailtab');
+		x = document.getElementById(e);
+		h.style.display = 'none';
+		b.style.display = 'none';
+		t.style.display = 'none';
+		x.style.display = 'block';
+	}
+</script>
+<a href="javascript:void(0)" onclick="switchto('headtab')">Head</a> |
+<a href="javascript:void(0)" onclick="switchto('bodytab')">Body</a> |
+<a href="javascript:void(0)" onclick="switchto('tailtab')">Tail</a>
+<div id="headtab" style="display:none">
+	<h4>Head</h4>
+	<pre class="codeedit" id="head">{{.Node.ImplHead}}</pre>
+</div>
+<div id="bodytab" style="display:block">
+	<h4>Body</h4>
+	<pre class="codeedit" id="body">{{.Node.ImplBody}}</pre>
+</div>
+<div id="tailtab" style="display:none">
+	<h4>Tail</h4>
+	<pre class="codeedit" id="tail">{{.Node.ImplTail}}</pre>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var theme = "ace/theme/chrome";
+	var lang = "ace/mode/golang";
+    var head = ace.edit("head");
+	var body = ace.edit("body");
+	var tail = ace.edit("tail");
+    head.setTheme(theme);
+    head.getSession().setMode(lang);
+	head.getSession().setUseSoftTabs(false);
+    body.setTheme(theme);
+    body.getSession().setMode(lang);
+	body.getSession().setUseSoftTabs(false);
+    tail.setTheme(theme);
+    tail.getSession().setMode(lang);
+	tail.getSession().setUseSoftTabs(false);
+	this.parent.onsubmit = function() {
+		document.getElementById("hhead").value = head.getValue();
+		document.getElementById("hbody").value = body.getValue();
+		docuemnt.getElementById("htail").value = tail.getValue();
+	};
+</script>
 `
 
 // Code is a component containing arbitrary code.

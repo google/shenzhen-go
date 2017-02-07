@@ -193,7 +193,13 @@ fieldset#pathtemplate {
    	margin: 0;
    	padding: 0;
    	overflow: hidden;
-}`
+}
+pre.codeedit {
+	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
+	height: 600px;
+    width: 100%;
+}
+`
 )
 
 var (

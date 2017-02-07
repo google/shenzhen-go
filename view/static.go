@@ -196,6 +196,7 @@ fieldset#pathtemplate {
 }
 pre.codeedit {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
+	font-size: 14px;
 	height: 600px;
     width: 100%;
 }

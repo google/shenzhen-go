@@ -44,7 +44,7 @@ const (
 	{{else -}}
 	<a href="?build" title="Export the graph to a Go package and 'go build' it">Build</a> | 
 	{{end -}}
-	<a href="?run" title="Export the graph to a Go package and execute it">Run</a> | 
+	<a href="?run" target="_blank" title="Export the graph to a Go package and execute it">Run</a> | 
 	New: <span class="dropdown">
 		<a href="javascript:void(0)">Goroutine</a> 
 		<div class="dropdown-content">

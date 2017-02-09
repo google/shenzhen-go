@@ -22,38 +22,25 @@ const (
 	node[shape=box,fontname="Go"];
 	{{range .Nodes}}
 	"{{.Name}}" [URL="?node={{urlquery .Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];
+		{{range $k, $t := .InputArgs}}
+	"{{.Name}}.{{$k}}" [shape=point,xlabel="{{$k}}"];
+    "{{.Name}}.{{$k}}" -> "{{.Name}}";
+		{{- end}}
+		{{range $k, $t := .OutputArgs}}
+	"{{.Name}}.{{$k}}" [shape=point,xlabel="{{$k}}"];
+	"{{.Name}}" -> "{{.Name}}.{{$k}}";
+		{{- end}}
 	{{- end}}
-	{{range .Channels}}
+	{{range $index, $chan := .Channels}}
 		{{if .IsSimple}}
-			{{if eq .Type "error"}}
-	"{{index .Writers 0}}" -> "{{index .Readers 0}}" [label="{{.Name}}",URL="?channel={{urlquery .Name}}",fontname="Go Mono",color="red"];
-	{rank=same "{{index .Writers 0}}" "{{index .Readers 0}}"}
-			{{- else}}
-	"{{index .Writers 0}}"-> "{{index .Readers 0}}" [label="{{.Name}}",URL="?channel={{urlquery .Name}}",fontname="Go Mono"];
-			{{- end}}
+	"{{index .Writers 0}}" -> "{{index .Readers 0}}" [URL="?channel={{$index}}",fontname="Go Mono"];
 	    {{- else}}
-	"{{.Name}}" [xlabel="{{.Name}}",URL="?channel={{urlquery .Name}}",shape=point,fontname="Go Mono"];
-		{{- end}}
-	{{- end}}
-	{{range $n := .Nodes -}}
-		{{range $.DeclaredChannels .ChannelsRead}}
-			{{if not .IsSimple }}
-				{{if eq .Type "error"}}
-	"{{.Name}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .Name}}",color="red"];
-	{rank=same "{{.Name}}" "{{$n.Name}}"}
-				{{- else}}
-	"{{.Name}}" -> "{{$n.Name}}" [URL="?channel={{urlquery .Name}}"];
-				{{- end}}
+	"$c{{$index}}" [URL="?channel={{$index}}",shape=point,fontname="Go Mono"];
+			{{range $chan.Readers}}
+    "$c{{$index}}" -> "{{.}}";
 			{{- end}}
-		{{- end}}
-		{{- range $.DeclaredChannels .ChannelsWritten}}
-			{{if not .IsSimple }}
-		    	{{if eq .Type "error"}}
-	"{{$n.Name}}" -> "{{.Name}}" [URL="?channel={{urlquery .Name}}",color="red"];
-	{rank=same "{{.Name}}" "{{$n.Name}}"}
-				{{- else}}
-	"{{$n.Name}}" -> "{{.Name}}" [URL="?channel={{urlquery .Name}}"];
-				{{- end}}	
+			{{range $chan.Writers}}
+    "{{.}}" -> "$c{{$index}}";
 			{{- end}}
 		{{- end}}
 	{{- end}}
@@ -69,6 +56,28 @@ package {{.PackageName}} {{if ne .PackagePath .PackageName}} // import "{{.Packa
 
 {{template "golang-defs" .}}
 
+{{range .Nodes}}
+func {{.Identifier}}({{.Args}}) {
+	{{.ImplHead}}
+	{{if eq .Multiplicity 1 -}}
+	func(instanceNumber, multiplicity int) {
+		{{.ImplBody}}
+	}(0, 1)
+	{{- else -}}
+	var multWG sync.WaitGroup
+	multWG.Add({{.Multiplicity}})
+	for n:=0; n<{{.Multiplicity}}; n++ {
+		go func(instanceNumber, multiplicity int) {
+			defer multWG.Done()
+			{{.ImplBody}}
+		}(n, {{.Multiplicity}})
+	}
+	multWG.Wait()
+	{{- end}}
+	{{.ImplTail}}
+}
+{{end}}
+
 {{if .IsCommand}}
 func main() {
 {{else}}
@@ -77,36 +86,22 @@ func main() {
 // finish" to finish before returning.
 func Run() {
 {{end}}
+	{{- range $n, $c := .Channels}}
+	c{{$n}} := make(chan {{$c.Type}}, {{$c.Cap}})
+	{{- end}}
+
 	var wg sync.WaitGroup
 	{{range .Nodes}}
 	
-	// {{.Name}}
 	{{if .Wait -}}
 	wg.Add(1)
-	{{- end}}
-
 	go func() {
-		{{if .Wait -}}
-		defer wg.Done()
-		{{end}}
-		{{.ImplHead}}
-		{{if eq .Multiplicity 1 -}}
-		func(instanceNumber, multiplicity int) {
-			{{.ImplBody}}
-		}(0, 1)
-		{{- else -}}
-		var multWG sync.WaitGroup
-		multWG.Add({{.Multiplicity}})
-		for n:=0; n<{{.Multiplicity}}; n++ {
-			go func(instanceNumber, multiplicity int) {
-				defer multWG.Done()
-				{{.ImplBody}}
-			}(n, {{.Multiplicity}})
-		}
-		multWG.Wait()
-		{{- end}}
-		{{.ImplTail}}
+		{{.Identifier}}({{.Params}})
+		wg.Done()
 	}()
+	{{else}}
+	go {{.Identifier}}({{.Params}})
+	{{- end}}
 	{{- end}}
 
 	// Wait for the end
@@ -118,12 +113,7 @@ func Run() {
 	{{.}}
 	{{- end}}
 )
-
-var (
-	{{- range .Channels}}
-	{{.Name}} = make(chan {{.Type}}, {{.Cap}})
-	{{- end}}
-)`
+`
 
 	goRunnerTemplateSrc = `package main
 

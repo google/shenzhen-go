@@ -31,39 +31,37 @@ import (
 	"github.com/google/shenzhen-go/source"
 )
 
+// Connection attaches a channel to a node argument.
+type Connection struct {
+	Node string `json:"node"`
+	Arg  string `json:"arg"`
+}
+
+func (c *Connection) String() string { return fmt.Sprintf("%s.%s", c.Node, c.Arg) }
+
 // Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.
 type Channel struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-	Cap  int    `json:"cap"`
-
-	in, out []*Node
+	Type    string       `json:"type"`
+	Cap     int          `json:"cap"`
+	Readers []Connection `json:"readers"`
+	Writers []Connection `json:"writers"`
 }
 
 // IsSimple returns true if its in-degree and out-degree are both 1.
 // This causes the channel to appear as a single arrow instead of an intermediate node.
-// Only correct after calling ComputeDegrees.
 func (c *Channel) IsSimple() bool {
-	return len(c.in) == 1 && len(c.out) == 1
+	return len(c.Readers) == 1 && len(c.Writers) == 1
 }
-
-// Readers returns nodes that read from this channel.
-// Only correct after calling ComputeDegrees.
-func (c *Channel) Readers() []*Node { return c.out }
-
-// Writers returns nodes that write to or close this channel.
-// Only correct after calling ComputeDegrees.
-func (c *Channel) Writers() []*Node { return c.in }
 
 // Graph describes a Go program as a graph. It can be marshalled and unmarshalled to JSON sensibly.
 type Graph struct {
-	SourcePath  string              `json:"-"` // path to the JSON source.
-	Name        string              `json:"name"`
-	PackagePath string              `json:"package_path"`
-	Imports     []string            `json:"imports"`
-	IsCommand   bool                `json:"is_command"`
-	Nodes       map[string]*Node    `json:"nodes"`
-	Channels    map[string]*Channel `json:"channels"`
+	SourcePath  string           `json:"-"` // path to the JSON source.
+	Name        string           `json:"name"`
+	PackagePath string           `json:"package_path"`
+	Imports     []string         `json:"imports"`
+	IsCommand   bool             `json:"is_command"`
+	Nodes       map[string]*Node `json:"nodes"`
+	Channels    []*Channel       `json:"channels"`
 }
 
 // New returns a new empty graph associated with a file path.
@@ -71,7 +69,6 @@ func New(srcPath string) *Graph {
 	g := &Graph{
 		SourcePath: srcPath,
 		Nodes:      make(map[string]*Node),
-		Channels:   make(map[string]*Channel),
 	}
 
 	// Attempt to find a sensible package path.
@@ -91,27 +88,6 @@ func New(srcPath string) *Graph {
 	}
 	g.PackagePath = strings.TrimSuffix(rel, filepath.Ext(rel))
 	return g
-}
-
-// RecomputeNode gets the node to figure out what channels it uses.
-func (g *Graph) RecomputeNode(n *Node) error {
-	return n.extractChans(g.Definitions())
-}
-
-// RecomputeDegrees analyses how nodes and channels are related.
-func (g *Graph) RecomputeDegrees() {
-	for _, c := range g.Channels {
-		c.in, c.out = nil, nil
-	}
-	for _, n := range g.Nodes {
-		rd, wr := n.Channels()
-		for _, r := range g.DeclaredChannels(rd.Slice()) {
-			r.out = append(r.out, n)
-		}
-		for _, w := range g.DeclaredChannels(wr.Slice()) {
-			w.in = append(w.in, n)
-		}
-	}
 }
 
 // Definitions returns the imports and channel var blocks from the Go program.
@@ -153,12 +129,6 @@ func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
 		return nil, err
 	}
 	g.SourcePath = sourcePath
-	defs := g.Definitions()
-	for _, n := range g.Nodes {
-		if err := n.extractChans(defs); err != nil {
-			log.Printf("Recomputing channels used by node %s: %v", n.Name, err)
-		}
-	}
 	return &g, nil
 }
 
@@ -197,7 +167,6 @@ func (g *Graph) SaveJSONFile() error {
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.
 func (g *Graph) WriteDotTo(dst io.Writer) error {
-	g.RecomputeDegrees()
 	return dotTemplate.Execute(dst, g)
 }
 
@@ -319,17 +288,4 @@ func (g *Graph) Run(stdout, stderr io.Writer) error {
 	go io.Copy(stdout, o)
 	go io.Copy(stderr, e)
 	return cmd.Wait()
-}
-
-// DeclaredChannels returns the given channels which exist in g.Channels.
-func (g *Graph) DeclaredChannels(chans []string) []*Channel {
-	r := make([]*Channel, 0, len(chans))
-	for _, d := range chans {
-		c := g.Channels[d]
-		if c == nil {
-			continue
-		}
-		r = append(r, c)
-	}
-	return r
 }

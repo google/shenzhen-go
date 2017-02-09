@@ -21,8 +21,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/google/shenzhen-go/source"
 )
 
 const codePartEditTemplateSrc = `
@@ -83,20 +81,25 @@ const codePartEditTemplateSrc = `
 // Code is a component containing arbitrary code.
 type Code struct {
 	Head, Body, Tail string
+	Inputs, Outputs  map[string]string
 }
 
 type jsonCode struct {
-	Head []string `json:"head"`
-	Body []string `json:"body"`
-	Tail []string `json:"tail"`
+	Head    []string          `json:"head"`
+	Body    []string          `json:"body"`
+	Tail    []string          `json:"tail"`
+	Inputs  map[string]string `json:"inputs"`
+	Outputs map[string]string `json:"outputs"`
 }
 
 // MarshalJSON encodes the Code component as JSON.
 func (c *Code) MarshalJSON() ([]byte, error) {
 	k := &jsonCode{
-		Head: strings.Split(c.Head, "\n"),
-		Body: strings.Split(c.Body, "\n"),
-		Tail: strings.Split(c.Tail, "\n"),
+		Head:    strings.Split(c.Head, "\n"),
+		Body:    strings.Split(c.Body, "\n"),
+		Tail:    strings.Split(c.Tail, "\n"),
+		Inputs:  c.Inputs,
+		Outputs: c.Outputs,
 	}
 	stripCR(k.Head)
 	stripCR(k.Body)
@@ -114,24 +117,12 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 	b := strings.Join(mp.Body, "\n")
 	t := strings.Join(mp.Tail, "\n")
 	if err := c.refresh(h, b, t); err != nil {
-		// refresh would error if it can't get used channels,
-		// say, because of a syntax error preventing parsing.
-		// Returning error would stop the graph being loaded,
-		// and the user might need to fix their syntax error,
-		// via the interface...
+		// TODO: revisit all this
 		log.Printf("Couldn't format or determine channels used: %v", err)
 	}
+	c.Inputs = mp.Inputs
+	c.Outputs = mp.Outputs
 	return nil
-}
-
-// LineCount is number of lines in c.Head, c.Body, c.Tail
-// (conveneince function for templates.)
-func (c *Code) LineCount() struct{ H, B, T int } {
-	return struct{ H, B, T int }{
-		H: strings.Count(c.Head, "\n") + 3,
-		B: strings.Count(c.Body, "\n") + 3,
-		T: strings.Count(c.Tail, "\n") + 3,
-	}
 }
 
 // AssociateEditor adds a "part_view" template to the given template.
@@ -140,16 +131,27 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 	return err
 }
 
-// Channels returns nil - all channel usage is expected to be auto extracted.
-func (c *Code) Channels() (read, written source.StringSet) { return nil, nil }
+// Args returns function arguments. These are 100% user-defined.
+func (c *Code) Args() (inputs, outputs map[string]string) {
+	return c.Inputs, c.Outputs
+}
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
-	return &Code{
-		Head: c.Head,
-		Body: c.Body,
-		Tail: c.Tail,
+	c2 := &Code{
+		Head:    c.Head,
+		Body:    c.Body,
+		Tail:    c.Tail,
+		Inputs:  make(map[string]string, len(c.Inputs)),
+		Outputs: make(map[string]string, len(c.Outputs)),
 	}
+	for k, v := range c.Inputs {
+		c2.Inputs[k] = v
+	}
+	for k, v := range c.Outputs {
+		c2.Outputs[k] = v
+	}
+	return c2
 }
 
 // Help returns a helpful explanation.
@@ -188,29 +190,6 @@ func (c *Code) Impl() (Head, Body, Tail string) {
 
 // Imports returns a nil slice.
 func (*Code) Imports() []string { return nil }
-
-// RenameChannel does fancy footwork to rename the channel in the code,
-// with a side-effect of nicely formatting it. If a rename issue occurs
-// e.g. because the user's code has a syntax error, the rename is aborted
-// and logged.
-func (c *Code) RenameChannel(from, to string) {
-	h, err := source.RenameChannel(c.Head, "Head", from, to)
-	if err != nil {
-		log.Printf("Couldn't do rename on Head: %v", err)
-		return
-	}
-	b, err := source.RenameChannel(c.Body, "Body", from, to)
-	if err != nil {
-		log.Printf("Couldn't do rename on Body: %v", err)
-		return
-	}
-	t, err := source.RenameChannel(c.Tail, "Tail", from, to)
-	if err != nil {
-		log.Printf("Couldn't do rename on Tail: %v", err)
-		return
-	}
-	c.Head, c.Body, c.Tail = h, b, t
-}
 
 // TypeKey returns "Code".
 func (*Code) TypeKey() string { return "Code" }

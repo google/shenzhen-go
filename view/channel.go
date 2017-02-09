@@ -28,21 +28,17 @@ import (
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
 const channelEditorTemplateSrc = `<head>
-	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title>
+	<title>Channel</title>
 	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
 	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
-	<h1>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</h1>
-	{{if .Name}}
-	<a href="?channel={{.Name}}&clone">Clone</a> | 
-	<a href="?channel={{.Name}}&delete">Delete</a>
+	<h1>Channel</h1>
+	{{if not .New}}
+	<a href="?channel={{.Index}}&clone">Clone</a> | 
+	<a href="?channel={{.Index}}&delete">Delete</a>
 	{{end}}
 	<form method="post">
-		<div class="formfield">
-			<label for="Name">Name</label>
-			<input type="text" name="Name" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{.Name}}">
-		</div>
 		<div class="formfield">
 			<label for="Type">Type</label>
 			<input type="text" name="Type" required value="{{.Type}}">
@@ -73,28 +69,33 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 	_, del := q["delete"]
 
 	var e *graph.Channel
+	var n int
 	if name == "new" {
 		if clone || del {
 			http.Error(w, "Asked for a new channel, but also to clone or delete the channel", http.StatusBadRequest)
 			return
 		}
 		e = new(graph.Channel)
+		n = len(g.Channels)
 	} else {
-		e1, ok := g.Channels[name]
-		if !ok {
+		n1, err := strconv.Atoi(name)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Channel %q not a number: %v", name, err), http.StatusNotFound)
+			return
+		}
+		if n < 0 || n >= len(g.Channels) {
 			http.Error(w, fmt.Sprintf("Channel %q not found", name), http.StatusNotFound)
 			return
 		}
-		e = e1
+		e, n = g.Channels[n1], n1
 	}
 
 	switch {
 	case clone:
 		e2 := *e
-		e2.Name = ""
 		e = &e2
 	case del:
-		delete(g.Channels, e.Name)
+		g.Channels = append(g.Channels[:n], g.Channels[n+1:]...)
 		u := *r.URL
 		u.RawQuery = ""
 		log.Printf("redirecting to %v", &u)
@@ -105,9 +106,13 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 	var err error
 	switch r.Method {
 	case "POST":
-		err = handleChannelPost(g, e, w, r)
+		err = handleChannelPost(g, e, n, w, r)
 	case "GET":
-		err = channelEditorTemplate.Execute(w, e)
+		err = channelEditorTemplate.Execute(w, &struct {
+			*graph.Channel
+			Index int
+			New   bool
+		}{e, n, n == len(g.Channels)})
 	default:
 		err = fmt.Errorf("unsupported verb %q", r.Method)
 	}
@@ -118,17 +123,12 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 	}
 }
 
-func handleChannelPost(g *graph.Graph, e *graph.Channel, w http.ResponseWriter, r *http.Request) error {
+func handleChannelPost(g *graph.Graph, e *graph.Channel, n int, w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
 
 	// Validate.
-	nn := r.FormValue("Name")
-	if !identifierRE.MatchString(nn) {
-		return fmt.Errorf("invalid name [%q !~ %q]", nn, identifierRE)
-	}
-
 	ci, err := strconv.Atoi(r.FormValue("Cap"))
 	if err != nil {
 		return err
@@ -140,28 +140,12 @@ func handleChannelPost(g *graph.Graph, e *graph.Channel, w http.ResponseWriter, 
 	// Update.
 	e.Type = r.FormValue("Type")
 	e.Cap = ci
-
-	// No name change? No need to readjust the map or redirect.
-	// So render the usual editor.
-	if nn == e.Name {
+	if n < len(g.Channels) {
 		return channelEditorTemplate.Execute(w, e)
 	}
-
-	// Do name changes last since they cause a redirect.
-	if e.Name != "" {
-		for _, n := range g.Nodes {
-			cr, cw := n.Channels()
-			if cr.Ni(e.Name) || cw.Ni(e.Name) {
-				n.RenameChannel(e.Name, nn)
-			}
-		}
-		delete(g.Channels, e.Name)
-	}
-	e.Name = nn
-	g.Channels[nn] = e
-
+	g.Channels = append(g.Channels, e)
 	q := url.Values{
-		"channel": []string{nn},
+		"channel": []string{strconv.Itoa(n)},
 	}
 	u := *r.URL
 	u.RawQuery = q.Encode()

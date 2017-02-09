@@ -19,9 +19,11 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"sort"
+	"strings"
+	"unicode"
 
 	"github.com/google/shenzhen-go/parts"
-	"github.com/google/shenzhen-go/source"
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be
@@ -30,9 +32,10 @@ type Part interface {
 	// AssociateEditor associates a template called "part_view" with the given template.
 	AssociateEditor(*template.Template) error
 
-	// Channels returns any additional channels the part thinks it uses.
-	// This should be unnecessary.
-	Channels() (read, written source.StringSet)
+	// Args returns any channel arguments to the part.
+	// inputs and outputs map argument names to types (the "<-chan" /
+	// "chan<-" part of the type is implied).
+	Args() (inputs, outputs map[string]string)
 
 	// Clone returns a copy of this part.
 	Clone() interface{}
@@ -53,9 +56,6 @@ type Part interface {
 	// Imports returns any extra import lines needed for the Part.
 	Imports() []string
 
-	// RenameChannel informs the part that a channel has been renamed.
-	RenameChannel(from, to string)
-
 	// TypeKey returns the "type" of part.
 	TypeKey() string
 
@@ -68,72 +68,23 @@ type PartFactory func() Part
 
 // PartFactories translates part type strings into part factories.
 var PartFactories = map[string]PartFactory{
-	"Aggregator":     func() Part { return new(parts.Aggregator) },
-	"Broadcast":      func() Part { return new(parts.Broadcast) },
-	"Code":           func() Part { return new(parts.Code) },
-	"Filter":         func() Part { return new(parts.Filter) },
-	"HTTPServer":     func() Part { return new(parts.HTTPServer) },
-	"StaticSend":     func() Part { return new(parts.StaticSend) },
-	"TextFileReader": func() Part { return new(parts.TextFileReader) },
-	"Unslicer":       func() Part { return new(parts.Unslicer) },
+	/*	"Aggregator":     func() Part { return new(parts.Aggregator) },
+		"Broadcast":      func() Part { return new(parts.Broadcast) }, */
+	"Code": func() Part { return new(parts.Code) },
+	/*	"Filter":         func() Part { return new(parts.Filter) },
+		"HTTPServer":     func() Part { return new(parts.HTTPServer) },
+		"StaticSend":     func() Part { return new(parts.StaticSend) },
+		"TextFileReader": func() Part { return new(parts.TextFileReader) },
+		"Unslicer":       func() Part { return new(parts.Unslicer) },*/
 }
 
 // Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.
 type Node struct {
 	Part
-
 	Name         string
 	Multiplicity uint
 	Wait         bool
-
-	// Auto-extracted channel usage.
-	chansRd, chansWr source.StringSet
 }
-
-func (n *Node) extractChans(defs string) error {
-	h, b, t := n.Part.Impl()
-	n.chansRd, n.chansWr = n.Part.Channels()
-	hr, hw, err := source.ExtractChannels(h, "head", defs)
-	if err != nil {
-		return fmt.Errorf("extracting channels from head: %v", err)
-	}
-	br, bw, err := source.ExtractChannels(b, "body", defs)
-	if err != nil {
-		return fmt.Errorf("extracting channels from body: %v", err)
-	}
-	tr, tw, err := source.ExtractChannels(t, "tail", defs)
-	if err != nil {
-		return fmt.Errorf("extracting channels from tail: %v", err)
-	}
-	n.chansRd = source.Union(n.chansRd, hr, br, tr)
-	n.chansWr = source.Union(n.chansWr, hw, bw, tw)
-	return nil
-}
-
-// RenameChannel renames any uses of channel "from" to channel "to".
-func (n *Node) RenameChannel(from, to string) {
-	n.Part.RenameChannel(from, to)
-	// Simple update of cached values
-	if n.chansRd.Ni(from) {
-		n.chansRd.Del(from)
-		n.chansRd.Add(to)
-	}
-	if n.chansWr.Ni(from) {
-		n.chansWr.Del(from)
-		n.chansWr.Add(to)
-	}
-}
-
-// Channels returns all the channels this node uses.
-func (n *Node) Channels() (read, written source.StringSet) { return n.chansRd, n.chansWr }
-
-// ChannelsRead returns the channels read from by this node. It is a convenience
-// function for the templates, which can't do multiple returns.
-func (n *Node) ChannelsRead() []string { return n.chansRd.Slice() }
-
-// ChannelsWritten returns the channels written to by this node. It is a convenience
-// function for the templates, which can't do multiple returns.
-func (n *Node) ChannelsWritten() []string { return n.chansWr.Slice() }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.
 func (n *Node) Copy() *Node {
@@ -161,6 +112,68 @@ func (n *Node) ImplBody() string {
 func (n *Node) ImplTail() string {
 	_, _, t := n.Part.Impl()
 	return t
+}
+
+// InputArgs returns the Input args.
+func (n *Node) InputArgs() map[string]string {
+	i, _ := n.Part.Args()
+	return i
+}
+
+// OutputArgs returns the Output args.
+func (n *Node) OutputArgs() map[string]string {
+	_, o := n.Part.Args()
+	return o
+}
+
+// Args formats the function arguments from the Part as a string.
+func (n *Node) Args() string {
+	i, o := n.Part.Args()
+	a := make([]string, 0, len(i)+len(o))
+	ks := make([]string, 0, len(i))
+	for k := range i {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	for _, k := range ks {
+		a = append(a, fmt.Sprintf("%s <-chan %s", k, i[k]))
+	}
+	ks = make([]string, 0, len(o))
+	for k := range o {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	for _, k := range o {
+		a = append(a, fmt.Sprintf("%s chan<- %s", k, o[k]))
+	}
+	return strings.Join(a, ", ")
+}
+
+// Params returns the comma-separated list of channels passed into the function at runtime.
+func (n *Node) Params() string {
+	return "" // TODO!
+}
+
+// Identifier turns the name into a similar-looking identifier.
+func (n *Node) Identifier() string {
+	base := strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return '_'
+		}
+		if !unicode.IsLetter(r) && r != '_' && !unicode.IsDigit(r) {
+			return -1
+		}
+		return r
+	}, n.Name)
+	var f rune
+	for _, r := range base {
+		f = r
+		break
+	}
+	if unicode.IsDigit(f) {
+		base = "_" + base
+	}
+	return base
 }
 
 func (n *Node) String() string { return n.Name }

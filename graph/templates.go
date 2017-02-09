@@ -20,15 +20,15 @@ const (
 	dotTemplateSrc = `digraph {
 	graph[fontname="Go"];
 	node[shape=box,fontname="Go"];
-	{{range .Nodes}}
+	{{range $node := .Nodes}}
 	"{{.Name}}" [URL="?node={{urlquery .Name}}"{{if gt .Multiplicity 1}},shape=box3d{{end}}];
 		{{range $k, $t := .InputArgs}}
-	"{{.Name}}.{{$k}}" [shape=point,xlabel="{{$k}}"];
-    "{{.Name}}.{{$k}}" -> "{{.Name}}";
+	"{{$node.Name}}.{{$k}}" [shape=point,xlabel="{{$k}}"];
+    "{{$node.Name}}.{{$k}}" -> "{{$node.Name}}";
 		{{- end}}
 		{{range $k, $t := .OutputArgs}}
-	"{{.Name}}.{{$k}}" [shape=point,xlabel="{{$k}}"];
-	"{{.Name}}" -> "{{.Name}}.{{$k}}";
+	"{{$node.Name}}.{{$k}}" [shape=point,xlabel="{{$k}}"];
+	"{{$node.Name}}" -> "{{$node.Name}}.{{$k}}";
 		{{- end}}
 	{{- end}}
 	{{range $index, $chan := .Channels}}
@@ -92,16 +92,15 @@ func Run() {
 
 	var wg sync.WaitGroup
 	{{range .Nodes}}
-	
-	{{if .Wait -}}
+		{{if .Wait -}}
 	wg.Add(1)
 	go func() {
 		{{.Identifier}}({{.Params}})
 		wg.Done()
 	}()
-	{{else}}
+		{{else}}
 	go {{.Identifier}}({{.Params}})
-	{{- end}}
+		{{- end}}
 	{{- end}}
 
 	// Wait for the end

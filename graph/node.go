@@ -84,6 +84,9 @@ type Node struct {
 	Name         string
 	Multiplicity uint
 	Wait         bool
+
+	// maps arg names to values (channel names)
+	params map[string]string
 }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.
@@ -143,15 +146,35 @@ func (n *Node) Args() string {
 		ks = append(ks, k)
 	}
 	sort.Strings(ks)
-	for _, k := range o {
+	for _, k := range ks {
 		a = append(a, fmt.Sprintf("%s chan<- %s", k, o[k]))
 	}
 	return strings.Join(a, ", ")
 }
 
 // Params returns the comma-separated list of channels passed into the function at runtime.
+// Only valid after calling mapConnections on the graph.
 func (n *Node) Params() string {
-	return "" // TODO!
+	// TODO: Make this less convoluted by storing arg+params together in a slice.
+	i, o := n.Part.Args()
+	a := make([]string, 0, len(n.params))
+	ks := make([]string, 0, len(i))
+	for k := range i {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	for _, k := range ks {
+		a = append(a, n.params[k])
+	}
+	ks = make([]string, 0, len(o))
+	for k := range o {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	for _, k := range ks {
+		a = append(a, n.params[k])
+	}
+	return strings.Join(a, ", ")
 }
 
 // Identifier turns the name into a similar-looking identifier.

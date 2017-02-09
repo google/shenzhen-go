@@ -90,6 +90,46 @@ func New(srcPath string) *Graph {
 	return g
 }
 
+// mapConnections builds node parameters.
+func (g *Graph) mapConnections() {
+	// Erase existing connections.
+	for _, n := range g.Nodes {
+		n.params = make(map[string]string, len(n.InputArgs())+len(n.OutputArgs()))
+		for i := range n.InputArgs() {
+			n.params[i] = "nil"
+		}
+		for o := range n.OutputArgs() {
+			n.params[o] = "nil"
+		}
+	}
+
+	// Re-attach connections defined in channels.
+	for ind, ch := range g.Channels {
+		for _, r := range ch.Readers {
+			n := g.Nodes[r.Node]
+			if n == nil {
+				continue
+			}
+			a := n.InputArgs()
+			if ch.Type != a[r.Arg] {
+				continue
+			}
+			n.params[r.Arg] = fmt.Sprintf("c%d", ind)
+		}
+		for _, w := range ch.Writers {
+			n := g.Nodes[w.Node]
+			if n == nil {
+				continue
+			}
+			a := n.OutputArgs()
+			if ch.Type != a[w.Arg] {
+				continue
+			}
+			n.params[w.Arg] = fmt.Sprintf("c%d", ind)
+		}
+	}
+}
+
 // Definitions returns the imports and channel var blocks from the Go program.
 // This is useful for advanced parsing and typechecking.
 func (g *Graph) Definitions() string {
@@ -173,7 +213,7 @@ func (g *Graph) WriteDotTo(dst io.Writer) error {
 // WriteGoTo writes the Go language view of the graph to the io.Writer.
 func (g *Graph) WriteGoTo(w io.Writer) error {
 	buf := &bytes.Buffer{}
-	if err := goTemplate.Execute(buf, g); err != nil {
+	if err := g.WriteRawGoTo(buf); err != nil {
 		return err
 	}
 	return gofmt(w, buf)
@@ -181,6 +221,7 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 
 // WriteRawGoTo writes the Go language view of the graph to the io.Writer, without formatting.
 func (g *Graph) WriteRawGoTo(w io.Writer) error {
+	g.mapConnections()
 	return goTemplate.Execute(w, g)
 }
 

@@ -24,15 +24,67 @@ import (
 )
 
 const codePartEditTemplateSrc = `
+<script>
+function removemepls(e) {
+	e.parentNode.removeChild(e);
+}
+function addrowpls() {
+	var tr = document.createElement('tr');
+	
+	var c1 = document.createElement('td');
+	tr.appendChild(c1);
+	var dir = document.createElement('select');
+	dir.name = 'PinDirection';
+	c1.appendChild(dir);
+	var inop = document.createElement('option');
+	inop.value = 'In';
+	inop.innerText = 'Input';
+	dir.appendChild(inop);
+	var outop = document.createElement('option');
+	outop.value = 'Out';
+	outop.innerText = 'Output';
+	dir.appendChild(outop);
+
+	var c2 = document.createElement('td');
+	tr.appendChild(c2);
+	var name = document.createElement('input');
+	name.type = 'text';
+	name.name = 'PinName';
+	name.required = true;
+	name.pattern = '^[_a-zA-Z][_a-zA-Z0-9]*$';
+	name.title = 'Must start with a letter or underscore, and only contain letters, digits, or underscores.';
+	c2.appendChild(name);
+
+	var c3 = document.createElement('td');
+	tr.appendChild(c3);
+	var typ = document.createElement('input');
+	typ.type = 'text';
+	typ.name = 'PinType';
+	typ.required = true;
+	c3.appendChild(typ);
+	
+	var c4 = document.createElement('td');
+	tr.appendChild(c4);
+	var rem = document.createElement('a');
+	rem.href = 'javascript:void(0)';
+	rem.onclick = function() { removemepls(tr); };
+	rem.innerText = 'Remove pin';
+	c4.appendChild(rem);
+
+	var pins = document.getElementById('pins');
+	pins.appendChild(tr);
+}
+</script>
 <table>
 <thead>
 	<tr>
 		<th class="pin-col-1">Direction</th>
 		<th class="pin-col-2">Name</th>
 		<th class="pin-col-3">Type</th>
+		<th class="pin-col-4"><a href="javascript:void(0)" onclick="addrowpls()">Add pin</a></th>
 	</tr>
 </thead>
-<tbody>
+<tbody id="pins">
 {{range $name, $type := $.Node.Part.Inputs}}
 	<tr>
 	    <td>
@@ -46,6 +98,9 @@ const codePartEditTemplateSrc = `
 		</td>
 		<td>
 			<input type="text" name="PinType" required value="{{$type}}">
+		</td>
+		<td>
+			<a href="javascript:void(0)" onclick="removemepls(this.parentNode.parentNode)">Remove pin</a>
 		</td>
 	</tr>
 {{end -}}
@@ -63,10 +118,14 @@ const codePartEditTemplateSrc = `
 		<td>
 			<input type="text" name="PinType" required value="{{$type}}">
 		</td>
+		<td>
+			<a href="javascript:void(0)" onclick="removemepls(this.parentNode.parentNode)">Remove pin</a>
+		</td>
 	</tr>
 {{end -}}
 </tbody>
 </table>
+<hr>
 <input type="hidden" id="hhead" name="Head" value="">
 <input type="hidden" id="hbody" name="Body" value="">
 <input type="hidden" id="htail" name="Tail" value="">
@@ -99,11 +158,11 @@ const codePartEditTemplateSrc = `
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    var theme = "ace/theme/chrome";
-	var lang = "ace/mode/golang";
-    var head = ace.edit("head");
-	var body = ace.edit("body");
-	var tail = ace.edit("tail");
+    var theme = 'ace/theme/chrome';
+	var lang = 'ace/mode/golang';
+    var head = ace.edit('head');
+	var body = ace.edit('body');
+	var tail = ace.edit('tail');
     head.setTheme(theme);
     head.getSession().setMode(lang);
 	head.getSession().setUseSoftTabs(false);
@@ -114,9 +173,9 @@ const codePartEditTemplateSrc = `
     tail.getSession().setMode(lang);
 	tail.getSession().setUseSoftTabs(false);
 	this.parent.onsubmit = function() {
-		document.getElementById("hhead").value = head.getValue();
-		document.getElementById("hbody").value = body.getValue();
-		docuemnt.getElementById("htail").value = tail.getValue();
+		document.getElementById('hhead').value = head.getValue();
+		document.getElementById('hbody').value = body.getValue();
+		docuemnt.getElementById('htail').value = tail.getValue();
 	};
 </script>
 `

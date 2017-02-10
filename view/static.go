@@ -143,10 +143,13 @@ table {
 	width: 15%;
 }
 .pin-col-2 {
-	width: 42.5%;
+	width: 35%;
 }
 .pin-col-3 {
-	width: 42.5%;
+	width: 35%;
+}
+.pin-col-4 {
+	width: 15%;
 }
 div.formfield label {
 	float: left;

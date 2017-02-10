@@ -71,7 +71,7 @@ close({{.}})
 		nextFieldset++;
 	}
     function removeMePlease(el) {
-		el.parentNode.parentNode.removeChild(el.parentNode);
+		el.parentNode.removeChild(el);
 	}
 	</script>
 	<fieldset id="pathtemplate">
@@ -87,7 +87,7 @@ close({{.}})
 			<label for="FilterPredicate">Predicate(x)</label>
 			<input type="text" name="FilterPredicate">
 		</div>
-		<a href="javascript:void(0)" onclick="removeMePlease(this)">Remove this output</a>
+		<a href="javascript:void(0)" onclick="removeMePlease(this.parentNode)">Remove this output</a>
 	</fieldset>
 	{{range $index, $path := .Node.Part.Paths}}
 	<fieldset>

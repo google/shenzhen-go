@@ -94,16 +94,22 @@ func New(srcPath string) *Graph {
 func (g *Graph) mapConnections() {
 	// Erase existing connections.
 	for _, n := range g.Nodes {
-		n.params = make(map[string]string, len(n.InputArgs())+len(n.OutputArgs()))
-		for i := range n.InputArgs() {
-			n.params[i] = "nil"
+		n.Pins = make(map[string]*pin, len(n.InputArgs())+len(n.OutputArgs()))
+		for i, t := range n.InputArgs() {
+			n.Pins[i] = &pin{
+				Type:  fmt.Sprintf("<-chan %s", t),
+				Value: "nil",
+			}
 		}
-		for o := range n.OutputArgs() {
-			n.params[o] = "nil"
+		for o, t := range n.OutputArgs() {
+			n.Pins[o] = &pin{
+				Type:  fmt.Sprintf("chan<- %s", t),
+				Value: "nil",
+			}
 		}
 	}
 
-	// Re-attach connections defined in channels.
+	// Re-attach connections defined by channels.
 	for ind, ch := range g.Channels {
 		for _, r := range ch.Readers {
 			n := g.Nodes[r.Node]
@@ -114,7 +120,7 @@ func (g *Graph) mapConnections() {
 			if ch.Type != a[r.Arg] {
 				continue
 			}
-			n.params[r.Arg] = fmt.Sprintf("c%d", ind)
+			n.Pins[r.Arg].Value = fmt.Sprintf("c%d", ind)
 		}
 		for _, w := range ch.Writers {
 			n := g.Nodes[w.Node]
@@ -125,7 +131,7 @@ func (g *Graph) mapConnections() {
 			if ch.Type != a[w.Arg] {
 				continue
 			}
-			n.params[w.Arg] = fmt.Sprintf("c%d", ind)
+			n.Pins[w.Arg].Value = fmt.Sprintf("c%d", ind)
 		}
 	}
 }

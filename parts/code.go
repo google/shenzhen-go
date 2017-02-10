@@ -133,7 +133,14 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 
 // Args returns function arguments. These are 100% user-defined.
 func (c *Code) Args() (inputs, outputs map[string]string) {
-	return c.Inputs, c.Outputs
+	//return c.Inputs, c.Outputs
+	return map[string]string{
+			"foo": "int",
+			"bar": "rune",
+		}, map[string]string{
+			"baz": "float64",
+			"qux": "string",
+		}
 }
 
 // Clone returns a copy of this Code part.

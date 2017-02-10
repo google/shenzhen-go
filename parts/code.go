@@ -24,6 +24,49 @@ import (
 )
 
 const codePartEditTemplateSrc = `
+<table>
+<thead>
+	<tr>
+		<th class="pin-col-1">Direction</th>
+		<th class="pin-col-2">Name</th>
+		<th class="pin-col-3">Type</th>
+	</tr>
+</thead>
+<tbody>
+{{range $name, $type := $.Node.Part.Inputs}}
+	<tr>
+	    <td>
+			<select name="PinDirection">
+				<option value="In" selected>Input</option>
+				<option value="Out">Output</option>
+			</select>
+		</td>
+		<td>
+			<input type="text" name="PinName" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{$name}}">
+		</td>
+		<td>
+			<input type="text" name="PinType" required value="{{$type}}">
+		</td>
+	</tr>
+{{end -}}
+{{range $name, $type := $.Node.Part.Outputs}}
+	<tr>
+	    <td>
+			<select name="PinDirection">
+				<option value="In">Input</option>
+				<option value="Out" selected>Output</option>
+			</select>
+		</td>
+		<td>
+			<input type="text" name="PinName" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{$name}}">
+		</td>
+		<td>
+			<input type="text" name="PinType" required value="{{$type}}">
+		</td>
+	</tr>
+{{end -}}
+</tbody>
+</table>
 <input type="hidden" id="hhead" name="Head" value="">
 <input type="hidden" id="hbody" name="Body" value="">
 <input type="hidden" id="htail" name="Tail" value="">
@@ -132,16 +175,7 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 }
 
 // Args returns function arguments. These are 100% user-defined.
-func (c *Code) Args() (inputs, outputs map[string]string) {
-	//return c.Inputs, c.Outputs
-	return map[string]string{
-			"foo": "int",
-			"bar": "rune",
-		}, map[string]string{
-			"baz": "float64",
-			"qux": "string",
-		}
-}
+func (c *Code) Args() (inputs, outputs map[string]string) { return c.Inputs, c.Outputs }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
@@ -228,6 +262,16 @@ func (c *Code) Update(r *http.Request) error {
 	h, b, t := c.Head, c.Body, c.Tail
 	if r != nil {
 		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
+	}
+	pd, pn, pt := r.Form["PinDirection"], r.Form["PinName"], r.Form["PinType"]
+	c.Inputs, c.Outputs = make(map[string]string), make(map[string]string)
+	for i, d := range pd {
+		switch d {
+		case "In":
+			c.Inputs[pn[i]] = pt[i]
+		case "Out":
+			c.Outputs[pn[i]] = pt[i]
+		}
 	}
 	return c.refresh(h, b, t)
 }

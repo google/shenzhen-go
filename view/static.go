@@ -134,7 +134,21 @@ div.formfield {
 	margin-top: 12px;
 	margin-bottom: 12px;
 }
-label {
+table {
+	table-layout: fixed;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
+.pin-col-1 {
+	width: 15%;
+}
+.pin-col-2 {
+	width: 42.5%;
+}
+.pin-col-3 {
+	width: 42.5%;
+}
+div.formfield label {
 	float: left;
 	text-align: right;
 	margin-right: 15px;
@@ -144,11 +158,11 @@ input {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;
 }
-input[type=text] {
+div.formfield input[type=text] {
 	width: 65%;
 }
 select {
-	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
+	font-family: Go,'San Francisco','Helvetica Neue',Helvetica,Arial,sans-serif;
 	font-size: 12pt;
 }
 textarea {

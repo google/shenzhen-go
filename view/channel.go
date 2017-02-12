@@ -47,6 +47,36 @@ const channelEditorTemplateSrc = `<head>
 			<label for="Cap">Capacity</label>
 			<input type="number" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{.Cap}}">
 		</div>
+		<table>
+			<thead>
+				<tr>
+					<th>Connection</th>
+					<th></th>
+				</tr>
+			</thead>
+			{{range $conn := .Connections -}}
+			<tr>
+				<td>
+					<select>
+					{{range $node := $.Graph.Nodes }}
+					{{range $arg, $type := $node.InputArgs}}
+					{{if eq $type $.Channel.Type}}
+					{{$val := printf "%s.%s" $node $arg}}
+						<option value="{{$val}}" {{if eq $val $conn.String}}selected{{end}}>{{$val}}</option>
+					{{end -}}
+					{{end -}}
+					{{range $arg, $type := $node.OutputArgs}}
+					{{if eq $type $.Channel.Type}}
+					{{$val := printf "%s.%s" $node $arg}}
+						<option value="{{$val}}" {{if eq $val $conn.String}}selected{{end}}>{{$val}}</option>
+					{{end -}}
+					{{end -}}
+					{{end -}}
+					</select>
+				</td>
+				<td><a href="javascript:void(0)" onclick="removeconn('{{$conn}}}')">Remove connection</td></tr>
+			{{end}}
+		</table>
 		<div class="formfield hcentre">
 			<input type="submit" value="Save">
 			<input type="button" value="Return" onclick="window.location.href='?'">
@@ -109,10 +139,11 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 		err = handleChannelPost(g, e, n, w, r)
 	case "GET":
 		err = channelEditorTemplate.Execute(w, &struct {
+			*graph.Graph
 			*graph.Channel
 			Index int
 			New   bool
-		}{e, n, n == len(g.Channels)})
+		}{g, e, n, n == len(g.Channels)})
 	default:
 		err = fmt.Errorf("unsupported verb %q", r.Method)
 	}

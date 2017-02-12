@@ -130,16 +130,16 @@ function addrowpls() {
 <input type="hidden" id="hbody" name="Body" value="">
 <input type="hidden" id="htail" name="Tail" value="">
 <script>
-	function switchto(e) {
-		h = document.getElementById('headtab');
-		b = document.getElementById('bodytab');
-		t = document.getElementById('tailtab');
-		x = document.getElementById(e);
-		h.style.display = 'none';
-		b.style.display = 'none';
-		t.style.display = 'none';
-		x.style.display = 'block';
-	}
+function switchto(e) {
+	h = document.getElementById('headtab');
+	b = document.getElementById('bodytab');
+	t = document.getElementById('tailtab');
+	x = document.getElementById(e);
+	h.style.display = 'none';
+	b.style.display = 'none';
+	t.style.display = 'none';
+	x.style.display = 'block';
+}
 </script>
 <a href="javascript:void(0)" onclick="switchto('headtab')">Head</a> |
 <a href="javascript:void(0)" onclick="switchto('bodytab')">Body</a> |

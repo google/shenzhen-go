@@ -32,8 +32,8 @@ const (
 		{{- end}}
 	{{- end}}
 	{{range $index, $chan := .Channels}}
-		{{if .IsSimple}}
-	"{{index .Writers 0}}" -> "{{index .Readers 0}}" [URL="?channel={{$index}}",fontname="Go Mono"];
+		{{if $chan.IsSimple}}
+	"{{index $chan.Writers 0}}" -> "{{index $chan.Readers 0}}" [URL="?channel={{$index}}",fontname="Go Mono"];
 	    {{- else}}
 	"$c{{$index}}" [URL="?channel={{$index}}",shape=point,fontname="Go Mono"];
 			{{range $chan.Readers}}

@@ -37,18 +37,22 @@ type Connection struct {
 	Arg  string `json:"arg"`
 }
 
-func (c *Connection) String() string { return fmt.Sprintf("%s.%s", c.Node, c.Arg) }
+func (c Connection) String() string { return fmt.Sprintf("%s.%s", c.Node, c.Arg) }
 
 // Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.
 type Channel struct {
-	Type    string       `json:"type"`
-	Cap     int          `json:"cap"`
-	Readers []Connection `json:"readers"`
-	Writers []Connection `json:"writers"`
+	Type        string       `json:"type"`
+	Cap         int          `json:"cap"`
+	Connections []Connection `json:"connections"`
+
+	// Readers and writers are for the benefit of the template.
+	// They are only valid after mapConnections is called.
+	Readers, Writers []Connection `json:"-"`
 }
 
 // IsSimple returns true if its in-degree and out-degree are both 1.
 // This causes the channel to appear as a single arrow instead of an intermediate node.
+// This is only valid after mapConnections is called.
 func (c *Channel) IsSimple() bool {
 	return len(c.Readers) == 1 && len(c.Writers) == 1
 }
@@ -108,30 +112,29 @@ func (g *Graph) mapConnections() {
 			}
 		}
 	}
+	for _, ch := range g.Channels {
+		ch.Readers, ch.Writers = nil, nil
+	}
 
 	// Re-attach connections defined by channels.
+	// This means assigning channels to arguments, and
+	// classifying connections as readers or writers.
 	for ind, ch := range g.Channels {
-		for _, r := range ch.Readers {
-			n := g.Nodes[r.Node]
+		for _, co := range ch.Connections {
+			n := g.Nodes[co.Node]
 			if n == nil {
 				continue
 			}
-			a := n.InputArgs()
-			if ch.Type != a[r.Arg] {
+			i, o := n.Args()
+			switch ch.Type {
+			case i[co.Arg]:
+				ch.Readers = append(ch.Readers, co)
+			case o[co.Arg]:
+				ch.Writers = append(ch.Writers, co)
+			default:
 				continue
 			}
-			n.Pins[r.Arg].Value = fmt.Sprintf("c%d", ind)
-		}
-		for _, w := range ch.Writers {
-			n := g.Nodes[w.Node]
-			if n == nil {
-				continue
-			}
-			a := n.OutputArgs()
-			if ch.Type != a[w.Arg] {
-				continue
-			}
-			n.Pins[w.Arg].Value = fmt.Sprintf("c%d", ind)
+			n.Pins[co.Arg].Value = fmt.Sprintf("c%d", ind)
 		}
 	}
 }
@@ -213,6 +216,7 @@ func (g *Graph) SaveJSONFile() error {
 
 // WriteDotTo writes the Dot language view of the graph to the io.Writer.
 func (g *Graph) WriteDotTo(dst io.Writer) error {
+	g.mapConnections()
 	return dotTemplate.Execute(dst, g)
 }
 

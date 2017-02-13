@@ -25,18 +25,21 @@ import (
 )
 
 const (
-	lineStyle   = "#0099ff"
+	fillStyle   = "#0099ff"
 	strokeStyle = "#dddddd"
 )
 
 var (
-	graphCanvas   = js.Global.Get("document").Call("getElementById", "graph-canvas")
-	ctx           = graphCanvas.Call("getContext", "2d")
-	canvasRect    = graphCanvas.Call("getBoundingClientRect")
-	width, height = graphCanvas.Get("width").Int(), graphCanvas.Get("height").Int()
+	graphCanvas = js.Global.Get("document").Call("getElementById", "graph-canvas")
+	ctx         = graphCanvas.Call("getContext", "2d")
 )
 
 func main() {
+	graphCanvas.Set("width", graphCanvas.Get("clientWidth").Int())
+	graphCanvas.Set("height", graphCanvas.Get("clientHeight").Int())
+	canvasRect := graphCanvas.Call("getBoundingClientRect")
+	width, height := graphCanvas.Get("width").Int(), graphCanvas.Get("height").Int()
+
 	on := false
 	startX, startY := 0, 0
 
@@ -66,7 +69,7 @@ func main() {
 		// Start dot
 		ctx.Call("beginPath")
 		ctx.Call("arc", startX, startY, 4, 0, 2*math.Pi, false)
-		ctx.Set("fillStyle", lineStyle)
+		ctx.Set("fillStyle", fillStyle)
 		ctx.Call("fill")
 		ctx.Set("lineWidth", 1)
 		ctx.Set("strokeStyle", strokeStyle)
@@ -75,7 +78,7 @@ func main() {
 		// End dot
 		ctx.Call("beginPath")
 		ctx.Call("arc", x, y, 4, 0, 2*math.Pi, false)
-		ctx.Set("fillStyle", lineStyle)
+		ctx.Set("fillStyle", fillStyle)
 		ctx.Call("fill")
 		ctx.Set("lineWidth", 1)
 		ctx.Set("strokeStyle", strokeStyle)
@@ -86,7 +89,7 @@ func main() {
 		ctx.Call("moveTo", startX, startY)
 		ctx.Call("lineTo", x, y)
 		ctx.Set("lineWidth", 2)
-		ctx.Set("strokeStyle", lineStyle)
+		ctx.Set("strokeStyle", fillStyle)
 		ctx.Call("stroke")
 	}
 

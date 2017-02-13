@@ -1,0 +1,53 @@
+{
+	"name": "demo",
+	"package_path": "github.com/google/shenzhen-go/examples/demo",
+	"imports": [
+		"\"fmt\""
+	],
+	"is_command": true,
+	"nodes": {
+		"blah": {
+			"name": "blah",
+			"wait": true,
+			"multiplicity": 1,
+			"part": {
+				"head": [
+					""
+				],
+				"body": [
+					"fmt.Println(\"blah\")"
+				],
+				"tail": [
+					""
+				],
+				"inputs": {
+					"bar": "rune",
+					"foo": "int",
+					"tuz": "int64"
+				},
+				"outputs": {
+					"baz": "float64",
+					"quux": "string",
+					"qux": "int"
+				}
+			},
+			"part_type": "Code"
+		}
+	},
+	"channels": [
+		{
+			"type": "int",
+			"cap": 0,
+			"connections": [
+				{
+					"node": "blah",
+					"arg": "foo"
+				},
+				{
+					"node": "blah",
+					"arg": "qux"
+				}
+			]
+		}
+	]
+}

@@ -137,6 +137,7 @@ func main() {
 
 	graphCanvas.Set("onmousedown", func(event *js.Object) {
 		q := canvasCoord(event)
+		// TODO: Implement nearest-neighbor search. ...Where'd I put that kD-tree?...
 		for _, p := range points {
 			if quadrance(p, q) < snapQuadrance {
 				possibleLine = line{p, p}

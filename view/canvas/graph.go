@@ -14,8 +14,6 @@
 
 //+build js
 
-// The canvas script is for interacting with a graph in a HTML5 canvas.
-// Currently all it does is let the user draw a line between random dots.
 package main
 
 import (

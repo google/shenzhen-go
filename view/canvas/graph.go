@@ -47,7 +47,20 @@ var (
 )
 
 type point struct{ x, y int }
-type line struct{ p, q point }
+
+func (p point) draw(fill, stroke string) {
+	ctx.Call("beginPath")
+	ctx.Call("arc", p.x, p.y, 4, 0, 2*math.Pi, false)
+	if fill != "" {
+		ctx.Set("fillStyle", fill)
+		ctx.Call("fill")
+	}
+	if stroke != "" {
+		ctx.Set("lineWidth", 1)
+		ctx.Set("strokeStyle", stroke)
+		ctx.Call("stroke")
+	}
+}
 
 func resize(*js.Object) {
 	possibleLineOn = false
@@ -62,8 +75,10 @@ func resize(*js.Object) {
 	redraw()
 }
 
-func drawLine(l line, fill string) {
-	// Line outline
+type line struct{ p, q point }
+
+func (l line) draw(fill string) {
+	// Line "stroke"
 	ctx.Call("beginPath")
 	ctx.Call("moveTo", l.p.x, l.p.y)
 	ctx.Call("lineTo", l.q.x, l.q.y)
@@ -71,23 +86,9 @@ func drawLine(l line, fill string) {
 	ctx.Set("strokeStyle", strokeStyle)
 	ctx.Call("stroke")
 
-	// Start dot
-	ctx.Call("beginPath")
-	ctx.Call("arc", l.p.x, l.p.y, 4, 0, 2*math.Pi, false)
-	ctx.Set("fillStyle", fill)
-	ctx.Call("fill")
-	ctx.Set("lineWidth", 1)
-	ctx.Set("strokeStyle", strokeStyle)
-	ctx.Call("stroke")
-
-	// End dot
-	ctx.Call("beginPath")
-	ctx.Call("arc", l.q.x, l.q.y, 4, 0, 2*math.Pi, false)
-	ctx.Set("fillStyle", fill)
-	ctx.Call("fill")
-	ctx.Set("lineWidth", 1)
-	ctx.Set("strokeStyle", strokeStyle)
-	ctx.Call("stroke")
+	// Fat dots on ends
+	l.p.draw(fill, strokeStyle)
+	l.q.draw(fill, strokeStyle)
 
 	// Line
 	ctx.Call("beginPath")
@@ -109,20 +110,14 @@ func redraw() {
 	ctx.Call("clearRect", 0, 0, width, height)
 	for _, p := range points {
 		// Snap points
-		ctx.Call("beginPath")
-		ctx.Call("arc", p.x, p.y, 4, 0, 2*math.Pi, false)
-		ctx.Set("fillStyle", normalFillStyle)
-		ctx.Call("fill")
-		ctx.Set("lineWidth", 1)
-		ctx.Set("strokeStyle", strokeStyle)
-		ctx.Call("stroke")
+		p.draw(normalFillStyle, strokeStyle)
 	}
 
 	for _, l := range lines {
-		drawLine(l, normalFillStyle)
+		l.draw(normalFillStyle)
 	}
 	if possibleLineOn {
-		drawLine(possibleLine, activeFillStyle)
+		possibleLine.draw(activeFillStyle)
 	}
 }
 

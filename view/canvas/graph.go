@@ -24,132 +24,152 @@ import (
 )
 
 const (
-	fillStyle   = "#0099ff"
-	strokeStyle = "#dddddd"
-	snapLen     = 225
+	activeFillStyle = "#09f"
+	normalFillStyle = "#000"
+	strokeStyle     = "#ddd"
+	snapLen         = 256
 )
 
 var (
-	graphCanvas   = js.Global.Get("document").Call("getElementById", "graph-canvas")
-	ctx           = graphCanvas.Call("getContext", "2d")
-	width, height int
-	on            bool
+	graphCanvas = js.Global.Get("document").Call("getElementById", "graph-canvas")
+	ctx         = graphCanvas.Call("getContext", "2d")
+	canvasRect  *js.Object
+
+	width  int
+	height int
+
+	points = make([]point, 50)
+
+	lines          []line
+	possibleLine   line
+	possibleLineOn bool
 )
 
 type point struct{ x, y int }
+type line struct{ p, q point }
 
 func resize(*js.Object) {
-	on = false
+	possibleLineOn = false
 	width, height = graphCanvas.Get("clientWidth").Int(), graphCanvas.Get("clientHeight").Int()
 	graphCanvas.Set("width", width)
 	graphCanvas.Set("height", height)
+	canvasRect = graphCanvas.Call("getBoundingClientRect")
+}
+
+func drawLine(l line, fill string) {
+	// Line outline
+	ctx.Call("beginPath")
+	ctx.Call("moveTo", l.p.x, l.p.y)
+	ctx.Call("lineTo", l.q.x, l.q.y)
+	ctx.Set("lineWidth", 4)
+	ctx.Set("strokeStyle", strokeStyle)
+	ctx.Call("stroke")
+
+	// Start dot
+	ctx.Call("beginPath")
+	ctx.Call("arc", l.p.x, l.p.y, 4, 0, 2*math.Pi, false)
+	ctx.Set("fillStyle", fill)
+	ctx.Call("fill")
+	ctx.Set("lineWidth", 1)
+	ctx.Set("strokeStyle", strokeStyle)
+	ctx.Call("stroke")
+
+	// End dot
+	ctx.Call("beginPath")
+	ctx.Call("arc", l.q.x, l.q.y, 4, 0, 2*math.Pi, false)
+	ctx.Set("fillStyle", fill)
+	ctx.Call("fill")
+	ctx.Set("lineWidth", 1)
+	ctx.Set("strokeStyle", strokeStyle)
+	ctx.Call("stroke")
+
+	// Line
+	ctx.Call("beginPath")
+	ctx.Call("moveTo", l.p.x, l.p.y)
+	ctx.Call("lineTo", l.q.x, l.q.y)
+	ctx.Set("lineWidth", 2)
+	ctx.Set("strokeStyle", fill)
+	ctx.Call("stroke")
+}
+
+func canvasCoord(event *js.Object) point {
+	return point{
+		event.Get("clientX").Int() - canvasRect.Get("left").Int(),
+		event.Get("clientY").Int() - canvasRect.Get("top").Int(),
+	}
+}
+
+func redraw() {
+	ctx.Call("clearRect", 0, 0, width, height)
+	for _, p := range points {
+		// Snap points
+		ctx.Call("beginPath")
+		ctx.Call("arc", p.x, p.y, 4, 0, 2*math.Pi, false)
+		ctx.Set("fillStyle", normalFillStyle)
+		ctx.Call("fill")
+		ctx.Set("lineWidth", 1)
+		ctx.Set("strokeStyle", strokeStyle)
+		ctx.Call("stroke")
+	}
+
+	for _, l := range lines {
+		drawLine(l, normalFillStyle)
+	}
+	if possibleLineOn {
+		drawLine(possibleLine, activeFillStyle)
+	}
 }
 
 func main() {
 	resize(nil)
 	js.Global.Get("window").Call("addEventListener", "resize", resize)
-	canvasRect := graphCanvas.Call("getBoundingClientRect")
 
-	startX, startY := 0, 0
-	snap := make([]point, 50)
-	for i := range snap {
-		snap[i] = point{rand.Intn(width), rand.Intn(height)}
+	for i := range points {
+		points[i] = point{rand.Intn(width), rand.Intn(height)}
 	}
-
-	drawPoints := func() {
-		// Snap point
-		for _, p := range snap {
-			ctx.Call("beginPath")
-			ctx.Call("arc", p.x, p.y, 4, 0, 2*math.Pi, false)
-			ctx.Set("fillStyle", "#000")
-			ctx.Call("fill")
-			ctx.Set("lineWidth", 1)
-			ctx.Set("strokeStyle", strokeStyle)
-			ctx.Call("stroke")
-		}
-	}
-	drawPoints()
+	redraw()
 
 	graphCanvas.Set("onmousedown", func(event *js.Object) {
-		startX = event.Get("clientX").Int() - canvasRect.Get("left").Int()
-		startY = event.Get("clientY").Int() - canvasRect.Get("top").Int()
-		for _, p := range snap {
-			if dx, dy := startX-p.x, startY-p.y; dx*dx+dy*dy < 100 {
-				startX, startY = p.x, p.y
-				on = true
+		q := canvasCoord(event)
+		for _, p := range points {
+			if dx, dy := q.x-p.x, q.y-p.y; dx*dx+dy*dy < snapLen {
+				possibleLine = line{p, p}
+				possibleLineOn = true
+				redraw()
 				break
 			}
 		}
 	})
 
-	drawLine := func(x1, y1, x2, y2 int) {
-		// Line outline
-		ctx.Call("beginPath")
-		ctx.Call("moveTo", x1, y1)
-		ctx.Call("lineTo", x2, y2)
-		ctx.Set("lineWidth", 4)
-		ctx.Set("strokeStyle", strokeStyle)
-		ctx.Call("stroke")
-
-		// Start dot
-		ctx.Call("beginPath")
-		ctx.Call("arc", x1, y1, 4, 0, 2*math.Pi, false)
-		ctx.Set("fillStyle", fillStyle)
-		ctx.Call("fill")
-		ctx.Set("lineWidth", 1)
-		ctx.Set("strokeStyle", strokeStyle)
-		ctx.Call("stroke")
-
-		// End dot
-		ctx.Call("beginPath")
-		ctx.Call("arc", x2, y2, 4, 0, 2*math.Pi, false)
-		ctx.Set("fillStyle", fillStyle)
-		ctx.Call("fill")
-		ctx.Set("lineWidth", 1)
-		ctx.Set("strokeStyle", strokeStyle)
-		ctx.Call("stroke")
-
-		// Line
-		ctx.Call("beginPath")
-		ctx.Call("moveTo", x1, y1)
-		ctx.Call("lineTo", x2, y2)
-		ctx.Set("lineWidth", 2)
-		ctx.Set("strokeStyle", fillStyle)
-		ctx.Call("stroke")
-	}
-
 	graphCanvas.Set("onmousemove", func(event *js.Object) {
-		x := event.Get("clientX").Int() - canvasRect.Get("left").Int()
-		y := event.Get("clientY").Int() - canvasRect.Get("top").Int()
-		if !on {
+		q := canvasCoord(event)
+		if !possibleLineOn {
 			return
 		}
 
-		ctx.Call("clearRect", 0, 0, width, height)
-		drawPoints()
-		for _, p := range snap {
-			if dx, dy := x-p.x, y-p.y; dx*dx+dy*dy < snapLen {
-				drawLine(startX, startY, p.x, p.y)
-				return
+		possibleLine.q = q
+		for _, p := range points {
+			if dx, dy := q.x-p.x, q.y-p.y; dx*dx+dy*dy < snapLen {
+				possibleLine.q = p
+				break
 			}
 		}
-		drawLine(startX, startY, x, y)
+		redraw()
 	})
 
 	graphCanvas.Set("onmouseup", func(event *js.Object) {
-		x := event.Get("clientX").Int() - canvasRect.Get("left").Int()
-		y := event.Get("clientY").Int() - canvasRect.Get("top").Int()
-		if !on {
+		q := canvasCoord(event)
+		if !possibleLineOn {
 			return
 		}
-		ctx.Call("clearRect", 0, 0, width, height)
-		drawPoints()
-		for _, p := range snap {
-			if dx, dy := x-p.x, y-p.y; -10 < dx && dx < 10 && -10 < dy && dy < 10 {
-				drawLine(startX, startY, p.x, p.y)
+		for _, p := range points {
+			if dx, dy := q.x-p.x, q.y-p.y; dx*dx+dy*dy < snapLen {
+				possibleLine.q = p
+				lines = append(lines, possibleLine)
 				break
 			}
 		}
-		on = false
+		possibleLineOn = false
+		redraw()
 	})
 }

@@ -27,7 +27,7 @@ const (
 	activeFillStyle = "#09f"
 	normalFillStyle = "#000"
 	strokeStyle     = "#ddd"
-	snapLen         = 256
+	snapQuadrance   = 256
 )
 
 var (
@@ -60,6 +60,11 @@ func (p point) draw(fill, stroke string) {
 		ctx.Set("strokeStyle", stroke)
 		ctx.Call("stroke")
 	}
+}
+
+func quadrance(p, q point) int {
+	dx, dy := q.x-p.x, q.y-p.y
+	return dx*dx + dy*dy
 }
 
 func resize(*js.Object) {
@@ -133,7 +138,7 @@ func main() {
 	graphCanvas.Set("onmousedown", func(event *js.Object) {
 		q := canvasCoord(event)
 		for _, p := range points {
-			if dx, dy := q.x-p.x, q.y-p.y; dx*dx+dy*dy < snapLen {
+			if quadrance(p, q) < snapQuadrance {
 				possibleLine = line{p, p}
 				possibleLineOn = true
 				redraw()
@@ -150,7 +155,7 @@ func main() {
 
 		possibleLine.q = q
 		for _, p := range points {
-			if dx, dy := q.x-p.x, q.y-p.y; dx*dx+dy*dy < snapLen {
+			if quadrance(p, q) < snapQuadrance {
 				possibleLine.q = p
 				break
 			}
@@ -164,7 +169,7 @@ func main() {
 			return
 		}
 		for _, p := range points {
-			if dx, dy := q.x-p.x, q.y-p.y; dx*dx+dy*dy < snapLen {
+			if quadrance(p, q) < snapQuadrance {
 				possibleLine.q = p
 				lines = append(lines, possibleLine)
 				break

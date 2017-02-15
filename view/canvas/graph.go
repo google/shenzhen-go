@@ -54,6 +54,7 @@ func resize(*js.Object) {
 	graphCanvas.Set("width", width)
 	graphCanvas.Set("height", height)
 	canvasRect = graphCanvas.Call("getBoundingClientRect")
+	redraw()
 }
 
 func drawLine(l line, fill string) {

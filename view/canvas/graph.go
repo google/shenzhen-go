@@ -32,8 +32,9 @@ const (
 
 var (
 	graphCanvas = js.Global.Get("document").Call("getElementById", "graph-canvas")
-	ctx         = graphCanvas.Call("getContext", "2d")
-	canvasRect  *js.Object
+
+	ctx        *js.Object
+	canvasRect *js.Object
 
 	width  int
 	height int
@@ -50,9 +51,13 @@ type line struct{ p, q point }
 
 func resize(*js.Object) {
 	possibleLineOn = false
+
+	dpr := js.Global.Get("window").Get("devicePixelRatio").Float()
 	width, height = graphCanvas.Get("clientWidth").Int(), graphCanvas.Get("clientHeight").Int()
-	graphCanvas.Set("width", width)
-	graphCanvas.Set("height", height)
+	graphCanvas.Set("width", dpr*float64(width))
+	graphCanvas.Set("height", dpr*float64(height))
+	ctx = graphCanvas.Call("getContext", "2d")
+	ctx.Call("scale", dpr, dpr)
 	canvasRect = graphCanvas.Call("getBoundingClientRect")
 	redraw()
 }

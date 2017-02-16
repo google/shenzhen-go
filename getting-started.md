@@ -19,7 +19,7 @@ SHENZHEN GO requires:
 If you are using Go 1.7, you need to have set your `$GOPATH` (common choices are `$HOME` and 
 `$HOME/go`, but it's up to you). 
 [For Go 1.8, the default `$GOPATH` is `$HOME/go`](https://rakyll.org/default-gopath/) so it
-is not necessary to set it (but you can change it to override the default).
+is not necessary to set it (but you can change it to override the default if you want).
 
 To install, open a terminal and run:
 

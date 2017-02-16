@@ -33,13 +33,11 @@ const (
 var (
 	graphCanvas = js.Global.Get("document").Call("getElementById", "graph-canvas")
 
-	ctx        *js.Object
-	canvasRect *js.Object
+	ctx, canvasRect *js.Object
 
-	width  int
-	height int
+	width, height int
 
-	points = make(pointSet, 50)
+	points = make(pointSlice, 50)
 
 	lines          []line
 	possibleLine   line

@@ -24,10 +24,10 @@ var (
 	res  point
 )
 
-func benchmarkNearestN(b *testing.B, n int) {
+func benchmarkSliceNearestN(b *testing.B, n int) {
 	q, r := 0, point{}
 	b.StopTimer()
-	ps := make(pointSet, n)
+	ps := make(pointSlice, n)
 	for i := 0; i < n; i++ {
 		ps[i] = point{rand.Int(), rand.Int()}
 	}
@@ -38,9 +38,9 @@ func benchmarkNearestN(b *testing.B, n int) {
 	quad, res = q, r
 }
 
-func BenchmarkNearest10(b *testing.B)      { benchmarkNearestN(b, 10) }
-func BenchmarkNearest100(b *testing.B)     { benchmarkNearestN(b, 100) }
-func BenchmarkNearest1000(b *testing.B)    { benchmarkNearestN(b, 1000) }
-func BenchmarkNearest10000(b *testing.B)   { benchmarkNearestN(b, 10000) }
-func BenchmarkNearest100000(b *testing.B)  { benchmarkNearestN(b, 100000) }
-func BenchmarkNearest1000000(b *testing.B) { benchmarkNearestN(b, 1000000) }
+func BenchmarkSliceNearest10(b *testing.B)      { benchmarkSliceNearestN(b, 10) }
+func BenchmarkSliceNearest100(b *testing.B)     { benchmarkSliceNearestN(b, 100) }
+func BenchmarkSliceNearest1000(b *testing.B)    { benchmarkSliceNearestN(b, 1000) }
+func BenchmarkSliceNearest10000(b *testing.B)   { benchmarkSliceNearestN(b, 10000) }
+func BenchmarkSliceNearest100000(b *testing.B)  { benchmarkSliceNearestN(b, 100000) }
+func BenchmarkSliceNearest1000000(b *testing.B) { benchmarkSliceNearestN(b, 1000000) }

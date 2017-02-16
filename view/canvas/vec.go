@@ -23,10 +23,10 @@ func quadrance(p, q point) int {
 
 type line struct{ p, q point }
 
-type pointSet []point
+type pointSlice []point
 
 // TODO: Implement nearest-neighbor search. ...Where'd I put that kD-tree?...
-func (ps pointSet) nearest(q point) (quad int, r point) {
+func (ps pointSlice) nearest(q point) (quad int, r point) {
 	quad = int(^uint(0) >> 1) // i.e. max int
 	for _, p := range ps {
 		if t := quadrance(p, q); t < quad {

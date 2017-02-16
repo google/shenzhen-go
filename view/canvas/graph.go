@@ -39,14 +39,12 @@ var (
 	width  int
 	height int
 
-	points = make([]point, 50)
+	points = make(pointSet, 50)
 
 	lines          []line
 	possibleLine   line
 	possibleLineOn bool
 )
-
-type point struct{ x, y int }
 
 func (p point) draw(fill, stroke string) {
 	ctx.Call("beginPath")
@@ -62,11 +60,6 @@ func (p point) draw(fill, stroke string) {
 	}
 }
 
-func quadrance(p, q point) int {
-	dx, dy := q.x-p.x, q.y-p.y
-	return dx*dx + dy*dy
-}
-
 func resize(*js.Object) {
 	possibleLineOn = false
 
@@ -79,8 +72,6 @@ func resize(*js.Object) {
 	canvasRect = graphCanvas.Call("getBoundingClientRect")
 	redraw()
 }
-
-type line struct{ p, q point }
 
 func (l line) draw(fill string) {
 	// Line "stroke"
@@ -137,14 +128,11 @@ func main() {
 
 	graphCanvas.Set("onmousedown", func(event *js.Object) {
 		q := canvasCoord(event)
-		// TODO: Implement nearest-neighbor search. ...Where'd I put that kD-tree?...
-		for _, p := range points {
-			if quadrance(p, q) < snapQuadrance {
-				possibleLine = line{p, p}
-				possibleLineOn = true
-				redraw()
-				break
-			}
+
+		if quad, r := points.nearest(q); quad < snapQuadrance {
+			possibleLine = line{r, r}
+			possibleLineOn = true
+			redraw()
 		}
 	})
 
@@ -155,11 +143,8 @@ func main() {
 		}
 
 		possibleLine.q = q
-		for _, p := range points {
-			if quadrance(p, q) < snapQuadrance {
-				possibleLine.q = p
-				break
-			}
+		if quad, r := points.nearest(q); quad < snapQuadrance {
+			possibleLine.q = r
 		}
 		redraw()
 	})
@@ -169,12 +154,9 @@ func main() {
 		if !possibleLineOn {
 			return
 		}
-		for _, p := range points {
-			if quadrance(p, q) < snapQuadrance {
-				possibleLine.q = p
-				lines = append(lines, possibleLine)
-				break
-			}
+		if quad, r := points.nearest(q); quad < snapQuadrance {
+			possibleLine.q = r
+			lines = append(lines, possibleLine)
 		}
 		possibleLineOn = false
 		redraw()

@@ -20,30 +20,35 @@ limitations under the License. -->
 <body>
 <svg id="diagram" width="800" height="800" viewBox="0 0 800 800">
     <g id="blue" transform="translate(100, 100)">
+        <circle cx="80" cy="-4" r="4" />
+        <circle cx="80" cy="54" r="4" />
         <rect width="160" height="50" style="fill: #eff; stroke: #355; stroke-width:1" />
         <text x="80" y="30" text-anchor="middle" font-family="Go" font-size="16" style="user-select: none; pointer-events: none">
             Hello! Yes,
         </text>
     </g>
     <g id="red" transform="translate(100, 200)">
+        <circle cx="80" cy="-4" r="4" />
+        <circle cx="80" cy="54" r="4" />
         <rect width="160" height="50" style="fill: #fee; stroke: #533; stroke-width:1" />
         <text x="80" y="30" text-anchor="middle" font-family="Go" font-size="16" style="user-select: none; pointer-events: none">
             this is dog
         </text>
     </g>
+    <path id="conn" d="M 180 154 C 180 174, 180 176, 180 196" stroke-width="2" stroke="#000" fill="transparent" />
 </svg>
 
 <script>
     var diagram = document.getElementById('diagram');
-    var bcr = diagram.getBoundingClientRect();
 
     var blue = document.getElementById('blue');
     var red = document.getElementById('red');
+    var conn = document.getElementById('conn');
 
     var on = null;
     var relX, relY;
 
-    function downListener(obj) {
+    function moveListener(obj) {
         return function (e) {
             on = obj;
             var tf = on.transform.baseVal.getItem(0);
@@ -52,13 +57,18 @@ limitations under the License. -->
         }
     }
 
-    blue.addEventListener('mousedown', downListener(blue));
-    red.addEventListener('mousedown', downListener(red));
+    // Only move nodes when dragging the rectangle.
+    blue.getElementsByTagName('rect')[0].addEventListener('mousedown', moveListener(blue));
+    red.getElementsByTagName('rect')[0].addEventListener('mousedown', moveListener(red));
 
     function moveOn(e) {
-        var tf = on.transform.baseVal.getItem(0);
-        tf.matrix.e = e.clientX - relX;
-        tf.matrix.f = e.clientY - relY;
+        var tf = on.transform.baseVal.getItem(0).matrix;
+        tf.e = e.clientX - relX;
+        tf.f = e.clientY - relY;
+
+        var bf = blue.transform.baseVal.getItem(0).matrix;
+        var rf = red.transform.baseVal.getItem(0).matrix;
+        conn.setAttribute('d', `M ${bf.e + 80} ${bf.f + 54} C ${bf.e + 80} ${bf.f + 94}, ${rf.e + 80} ${rf.f - 44}, ${rf.e + 80} ${rf.f - 4}`)
     }
 
     diagram.addEventListener('mousemove', function (e) {

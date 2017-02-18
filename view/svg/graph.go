@@ -33,6 +33,7 @@ const (
 	nodeTextOffset = 5
 
 	pinRadius = 5
+	lineWidth = 2
 )
 
 var (
@@ -40,8 +41,8 @@ var (
 	diagramSVG = document.Call("getElementById", "diagram")
 	svgNS      = diagramSVG.Get("namespaceURI")
 
-	currentNode *Node
-	relX, relY  float64
+	currentThingy interface{}
+	relX, relY    float64
 
 	graph = &Graph{
 		Nodes: []Node{
@@ -78,11 +79,61 @@ var (
 )
 
 func makeSVGElement(n string) *js.Object { return document.Call("createElementNS", svgNS, n) }
+func cursorPos(e *js.Object) (x, y float64) {
+	bcr := diagramSVG.Call("getBoundingClientRect")
+	x = e.Get("clientX").Float() - bcr.Get("left").Float()
+	y = e.Get("clientY").Float() - bcr.Get("top").Float()
+	return
+}
 
 type Pin struct {
 	Name, Type string
 
-	x, y float64 // computed, relative to node
+	x, y float64    // computed, not relative to node
+	circ *js.Object // my main representation
+	l, c *js.Object // line, circle, when dragging from a pin
+}
+
+func (p *Pin) mouseDown(e *js.Object) {
+	currentThingy = p
+
+	p.circ.Call("setAttribute", "fill", activeColour)
+
+	x, y := cursorPos(e)
+
+	// Line
+	p.l = makeSVGElement("line")
+	diagramSVG.Call("appendChild", p.l)
+	p.l.Call("setAttribute", "x1", p.x)
+	p.l.Call("setAttribute", "y1", p.y)
+	p.l.Call("setAttribute", "x2", x)
+	p.l.Call("setAttribute", "y2", y)
+	p.l.Call("setAttribute", "stroke", activeColour)
+	p.l.Call("setAttribute", "stroke-width", lineWidth)
+
+	// Another circ
+	p.c = makeSVGElement("circle")
+	diagramSVG.Call("appendChild", p.c)
+	p.c.Call("setAttribute", "cx", x)
+	p.c.Call("setAttribute", "cy", y)
+	p.c.Call("setAttribute", "r", pinRadius)
+	p.c.Call("setAttribute", "fill", "transparent")
+	p.c.Call("setAttribute", "stroke", activeColour)
+	p.c.Call("setAttribute", "stroke-width", lineWidth)
+}
+
+func (p *Pin) dragTo(e *js.Object) {
+	x, y := cursorPos(e)
+	p.l.Call("setAttribute", "x2", x)
+	p.l.Call("setAttribute", "y2", y)
+	p.c.Call("setAttribute", "cx", x)
+	p.c.Call("setAttribute", "cy", y)
+}
+
+func (p *Pin) dragComplete(e *js.Object) {
+	p.circ.Call("setAttribute", "fill", normalColour)
+	diagramSVG.Call("removeChild", p.l)
+	diagramSVG.Call("removeChild", p.c)
 }
 
 type Node struct {
@@ -117,36 +168,29 @@ func (n *Node) makeNodeElement() {
 	text.Call("appendChild", document.Call("createTextNode", n.Name))
 
 	// Pins
-	for i, p := range n.Inputs {
-		sp := nodeWidth / float64(len(n.Inputs)+1)
-		p.x = sp * float64(i+1)
-		p.y = -pinRadius
-		circ := makeSVGElement("circle")
-		g.Call("appendChild", circ)
-		circ.Call("setAttribute", "cx", p.x)
-		circ.Call("setAttribute", "cy", p.y)
-		circ.Call("setAttribute", "r", pinRadius)
-		circ.Call("setAttribute", "fill", normalColour)
+	for _, p := range n.Inputs {
+		p.circ = makeSVGElement("circle")
+		g.Call("appendChild", p.circ)
+		p.circ.Call("setAttribute", "r", pinRadius)
+		p.circ.Call("setAttribute", "fill", normalColour)
+		p.circ.Call("addEventListener", "mousedown", p.mouseDown)
 	}
 
-	for i, p := range n.Outputs {
-		sp := nodeWidth / float64(len(n.Outputs)+1)
-		p.x = sp * float64(i+1)
-		p.y = nodeHeight + pinRadius
-		circ := makeSVGElement("circle")
-		g.Call("appendChild", circ)
-		circ.Call("setAttribute", "cx", p.x)
-		circ.Call("setAttribute", "cy", p.y)
-		circ.Call("setAttribute", "r", pinRadius)
-		circ.Call("setAttribute", "fill", normalColour)
+	for _, p := range n.Outputs {
+		p.circ = makeSVGElement("circle")
+		g.Call("appendChild", p.circ)
+		p.circ.Call("setAttribute", "r", pinRadius)
+		p.circ.Call("setAttribute", "fill", normalColour)
+		p.circ.Call("addEventListener", "mousedown", p.mouseDown)
 	}
+	n.recomputeNodePositions()
 
 	// Done!
 	n.g = g
 }
 
 func (n *Node) mouseDown(e *js.Object) {
-	currentNode = n
+	currentThingy = n
 	relX, relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
@@ -158,6 +202,25 @@ func (n *Node) moveTo(x, y float64) {
 	tf.Set("e", x)
 	tf.Set("f", y)
 	n.X, n.Y = x, y
+	n.recomputeNodePositions()
+}
+
+func (n *Node) recomputeNodePositions() {
+	isp := nodeWidth / float64(len(n.Inputs)+1)
+	for i, p := range n.Inputs {
+		x, y := isp*float64(i+1), float64(-pinRadius)
+		p.circ.Call("setAttribute", "cx", x)
+		p.circ.Call("setAttribute", "cy", y)
+		p.x, p.y = x+n.X, y+n.Y
+	}
+
+	osp := nodeWidth / float64(len(n.Outputs)+1)
+	for i, p := range n.Outputs {
+		x, y := osp*float64(i+1), float64(nodeHeight+pinRadius)
+		p.circ.Call("setAttribute", "cx", x)
+		p.circ.Call("setAttribute", "cy", y)
+		p.x, p.y = x+n.X, y+n.Y
+	}
 }
 
 type Graph struct {
@@ -165,23 +228,38 @@ type Graph struct {
 	// Channels: simple & complex
 }
 
+func mouseMove(e *js.Object) {
+	if currentThingy == nil {
+		return
+	}
+	switch t := currentThingy.(type) {
+	case *Node:
+		t.moveTo(e.Get("clientX").Float()-relX, e.Get("clientY").Float()-relY)
+	case *Pin:
+		t.dragTo(e)
+	}
+}
+
+func mouseUp(e *js.Object) {
+	if currentThingy == nil {
+		return
+	}
+	mouseMove(e)
+
+	switch t := currentThingy.(type) {
+	case *Node:
+		// Nothing
+	case *Pin:
+		t.dragComplete(e)
+	}
+	currentThingy = nil
+}
+
 func main() {
 	for _, n := range graph.Nodes {
 		n.makeNodeElement()
 	}
 
-	diagramSVG.Call("addEventListener", "mousemove", func(e *js.Object) {
-		if currentNode == nil {
-			return
-		}
-		currentNode.moveTo(e.Get("clientX").Float()-relX, e.Get("clientY").Float()-relY)
-	})
-
-	diagramSVG.Call("addEventListener", "mouseup", func(e *js.Object) {
-		if currentNode == nil {
-			return
-		}
-		currentNode.moveTo(e.Get("clientX").Float()-relX, e.Get("clientY").Float()-relY)
-		currentNode = nil
-	})
+	diagramSVG.Call("addEventListener", "mousemove", mouseMove)
+	diagramSVG.Call("addEventListener", "mouseup", mouseUp)
 }

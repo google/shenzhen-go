@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -25,15 +26,17 @@ import (
 const (
 	activeColour = "#09f"
 	normalColour = "#000"
+	errorColour  = "#f06"
 
 	nodeRectStyle  = "fill: #eff; stroke: #355; stroke-width:1"
-	nodeTextStyle  = "font-family:Go; font-size:16; style=user-select:none; pointer-events:none"
+	nodeTextStyle  = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 	nodeWidth      = 160
 	nodeHeight     = 50
 	nodeTextOffset = 5
 
 	pinRadius = 5
 	lineWidth = 2
+	snapQuad  = 256
 )
 
 var (
@@ -49,9 +52,9 @@ var (
 			{
 				Name: "Hello, yes",
 				Inputs: []*Pin{
-					{Name: "foo1", Type: "int"},
-					{Name: "foo2", Type: "int"},
-					{Name: "foo3", Type: "int"},
+					{Name: "foo1", Type: "int", input: true},
+					{Name: "foo2", Type: "int", input: true},
+					{Name: "foo3", Type: "int", input: true},
 				},
 				Outputs: []*Pin{
 					{Name: "bar", Type: "string"},
@@ -63,10 +66,10 @@ var (
 			{
 				Name: "this is dog",
 				Inputs: []*Pin{
-					{Name: "baz0", Type: "string"},
-					{Name: "baz1", Type: "string"},
-					{Name: "baz2", Type: "string"},
-					{Name: "baz3", Type: "string"},
+					{Name: "baz0", Type: "string", input: true},
+					{Name: "baz1", Type: "string", input: true},
+					{Name: "baz2", Type: "string", input: true},
+					{Name: "baz3", Type: "string", input: true},
 				},
 				Outputs: []*Pin{
 					{Name: "qux", Type: "float64"},
@@ -89,12 +92,15 @@ func cursorPos(e *js.Object) (x, y float64) {
 type Pin struct {
 	Name, Type string
 
-	x, y float64    // computed, not relative to node
-	circ *js.Object // my main representation
-	l, c *js.Object // line, circle, when dragging from a pin
+	lines []*js.Object // attached lines
+	input bool         // am I an input?
+	x, y  float64      // computed, not relative to node
+	circ  *js.Object   // my main representation
+	l, c  *js.Object   // line, circle, when dragging from a pin
+	cd    *Pin         // current proposed destination node for dragged line
 }
 
-func (p *Pin) mouseDown(e *js.Object) {
+func (p *Pin) dragStart(e *js.Object) {
 	currentThingy = p
 
 	p.circ.Call("setAttribute", "fill", activeColour)
@@ -104,10 +110,17 @@ func (p *Pin) mouseDown(e *js.Object) {
 	// Line
 	p.l = makeSVGElement("line")
 	diagramSVG.Call("appendChild", p.l)
-	p.l.Call("setAttribute", "x1", p.x)
-	p.l.Call("setAttribute", "y1", p.y)
-	p.l.Call("setAttribute", "x2", x)
-	p.l.Call("setAttribute", "y2", y)
+	if p.input {
+		p.l.Call("setAttribute", "x1", x)
+		p.l.Call("setAttribute", "y1", y)
+		p.l.Call("setAttribute", "x2", p.x)
+		p.l.Call("setAttribute", "y2", p.y)
+	} else {
+		p.l.Call("setAttribute", "x1", p.x)
+		p.l.Call("setAttribute", "y1", p.y)
+		p.l.Call("setAttribute", "x2", x)
+		p.l.Call("setAttribute", "y2", y)
+	}
 	p.l.Call("setAttribute", "stroke", activeColour)
 	p.l.Call("setAttribute", "stroke-width", lineWidth)
 
@@ -124,16 +137,59 @@ func (p *Pin) mouseDown(e *js.Object) {
 
 func (p *Pin) dragTo(e *js.Object) {
 	x, y := cursorPos(e)
-	p.l.Call("setAttribute", "x2", x)
-	p.l.Call("setAttribute", "y2", y)
+	d, q := graph.nearestPin(x, y)
+	// Don't connect P to itself, snap to near the pointer, connect inputs to outputs.
+	if p != q && d < snapQuad {
+		if p.input == q.input || p.Type != q.Type {
+			// TODO: complain about type or i/o mismatch with some text
+			p.circ.Call("setAttribute", "fill", errorColour)
+			p.l.Call("setAttribute", "stroke", errorColour)
+			p.c.Call("setAttribute", "stroke", errorColour)
+		} else {
+			p.circ.Call("setAttribute", "fill", activeColour)
+			p.l.Call("setAttribute", "stroke", activeColour)
+			p.c.Call("setAttribute", "stroke", activeColour)
+
+			// Snap
+			q.circ.Call("setAttribute", "fill", activeColour)
+			p.cd = q
+			x, y = q.x, q.y
+		}
+	} else {
+		p.circ.Call("setAttribute", "fill", activeColour)
+		p.l.Call("setAttribute", "stroke", activeColour)
+		p.c.Call("setAttribute", "stroke", activeColour)
+		if p.cd != nil {
+			p.cd.circ.Call("setAttribute", "fill", normalColour)
+			p.cd = nil
+		}
+	}
+
+	if p.input {
+		p.l.Call("setAttribute", "x1", x)
+		p.l.Call("setAttribute", "y1", y)
+	} else {
+		p.l.Call("setAttribute", "x2", x)
+		p.l.Call("setAttribute", "y2", y)
+	}
 	p.c.Call("setAttribute", "cx", x)
 	p.c.Call("setAttribute", "cy", y)
 }
 
-func (p *Pin) dragComplete(e *js.Object) {
+func (p *Pin) drop(e *js.Object) {
 	p.circ.Call("setAttribute", "fill", normalColour)
-	diagramSVG.Call("removeChild", p.l)
 	diagramSVG.Call("removeChild", p.c)
+	p.c = nil
+	if p.cd == nil {
+		diagramSVG.Call("removeChild", p.l)
+		p.l = nil
+		return
+	}
+	p.cd.circ.Call("setAttribute", "fill", normalColour)
+	p.l.Call("setAttribute", "stroke", normalColour)
+	p.lines = append(p.lines, p.l)
+	p.cd.lines = append(p.cd.lines, p.l)
+	p.cd, p.l = nil, nil
 }
 
 type Node struct {
@@ -164,6 +220,7 @@ func (n *Node) makeNodeElement() {
 	text.Call("setAttribute", "x", nodeWidth/2)
 	text.Call("setAttribute", "y", nodeHeight/2+nodeTextOffset)
 	text.Call("setAttribute", "text-anchor", "middle")
+	text.Call("setAttribute", "unselectable", "on")
 	text.Call("setAttribute", "style", nodeTextStyle)
 	text.Call("appendChild", document.Call("createTextNode", n.Name))
 
@@ -173,7 +230,7 @@ func (n *Node) makeNodeElement() {
 		g.Call("appendChild", p.circ)
 		p.circ.Call("setAttribute", "r", pinRadius)
 		p.circ.Call("setAttribute", "fill", normalColour)
-		p.circ.Call("addEventListener", "mousedown", p.mouseDown)
+		p.circ.Call("addEventListener", "mousedown", p.dragStart)
 	}
 
 	for _, p := range n.Outputs {
@@ -181,9 +238,9 @@ func (n *Node) makeNodeElement() {
 		g.Call("appendChild", p.circ)
 		p.circ.Call("setAttribute", "r", pinRadius)
 		p.circ.Call("setAttribute", "fill", normalColour)
-		p.circ.Call("addEventListener", "mousedown", p.mouseDown)
+		p.circ.Call("addEventListener", "mousedown", p.dragStart)
 	}
-	n.recomputeNodePositions()
+	n.updatePinPositions()
 
 	// Done!
 	n.g = g
@@ -202,16 +259,25 @@ func (n *Node) moveTo(x, y float64) {
 	tf.Set("e", x)
 	tf.Set("f", y)
 	n.X, n.Y = x, y
-	n.recomputeNodePositions()
+	n.updatePinPositions()
 }
 
-func (n *Node) recomputeNodePositions() {
+func (n *Node) updatePinPositions() {
 	isp := nodeWidth / float64(len(n.Inputs)+1)
 	for i, p := range n.Inputs {
 		x, y := isp*float64(i+1), float64(-pinRadius)
 		p.circ.Call("setAttribute", "cx", x)
 		p.circ.Call("setAttribute", "cy", y)
 		p.x, p.y = x+n.X, y+n.Y
+		for _, l := range p.lines {
+			if p.input {
+				l.Call("setAttribute", "x2", p.x)
+				l.Call("setAttribute", "y2", p.y)
+			} else {
+				l.Call("setAttribute", "x1", p.x)
+				l.Call("setAttribute", "y1", p.y)
+			}
+		}
 	}
 
 	osp := nodeWidth / float64(len(n.Outputs)+1)
@@ -220,12 +286,40 @@ func (n *Node) recomputeNodePositions() {
 		p.circ.Call("setAttribute", "cx", x)
 		p.circ.Call("setAttribute", "cy", y)
 		p.x, p.y = x+n.X, y+n.Y
+		for _, l := range p.lines {
+			if p.input {
+				l.Call("setAttribute", "x2", p.x)
+				l.Call("setAttribute", "y2", p.y)
+			} else {
+				l.Call("setAttribute", "x1", p.x)
+				l.Call("setAttribute", "y1", p.y)
+			}
+		}
 	}
 }
 
 type Graph struct {
 	Nodes []Node
 	// Channels: simple & complex
+}
+
+func (g *Graph) nearestPin(x, y float64) (quad float64, pin *Pin) {
+	quad = math.MaxFloat64
+	for _, n := range g.Nodes {
+		for _, p := range n.Inputs {
+			dx, dy := x-p.x, y-p.y
+			if t := dx*dx + dy*dy; t < quad {
+				quad, pin = t, p
+			}
+		}
+		for _, p := range n.Outputs {
+			dx, dy := x-p.x, y-p.y
+			if t := dx*dx + dy*dy; t < quad {
+				quad, pin = t, p
+			}
+		}
+	}
+	return quad, pin
 }
 
 func mouseMove(e *js.Object) {
@@ -250,7 +344,7 @@ func mouseUp(e *js.Object) {
 	case *Node:
 		// Nothing
 	case *Pin:
-		t.dragComplete(e)
+		t.drop(e)
 	}
 	currentThingy = nil
 }

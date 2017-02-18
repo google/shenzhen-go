@@ -17516,18 +17516,22 @@ $packages["fmt"] = (function() {
 	return $pkg;
 })();
 $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
-	var $pkg = {}, $init, fmt, js, Pin, Node, Graph, ptrType, sliceType, sliceType$1, sliceType$2, ptrType$1, funcType, document, diagramSVG, svgNS, currentNode, relX, relY, graph, makeSVGElement, main;
+	var $pkg = {}, $init, fmt, js, Pin, Node, Graph, ptrType, sliceType, ptrType$1, sliceType$1, sliceType$2, ptrType$2, funcType, document, diagramSVG, svgNS, currentNode, relX, relY, graph, makeSVGElement, main;
 	fmt = $packages["fmt"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
-	Pin = $pkg.Pin = $newType(0, $kindStruct, "main.Pin", true, "github.com/google/shenzhen-go/view/svg", true, function(Name_, Type_) {
+	Pin = $pkg.Pin = $newType(0, $kindStruct, "main.Pin", true, "github.com/google/shenzhen-go/view/svg", true, function(Name_, Type_, x_, y_) {
 		this.$val = this;
 		if (arguments.length === 0) {
 			this.Name = "";
 			this.Type = "";
+			this.x = 0;
+			this.y = 0;
 			return;
 		}
 		this.Name = Name_;
 		this.Type = Type_;
+		this.x = x_;
+		this.y = y_;
 	});
 	Node = $pkg.Node = $newType(0, $kindStruct, "main.Node", true, "github.com/google/shenzhen-go/view/svg", true, function(Name_, Inputs_, Outputs_, X_, Y_, g_) {
 		this.$val = this;
@@ -17557,17 +17561,18 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	});
 	ptrType = $ptrType(Node);
 	sliceType = $sliceType(Node);
-	sliceType$1 = $sliceType(Pin);
+	ptrType$1 = $ptrType(Pin);
+	sliceType$1 = $sliceType(ptrType$1);
 	sliceType$2 = $sliceType($emptyInterface);
-	ptrType$1 = $ptrType(js.Object);
-	funcType = $funcType([ptrType$1], [], false);
+	ptrType$2 = $ptrType(js.Object);
+	funcType = $funcType([ptrType$2], [], false);
 	makeSVGElement = function(n) {
 		var $ptr, n;
 		return document.createElementNS(svgNS, $externalize(n, $String));
 	};
 	Node.ptr.prototype.makeNodeElement = function() {
-		var $ptr, _r, g, n, rect, text, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; g = $f.g; n = $f.n; rect = $f.rect; text = $f.text; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		var $ptr, _i, _i$1, _r, _ref, _ref$1, circ, circ$1, g, i, i$1, n, p, p$1, rect, sp, sp$1, text, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _i$1 = $f._i$1; _r = $f._r; _ref = $f._ref; _ref$1 = $f._ref$1; circ = $f.circ; circ$1 = $f.circ$1; g = $f.g; i = $f.i; i$1 = $f.i$1; n = $f.n; p = $f.p; p$1 = $f.p$1; rect = $f.rect; sp = $f.sp; sp$1 = $f.sp$1; text = $f.text; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		n = this;
 		g = makeSVGElement("g");
 		diagramSVG.appendChild(g);
@@ -17586,9 +17591,43 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		text.setAttribute($externalize("text-anchor", $String), $externalize("middle", $String));
 		text.setAttribute($externalize("style", $String), $externalize("font-family:Go; font-size:16; style=user-select:none; pointer-events:none", $String));
 		text.appendChild(document.createTextNode($externalize(n.Name, $String)));
+		_ref = n.Inputs;
+		_i = 0;
+		while (true) {
+			if (!(_i < _ref.$length)) { break; }
+			i = _i;
+			p = ((_i < 0 || _i >= _ref.$length) ? ($throwRuntimeError("index out of range"), undefined) : _ref.$array[_ref.$offset + _i]);
+			sp = 160 / (n.Inputs.$length + 1 >> 0);
+			p.x = sp * (i + 1 >> 0);
+			p.y = -5;
+			circ = makeSVGElement("circle");
+			g.appendChild(circ);
+			circ.setAttribute($externalize("cx", $String), p.x);
+			circ.setAttribute($externalize("cy", $String), p.y);
+			circ.setAttribute($externalize("r", $String), 5);
+			circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+			_i++;
+		}
+		_ref$1 = n.Outputs;
+		_i$1 = 0;
+		while (true) {
+			if (!(_i$1 < _ref$1.$length)) { break; }
+			i$1 = _i$1;
+			p$1 = ((_i$1 < 0 || _i$1 >= _ref$1.$length) ? ($throwRuntimeError("index out of range"), undefined) : _ref$1.$array[_ref$1.$offset + _i$1]);
+			sp$1 = 160 / (n.Outputs.$length + 1 >> 0);
+			p$1.x = sp$1 * (i$1 + 1 >> 0);
+			p$1.y = 55;
+			circ$1 = makeSVGElement("circle");
+			g.appendChild(circ$1);
+			circ$1.setAttribute($externalize("cx", $String), p$1.x);
+			circ$1.setAttribute($externalize("cy", $String), p$1.y);
+			circ$1.setAttribute($externalize("r", $String), 5);
+			circ$1.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+			_i$1++;
+		}
 		n.g = g;
 		$s = -1; return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Node.ptr.prototype.makeNodeElement }; } $f.$ptr = $ptr; $f._r = _r; $f.g = g; $f.n = n; $f.rect = rect; $f.text = text; $f.$s = $s; $f.$r = $r; return $f;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Node.ptr.prototype.makeNodeElement }; } $f.$ptr = $ptr; $f._i = _i; $f._i$1 = _i$1; $f._r = _r; $f._ref = _ref; $f._ref$1 = _ref$1; $f.circ = circ; $f.circ$1 = circ$1; $f.g = g; $f.i = i; $f.i$1 = i$1; $f.n = n; $f.p = p; $f.p$1 = p$1; $f.rect = rect; $f.sp = sp; $f.sp$1 = sp$1; $f.text = text; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Node.prototype.makeNodeElement = function() { return this.$val.makeNodeElement(); };
 	Node.ptr.prototype.mouseDown = function(e) {
@@ -17599,6 +17638,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_tmp$1 = $parseFloat(e.clientY) - n.Y;
 		relX = _tmp;
 		relY = _tmp$1;
+		diagramSVG.appendChild(n.g);
 	};
 	Node.prototype.mouseDown = function(e) { return this.$val.mouseDown(e); };
 	Node.ptr.prototype.moveTo = function(x, y) {
@@ -17642,9 +17682,9 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		$s = -1; return;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: main }; } $f.$ptr = $ptr; $f._i = _i; $f._ref = _ref; $f.n = n; $f.$s = $s; $f.$r = $r; return $f;
 	};
-	ptrType.methods = [{prop: "makeNodeElement", name: "makeNodeElement", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "mouseDown", name: "mouseDown", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$1], [], false)}, {prop: "moveTo", name: "moveTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [], false)}];
-	Pin.init("", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}]);
-	Node.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Inputs", name: "Inputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "Outputs", name: "Outputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "X", name: "X", exported: true, typ: $Float64, tag: ""}, {prop: "Y", name: "Y", exported: true, typ: $Float64, tag: ""}, {prop: "g", name: "g", exported: false, typ: ptrType$1, tag: ""}]);
+	ptrType.methods = [{prop: "makeNodeElement", name: "makeNodeElement", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "mouseDown", name: "mouseDown", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$2], [], false)}, {prop: "moveTo", name: "moveTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [], false)}];
+	Pin.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}]);
+	Node.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Inputs", name: "Inputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "Outputs", name: "Outputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "X", name: "X", exported: true, typ: $Float64, tag: ""}, {prop: "Y", name: "Y", exported: true, typ: $Float64, tag: ""}, {prop: "g", name: "g", exported: false, typ: ptrType$2, tag: ""}]);
 	Graph.init("", [{prop: "Nodes", name: "Nodes", exported: true, typ: sliceType, tag: ""}]);
 	$init = function() {
 		$pkg.$init = function() {};
@@ -17657,7 +17697,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		document = $global.document;
 		diagramSVG = document.getElementById($externalize("diagram", $String));
 		svgNS = diagramSVG.namespaceURI;
-		graph = new Graph.ptr(new sliceType([new Node.ptr("Hello, yes", new sliceType$1([new Pin.ptr("foo", "int")]), new sliceType$1([new Pin.ptr("bar", "string")]), 100, 100, null), new Node.ptr("this is dog", new sliceType$1([new Pin.ptr("baz", "string")]), new sliceType$1([new Pin.ptr("qux", "float64")]), 100, 200, null)]));
+		graph = new Graph.ptr(new sliceType([new Node.ptr("Hello, yes", new sliceType$1([new Pin.ptr("foo1", "int", 0, 0), new Pin.ptr("foo2", "int", 0, 0), new Pin.ptr("foo3", "int", 0, 0)]), new sliceType$1([new Pin.ptr("bar", "string", 0, 0), new Pin.ptr("baz", "string", 0, 0)]), 100, 100, null), new Node.ptr("this is dog", new sliceType$1([new Pin.ptr("baz0", "string", 0, 0), new Pin.ptr("baz1", "string", 0, 0), new Pin.ptr("baz2", "string", 0, 0), new Pin.ptr("baz3", "string", 0, 0)]), new sliceType$1([new Pin.ptr("qux", "float64", 0, 0)]), 100, 200, null)]));
 		/* */ if ($pkg === $mainPkg) { $s = 3; continue; }
 		/* */ $s = 4; continue;
 		/* if ($pkg === $mainPkg) { */ case 3:

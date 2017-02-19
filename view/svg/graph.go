@@ -78,6 +78,8 @@ var (
 				Y: 200,
 			},
 		},
+		Channels: make(map[*Channel]struct{}),
+		PinJoin:  make(map[*Pin]*Channel),
 	}
 )
 
@@ -92,6 +94,7 @@ func cursorPos(e *js.Object) (x, y float64) {
 type Pin struct {
 	Name, Type string
 
+	node  *Node      // owner.
 	l     *js.Object // attached line
 	input bool       // am I an input?
 	x, y  float64    // computed, not relative to node
@@ -99,6 +102,8 @@ type Pin struct {
 	c     *js.Object // circle, when dragging from a pin
 	cd    *Pin       // current proposed destination node for dragged line
 }
+
+func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
 
 func (p *Pin) dragStart(e *js.Object) {
 	// If the pin is attached to something, don't start to drag.
@@ -202,6 +207,21 @@ func (p *Pin) drop(e *js.Object) {
 	}
 	p.cd.circ.Call("setAttribute", "fill", normalColour)
 	p.l.Call("setAttribute", "stroke", normalColour)
+
+	ch := &Channel{
+		Type: p.Type,
+		Pins: map[*Pin]struct{}{
+			p:    struct{}{},
+			p.cd: struct{}{},
+		},
+	}
+	graph.PinJoin[p] = ch
+	graph.PinJoin[p.cd] = ch
+	graph.Channels[ch] = struct{}{}
+	p.l.Call("addEventListener", "click", func(e *js.Object) {
+		js.Global.Get("console").Call("log", fmt.Sprintf("channel clicked [%#v]", ch))
+	})
+
 	p.cd.l = p.l
 	p.cd = nil
 }
@@ -240,6 +260,7 @@ func (n *Node) makeNodeElement() {
 
 	// Pins
 	for _, p := range n.Inputs {
+		p.node = n
 		p.circ = makeSVGElement("circle")
 		g.Call("appendChild", p.circ)
 		p.circ.Call("setAttribute", "r", pinRadius)
@@ -248,6 +269,7 @@ func (n *Node) makeNodeElement() {
 	}
 
 	for _, p := range n.Outputs {
+		p.node = n
 		p.circ = makeSVGElement("circle")
 		g.Call("appendChild", p.circ)
 		p.circ.Call("setAttribute", "r", pinRadius)
@@ -312,9 +334,19 @@ func (n *Node) updatePinPositions() {
 	}
 }
 
+type Channel struct {
+	Type string
+	Cap  int
+
+	Pins map[*Pin]struct{}
+}
+
 type Graph struct {
 	Nodes []Node
 	// Channels: simple & complex
+
+	Channels map[*Channel]struct{}
+	PinJoin  map[*Pin]*Channel // pin to channel
 }
 
 func (g *Graph) nearestPin(x, y float64) (quad float64, pin *Pin) {

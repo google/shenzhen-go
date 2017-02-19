@@ -92,15 +92,19 @@ func cursorPos(e *js.Object) (x, y float64) {
 type Pin struct {
 	Name, Type string
 
-	lines []*js.Object // attached lines
-	input bool         // am I an input?
-	x, y  float64      // computed, not relative to node
-	circ  *js.Object   // my main representation
-	l, c  *js.Object   // line, circle, when dragging from a pin
-	cd    *Pin         // current proposed destination node for dragged line
+	l     *js.Object // attached line
+	input bool       // am I an input?
+	x, y  float64    // computed, not relative to node
+	circ  *js.Object // my main representation
+	c     *js.Object // circle, when dragging from a pin
+	cd    *Pin       // current proposed destination node for dragged line
 }
 
 func (p *Pin) dragStart(e *js.Object) {
+	// If the pin is attached to something, don't start to drag.
+	if p.l != nil {
+		return
+	}
 	currentThingy = p
 
 	p.circ.Call("setAttribute", "fill", activeColour)
@@ -140,22 +144,33 @@ func (p *Pin) dragTo(e *js.Object) {
 	d, q := graph.nearestPin(x, y)
 	// Don't connect P to itself, snap to near the pointer, connect inputs to outputs.
 	if p != q && d < snapQuad {
-		if p.input == q.input || p.Type != q.Type {
-			// TODO: complain about type or i/o mismatch with some text
+		// Try to snap to q.
+		if p.input == q.input || p.Type != q.Type || q.l != nil {
+			// TODO: complain about type or i/o mismatch or existing connection with some text
 			p.circ.Call("setAttribute", "fill", errorColour)
 			p.l.Call("setAttribute", "stroke", errorColour)
 			p.c.Call("setAttribute", "stroke", errorColour)
 		} else {
+			// Snap to q.
+			x, y = q.x, q.y
+
+			// Valid snap - ensure the colour is active.
 			p.circ.Call("setAttribute", "fill", activeColour)
 			p.l.Call("setAttribute", "stroke", activeColour)
 			p.c.Call("setAttribute", "stroke", activeColour)
 
-			// Snap
-			q.circ.Call("setAttribute", "fill", activeColour)
-			p.cd = q
-			x, y = q.x, q.y
+			// Update what snapped to?
+			if p.cd != q {
+				// Snapped to something previously?
+				if p.cd != nil {
+					p.cd.circ.Call("setAttribute", "fill", normalColour)
+				}
+				q.circ.Call("setAttribute", "fill", activeColour)
+				p.cd = q
+			}
 		}
 	} else {
+		// Nothing nearby - use active colour and unsnap if necessary.
 		p.circ.Call("setAttribute", "fill", activeColour)
 		p.l.Call("setAttribute", "stroke", activeColour)
 		p.c.Call("setAttribute", "stroke", activeColour)
@@ -187,9 +202,8 @@ func (p *Pin) drop(e *js.Object) {
 	}
 	p.cd.circ.Call("setAttribute", "fill", normalColour)
 	p.l.Call("setAttribute", "stroke", normalColour)
-	p.lines = append(p.lines, p.l)
-	p.cd.lines = append(p.cd.lines, p.l)
-	p.cd, p.l = nil, nil
+	p.cd.l = p.l
+	p.cd = nil
 }
 
 type Node struct {
@@ -269,13 +283,13 @@ func (n *Node) updatePinPositions() {
 		p.circ.Call("setAttribute", "cx", x)
 		p.circ.Call("setAttribute", "cy", y)
 		p.x, p.y = x+n.X, y+n.Y
-		for _, l := range p.lines {
+		if p.l != nil {
 			if p.input {
-				l.Call("setAttribute", "x2", p.x)
-				l.Call("setAttribute", "y2", p.y)
+				p.l.Call("setAttribute", "x2", p.x)
+				p.l.Call("setAttribute", "y2", p.y)
 			} else {
-				l.Call("setAttribute", "x1", p.x)
-				l.Call("setAttribute", "y1", p.y)
+				p.l.Call("setAttribute", "x1", p.x)
+				p.l.Call("setAttribute", "y1", p.y)
 			}
 		}
 	}
@@ -286,13 +300,13 @@ func (n *Node) updatePinPositions() {
 		p.circ.Call("setAttribute", "cx", x)
 		p.circ.Call("setAttribute", "cy", y)
 		p.x, p.y = x+n.X, y+n.Y
-		for _, l := range p.lines {
+		if p.l != nil {
 			if p.input {
-				l.Call("setAttribute", "x2", p.x)
-				l.Call("setAttribute", "y2", p.y)
+				p.l.Call("setAttribute", "x2", p.x)
+				p.l.Call("setAttribute", "y2", p.y)
 			} else {
-				l.Call("setAttribute", "x1", p.x)
-				l.Call("setAttribute", "y1", p.y)
+				p.l.Call("setAttribute", "x1", p.x)
+				p.l.Call("setAttribute", "y1", p.y)
 			}
 		}
 	}

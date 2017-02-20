@@ -17516,7 +17516,7 @@ $packages["fmt"] = (function() {
 	return $pkg;
 })();
 $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
-	var $pkg = {}, $init, fmt, js, math, Pin, Node, Channel, Graph, sliceType, ptrType, sliceType$1, ptrType$1, sliceType$2, structType, ptrType$2, ptrType$3, funcType, mapType, ptrType$4, mapType$1, mapType$2, document, diagramSVG, svgNS, currentThingy, relX, relY, graph, makeSVGElement, cursorPos, mouseMove, mouseUp, main;
+	var $pkg = {}, $init, fmt, js, math, Pin, Node, Channel, Graph, sliceType, ptrType, sliceType$1, ptrType$1, sliceType$2, ptrType$2, structType, ptrType$3, funcType, mapType, ptrType$4, mapType$1, mapType$2, document, diagramSVG, svgNS, currentThingy, relX, relY, graph, makeSVGElement, cursorPos, mouseMove, mouseUp, main;
 	fmt = $packages["fmt"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
 	math = $packages["math"];
@@ -17564,17 +17564,23 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		this.Y = Y_;
 		this.g = g_;
 	});
-	Channel = $pkg.Channel = $newType(0, $kindStruct, "main.Channel", true, "github.com/google/shenzhen-go/view/svg", true, function(Type_, Cap_, Pins_) {
+	Channel = $pkg.Channel = $newType(0, $kindStruct, "main.Channel", true, "github.com/google/shenzhen-go/view/svg", true, function(Type_, Cap_, Pins_, steiner_, x_, y_) {
 		this.$val = this;
 		if (arguments.length === 0) {
 			this.Type = "";
 			this.Cap = 0;
 			this.Pins = false;
+			this.steiner = null;
+			this.x = 0;
+			this.y = 0;
 			return;
 		}
 		this.Type = Type_;
 		this.Cap = Cap_;
 		this.Pins = Pins_;
+		this.steiner = steiner_;
+		this.x = x_;
+		this.y = y_;
 	});
 	Graph = $pkg.Graph = $newType(0, $kindStruct, "main.Graph", true, "github.com/google/shenzhen-go/view/svg", true, function(Nodes_, Channels_, PinJoin_) {
 		this.$val = this;
@@ -17593,8 +17599,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	sliceType$1 = $sliceType(ptrType);
 	ptrType$1 = $ptrType(Node);
 	sliceType$2 = $sliceType($emptyInterface);
-	structType = $structType("", []);
 	ptrType$2 = $ptrType(Channel);
+	structType = $structType("", []);
 	ptrType$3 = $ptrType(js.Object);
 	funcType = $funcType([ptrType$3], [], false);
 	mapType = $mapType(ptrType, structType);
@@ -17660,8 +17666,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	Pin.prototype.dragStart = function(e) { return this.$val.dragStart(e); };
 	Pin.ptr.prototype.dragTo = function(e) {
-		var $ptr, _r, _tmp, _tmp$1, _tuple, _tuple$1, d, e, p, q, x, y, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; d = $f.d; e = $f.e; p = $f.p; q = $f.q; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		var $ptr, _entry, _entry$1, _entry$2, _i, _i$1, _keys, _keys$1, _r, _ref, _ref$1, _tmp, _tmp$1, _tmp$2, _tmp$3, _tuple, _tuple$1, ch, d, e, n, p, q, t, t$1, x, y, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _entry = $f._entry; _entry$1 = $f._entry$1; _entry$2 = $f._entry$2; _i = $f._i; _i$1 = $f._i$1; _keys = $f._keys; _keys$1 = $f._keys$1; _r = $f._r; _ref = $f._ref; _ref$1 = $f._ref$1; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; _tmp$2 = $f._tmp$2; _tmp$3 = $f._tmp$3; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; ch = $f.ch; d = $f.d; e = $f.e; n = $f.n; p = $f.p; q = $f.q; t = $f.t; t$1 = $f.t$1; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		p = this;
 		_tuple = cursorPos(e);
 		x = _tuple[0];
@@ -17671,24 +17677,83 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		d = _tuple$1[0];
 		q = _tuple$1[1];
 		if (!(p === q) && d < 256) {
-			if (p.input === q.input || !(p.Type === q.Type) || !(q.l === null)) {
+			if (!(p.Type === q.Type)) {
 				p.circ.setAttribute($externalize("fill", $String), $externalize("#f06", $String));
 				p.l.setAttribute($externalize("stroke", $String), $externalize("#f06", $String));
 				p.c.setAttribute($externalize("stroke", $String), $externalize("#f06", $String));
 			} else {
-				_tmp = q.x;
-				_tmp$1 = q.y;
-				x = _tmp;
-				y = _tmp$1;
-				p.circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
-				p.l.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
-				p.c.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
-				if (!(p.cd === q)) {
-					if (!(p.cd === ptrType.nil)) {
-						p.cd.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+				ch = (_entry = graph.PinJoin[ptrType.keyFor(q)], _entry !== undefined ? _entry.v : ptrType$2.nil);
+				if (!(ch === ptrType$2.nil)) {
+					_tmp = p.x;
+					_tmp$1 = p.y;
+					x = _tmp;
+					y = _tmp$1;
+					_ref = ch.Pins;
+					_i = 0;
+					_keys = $keys(_ref);
+					while (true) {
+						if (!(_i < _keys.length)) { break; }
+						_entry$1 = _ref[_keys[_i]];
+						if (_entry$1 === undefined) {
+							_i++;
+							continue;
+						}
+						t = _entry$1.k;
+						x = x + (t.x);
+						y = y + (t.y);
+						_i++;
 					}
-					q.circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
-					p.cd = q;
+					n = ($keys(ch.Pins).length + 1 >> 0);
+					x = x / (n);
+					y = y / (n);
+					if (ch.steiner === null) {
+						ch.steiner = makeSVGElement("circle");
+						diagramSVG.appendChild(ch.steiner);
+					}
+					ch.steiner.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
+					ch.steiner.setAttribute($externalize("cx", $String), x);
+					ch.steiner.setAttribute($externalize("cy", $String), y);
+					ch.steiner.setAttribute($externalize("r", $String), 5);
+					_ref$1 = ch.Pins;
+					_i$1 = 0;
+					_keys$1 = $keys(_ref$1);
+					while (true) {
+						if (!(_i$1 < _keys$1.length)) { break; }
+						_entry$2 = _ref$1[_keys$1[_i$1]];
+						if (_entry$2 === undefined) {
+							_i$1++;
+							continue;
+						}
+						t$1 = _entry$2.k;
+						if (t$1.input) {
+							t$1.l.setAttribute($externalize("x2", $String), x);
+							t$1.l.setAttribute($externalize("y2", $String), y);
+						} else {
+							t$1.l.setAttribute($externalize("x1", $String), x);
+							t$1.l.setAttribute($externalize("y1", $String), y);
+						}
+						t$1.l.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
+						_i$1++;
+					}
+				} else if (p.input === q.input || p.node === q.node) {
+					p.circ.setAttribute($externalize("fill", $String), $externalize("#f06", $String));
+					p.l.setAttribute($externalize("stroke", $String), $externalize("#f06", $String));
+					p.c.setAttribute($externalize("stroke", $String), $externalize("#f06", $String));
+				} else {
+					_tmp$2 = q.x;
+					_tmp$3 = q.y;
+					x = _tmp$2;
+					y = _tmp$3;
+					p.circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
+					p.l.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
+					p.c.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
+					if (!(p.cd === q)) {
+						if (!(p.cd === ptrType.nil)) {
+							p.cd.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+						}
+						q.circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
+						p.cd = q;
+					}
 				}
 			}
 		} else {
@@ -17710,7 +17775,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		p.c.setAttribute($externalize("cx", $String), x);
 		p.c.setAttribute($externalize("cy", $String), y);
 		$s = -1; return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Pin.ptr.prototype.dragTo }; } $f.$ptr = $ptr; $f._r = _r; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f.d = d; $f.e = e; $f.p = p; $f.q = q; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Pin.ptr.prototype.dragTo }; } $f.$ptr = $ptr; $f._entry = _entry; $f._entry$1 = _entry$1; $f._entry$2 = _entry$2; $f._i = _i; $f._i$1 = _i$1; $f._keys = _keys; $f._keys$1 = _keys$1; $f._r = _r; $f._ref = _ref; $f._ref$1 = _ref$1; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f._tmp$2 = _tmp$2; $f._tmp$3 = _tmp$3; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f.ch = ch; $f.d = d; $f.e = e; $f.n = n; $f.p = p; $f.q = q; $f.t = t; $f.t$1 = t$1; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Pin.prototype.dragTo = function(e) { return this.$val.dragTo(e); };
 	Pin.ptr.prototype.drop = function(e) {
@@ -17726,7 +17791,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		}
 		p.cd.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
 		p.l.setAttribute($externalize("stroke", $String), $externalize("#000", $String));
-		ch = new Channel.ptr(p.Type, 0, $makeMap(ptrType.keyFor, [{ k: p, v: new structType.ptr() }, { k: p.cd, v: new structType.ptr() }]));
+		ch = new Channel.ptr(p.Type, 0, $makeMap(ptrType.keyFor, [{ k: p, v: new structType.ptr() }, { k: p.cd, v: new structType.ptr() }]), null, 0, 0);
 		_key = p; (graph.PinJoin || $throwRuntimeError("assignment to entry in nil map"))[ptrType.keyFor(_key)] = { k: _key, v: ch };
 		_key$1 = p.cd; (graph.PinJoin || $throwRuntimeError("assignment to entry in nil map"))[ptrType.keyFor(_key$1)] = { k: _key$1, v: ch };
 		_key$2 = ch; (graph.Channels || $throwRuntimeError("assignment to entry in nil map"))[ptrType$2.keyFor(_key$2)] = { k: _key$2, v: new structType.ptr() };
@@ -17987,7 +18052,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	ptrType$4.methods = [{prop: "nearestPin", name: "nearestPin", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [$Float64, ptrType], false)}];
 	Pin.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "node", name: "node", exported: false, typ: ptrType$1, tag: ""}, {prop: "l", name: "l", exported: false, typ: ptrType$3, tag: ""}, {prop: "input", name: "input", exported: false, typ: $Bool, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}, {prop: "circ", name: "circ", exported: false, typ: ptrType$3, tag: ""}, {prop: "c", name: "c", exported: false, typ: ptrType$3, tag: ""}, {prop: "cd", name: "cd", exported: false, typ: ptrType, tag: ""}]);
 	Node.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Inputs", name: "Inputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "Outputs", name: "Outputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "X", name: "X", exported: true, typ: $Float64, tag: ""}, {prop: "Y", name: "Y", exported: true, typ: $Float64, tag: ""}, {prop: "g", name: "g", exported: false, typ: ptrType$3, tag: ""}]);
-	Channel.init("", [{prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "Cap", name: "Cap", exported: true, typ: $Int, tag: ""}, {prop: "Pins", name: "Pins", exported: true, typ: mapType, tag: ""}]);
+	Channel.init("github.com/google/shenzhen-go/view/svg", [{prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "Cap", name: "Cap", exported: true, typ: $Int, tag: ""}, {prop: "Pins", name: "Pins", exported: true, typ: mapType, tag: ""}, {prop: "steiner", name: "steiner", exported: false, typ: ptrType$3, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}]);
 	Graph.init("", [{prop: "Nodes", name: "Nodes", exported: true, typ: sliceType, tag: ""}, {prop: "Channels", name: "Channels", exported: true, typ: mapType$1, tag: ""}, {prop: "PinJoin", name: "PinJoin", exported: true, typ: mapType$2, tag: ""}]);
 	$init = function() {
 		$pkg.$init = function() {};
@@ -18001,7 +18066,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		document = $global.document;
 		diagramSVG = document.getElementById($externalize("diagram", $String));
 		svgNS = diagramSVG.namespaceURI;
-		graph = new Graph.ptr(new sliceType([new Node.ptr("Hello, yes", new sliceType$1([new Pin.ptr("foo1", "int", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("foo2", "int", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("foo3", "int", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil)]), new sliceType$1([new Pin.ptr("bar", "string", ptrType$1.nil, null, false, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz", "string", ptrType$1.nil, null, false, 0, 0, null, null, ptrType.nil)]), 100, 100, null), new Node.ptr("this is dog", new sliceType$1([new Pin.ptr("baz0", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz1", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz2", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz3", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil)]), new sliceType$1([new Pin.ptr("qux", "float64", ptrType$1.nil, null, false, 0, 0, null, null, ptrType.nil)]), 100, 200, null)]), {}, {});
+		graph = new Graph.ptr(new sliceType([new Node.ptr("Hello, yes", new sliceType$1([new Pin.ptr("foo1", "int", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("foo2", "int", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("foo3", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil)]), new sliceType$1([new Pin.ptr("bar", "string", ptrType$1.nil, null, false, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz", "string", ptrType$1.nil, null, false, 0, 0, null, null, ptrType.nil)]), 100, 100, null), new Node.ptr("this is dog", new sliceType$1([new Pin.ptr("baz0", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz1", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz2", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil), new Pin.ptr("baz3", "string", ptrType$1.nil, null, true, 0, 0, null, null, ptrType.nil)]), new sliceType$1([new Pin.ptr("qux", "float64", ptrType$1.nil, null, false, 0, 0, null, null, ptrType.nil)]), 100, 200, null)]), {}, {});
 		/* */ if ($pkg === $mainPkg) { $s = 4; continue; }
 		/* */ $s = 5; continue;
 		/* if ($pkg === $mainPkg) { */ case 4:

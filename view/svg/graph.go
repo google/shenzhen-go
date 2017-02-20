@@ -54,7 +54,7 @@ var (
 				Inputs: []*Pin{
 					{Name: "foo1", Type: "int", input: true},
 					{Name: "foo2", Type: "int", input: true},
-					{Name: "foo3", Type: "int", input: true},
+					{Name: "foo3", Type: "string", input: true},
 				},
 				Outputs: []*Pin{
 					{Name: "bar", Type: "string"},
@@ -150,7 +150,44 @@ func (p *Pin) dragTo(e *js.Object) {
 	// Don't connect P to itself, snap to near the pointer, connect inputs to outputs.
 	if p != q && d < snapQuad {
 		// Try to snap to q.
-		if p.input == q.input || p.Type != q.Type || q.l != nil {
+		if p.Type != q.Type {
+			// TODO: complain about type mismatch
+			p.circ.Call("setAttribute", "fill", errorColour)
+			p.l.Call("setAttribute", "stroke", errorColour)
+			p.c.Call("setAttribute", "stroke", errorColour)
+		} else if ch := graph.PinJoin[q]; ch != nil {
+			// Pin's already connected to a channel of matching type; find or create a steiner point
+			x, y = p.x, p.y
+			for t := range ch.Pins {
+				x += t.x
+				y += t.y
+			}
+			n := float64(len(ch.Pins) + 1)
+			x /= n
+			y /= n
+
+			if ch.steiner == nil {
+				ch.steiner = makeSVGElement("circle")
+				diagramSVG.Call("appendChild", ch.steiner)
+			}
+			ch.steiner.Call("setAttribute", "fill", activeColour)
+			ch.steiner.Call("setAttribute", "cx", x)
+			ch.steiner.Call("setAttribute", "cy", y)
+			ch.steiner.Call("setAttribute", "r", pinRadius)
+
+			for t := range ch.Pins {
+				if t.input {
+					t.l.Call("setAttribute", "x2", x)
+					t.l.Call("setAttribute", "y2", y)
+				} else {
+					t.l.Call("setAttribute", "x1", x)
+					t.l.Call("setAttribute", "y1", y)
+				}
+				t.l.Call("setAttribute", "stroke", activeColour)
+			}
+
+		} else if p.input == q.input || p.node == q.node {
+			// Don't allow simple mistakes when creating simple channels.
 			// TODO: complain about type or i/o mismatch or existing connection with some text
 			p.circ.Call("setAttribute", "fill", errorColour)
 			p.l.Call("setAttribute", "stroke", errorColour)
@@ -205,6 +242,8 @@ func (p *Pin) drop(e *js.Object) {
 		p.l = nil
 		return
 	}
+	// TODO: handle dropping onto channel steiner points
+
 	p.cd.circ.Call("setAttribute", "fill", normalColour)
 	p.l.Call("setAttribute", "stroke", normalColour)
 
@@ -214,6 +253,9 @@ func (p *Pin) drop(e *js.Object) {
 			p:    struct{}{},
 			p.cd: struct{}{},
 		},
+
+		x: (p.x + p.cd.x) / 2,
+		y: (p.y + p.cd.y) / 2,
 	}
 	graph.PinJoin[p] = ch
 	graph.PinJoin[p.cd] = ch
@@ -328,6 +370,9 @@ type Channel struct {
 	Cap  int
 
 	Pins map[*Pin]struct{}
+
+	steiner *js.Object // symbol representing the channel itself, not used if channel is simple
+	x, y    float64    // centre of steiner point
 }
 
 type Graph struct {

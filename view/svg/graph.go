@@ -226,6 +226,15 @@ func (p *Pin) drop(e *js.Object) {
 	p.cd = nil
 }
 
+func (p *Pin) makePinElement(n *Node) *js.Object {
+	p.node = n
+	p.circ = makeSVGElement("circle")
+	p.circ.Call("setAttribute", "r", pinRadius)
+	p.circ.Call("setAttribute", "fill", normalColour)
+	p.circ.Call("addEventListener", "mousedown", p.dragStart)
+	return p.circ
+}
+
 type Node struct {
 	Name            string
 	Inputs, Outputs []*Pin
@@ -260,21 +269,10 @@ func (n *Node) makeNodeElement() {
 
 	// Pins
 	for _, p := range n.Inputs {
-		p.node = n
-		p.circ = makeSVGElement("circle")
-		g.Call("appendChild", p.circ)
-		p.circ.Call("setAttribute", "r", pinRadius)
-		p.circ.Call("setAttribute", "fill", normalColour)
-		p.circ.Call("addEventListener", "mousedown", p.dragStart)
+		g.Call("appendChild", p.makePinElement(n))
 	}
-
 	for _, p := range n.Outputs {
-		p.node = n
-		p.circ = makeSVGElement("circle")
-		g.Call("appendChild", p.circ)
-		p.circ.Call("setAttribute", "r", pinRadius)
-		p.circ.Call("setAttribute", "fill", normalColour)
-		p.circ.Call("addEventListener", "mousedown", p.dragStart)
+		g.Call("appendChild", p.makePinElement(n))
 	}
 	n.updatePinPositions()
 
@@ -299,9 +297,7 @@ func (n *Node) moveTo(x, y float64) {
 }
 
 func (n *Node) updatePinPositions() {
-	isp := nodeWidth / float64(len(n.Inputs)+1)
-	for i, p := range n.Inputs {
-		x, y := isp*float64(i+1), float64(-pinRadius)
+	update := func(p *Pin, x, y float64) {
 		p.circ.Call("setAttribute", "cx", x)
 		p.circ.Call("setAttribute", "cy", y)
 		p.x, p.y = x+n.X, y+n.Y
@@ -316,21 +312,14 @@ func (n *Node) updatePinPositions() {
 		}
 	}
 
+	isp := nodeWidth / float64(len(n.Inputs)+1)
+	for i, p := range n.Inputs {
+		update(p, isp*float64(i+1), float64(-pinRadius))
+	}
+
 	osp := nodeWidth / float64(len(n.Outputs)+1)
 	for i, p := range n.Outputs {
-		x, y := osp*float64(i+1), float64(nodeHeight+pinRadius)
-		p.circ.Call("setAttribute", "cx", x)
-		p.circ.Call("setAttribute", "cy", y)
-		p.x, p.y = x+n.X, y+n.Y
-		if p.l != nil {
-			if p.input {
-				p.l.Call("setAttribute", "x2", p.x)
-				p.l.Call("setAttribute", "y2", p.y)
-			} else {
-				p.l.Call("setAttribute", "x1", p.x)
-				p.l.Call("setAttribute", "y1", p.y)
-			}
-		}
+		update(p, osp*float64(i+1), float64(nodeHeight+pinRadius))
 	}
 }
 
@@ -346,23 +335,23 @@ type Graph struct {
 	// Channels: simple & complex
 
 	Channels map[*Channel]struct{}
-	PinJoin  map[*Pin]*Channel // pin to channel
+	PinJoin  map[*Pin]*Channel
 }
 
 func (g *Graph) nearestPin(x, y float64) (quad float64, pin *Pin) {
 	quad = math.MaxFloat64
+	test := func(p *Pin) {
+		dx, dy := x-p.x, y-p.y
+		if t := dx*dx + dy*dy; t < quad {
+			quad, pin = t, p
+		}
+	}
 	for _, n := range g.Nodes {
 		for _, p := range n.Inputs {
-			dx, dy := x-p.x, y-p.y
-			if t := dx*dx + dy*dy; t < quad {
-				quad, pin = t, p
-			}
+			test(p)
 		}
 		for _, p := range n.Outputs {
-			dx, dy := x-p.x, y-p.y
-			if t := dx*dx + dy*dy; t < quad {
-				quad, pin = t, p
-			}
+			test(p)
 		}
 	}
 	return quad, pin

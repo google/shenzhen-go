@@ -17,6 +17,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -79,7 +80,6 @@ var (
 			},
 		},
 		Channels: make(map[*Channel]struct{}),
-		PinJoin:  make(map[*Pin]*Channel),
 	}
 )
 
@@ -94,20 +94,100 @@ func cursorPos(e *js.Object) (x, y float64) {
 type Pin struct {
 	Name, Type string
 
-	node  *Node      // owner.
-	l     *js.Object // attached line
-	input bool       // am I an input?
-	x, y  float64    // computed, not relative to node
-	circ  *js.Object // my main representation
-	c     *js.Object // circle, when dragging from a pin
-	cd    *Pin       // current proposed destination node for dragged line
+	input bool  // am I an input?
+	node  *Node // owner.
+
+	l    *js.Object // attached line; x1, y1 = x, y; x2, y2 = ch.x, ch.y.
+	x, y float64    // computed, not relative to node
+	circ *js.Object // my main representation
+	c    *js.Object // circle, when dragging from a pin
+	ch   *Channel   // attached to this channel
+}
+
+func (p *Pin) connectTo(q interface{}) error {
+	switch q := q.(type) {
+	case *Pin:
+		if p.ch != nil && p.ch != q.ch {
+			p.disconnect()
+		}
+		if q.Type != p.Type {
+			return fmt.Errorf("mismatching types [%s != %s]", p.Type, q.Type)
+		}
+		if q.ch != nil {
+			return p.connectTo(q.ch)
+		}
+		if p.input == q.input {
+			return errors.New("both pins have same direction")
+		}
+		if p.node == q.node {
+			return errors.New("both pins are on the same goroutine")
+		}
+
+		// Create a new channel to connect to
+		ch := &Channel{
+			Type: p.Type,
+			Pins: map[*Pin]struct{}{
+				p: struct{}{},
+				q: struct{}{},
+			},
+			steiner: makeSVGElement("circle"),
+		}
+		diagramSVG.Call("appendChild", ch.steiner)
+		ch.steiner.Call("setAttribute", "r", pinRadius)
+		ch.reposition()
+		p.ch, q.ch = ch, ch
+		graph.Channels[ch] = struct{}{}
+		q.l.Call("setAttribute", "display", "")
+	case *Channel:
+		if p.ch != nil && p.ch != q {
+			p.disconnect()
+		}
+		if q.Type != p.Type {
+			return fmt.Errorf("mismatching types [%s != %s]", p.Type, q.Type)
+		}
+
+		// Attach to the existing channel
+		p.ch = q
+		q.Pins[p] = struct{}{}
+		q.reposition()
+	}
+	return nil
+}
+
+func (p *Pin) disconnect() {
+	if p.ch == nil {
+		return
+	}
+	delete(p.ch.Pins, p)
+	p.ch.reposition()
+	if len(p.ch.Pins) < 2 {
+		// Delete the channel
+		for q := range p.ch.Pins {
+			q.ch = nil
+		}
+		delete(graph.Channels, p.ch)
+	}
+	p.ch = nil
+}
+
+func (p *Pin) setPos(rx, ry float64) {
+	p.circ.Call("setAttribute", "cx", rx)
+	p.circ.Call("setAttribute", "cy", ry)
+	p.x, p.y = rx+p.node.X, ry+p.node.Y
+	if p.l != nil {
+		p.l.Call("setAttribute", "x1", p.x)
+		p.l.Call("setAttribute", "y1", p.y)
+	}
+	if p.ch != nil {
+		p.ch.reposition()
+	}
 }
 
 func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
 
 func (p *Pin) dragStart(e *js.Object) {
 	// If the pin is attached to something, don't start to drag.
-	if p.l != nil {
+	if p.ch != nil {
 		return
 	}
 	currentThingy = p
@@ -115,33 +195,14 @@ func (p *Pin) dragStart(e *js.Object) {
 	p.circ.Call("setAttribute", "fill", activeColour)
 
 	x, y := cursorPos(e)
-
-	// Line
-	p.l = makeSVGElement("line")
-	diagramSVG.Call("appendChild", p.l)
-	if p.input {
-		p.l.Call("setAttribute", "x1", x)
-		p.l.Call("setAttribute", "y1", y)
-		p.l.Call("setAttribute", "x2", p.x)
-		p.l.Call("setAttribute", "y2", p.y)
-	} else {
-		p.l.Call("setAttribute", "x1", p.x)
-		p.l.Call("setAttribute", "y1", p.y)
-		p.l.Call("setAttribute", "x2", x)
-		p.l.Call("setAttribute", "y2", y)
-	}
-	p.l.Call("setAttribute", "stroke", activeColour)
-	p.l.Call("setAttribute", "stroke-width", lineWidth)
-
-	// Another circ
-	p.c = makeSVGElement("circle")
-	diagramSVG.Call("appendChild", p.c)
+	p.l.Call("setAttribute", "x2", x)
+	p.l.Call("setAttribute", "y2", y)
 	p.c.Call("setAttribute", "cx", x)
 	p.c.Call("setAttribute", "cy", y)
-	p.c.Call("setAttribute", "r", pinRadius)
-	p.c.Call("setAttribute", "fill", "transparent")
 	p.c.Call("setAttribute", "stroke", activeColour)
-	p.c.Call("setAttribute", "stroke-width", lineWidth)
+	p.l.Call("setAttribute", "stroke", activeColour)
+	p.c.Call("setAttribute", "display", "")
+	p.l.Call("setAttribute", "display", "")
 }
 
 func (p *Pin) dragTo(e *js.Object) {
@@ -149,123 +210,48 @@ func (p *Pin) dragTo(e *js.Object) {
 	d, q := graph.nearestPin(x, y)
 	// Don't connect P to itself, snap to near the pointer, connect inputs to outputs.
 	if p != q && d < snapQuad {
-		// Try to snap to q.
-		if p.Type != q.Type {
-			// TODO: complain about type mismatch
+
+		if err := p.connectTo(q); err != nil {
+			// TODO: complain to user via message
 			p.circ.Call("setAttribute", "fill", errorColour)
 			p.l.Call("setAttribute", "stroke", errorColour)
 			p.c.Call("setAttribute", "stroke", errorColour)
-		} else if ch := graph.PinJoin[q]; ch != nil {
-			// Pin's already connected to a channel of matching type; find or create a steiner point
-			x, y = p.x, p.y
-			for t := range ch.Pins {
-				x += t.x
-				y += t.y
-			}
-			n := float64(len(ch.Pins) + 1)
-			x /= n
-			y /= n
-
-			if ch.steiner == nil {
-				ch.steiner = makeSVGElement("circle")
-				diagramSVG.Call("appendChild", ch.steiner)
-			}
-			ch.steiner.Call("setAttribute", "fill", activeColour)
-			ch.steiner.Call("setAttribute", "cx", x)
-			ch.steiner.Call("setAttribute", "cy", y)
-			ch.steiner.Call("setAttribute", "r", pinRadius)
-
-			for t := range ch.Pins {
-				if t.input {
-					t.l.Call("setAttribute", "x2", x)
-					t.l.Call("setAttribute", "y2", y)
-				} else {
-					t.l.Call("setAttribute", "x1", x)
-					t.l.Call("setAttribute", "y1", y)
-				}
-				t.l.Call("setAttribute", "stroke", activeColour)
-			}
-
-		} else if p.input == q.input || p.node == q.node {
-			// Don't allow simple mistakes when creating simple channels.
-			// TODO: complain about type or i/o mismatch or existing connection with some text
-			p.circ.Call("setAttribute", "fill", errorColour)
-			p.l.Call("setAttribute", "stroke", errorColour)
-			p.c.Call("setAttribute", "stroke", errorColour)
+			p.c.Call("setAttribute", "display", "")
 		} else {
-			// Snap to q.
-			x, y = q.x, q.y
+			// Snap to q.ch.
+			x, y = q.ch.x, q.ch.y
 
 			// Valid snap - ensure the colour is active.
-			p.circ.Call("setAttribute", "fill", activeColour)
-			p.l.Call("setAttribute", "stroke", activeColour)
-			p.c.Call("setAttribute", "stroke", activeColour)
-
-			// Update what snapped to?
-			if p.cd != q {
-				// Snapped to something previously?
-				if p.cd != nil {
-					p.cd.circ.Call("setAttribute", "fill", normalColour)
-				}
-				q.circ.Call("setAttribute", "fill", activeColour)
-				p.cd = q
-			}
+			p.ch.setColour(activeColour)
+			p.c.Call("setAttribute", "display", "none")
 		}
 	} else {
 		// Nothing nearby - use active colour and unsnap if necessary.
+		if p.ch != nil {
+			p.ch.setColour(normalColour)
+			p.disconnect()
+		}
+
 		p.circ.Call("setAttribute", "fill", activeColour)
 		p.l.Call("setAttribute", "stroke", activeColour)
 		p.c.Call("setAttribute", "stroke", activeColour)
-		if p.cd != nil {
-			p.cd.circ.Call("setAttribute", "fill", normalColour)
-			p.cd = nil
-		}
+		p.c.Call("setAttribute", "display", "")
 	}
 
-	if p.input {
-		p.l.Call("setAttribute", "x1", x)
-		p.l.Call("setAttribute", "y1", y)
-	} else {
-		p.l.Call("setAttribute", "x2", x)
-		p.l.Call("setAttribute", "y2", y)
-	}
+	p.l.Call("setAttribute", "x2", x)
+	p.l.Call("setAttribute", "y2", y)
 	p.c.Call("setAttribute", "cx", x)
 	p.c.Call("setAttribute", "cy", y)
 }
 
 func (p *Pin) drop(e *js.Object) {
 	p.circ.Call("setAttribute", "fill", normalColour)
-	diagramSVG.Call("removeChild", p.c)
-	p.c = nil
-	if p.cd == nil {
-		diagramSVG.Call("removeChild", p.l)
-		p.l = nil
+	p.c.Call("setAttribute", "display", "none")
+	if p.ch == nil {
+		p.l.Call("setAttribute", "display", "none")
 		return
 	}
-	// TODO: handle dropping onto channel steiner points
-
-	p.cd.circ.Call("setAttribute", "fill", normalColour)
-	p.l.Call("setAttribute", "stroke", normalColour)
-
-	ch := &Channel{
-		Type: p.Type,
-		Pins: map[*Pin]struct{}{
-			p:    struct{}{},
-			p.cd: struct{}{},
-		},
-
-		x: (p.x + p.cd.x) / 2,
-		y: (p.y + p.cd.y) / 2,
-	}
-	graph.PinJoin[p] = ch
-	graph.PinJoin[p.cd] = ch
-	graph.Channels[ch] = struct{}{}
-	p.l.Call("addEventListener", "click", func(e *js.Object) {
-		js.Global.Get("console").Call("log", fmt.Sprintf("channel clicked [%#v]", ch))
-	})
-
-	p.cd.l = p.l
-	p.cd = nil
+	p.ch.setColour(normalColour)
 }
 
 func (p *Pin) makePinElement(n *Node) *js.Object {
@@ -274,6 +260,20 @@ func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.circ.Call("setAttribute", "r", pinRadius)
 	p.circ.Call("setAttribute", "fill", normalColour)
 	p.circ.Call("addEventListener", "mousedown", p.dragStart)
+
+	// Line
+	p.l = makeSVGElement("line")
+	diagramSVG.Call("appendChild", p.l)
+	p.l.Call("setAttribute", "stroke-width", lineWidth)
+	p.l.Call("setAttribute", "display", "none")
+
+	// Another circ
+	p.c = makeSVGElement("circle")
+	diagramSVG.Call("appendChild", p.c)
+	p.c.Call("setAttribute", "r", pinRadius)
+	p.c.Call("setAttribute", "fill", "transparent")
+	p.c.Call("setAttribute", "stroke-width", lineWidth)
+	p.c.Call("setAttribute", "display", "none")
 	return p.circ
 }
 
@@ -339,29 +339,14 @@ func (n *Node) moveTo(x, y float64) {
 }
 
 func (n *Node) updatePinPositions() {
-	update := func(p *Pin, x, y float64) {
-		p.circ.Call("setAttribute", "cx", x)
-		p.circ.Call("setAttribute", "cy", y)
-		p.x, p.y = x+n.X, y+n.Y
-		if p.l != nil {
-			if p.input {
-				p.l.Call("setAttribute", "x2", p.x)
-				p.l.Call("setAttribute", "y2", p.y)
-			} else {
-				p.l.Call("setAttribute", "x1", p.x)
-				p.l.Call("setAttribute", "y1", p.y)
-			}
-		}
-	}
-
 	isp := nodeWidth / float64(len(n.Inputs)+1)
 	for i, p := range n.Inputs {
-		update(p, isp*float64(i+1), float64(-pinRadius))
+		p.setPos(isp*float64(i+1), float64(-pinRadius))
 	}
 
 	osp := nodeWidth / float64(len(n.Outputs)+1)
 	for i, p := range n.Outputs {
-		update(p, osp*float64(i+1), float64(nodeHeight+pinRadius))
+		p.setPos(osp*float64(i+1), float64(nodeHeight+pinRadius))
 	}
 }
 
@@ -375,12 +360,50 @@ type Channel struct {
 	x, y    float64    // centre of steiner point
 }
 
+func (c *Channel) reposition() {
+	if len(c.Pins) < 2 {
+		// Not actually a channel anymore - hide.
+		c.steiner.Call("setAttribute", "display", "none")
+		for t := range c.Pins {
+			t.c.Call("setAttribute", "display", "none")
+			t.l.Call("setAttribute", "display", "none")
+		}
+		return
+	}
+	c.x, c.y = 0, 0
+	for t := range c.Pins {
+		c.x += t.x
+		c.y += t.y
+	}
+	n := float64(len(c.Pins))
+	c.x /= n
+	c.y /= n
+	c.steiner.Call("setAttribute", "cx", c.x)
+	c.steiner.Call("setAttribute", "cy", c.y)
+	for t := range c.Pins {
+		t.l.Call("setAttribute", "x2", c.x)
+		t.l.Call("setAttribute", "y2", c.y)
+	}
+	disp := ""
+	if len(c.Pins) == 2 {
+		disp = "none"
+	}
+	c.steiner.Call("setAttribute", "display", disp)
+}
+
+func (c *Channel) setColour(col string) {
+	c.steiner.Call("setAttribute", "fill", col)
+	for t := range c.Pins {
+		t.circ.Call("setAttribute", "fill", col)
+		t.l.Call("setAttribute", "stroke", col)
+	}
+}
+
 type Graph struct {
 	Nodes []Node
 	// Channels: simple & complex
 
 	Channels map[*Channel]struct{}
-	PinJoin  map[*Pin]*Channel
 }
 
 func (g *Graph) nearestPin(x, y float64) (quad float64, pin *Pin) {

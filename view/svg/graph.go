@@ -117,7 +117,7 @@ func (p *Pin) connectTo(q interface{}) error {
 			return p.connectTo(q.ch)
 		}
 		if p.input == q.input {
-			return errors.New("both pins have same direction")
+			return errors.New("both pins have the same direction")
 		}
 		if p.node == q.node {
 			return errors.New("both pins are on the same goroutine")

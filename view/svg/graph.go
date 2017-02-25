@@ -494,15 +494,15 @@ func (c *Channel) dragTo(e *js.Object) {
 func (c *Channel) drop(e *js.Object) {
 	// TODO: drag from channel
 	c.setColour(normalColour)
-	if c.p == nil {
-		c.c.Call("setAttribute", "display", "none")
-		c.l.Call("setAttribute", "display", "none")
-		if len(c.Pins) <= 2 {
-			c.steiner.Call("setAttribute", "display", "none")
-		}
+	if c.p != nil {
+		c.p = nil
 		return
 	}
-	c.p = nil
+	c.c.Call("setAttribute", "display", "none")
+	c.l.Call("setAttribute", "display", "none")
+	if len(c.Pins) <= 2 {
+		c.steiner.Call("setAttribute", "display", "none")
+	}
 }
 
 func (c *Channel) reposition() {

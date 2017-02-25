@@ -16248,12 +16248,22 @@ $packages["fmt"] = (function() {
 	return $pkg;
 })();
 $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
-	var $pkg = {}, $init, errors, fmt, js, math, Point, Pin, Node, Channel, Graph, sliceType, ptrType, sliceType$1, ptrType$1, ptrType$2, sliceType$2, structType, ptrType$3, funcType, mapType, ptrType$4, mapType$1, document, diagramSVG, svgNS, currentThingy, graph, makeSVGElement, cursorPos, newChannel, mouseMove, mouseUp, main;
+	var $pkg = {}, $init, errors, fmt, js, math, Point, ephemeral, Pin, Node, Channel, Graph, sliceType, ptrType, sliceType$1, ptrType$1, ptrType$2, sliceType$2, structType, ptrType$3, funcType, mapType, ptrType$4, mapType$1, document, diagramSVG, svgNS, currentThingy, graph, makeSVGElement, cursorPos, newChannel, mouseMove, mouseUp, main;
 	errors = $packages["errors"];
 	fmt = $packages["fmt"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
 	math = $packages["math"];
 	Point = $pkg.Point = $newType(8, $kindInterface, "main.Point", true, "github.com/google/shenzhen-go/view/svg", true, null);
+	ephemeral = $pkg.ephemeral = $newType(0, $kindStruct, "main.ephemeral", true, "github.com/google/shenzhen-go/view/svg", false, function(x_, y_) {
+		this.$val = this;
+		if (arguments.length === 0) {
+			this.x = 0;
+			this.y = 0;
+			return;
+		}
+		this.x = x_;
+		this.y = y_;
+	});
 	Pin = $pkg.Pin = $newType(0, $kindStruct, "main.Pin", true, "github.com/google/shenzhen-go/view/svg", true, function(Name_, Type_, input_, node_, l_, x_, y_, circ_, c_, ch_) {
 		this.$val = this;
 		if (arguments.length === 0) {
@@ -16365,6 +16375,18 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		y = $parseFloat(e.clientY) - $parseFloat(bcr.top);
 		return [x, y];
 	};
+	ephemeral.ptr.prototype.Pt = function() {
+		var $ptr, _tmp, _tmp$1, e, x, y;
+		x = 0;
+		y = 0;
+		e = this;
+		_tmp = e.x;
+		_tmp$1 = e.y;
+		x = _tmp;
+		y = _tmp$1;
+		return [x, y];
+	};
+	ephemeral.prototype.Pt = function() { return this.$val.Pt(); };
 	Pin.ptr.prototype.connectTo = function(q) {
 		var $ptr, _key, _key$1, _r, _r$1, _r$2, _ref, _tmp, _tmp$1, ch, p, q, q$1, q$2, $s, $r;
 		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _key = $f._key; _key$1 = $f._key$1; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _ref = $f._ref; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; ch = $f.ch; p = $f.p; q = $f.q; q$1 = $f.q$1; q$2 = $f.q$2; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
@@ -16375,21 +16397,23 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		/* */ $s = 3; continue;
 		/* if ($assertType(_ref, ptrType, true)[1]) { */ case 1:
 			q$1 = _ref.$val;
-			if (!(p.ch === ptrType$2.nil) && !(p.ch === q$1.ch)) {
-				p.disconnect();
-			}
-			/* */ if (!(q$1.Type === p.Type)) { $s = 4; continue; }
+			/* */ if (!(p.ch === ptrType$2.nil) && !(p.ch === q$1.ch)) { $s = 4; continue; }
 			/* */ $s = 5; continue;
-			/* if (!(q$1.Type === p.Type)) { */ case 4:
-				_r = fmt.Errorf("mismatching types [%s != %s]", new sliceType$2([new $String(p.Type), new $String(q$1.Type)])); /* */ $s = 6; case 6: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
-				$s = -1; return _r;
+			/* if (!(p.ch === ptrType$2.nil) && !(p.ch === q$1.ch)) { */ case 4:
+				$r = p.disconnect(); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			/* } */ case 5:
-			/* */ if (!(q$1.ch === ptrType$2.nil)) { $s = 7; continue; }
+			/* */ if (!(q$1.Type === p.Type)) { $s = 7; continue; }
 			/* */ $s = 8; continue;
-			/* if (!(q$1.ch === ptrType$2.nil)) { */ case 7:
-				_r$1 = p.connectTo(q$1.ch); /* */ $s = 9; case 9: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-				$s = -1; return _r$1;
+			/* if (!(q$1.Type === p.Type)) { */ case 7:
+				_r = fmt.Errorf("mismatching types [%s != %s]", new sliceType$2([new $String(p.Type), new $String(q$1.Type)])); /* */ $s = 9; case 9: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+				$s = -1; return _r;
 			/* } */ case 8:
+			/* */ if (!(q$1.ch === ptrType$2.nil)) { $s = 10; continue; }
+			/* */ $s = 11; continue;
+			/* if (!(q$1.ch === ptrType$2.nil)) { */ case 10:
+				_r$1 = p.connectTo(q$1.ch); /* */ $s = 12; case 12: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+				$s = -1; return _r$1;
+			/* } */ case 11:
 			if (p.input === q$1.input) {
 				$s = -1; return errors.New("both pins have the same direction");
 			}
@@ -16397,7 +16421,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 				$s = -1; return errors.New("both pins are on the same goroutine");
 			}
 			ch = newChannel(p, q$1);
-			ch.reposition();
+			$r = ch.reposition($ifaceNil); /* */ $s = 13; case 13: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			_tmp = ch;
 			_tmp$1 = ch;
 			p.ch = _tmp;
@@ -16407,32 +16431,35 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			$s = 3; continue;
 		/* } else if ($assertType(_ref, ptrType$2, true)[1]) { */ case 2:
 			q$2 = _ref.$val;
-			if (!(p.ch === ptrType$2.nil) && !(p.ch === q$2)) {
-				p.disconnect();
-			}
-			/* */ if (!(q$2.Type === p.Type)) { $s = 10; continue; }
-			/* */ $s = 11; continue;
-			/* if (!(q$2.Type === p.Type)) { */ case 10:
-				_r$2 = fmt.Errorf("mismatching types [%s != %s]", new sliceType$2([new $String(p.Type), new $String(q$2.Type)])); /* */ $s = 12; case 12: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+			/* */ if (!(p.ch === ptrType$2.nil) && !(p.ch === q$2)) { $s = 14; continue; }
+			/* */ $s = 15; continue;
+			/* if (!(p.ch === ptrType$2.nil) && !(p.ch === q$2)) { */ case 14:
+				$r = p.disconnect(); /* */ $s = 16; case 16: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			/* } */ case 15:
+			/* */ if (!(q$2.Type === p.Type)) { $s = 17; continue; }
+			/* */ $s = 18; continue;
+			/* if (!(q$2.Type === p.Type)) { */ case 17:
+				_r$2 = fmt.Errorf("mismatching types [%s != %s]", new sliceType$2([new $String(p.Type), new $String(q$2.Type)])); /* */ $s = 19; case 19: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
 				$s = -1; return _r$2;
-			/* } */ case 11:
+			/* } */ case 18:
 			p.ch = q$2;
 			_key$1 = p; (q$2.Pins || $throwRuntimeError("assignment to entry in nil map"))[ptrType.keyFor(_key$1)] = { k: _key$1, v: new structType.ptr() };
-			q$2.reposition();
+			$r = q$2.reposition($ifaceNil); /* */ $s = 20; case 20: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		/* } */ case 3:
 		$s = -1; return $ifaceNil;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: Pin.ptr.prototype.connectTo }; } $f.$ptr = $ptr; $f._key = _key; $f._key$1 = _key$1; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._ref = _ref; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f.ch = ch; $f.p = p; $f.q = q; $f.q$1 = q$1; $f.q$2 = q$2; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Pin.prototype.connectTo = function(q) { return this.$val.connectTo(q); };
 	Pin.ptr.prototype.disconnect = function() {
-		var $ptr, _entry, _i, _keys, _ref, p, q;
+		var $ptr, _entry, _i, _keys, _ref, p, q, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _entry = $f._entry; _i = $f._i; _keys = $f._keys; _ref = $f._ref; p = $f.p; q = $f.q; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		p = this;
 		if (p.ch === ptrType$2.nil) {
-			return;
+			$s = -1; return;
 		}
 		delete p.ch.Pins[ptrType.keyFor(p)];
 		p.ch.setColour("#000");
-		p.ch.reposition();
+		$r = p.ch.reposition($ifaceNil); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		if ($keys(p.ch.Pins).length < 2) {
 			_ref = p.ch.Pins;
 			_i = 0;
@@ -16451,10 +16478,13 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			delete graph.Channels[ptrType$2.keyFor(p.ch)];
 		}
 		p.ch = ptrType$2.nil;
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Pin.ptr.prototype.disconnect }; } $f.$ptr = $ptr; $f._entry = _entry; $f._i = _i; $f._keys = _keys; $f._ref = _ref; $f.p = p; $f.q = q; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Pin.prototype.disconnect = function() { return this.$val.disconnect(); };
 	Pin.ptr.prototype.setPos = function(rx, ry) {
-		var $ptr, _tmp, _tmp$1, p, rx, ry;
+		var $ptr, _tmp, _tmp$1, p, rx, ry, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; p = $f.p; rx = $f.rx; ry = $f.ry; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		p = this;
 		p.circ.setAttribute($externalize("cx", $String), rx);
 		p.circ.setAttribute($externalize("cy", $String), ry);
@@ -16466,10 +16496,14 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			p.l.setAttribute($externalize("x1", $String), p.x);
 			p.l.setAttribute($externalize("y1", $String), p.y);
 		}
-		if (!(p.ch === ptrType$2.nil)) {
-			p.ch.reposition();
+		/* */ if (!(p.ch === ptrType$2.nil)) { $s = 1; continue; }
+		/* */ $s = 2; continue;
+		/* if (!(p.ch === ptrType$2.nil)) { */ case 1:
+			$r = p.ch.reposition($ifaceNil); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			p.ch.commit();
-		}
+		/* } */ case 2:
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Pin.ptr.prototype.setPos }; } $f.$ptr = $ptr; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f.p = p; $f.rx = rx; $f.ry = ry; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Pin.prototype.setPos = function(rx, ry) { return this.$val.setPos(rx, ry); };
 	Pin.ptr.prototype.Pt = function() {
@@ -16536,30 +16570,38 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_tuple$1 = _r;
 		d = _tuple$1[0];
 		q = _tuple$1[1];
-		if ($interfaceIsEqual(p[0], q) || d >= 256) {
-			if (!(p[0].ch === ptrType$2.nil)) {
+		/* */ if ($interfaceIsEqual(p[0], q) || d >= 256) { $s = 2; continue; }
+		/* */ $s = 3; continue;
+		/* if ($interfaceIsEqual(p[0], q) || d >= 256) { */ case 2:
+			/* */ if (!(p[0].ch === ptrType$2.nil)) { $s = 4; continue; }
+			/* */ $s = 5; continue;
+			/* if (!(p[0].ch === ptrType$2.nil)) { */ case 4:
 				p[0].ch.setColour("#000");
-				p[0].disconnect();
-			}
+				$r = p[0].disconnect(); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			/* } */ case 5:
 			p[0].circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
 			p[0].l.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
 			p[0].c.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
 			p[0].c.setAttribute($externalize("display", $String), $externalize("", $String));
 			$s = -1; return;
-		}
-		_r$1 = p[0].connectTo(q); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		/* } */ case 3:
+		_r$1 = p[0].connectTo(q); /* */ $s = 7; case 7: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
 		err = _r$1;
-		if (!($interfaceIsEqual(err, $ifaceNil))) {
-			if (!(p[0].ch === ptrType$2.nil)) {
+		/* */ if (!($interfaceIsEqual(err, $ifaceNil))) { $s = 8; continue; }
+		/* */ $s = 9; continue;
+		/* if (!($interfaceIsEqual(err, $ifaceNil))) { */ case 8:
+			/* */ if (!(p[0].ch === ptrType$2.nil)) { $s = 10; continue; }
+			/* */ $s = 11; continue;
+			/* if (!(p[0].ch === ptrType$2.nil)) { */ case 10:
 				p[0].ch.setColour("#000");
-				p[0].disconnect();
-			}
+				$r = p[0].disconnect(); /* */ $s = 12; case 12: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			/* } */ case 11:
 			p[0].circ.setAttribute($externalize("fill", $String), $externalize("#f06", $String));
 			p[0].l.setAttribute($externalize("stroke", $String), $externalize("#f06", $String));
 			p[0].c.setAttribute($externalize("stroke", $String), $externalize("#f06", $String));
 			p[0].c.setAttribute($externalize("display", $String), $externalize("", $String));
 			$s = -1; return;
-		}
+		/* } */ case 9:
 		_ref = q;
 		if ($assertType(_ref, ptrType, true)[1]) {
 			q$1 = _ref.$val;
@@ -16652,7 +16694,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			g.appendChild(p$1.makePinElement(n));
 			_i$1++;
 		}
-		n.updatePinPositions();
+		$r = n.updatePinPositions(); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		n.g = g;
 		$s = -1; return;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: Node.ptr.prototype.makeNodeElement }; } $f.$ptr = $ptr; $f._i = _i; $f._i$1 = _i$1; $f._r = _r; $f._ref = _ref; $f._ref$1 = _ref$1; $f.g = g; $f.n = n; $f.p = p; $f.p$1 = p$1; $f.rect = rect; $f.text = text; $f.$s = $s; $f.$r = $r; return $f;
@@ -16670,7 +16712,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	Node.prototype.mouseDown = function(e) { return this.$val.mouseDown(e); };
 	Node.ptr.prototype.moveTo = function(x, y) {
-		var $ptr, _tmp, _tmp$1, n, tf, x, y;
+		var $ptr, _tmp, _tmp$1, n, tf, x, y, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; n = $f.n; tf = $f.tf; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		n = this;
 		tf = n.g.transform.baseVal.getItem(0).matrix;
 		tf.e = x;
@@ -16679,32 +16722,37 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_tmp$1 = y;
 		n.X = _tmp;
 		n.Y = _tmp$1;
-		n.updatePinPositions();
+		$r = n.updatePinPositions(); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Node.ptr.prototype.moveTo }; } $f.$ptr = $ptr; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f.n = n; $f.tf = tf; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Node.prototype.moveTo = function(x, y) { return this.$val.moveTo(x, y); };
 	Node.ptr.prototype.updatePinPositions = function() {
-		var $ptr, _i, _i$1, _ref, _ref$1, i, i$1, isp, n, osp, p, p$1;
+		var $ptr, _i, _i$1, _ref, _ref$1, i, i$1, isp, n, osp, p, p$1, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _i = $f._i; _i$1 = $f._i$1; _ref = $f._ref; _ref$1 = $f._ref$1; i = $f.i; i$1 = $f.i$1; isp = $f.isp; n = $f.n; osp = $f.osp; p = $f.p; p$1 = $f.p$1; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		n = this;
 		isp = 160 / (n.Inputs.$length + 1 >> 0);
 		_ref = n.Inputs;
 		_i = 0;
-		while (true) {
-			if (!(_i < _ref.$length)) { break; }
+		/* while (true) { */ case 1:
+			/* if (!(_i < _ref.$length)) { break; } */ if(!(_i < _ref.$length)) { $s = 2; continue; }
 			i = _i;
 			p = ((_i < 0 || _i >= _ref.$length) ? ($throwRuntimeError("index out of range"), undefined) : _ref.$array[_ref.$offset + _i]);
-			p.setPos(isp * (i + 1 >> 0), -5);
+			$r = p.setPos(isp * (i + 1 >> 0), -5); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			_i++;
-		}
+		/* } */ $s = 1; continue; case 2:
 		osp = 160 / (n.Outputs.$length + 1 >> 0);
 		_ref$1 = n.Outputs;
 		_i$1 = 0;
-		while (true) {
-			if (!(_i$1 < _ref$1.$length)) { break; }
+		/* while (true) { */ case 4:
+			/* if (!(_i$1 < _ref$1.$length)) { break; } */ if(!(_i$1 < _ref$1.$length)) { $s = 5; continue; }
 			i$1 = _i$1;
 			p$1 = ((_i$1 < 0 || _i$1 >= _ref$1.$length) ? ($throwRuntimeError("index out of range"), undefined) : _ref$1.$array[_ref$1.$offset + _i$1]);
-			p$1.setPos(osp * (i$1 + 1 >> 0), 55);
+			$r = p$1.setPos(osp * (i$1 + 1 >> 0), 55); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			_i$1++;
-		}
+		/* } */ $s = 4; continue; case 5:
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Node.ptr.prototype.updatePinPositions }; } $f.$ptr = $ptr; $f._i = _i; $f._i$1 = _i$1; $f._ref = _ref; $f._ref$1 = _ref$1; $f.i = i; $f.i$1 = i$1; $f.isp = isp; $f.n = n; $f.osp = osp; $f.p = p; $f.p$1 = p$1; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Node.prototype.updatePinPositions = function() { return this.$val.updatePinPositions(); };
 	newChannel = function(p, q) {
@@ -16764,99 +16812,115 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	Channel.prototype.dragStart = function(e) { return this.$val.dragStart(e); };
 	Channel.ptr.prototype.dragTo = function(e) {
-		var $ptr, _r, _r$1, _tuple, _tuple$1, _tuple$2, c, d, e, err, p, q, x, y, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; _tuple$2 = $f._tuple$2; c = $f.c; d = $f.d; e = $f.e; err = $f.err; p = $f.p; q = $f.q; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		c = this;
+		var $ptr, _r, _r$1, _tuple, _tuple$1, _tuple$2, c, d, e, err, noSnap, p, q, x, y, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; _tuple$2 = $f._tuple$2; c = $f.c; d = $f.d; e = $f.e; err = $f.err; noSnap = $f.noSnap; p = $f.p; q = $f.q; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		c = [c];
+		x = [x];
+		y = [y];
+		c[0] = this;
 		_tuple = cursorPos(e);
-		x = _tuple[0];
-		y = _tuple[1];
-		c.steiner.setAttribute($externalize("display", $String), $externalize("", $String));
-		c.l.setAttribute($externalize("x1", $String), x);
-		c.l.setAttribute($externalize("y1", $String), y);
-		c.c.setAttribute($externalize("cx", $String), x);
-		c.c.setAttribute($externalize("cy", $String), y);
-		_r = graph.nearestPoint(x, y); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+		x[0] = _tuple[0];
+		y[0] = _tuple[1];
+		c[0].steiner.setAttribute($externalize("display", $String), $externalize("", $String));
+		c[0].l.setAttribute($externalize("x1", $String), x[0]);
+		c[0].l.setAttribute($externalize("y1", $String), y[0]);
+		c[0].c.setAttribute($externalize("cx", $String), x[0]);
+		c[0].c.setAttribute($externalize("cy", $String), y[0]);
+		_r = graph.nearestPoint(x[0], y[0]); /* */ $s = 1; case 1: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
 		_tuple$1 = _r;
 		d = _tuple$1[0];
 		q = _tuple$1[1];
 		_tuple$2 = $assertType(q, ptrType, true);
 		p = _tuple$2[0];
-		if (!(p === ptrType.nil) && p === c.p && d < 256) {
+		if (!(p === ptrType.nil) && p === c[0].p && d < 256) {
 			$s = -1; return;
 		}
-		if (d >= 256 || $interfaceIsEqual(q, c) || (!(p === ptrType.nil) && p.ch === c)) {
-			if (!(c.p === ptrType.nil)) {
-				c.p.disconnect();
-				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
-				c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
-				c.p = ptrType.nil;
-			}
-			c.setColour("#09f");
-			c.c.setAttribute($externalize("display", $String), $externalize("", $String));
-			c.l.setAttribute($externalize("display", $String), $externalize("", $String));
+		noSnap = (function(c, x, y) { return function $b() {
+			var $ptr, x$1, $s, $r;
+			/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; x$1 = $f.x$1; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+			/* */ if (!(c[0].p === ptrType.nil)) { $s = 1; continue; }
+			/* */ $s = 2; continue;
+			/* if (!(c[0].p === ptrType.nil)) { */ case 1:
+				$r = c[0].p.disconnect(); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+				c[0].p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+				c[0].p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
+				c[0].p = ptrType.nil;
+			/* } */ case 2:
+			c[0].c.setAttribute($externalize("display", $String), $externalize("", $String));
+			c[0].l.setAttribute($externalize("display", $String), $externalize("", $String));
+			$r = c[0].reposition((x$1 = new ephemeral.ptr(x[0], y[0]), new x$1.constructor.elem(x$1))); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			$s = -1; return;
-		}
-		if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) {
-			if (!(c.p === ptrType.nil)) {
-				c.p.disconnect();
-				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
-				c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
-				c.p = ptrType.nil;
-			}
-			c.setColour("#f06");
-			c.c.setAttribute($externalize("display", $String), $externalize("", $String));
-			c.l.setAttribute($externalize("display", $String), $externalize("", $String));
+			/* */ } return; } if ($f === undefined) { $f = { $blk: $b }; } $f.$ptr = $ptr; $f.x$1 = x$1; $f.$s = $s; $f.$r = $r; return $f;
+		}; })(c, x, y);
+		/* */ if (d >= 256 || $interfaceIsEqual(q, c[0]) || (!(p === ptrType.nil) && p.ch === c[0])) { $s = 2; continue; }
+		/* */ $s = 3; continue;
+		/* if (d >= 256 || $interfaceIsEqual(q, c[0]) || (!(p === ptrType.nil) && p.ch === c[0])) { */ case 2:
+			$r = noSnap(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			c[0].setColour("#09f");
 			$s = -1; return;
-		}
-		_r$1 = p.connectTo(c); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+		/* } */ case 3:
+		/* */ if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) { $s = 5; continue; }
+		/* */ $s = 6; continue;
+		/* if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) { */ case 5:
+			$r = noSnap(); /* */ $s = 7; case 7: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			c[0].setColour("#f06");
+			$s = -1; return;
+		/* } */ case 6:
+		_r$1 = p.connectTo(c[0]); /* */ $s = 8; case 8: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
 		err = _r$1;
-		if (!($interfaceIsEqual(err, $ifaceNil))) {
-			if (!(c.p === ptrType.nil)) {
-				c.p.disconnect();
-				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
-				c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
-				c.p = ptrType.nil;
-			}
-			c.setColour("#f06");
-			c.c.setAttribute($externalize("display", $String), $externalize("", $String));
-			c.l.setAttribute($externalize("display", $String), $externalize("", $String));
+		/* */ if (!($interfaceIsEqual(err, $ifaceNil))) { $s = 9; continue; }
+		/* */ $s = 10; continue;
+		/* if (!($interfaceIsEqual(err, $ifaceNil))) { */ case 9:
+			$r = noSnap(); /* */ $s = 11; case 11: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			c[0].setColour("#f06");
 			$s = -1; return;
-		}
-		if (!(c.p === ptrType.nil) && !(c.p === p)) {
-			c.p.disconnect();
-			c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
-			c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
-			c.p = ptrType.nil;
-		}
-		c.p = p;
+		/* } */ case 10:
+		/* */ if (!(c[0].p === ptrType.nil) && !(c[0].p === p)) { $s = 12; continue; }
+		/* */ $s = 13; continue;
+		/* if (!(c[0].p === ptrType.nil) && !(c[0].p === p)) { */ case 12:
+			$r = c[0].p.disconnect(); /* */ $s = 14; case 14: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			c[0].p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+			c[0].p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
+			c[0].p = ptrType.nil;
+		/* } */ case 13:
+		c[0].p = p;
 		p.l.setAttribute($externalize("display", $String), $externalize("", $String));
-		c.setColour("#09f");
-		c.l.setAttribute($externalize("display", $String), $externalize("none", $String));
-		c.c.setAttribute($externalize("display", $String), $externalize("none", $String));
+		c[0].setColour("#09f");
+		c[0].l.setAttribute($externalize("display", $String), $externalize("none", $String));
+		c[0].c.setAttribute($externalize("display", $String), $externalize("none", $String));
 		$s = -1; return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.dragTo }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f._tuple$2 = _tuple$2; $f.c = c; $f.d = d; $f.e = e; $f.err = err; $f.p = p; $f.q = q; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.dragTo }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f._tuple$2 = _tuple$2; $f.c = c; $f.d = d; $f.e = e; $f.err = err; $f.noSnap = noSnap; $f.p = p; $f.q = q; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Channel.prototype.dragTo = function(e) { return this.$val.dragTo(e); };
 	Channel.ptr.prototype.drop = function(e) {
-		var $ptr, c, e;
+		var $ptr, c, e, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; c = $f.c; e = $f.e; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		c = this;
+		$r = c.reposition($ifaceNil); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		c.commit();
 		c.setColour("#000");
 		if (!(c.p === ptrType.nil)) {
 			c.p = ptrType.nil;
-			return;
+			$s = -1; return;
 		}
 		c.c.setAttribute($externalize("display", $String), $externalize("none", $String));
 		c.l.setAttribute($externalize("display", $String), $externalize("none", $String));
 		if ($keys(c.Pins).length <= 2) {
 			c.steiner.setAttribute($externalize("display", $String), $externalize("none", $String));
 		}
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.drop }; } $f.$ptr = $ptr; $f.c = c; $f.e = e; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Channel.prototype.drop = function(e) { return this.$val.drop(e); };
-	Channel.ptr.prototype.reposition = function() {
-		var $ptr, _entry, _entry$1, _entry$2, _i, _i$1, _i$2, _keys, _keys$1, _keys$2, _ref, _ref$1, _ref$2, _tmp, _tmp$1, c, disp, n, t, t$1, t$2;
+	Channel.ptr.prototype.reposition = function(additional) {
+		var $ptr, _entry, _entry$1, _entry$2, _i, _i$1, _i$2, _keys, _keys$1, _keys$2, _r, _ref, _ref$1, _ref$2, _tmp, _tmp$1, _tuple, additional, c, disp, n, np, t, t$1, t$2, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _entry = $f._entry; _entry$1 = $f._entry$1; _entry$2 = $f._entry$2; _i = $f._i; _i$1 = $f._i$1; _i$2 = $f._i$2; _keys = $f._keys; _keys$1 = $f._keys$1; _keys$2 = $f._keys$2; _r = $f._r; _ref = $f._ref; _ref$1 = $f._ref$1; _ref$2 = $f._ref$2; _tmp = $f._tmp; _tmp$1 = $f._tmp$1; _tuple = $f._tuple; additional = $f.additional; c = $f.c; disp = $f.disp; n = $f.n; np = $f.np; t = $f.t; t$1 = $f.t$1; t$2 = $f.t$2; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		c = this;
-		if ($keys(c.Pins).length < 2) {
+		np = $keys(c.Pins).length;
+		if (!($interfaceIsEqual(additional, $ifaceNil))) {
+			np = np + (1) >> 0;
+		}
+		if (np < 2) {
 			c.steiner.setAttribute($externalize("display", $String), $externalize("none", $String));
 			_ref = c.Pins;
 			_i = 0;
@@ -16873,12 +16937,20 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 				t.l.setAttribute($externalize("display", $String), $externalize("none", $String));
 				_i++;
 			}
-			return;
+			$s = -1; return;
 		}
 		_tmp = 0;
 		_tmp$1 = 0;
 		c.tx = _tmp;
 		c.ty = _tmp$1;
+		/* */ if (!($interfaceIsEqual(additional, $ifaceNil))) { $s = 1; continue; }
+		/* */ $s = 2; continue;
+		/* if (!($interfaceIsEqual(additional, $ifaceNil))) { */ case 1:
+			_r = additional.Pt(); /* */ $s = 3; case 3: if($c) { $c = false; _r = _r.$blk(); } if (_r && _r.$blk !== undefined) { break s; }
+			_tuple = _r;
+			c.tx = _tuple[0];
+			c.ty = _tuple[1];
+		/* } */ case 2:
 		_ref$1 = c.Pins;
 		_i$1 = 0;
 		_keys$1 = $keys(_ref$1);
@@ -16894,7 +16966,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			c.ty = c.ty + (t$1.y);
 			_i$1++;
 		}
-		n = $keys(c.Pins).length;
+		n = np;
 		c.tx = c.tx / (n);
 		c.ty = c.ty / (n);
 		c.steiner.setAttribute($externalize("cx", $String), c.tx);
@@ -16917,12 +16989,14 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			_i$2++;
 		}
 		disp = "";
-		if ($keys(c.Pins).length === 2) {
+		if (np <= 2) {
 			disp = "none";
 		}
 		c.steiner.setAttribute($externalize("display", $String), $externalize(disp, $String));
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.reposition }; } $f.$ptr = $ptr; $f._entry = _entry; $f._entry$1 = _entry$1; $f._entry$2 = _entry$2; $f._i = _i; $f._i$1 = _i$1; $f._i$2 = _i$2; $f._keys = _keys; $f._keys$1 = _keys$1; $f._keys$2 = _keys$2; $f._r = _r; $f._ref = _ref; $f._ref$1 = _ref$1; $f._ref$2 = _ref$2; $f._tmp = _tmp; $f._tmp$1 = _tmp$1; $f._tuple = _tuple; $f.additional = additional; $f.c = c; $f.disp = disp; $f.n = n; $f.np = np; $f.t = t; $f.t$1 = t$1; $f.t$2 = t$2; $f.$s = $s; $f.$r = $r; return $f;
 	};
-	Channel.prototype.reposition = function() { return this.$val.reposition(); };
+	Channel.prototype.reposition = function(additional) { return this.$val.reposition(additional); };
 	Channel.ptr.prototype.setColour = function(col) {
 		var $ptr, _entry, _i, _keys, _ref, c, col, t;
 		c = this;
@@ -17036,15 +17110,15 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		/* */ $s = 4; continue;
 		/* if ($assertType(_ref, ptrType$1, true)[1]) { */ case 1:
 			t = _ref.$val;
-			t.moveTo($parseFloat(e.clientX) - t.relX, $parseFloat(e.clientY) - t.relY);
+			$r = t.moveTo($parseFloat(e.clientX) - t.relX, $parseFloat(e.clientY) - t.relY); /* */ $s = 5; case 5: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			$s = 4; continue;
 		/* } else if ($assertType(_ref, ptrType$2, true)[1]) { */ case 2:
 			t$1 = _ref.$val;
-			$r = t$1.dragTo(e); /* */ $s = 5; case 5: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			$r = t$1.dragTo(e); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			$s = 4; continue;
 		/* } else if ($assertType(_ref, ptrType, true)[1]) { */ case 3:
 			t$2 = _ref.$val;
-			$r = t$2.dragTo(e); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			$r = t$2.dragTo(e); /* */ $s = 7; case 7: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		/* } */ case 4:
 		$s = -1; return;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: mouseMove }; } $f.$ptr = $ptr; $f._ref = _ref; $f.e = e; $f.t = t; $f.t$1 = t$1; $f.t$2 = t$2; $f.$s = $s; $f.$r = $r; return $f;
@@ -17057,15 +17131,21 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		}
 		$r = mouseMove(e); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		_ref = currentThingy;
-		if ($assertType(_ref, ptrType$1, true)[1]) {
+		/* */ if ($assertType(_ref, ptrType$1, true)[1]) { $s = 2; continue; }
+		/* */ if ($assertType(_ref, ptrType$2, true)[1]) { $s = 3; continue; }
+		/* */ if ($assertType(_ref, ptrType, true)[1]) { $s = 4; continue; }
+		/* */ $s = 5; continue;
+		/* if ($assertType(_ref, ptrType$1, true)[1]) { */ case 2:
 			t = _ref.$val;
-		} else if ($assertType(_ref, ptrType$2, true)[1]) {
+			$s = 5; continue;
+		/* } else if ($assertType(_ref, ptrType$2, true)[1]) { */ case 3:
 			t$1 = _ref.$val;
-			t$1.drop(e);
-		} else if ($assertType(_ref, ptrType, true)[1]) {
+			$r = t$1.drop(e); /* */ $s = 6; case 6: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			$s = 5; continue;
+		/* } else if ($assertType(_ref, ptrType, true)[1]) { */ case 4:
 			t$2 = _ref.$val;
 			t$2.drop(e);
-		}
+		/* } */ case 5:
 		currentThingy = $ifaceNil;
 		$s = -1; return;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: mouseUp }; } $f.$ptr = $ptr; $f._ref = _ref; $f.e = e; $f.t = t; $f.t$1 = t$1; $f.t$2 = t$2; $f.$s = $s; $f.$r = $r; return $f;
@@ -17086,11 +17166,13 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		$s = -1; return;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: main }; } $f.$ptr = $ptr; $f._i = _i; $f._ref = _ref; $f.n = n; $f.$s = $s; $f.$r = $r; return $f;
 	};
+	ephemeral.methods = [{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}];
 	ptrType.methods = [{prop: "connectTo", name: "connectTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([Point], [$error], false)}, {prop: "disconnect", name: "disconnect", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "setPos", name: "setPos", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [], false)}, {prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}, {prop: "String", name: "String", pkg: "", typ: $funcType([], [$String], false)}, {prop: "dragStart", name: "dragStart", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "dragTo", name: "dragTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "drop", name: "drop", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "makePinElement", name: "makePinElement", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$1], [ptrType$3], false)}];
 	ptrType$1.methods = [{prop: "makeNodeElement", name: "makeNodeElement", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "mouseDown", name: "mouseDown", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "moveTo", name: "moveTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [], false)}, {prop: "updatePinPositions", name: "updatePinPositions", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}];
-	ptrType$2.methods = [{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}, {prop: "commit", name: "commit", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "dragStart", name: "dragStart", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "dragTo", name: "dragTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "drop", name: "drop", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "reposition", name: "reposition", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "setColour", name: "setColour", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$String], [], false)}];
+	ptrType$2.methods = [{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}, {prop: "commit", name: "commit", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "dragStart", name: "dragStart", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "dragTo", name: "dragTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "drop", name: "drop", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "reposition", name: "reposition", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([Point], [], false)}, {prop: "setColour", name: "setColour", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$String], [], false)}];
 	ptrType$4.methods = [{prop: "nearestPoint", name: "nearestPoint", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [$Float64, Point], false)}];
 	Point.init([{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}]);
+	ephemeral.init("github.com/google/shenzhen-go/view/svg", [{prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}]);
 	Pin.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "input", name: "input", exported: false, typ: $Bool, tag: ""}, {prop: "node", name: "node", exported: false, typ: ptrType$1, tag: ""}, {prop: "l", name: "l", exported: false, typ: ptrType$3, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}, {prop: "circ", name: "circ", exported: false, typ: ptrType$3, tag: ""}, {prop: "c", name: "c", exported: false, typ: ptrType$3, tag: ""}, {prop: "ch", name: "ch", exported: false, typ: ptrType$2, tag: ""}]);
 	Node.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Inputs", name: "Inputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "Outputs", name: "Outputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "X", name: "X", exported: true, typ: $Float64, tag: ""}, {prop: "Y", name: "Y", exported: true, typ: $Float64, tag: ""}, {prop: "g", name: "g", exported: false, typ: ptrType$3, tag: ""}, {prop: "relX", name: "relX", exported: false, typ: $Float64, tag: ""}, {prop: "relY", name: "relY", exported: false, typ: $Float64, tag: ""}]);
 	Channel.init("github.com/google/shenzhen-go/view/svg", [{prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "Cap", name: "Cap", exported: true, typ: $Int, tag: ""}, {prop: "Pins", name: "Pins", exported: true, typ: mapType, tag: ""}, {prop: "steiner", name: "steiner", exported: false, typ: ptrType$3, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}, {prop: "tx", name: "tx", exported: false, typ: $Float64, tag: ""}, {prop: "ty", name: "ty", exported: false, typ: $Float64, tag: ""}, {prop: "l", name: "l", exported: false, typ: ptrType$3, tag: ""}, {prop: "c", name: "c", exported: false, typ: ptrType$3, tag: ""}, {prop: "p", name: "p", exported: false, typ: ptrType, tag: ""}]);

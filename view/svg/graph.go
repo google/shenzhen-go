@@ -94,6 +94,10 @@ type Point interface {
 	Pt() (x, y float64)
 }
 
+type ephemeral struct{ x, y float64 }
+
+func (e ephemeral) Pt() (x, y float64) { return e.x, e.y }
+
 type Pin struct {
 	Name, Type string
 
@@ -131,7 +135,7 @@ func (p *Pin) connectTo(q Point) error {
 
 		// Create a new channel to connect to
 		ch := newChannel(p, q)
-		ch.reposition()
+		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
 		graph.Channels[ch] = struct{}{}
 		q.l.Call("setAttribute", "display", "")
@@ -147,7 +151,7 @@ func (p *Pin) connectTo(q Point) error {
 		// Attach to the existing channel
 		p.ch = q
 		q.Pins[p] = struct{}{}
-		q.reposition()
+		q.reposition(nil)
 	}
 	return nil
 }
@@ -158,7 +162,7 @@ func (p *Pin) disconnect() {
 	}
 	delete(p.ch.Pins, p)
 	p.ch.setColour(normalColour)
-	p.ch.reposition()
+	p.ch.reposition(nil)
 	if len(p.ch.Pins) < 2 {
 		// Delete the channel
 		for q := range p.ch.Pins {
@@ -178,7 +182,7 @@ func (p *Pin) setPos(rx, ry float64) {
 		p.l.Call("setAttribute", "y1", p.y)
 	}
 	if p.ch != nil {
-		p.ch.reposition()
+		p.ch.reposition(nil)
 		p.ch.commit()
 	}
 }
@@ -443,44 +447,34 @@ func (c *Channel) dragTo(e *js.Object) {
 		return
 	}
 
-	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
+	noSnap := func() {
 		if c.p != nil {
 			c.p.disconnect()
 			c.p.circ.Call("setAttribute", "fill", normalColour)
 			c.p.l.Call("setAttribute", "display", "none")
 			c.p = nil
 		}
-		c.setColour(activeColour)
+
 		c.c.Call("setAttribute", "display", "")
 		c.l.Call("setAttribute", "display", "")
+		c.reposition(ephemeral{x, y})
+	}
+
+	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
+		noSnap()
+		c.setColour(activeColour)
 		return
 	}
 
 	if p == nil || p.ch != nil {
-		if c.p != nil {
-			c.p.disconnect()
-			c.p.circ.Call("setAttribute", "fill", normalColour)
-			c.p.l.Call("setAttribute", "display", "none")
-			c.p = nil
-		}
-		// TODO: complain to user via message
+		noSnap()
 		c.setColour(errorColour)
-		c.c.Call("setAttribute", "display", "")
-		c.l.Call("setAttribute", "display", "")
 		return
 	}
 
 	if err := p.connectTo(c); err != nil {
-		if c.p != nil {
-			c.p.disconnect()
-			c.p.circ.Call("setAttribute", "fill", normalColour)
-			c.p.l.Call("setAttribute", "display", "none")
-			c.p = nil
-		}
-		// TODO: complain to user via message
+		noSnap()
 		c.setColour(errorColour)
-		c.c.Call("setAttribute", "display", "")
-		c.l.Call("setAttribute", "display", "")
 		return
 	}
 
@@ -499,6 +493,7 @@ func (c *Channel) dragTo(e *js.Object) {
 }
 
 func (c *Channel) drop(e *js.Object) {
+	c.reposition(nil)
 	c.commit()
 	c.setColour(normalColour)
 	if c.p != nil {
@@ -512,8 +507,12 @@ func (c *Channel) drop(e *js.Object) {
 	}
 }
 
-func (c *Channel) reposition() {
-	if len(c.Pins) < 2 {
+func (c *Channel) reposition(additional Point) {
+	np := len(c.Pins)
+	if additional != nil {
+		np++
+	}
+	if np < 2 {
 		// Not actually a channel anymore - hide.
 		c.steiner.Call("setAttribute", "display", "none")
 		for t := range c.Pins {
@@ -523,11 +522,14 @@ func (c *Channel) reposition() {
 		return
 	}
 	c.tx, c.ty = 0, 0
+	if additional != nil {
+		c.tx, c.ty = additional.Pt()
+	}
 	for t := range c.Pins {
 		c.tx += t.x
 		c.ty += t.y
 	}
-	n := float64(len(c.Pins))
+	n := float64(np)
 	c.tx /= n
 	c.ty /= n
 	c.steiner.Call("setAttribute", "cx", c.tx)
@@ -539,7 +541,7 @@ func (c *Channel) reposition() {
 		t.l.Call("setAttribute", "y2", c.ty)
 	}
 	disp := ""
-	if len(c.Pins) == 2 {
+	if np <= 2 {
 		disp = "none"
 	}
 	c.steiner.Call("setAttribute", "display", disp)

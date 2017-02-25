@@ -16423,6 +16423,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			return;
 		}
 		delete p.ch.Pins[ptrType.keyFor(p)];
+		p.ch.setColour("#000");
 		p.ch.reposition();
 		if ($keys(p.ch.Pins).length < 2) {
 			_ref = p.ch.Pins;

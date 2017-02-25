@@ -164,6 +164,7 @@ func (p *Pin) disconnect() {
 		return
 	}
 	delete(p.ch.Pins, p)
+	p.ch.setColour(normalColour)
 	p.ch.reposition()
 	if len(p.ch.Pins) < 2 {
 		// Delete the channel

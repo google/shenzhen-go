@@ -16818,6 +16818,12 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			c.l.setAttribute($externalize("display", $String), $externalize("", $String));
 			$s = -1; return;
 		}
+		if (!(c.p === ptrType.nil) && !(c.p === p)) {
+			c.p.disconnect();
+			c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
+			c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
+			c.p = ptrType.nil;
+		}
 		c.p = p;
 		p.l.setAttribute($externalize("display", $String), $externalize("", $String));
 		c.setColour("#09f");

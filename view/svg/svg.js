@@ -16248,7 +16248,7 @@ $packages["fmt"] = (function() {
 	return $pkg;
 })();
 $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
-	var $pkg = {}, $init, errors, fmt, js, math, Point, ephemeral, Pin, Node, Channel, Graph, sliceType, ptrType, sliceType$1, ptrType$1, ptrType$2, sliceType$2, structType, ptrType$3, funcType, mapType, ptrType$4, mapType$1, document, diagramSVG, svgNS, currentThingy, graph, makeSVGElement, cursorPos, newChannel, mouseMove, mouseUp, main;
+	var $pkg = {}, $init, errors, fmt, js, math, Point, ephemeral, Pin, Node, Channel, Graph, sliceType, ptrType, sliceType$1, ptrType$1, ptrType$2, sliceType$2, structType, ptrType$3, funcType, mapType, ptrType$4, mapType$1, document, diagramSVG, svgNS, dragItem, graph, makeSVGElement, cursorPos, newChannel, mouseMove, mouseUp, main;
 	errors = $packages["errors"];
 	fmt = $packages["fmt"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
@@ -16534,7 +16534,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			p.ch.dragStart(e);
 			return;
 		}
-		currentThingy = p;
+		dragItem = p;
 		p.circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
 		_tuple = cursorPos(e);
 		x = _tuple[0];
@@ -16701,7 +16701,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	Node.ptr.prototype.mouseDown = function(e) {
 		var $ptr, _tmp, _tmp$1, e, n;
 		n = this;
-		currentThingy = n;
+		dragItem = n;
 		_tmp = $parseFloat(e.clientX) - n.X;
 		_tmp$1 = $parseFloat(e.clientY) - n.Y;
 		n.relX = _tmp;
@@ -16793,7 +16793,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	Channel.ptr.prototype.dragStart = function(e) {
 		var $ptr, _tuple, c, e, x, y;
 		c = this;
-		currentThingy = c;
+		dragItem = c;
 		c.steiner.setAttribute($externalize("display", $String), $externalize("", $String));
 		c.setColour("#09f");
 		_tuple = cursorPos(e);
@@ -17090,10 +17090,10 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	mouseMove = function(e) {
 		var $ptr, _ref, e, t, t$1, t$2, $s, $r;
 		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _ref = $f._ref; e = $f.e; t = $f.t; t$1 = $f.t$1; t$2 = $f.t$2; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		if ($interfaceIsEqual(currentThingy, $ifaceNil)) {
+		if ($interfaceIsEqual(dragItem, $ifaceNil)) {
 			$s = -1; return;
 		}
-		_ref = currentThingy;
+		_ref = dragItem;
 		/* */ if ($assertType(_ref, ptrType$1, true)[1]) { $s = 1; continue; }
 		/* */ if ($assertType(_ref, ptrType$2, true)[1]) { $s = 2; continue; }
 		/* */ if ($assertType(_ref, ptrType, true)[1]) { $s = 3; continue; }
@@ -17116,11 +17116,11 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	mouseUp = function(e) {
 		var $ptr, _ref, e, t, t$1, t$2, $s, $r;
 		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _ref = $f._ref; e = $f.e; t = $f.t; t$1 = $f.t$1; t$2 = $f.t$2; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
-		if ($interfaceIsEqual(currentThingy, $ifaceNil)) {
+		if ($interfaceIsEqual(dragItem, $ifaceNil)) {
 			$s = -1; return;
 		}
 		$r = mouseMove(e); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		_ref = currentThingy;
+		_ref = dragItem;
 		/* */ if ($assertType(_ref, ptrType$1, true)[1]) { $s = 2; continue; }
 		/* */ if ($assertType(_ref, ptrType$2, true)[1]) { $s = 3; continue; }
 		/* */ if ($assertType(_ref, ptrType, true)[1]) { $s = 4; continue; }
@@ -17136,7 +17136,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			t$2 = _ref.$val;
 			t$2.drop(e);
 		/* } */ case 5:
-		currentThingy = $ifaceNil;
+		dragItem = $ifaceNil;
 		$s = -1; return;
 		/* */ } return; } if ($f === undefined) { $f = { $blk: mouseUp }; } $f.$ptr = $ptr; $f._ref = _ref; $f.e = e; $f.t = t; $f.t$1 = t$1; $f.t$2 = t$2; $f.$s = $s; $f.$r = $r; return $f;
 	};
@@ -17174,7 +17174,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		$r = fmt.$init(); /* */ $s = 2; case 2: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		$r = js.$init(); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		$r = math.$init(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
-		currentThingy = $ifaceNil;
+		dragItem = $ifaceNil;
 		document = $global.document;
 		diagramSVG = document.getElementById($externalize("diagram", $String));
 		svgNS = diagramSVG.namespaceURI;

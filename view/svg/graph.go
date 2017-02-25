@@ -45,7 +45,7 @@ var (
 	diagramSVG = document.Call("getElementById", "diagram")
 	svgNS      = diagramSVG.Get("namespaceURI")
 
-	currentThingy interface{}
+	dragItem interface{}
 
 	graph = &Graph{
 		Nodes: []Node{
@@ -197,7 +197,7 @@ func (p *Pin) dragStart(e *js.Object) {
 		p.ch.dragStart(e)
 		return
 	}
-	currentThingy = p
+	dragItem = p
 
 	p.circ.Call("setAttribute", "fill", activeColour)
 
@@ -339,7 +339,7 @@ func (n *Node) makeNodeElement() {
 }
 
 func (n *Node) mouseDown(e *js.Object) {
-	currentThingy = n
+	dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
@@ -411,7 +411,7 @@ func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 
 func (c *Channel) dragStart(e *js.Object) {
-	currentThingy = c
+	dragItem = c
 
 	c.steiner.Call("setAttribute", "display", "")
 	c.setColour(activeColour)
@@ -576,10 +576,10 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 }
 
 func mouseMove(e *js.Object) {
-	if currentThingy == nil {
+	if dragItem == nil {
 		return
 	}
-	switch t := currentThingy.(type) {
+	switch t := dragItem.(type) {
 	case *Node:
 		t.moveTo(e.Get("clientX").Float()-t.relX, e.Get("clientY").Float()-t.relY)
 	case *Channel:
@@ -590,12 +590,12 @@ func mouseMove(e *js.Object) {
 }
 
 func mouseUp(e *js.Object) {
-	if currentThingy == nil {
+	if dragItem == nil {
 		return
 	}
 	mouseMove(e)
 
-	switch t := currentThingy.(type) {
+	switch t := dragItem.(type) {
 	case *Node:
 		// Nothing
 	case *Channel:
@@ -603,7 +603,7 @@ func mouseUp(e *js.Object) {
 	case *Pin:
 		t.drop(e)
 	}
-	currentThingy = nil
+	dragItem = nil
 }
 
 func main() {

@@ -441,7 +441,7 @@ func (c *Channel) dragTo(e *js.Object) {
 		return
 	}
 
-	if c.p != nil && c.p != p {
+	if c.p != nil && (c.p != p || d >= snapQuad) {
 		c.p.disconnect()
 		c.p.circ.Call("setAttribute", "fill", normalColour)
 		c.p.l.Call("setAttribute", "display", "none")

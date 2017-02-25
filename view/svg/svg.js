@@ -16833,9 +16833,9 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		if (!(p === ptrType.nil) && p === c[0].p && d < 256) {
 			$s = -1; return;
 		}
-		/* */ if (!(c[0].p === ptrType.nil) && !(c[0].p === p)) { $s = 2; continue; }
+		/* */ if (!(c[0].p === ptrType.nil) && (!(c[0].p === p) || d >= 256)) { $s = 2; continue; }
 		/* */ $s = 3; continue;
-		/* if (!(c[0].p === ptrType.nil) && !(c[0].p === p)) { */ case 2:
+		/* if (!(c[0].p === ptrType.nil) && (!(c[0].p === p) || d >= 256)) { */ case 2:
 			$r = c[0].p.disconnect(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			c[0].p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
 			c[0].p.l.setAttribute($externalize("display", $String), $externalize("none", $String));

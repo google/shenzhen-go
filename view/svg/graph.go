@@ -120,6 +120,9 @@ func (p *Pin) connectTo(q Point) error {
 		if q.ch != nil {
 			return p.connectTo(q.ch)
 		}
+
+		// Prevent mistakes by ensuring that there is at least one input
+		// and one output per channel, and they connect separate goroutines.
 		if p.input == q.input {
 			return errors.New("both pins have the same direction")
 		}
@@ -128,16 +131,7 @@ func (p *Pin) connectTo(q Point) error {
 		}
 
 		// Create a new channel to connect to
-		ch := &Channel{
-			Type: p.Type,
-			Pins: map[*Pin]struct{}{
-				p: struct{}{},
-				q: struct{}{},
-			},
-			steiner: makeSVGElement("circle"),
-		}
-		diagramSVG.Call("appendChild", ch.steiner)
-		ch.steiner.Call("setAttribute", "r", pinRadius)
+		ch := newChannel(p, q)
 		ch.reposition()
 		p.ch, q.ch = ch, ch
 		graph.Channels[ch] = struct{}{}
@@ -195,8 +189,9 @@ func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
 
 func (p *Pin) dragStart(e *js.Object) {
-	// If the pin is attached to something, don't start to drag.
+	// If the pin is attached to something, drag from that instead.
 	if p.ch != nil {
+		p.ch.dragStart(e)
 		return
 	}
 	currentThingy = p
@@ -241,6 +236,11 @@ func (p *Pin) dragTo(e *js.Object) {
 
 	if err := p.connectTo(q); err != nil {
 		// TODO: complain to user via message
+		if p.ch != nil {
+			p.ch.setColour(normalColour)
+			p.disconnect()
+		}
+
 		p.circ.Call("setAttribute", "fill", errorColour)
 		p.l.Call("setAttribute", "stroke", errorColour)
 		p.c.Call("setAttribute", "stroke", errorColour)
@@ -376,11 +376,132 @@ type Channel struct {
 	steiner *js.Object // symbol representing the channel itself, not used if channel is simple
 	x, y    float64    // centre of steiner point, for snapping
 	tx, ty  float64    // temporary centre of steiner point, for display
+	l, c    *js.Object // for dragging to more pins
+	p       *Pin       // considering attaching to this pin
+}
+
+func newChannel(p, q *Pin) *Channel {
+	ch := &Channel{
+		Type: p.Type,
+		Pins: map[*Pin]struct{}{
+			p: struct{}{},
+			q: struct{}{},
+		},
+		steiner: makeSVGElement("circle"),
+		l:       makeSVGElement("line"),
+		c:       makeSVGElement("circle"),
+	}
+	diagramSVG.Call("appendChild", ch.steiner)
+	diagramSVG.Call("appendChild", ch.l)
+	diagramSVG.Call("appendChild", ch.c)
+
+	ch.steiner.Call("setAttribute", "r", pinRadius)
+	ch.steiner.Call("addEventListener", "mousedown", ch.dragStart)
+
+	ch.l.Call("setAttribute", "stroke-width", lineWidth)
+	ch.l.Call("setAttribute", "display", "none")
+	ch.c.Call("setAttribute", "r", pinRadius)
+	ch.c.Call("setAttribute", "fill", "transparent")
+	ch.c.Call("setAttribute", "stroke-width", lineWidth)
+	ch.c.Call("setAttribute", "display", "none")
+	return ch
 }
 
 func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
+
+func (c *Channel) dragStart(e *js.Object) {
+	currentThingy = c
+
+	c.steiner.Call("setAttribute", "display", "")
+	c.setColour(activeColour)
+
+	x, y := cursorPos(e)
+	c.l.Call("setAttribute", "x1", x)
+	c.l.Call("setAttribute", "y1", y)
+	c.l.Call("setAttribute", "x2", c.tx)
+	c.l.Call("setAttribute", "y2", c.ty)
+	c.c.Call("setAttribute", "cx", x)
+	c.c.Call("setAttribute", "cy", y)
+	c.c.Call("setAttribute", "display", "")
+	c.l.Call("setAttribute", "display", "")
+}
+
+func (c *Channel) dragTo(e *js.Object) {
+	x, y := cursorPos(e)
+	c.l.Call("setAttribute", "x1", x)
+	c.l.Call("setAttribute", "y1", y)
+	c.c.Call("setAttribute", "cx", x)
+	c.c.Call("setAttribute", "cy", y)
+	d, q := graph.nearestPoint(x, y)
+	p, _ := q.(*Pin)
+
+	if p == c.p {
+		return
+	}
+
+	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
+		if c.p != nil && c.p != p {
+			c.p.disconnect()
+			c.p.circ.Call("setAttribute", "fill", normalColour)
+			c.p.l.Call("setAttribute", "display", "none")
+			c.p = nil
+		}
+		c.setColour(activeColour)
+		c.c.Call("setAttribute", "display", "")
+		c.l.Call("setAttribute", "display", "")
+		return
+	}
+
+	if p == nil || p.ch != nil {
+		if c.p != nil && c.p != p {
+			c.p.disconnect()
+			c.p.circ.Call("setAttribute", "fill", normalColour)
+			c.p.l.Call("setAttribute", "display", "none")
+			c.p = nil
+		}
+		// TODO: complain to user via message
+		c.setColour(errorColour)
+		c.c.Call("setAttribute", "display", "")
+		c.l.Call("setAttribute", "display", "")
+		return
+	}
+
+	if err := p.connectTo(c); err != nil {
+		if c.p != nil && c.p != p {
+			c.p.disconnect()
+			c.p.circ.Call("setAttribute", "fill", normalColour)
+			c.p.l.Call("setAttribute", "display", "none")
+			c.p = nil
+		}
+		// TODO: complain to user via message
+		c.setColour(errorColour)
+		c.c.Call("setAttribute", "display", "")
+		c.l.Call("setAttribute", "display", "")
+		return
+	}
+
+	c.p = p
+	p.l.Call("setAttribute", "display", "")
+	c.setColour(activeColour)
+	c.l.Call("setAttribute", "display", "none")
+	c.c.Call("setAttribute", "display", "none")
+}
+
+func (c *Channel) drop(e *js.Object) {
+	// TODO: drag from channel
+	c.setColour(normalColour)
+	if c.p == nil {
+		c.c.Call("setAttribute", "display", "none")
+		c.l.Call("setAttribute", "display", "none")
+		if len(c.Pins) <= 2 {
+			c.steiner.Call("setAttribute", "display", "none")
+		}
+		return
+	}
+	c.p = nil
+}
 
 func (c *Channel) reposition() {
 	if len(c.Pins) < 2 {
@@ -402,6 +523,8 @@ func (c *Channel) reposition() {
 	c.ty /= n
 	c.steiner.Call("setAttribute", "cx", c.tx)
 	c.steiner.Call("setAttribute", "cy", c.ty)
+	c.l.Call("setAttribute", "x2", c.tx)
+	c.l.Call("setAttribute", "y2", c.ty)
 	for t := range c.Pins {
 		t.l.Call("setAttribute", "x2", c.tx)
 		t.l.Call("setAttribute", "y2", c.ty)
@@ -415,6 +538,8 @@ func (c *Channel) reposition() {
 
 func (c *Channel) setColour(col string) {
 	c.steiner.Call("setAttribute", "fill", col)
+	c.c.Call("setAttribute", "stroke", col)
+	c.l.Call("setAttribute", "stroke", col)
 	for t := range c.Pins {
 		t.circ.Call("setAttribute", "fill", col)
 		t.l.Call("setAttribute", "stroke", col)
@@ -458,6 +583,8 @@ func mouseMove(e *js.Object) {
 	switch t := currentThingy.(type) {
 	case *Node:
 		t.moveTo(e.Get("clientX").Float()-relX, e.Get("clientY").Float()-relY)
+	case *Channel:
+		t.dragTo(e)
 	case *Pin:
 		t.dragTo(e)
 	}
@@ -472,6 +599,8 @@ func mouseUp(e *js.Object) {
 	switch t := currentThingy.(type) {
 	case *Node:
 		// Nothing
+	case *Channel:
+		t.drop(e)
 	case *Pin:
 		t.drop(e)
 	}

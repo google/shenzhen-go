@@ -498,7 +498,7 @@ func (c *Channel) dragTo(e *js.Object) {
 }
 
 func (c *Channel) drop(e *js.Object) {
-	// TODO: drag from channel
+	c.commit()
 	c.setColour(normalColour)
 	if c.p != nil {
 		c.p = nil

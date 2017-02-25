@@ -447,14 +447,14 @@ func (c *Channel) dragTo(e *js.Object) {
 		return
 	}
 
-	noSnap := func() {
-		if c.p != nil {
-			c.p.disconnect()
-			c.p.circ.Call("setAttribute", "fill", normalColour)
-			c.p.l.Call("setAttribute", "display", "none")
-			c.p = nil
-		}
+	if c.p != nil && c.p != p {
+		c.p.disconnect()
+		c.p.circ.Call("setAttribute", "fill", normalColour)
+		c.p.l.Call("setAttribute", "display", "none")
+		c.p = nil
+	}
 
+	noSnap := func() {
 		c.c.Call("setAttribute", "display", "")
 		c.l.Call("setAttribute", "display", "")
 		c.reposition(ephemeral{x, y})
@@ -479,12 +479,6 @@ func (c *Channel) dragTo(e *js.Object) {
 	}
 
 	// Let's snap!
-	if c.p != nil && c.p != p {
-		c.p.disconnect()
-		c.p.circ.Call("setAttribute", "fill", normalColour)
-		c.p.l.Call("setAttribute", "display", "none")
-		c.p = nil
-	}
 	c.p = p
 	p.l.Call("setAttribute", "display", "")
 	c.setColour(activeColour)

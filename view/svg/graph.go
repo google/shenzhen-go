@@ -222,41 +222,40 @@ func (p *Pin) dragTo(e *js.Object) {
 	}()
 	d, q := graph.nearestPoint(x, y)
 
-	// Don't connect P to itself, snap to near the pointer, connect inputs to outputs.
-	if p != q && d < snapQuad {
-
-		if err := p.connectTo(q); err != nil {
-			// TODO: complain to user via message
-			p.circ.Call("setAttribute", "fill", errorColour)
-			p.l.Call("setAttribute", "stroke", errorColour)
-			p.c.Call("setAttribute", "stroke", errorColour)
-			p.c.Call("setAttribute", "display", "")
-			return
-		}
-		// Snap to q.ch, or q if q is a channel.
-		switch q := q.(type) {
-		case *Pin:
-			x, y = q.ch.x, q.ch.y
-		case *Channel:
-			x, y = q.x, q.y
+	// Don't connect P to itself, don't connect if nearest is far away.
+	if p == q || d >= snapQuad {
+		// Nothing nearby - use active colour and unsnap if necessary.
+		if p.ch != nil {
+			p.ch.setColour(normalColour)
+			p.disconnect()
 		}
 
-		// Valid snap - ensure the colour is active.
-		p.ch.setColour(activeColour)
-		p.c.Call("setAttribute", "display", "none")
+		p.circ.Call("setAttribute", "fill", activeColour)
+		p.l.Call("setAttribute", "stroke", activeColour)
+		p.c.Call("setAttribute", "stroke", activeColour)
+		p.c.Call("setAttribute", "display", "")
 		return
 	}
 
-	// Nothing nearby - use active colour and unsnap if necessary.
-	if p.ch != nil {
-		p.ch.setColour(normalColour)
-		p.disconnect()
+	if err := p.connectTo(q); err != nil {
+		// TODO: complain to user via message
+		p.circ.Call("setAttribute", "fill", errorColour)
+		p.l.Call("setAttribute", "stroke", errorColour)
+		p.c.Call("setAttribute", "stroke", errorColour)
+		p.c.Call("setAttribute", "display", "")
+		return
+	}
+	// Snap to q.ch, or q if q is a channel.
+	switch q := q.(type) {
+	case *Pin:
+		x, y = q.ch.x, q.ch.y
+	case *Channel:
+		x, y = q.x, q.y
 	}
 
-	p.circ.Call("setAttribute", "fill", activeColour)
-	p.l.Call("setAttribute", "stroke", activeColour)
-	p.c.Call("setAttribute", "stroke", activeColour)
-	p.c.Call("setAttribute", "display", "")
+	// Valid snap - ensure the colour is active.
+	p.ch.setColour(activeColour)
+	p.c.Call("setAttribute", "display", "none")
 }
 
 func (p *Pin) drop(e *js.Object) {

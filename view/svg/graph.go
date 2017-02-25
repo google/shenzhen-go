@@ -430,6 +430,7 @@ func (c *Channel) dragStart(e *js.Object) {
 
 func (c *Channel) dragTo(e *js.Object) {
 	x, y := cursorPos(e)
+	c.steiner.Call("setAttribute", "display", "")
 	c.l.Call("setAttribute", "x1", x)
 	c.l.Call("setAttribute", "y1", y)
 	c.c.Call("setAttribute", "cx", x)
@@ -437,12 +438,12 @@ func (c *Channel) dragTo(e *js.Object) {
 	d, q := graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
-	if p == c.p {
+	if p == c.p && d < snapQuad {
 		return
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
-		if c.p != nil && c.p != p {
+		if c.p != nil {
 			c.p.disconnect()
 			c.p.circ.Call("setAttribute", "fill", normalColour)
 			c.p.l.Call("setAttribute", "display", "none")
@@ -455,7 +456,7 @@ func (c *Channel) dragTo(e *js.Object) {
 	}
 
 	if p == nil || p.ch != nil {
-		if c.p != nil && c.p != p {
+		if c.p != nil {
 			c.p.disconnect()
 			c.p.circ.Call("setAttribute", "fill", normalColour)
 			c.p.l.Call("setAttribute", "display", "none")
@@ -469,7 +470,7 @@ func (c *Channel) dragTo(e *js.Object) {
 	}
 
 	if err := p.connectTo(c); err != nil {
-		if c.p != nil && c.p != p {
+		if c.p != nil {
 			c.p.disconnect()
 			c.p.circ.Call("setAttribute", "fill", normalColour)
 			c.p.l.Call("setAttribute", "display", "none")

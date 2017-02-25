@@ -16766,6 +16766,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_tuple = cursorPos(e);
 		x = _tuple[0];
 		y = _tuple[1];
+		c.steiner.setAttribute($externalize("display", $String), $externalize("", $String));
 		c.l.setAttribute($externalize("x1", $String), x);
 		c.l.setAttribute($externalize("y1", $String), y);
 		c.c.setAttribute($externalize("cx", $String), x);
@@ -16776,11 +16777,11 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		q = _tuple$1[1];
 		_tuple$2 = $assertType(q, ptrType, true);
 		p = _tuple$2[0];
-		if (p === c.p) {
+		if (p === c.p && d < 256) {
 			$s = -1; return;
 		}
 		if (d >= 256 || $interfaceIsEqual(q, c) || (!(p === ptrType.nil) && p.ch === c)) {
-			if (!(c.p === ptrType.nil) && !(c.p === p)) {
+			if (!(c.p === ptrType.nil)) {
 				c.p.disconnect();
 				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
 				c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
@@ -16792,7 +16793,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			$s = -1; return;
 		}
 		if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) {
-			if (!(c.p === ptrType.nil) && !(c.p === p)) {
+			if (!(c.p === ptrType.nil)) {
 				c.p.disconnect();
 				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
 				c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
@@ -16806,7 +16807,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_r$1 = p.connectTo(c); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
 		err = _r$1;
 		if (!($interfaceIsEqual(err, $ifaceNil))) {
-			if (!(c.p === ptrType.nil) && !(c.p === p)) {
+			if (!(c.p === ptrType.nil)) {
 				c.p.disconnect();
 				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
 				c.p.l.setAttribute($externalize("display", $String), $externalize("none", $String));

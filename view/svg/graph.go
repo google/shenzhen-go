@@ -101,7 +101,7 @@ type Pin struct {
 	input bool  // am I an input?
 	node  *Node // owner.
 
-	l    *js.Object // attached line; x1, y1 = x, y; x2, y2 = ch.x, ch.y.
+	l    *js.Object // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
 	x, y float64    // computed, not relative to node
 	circ *js.Object // my main representation
 	c    *js.Object // circle, when dragging from a pin
@@ -185,6 +185,7 @@ func (p *Pin) setPos(rx, ry float64) {
 	}
 	if p.ch != nil {
 		p.ch.reposition()
+		p.ch.commit()
 	}
 }
 
@@ -245,12 +246,12 @@ func (p *Pin) dragTo(e *js.Object) {
 		p.c.Call("setAttribute", "display", "")
 		return
 	}
-	// Snap to q.ch, or q if q is a channel.
+	// Snap to q.ch, or q if q is a channel. Visual.
 	switch q := q.(type) {
 	case *Pin:
-		x, y = q.ch.x, q.ch.y
+		x, y = q.ch.tx, q.ch.ty
 	case *Channel:
-		x, y = q.x, q.y
+		x, y = q.tx, q.ty
 	}
 
 	// Valid snap - ensure the colour is active.
@@ -266,6 +267,7 @@ func (p *Pin) drop(e *js.Object) {
 		return
 	}
 	p.ch.setColour(normalColour)
+	p.ch.commit()
 }
 
 func (p *Pin) makePinElement(n *Node) *js.Object {
@@ -371,10 +373,13 @@ type Channel struct {
 	Pins map[*Pin]struct{}
 
 	steiner *js.Object // symbol representing the channel itself, not used if channel is simple
-	x, y    float64    // centre of steiner point
+	x, y    float64    // centre of steiner point, for snapping
+	tx, ty  float64    // temporary centre of steiner point, for display
 }
 
 func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
+
+func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 
 func (c *Channel) reposition() {
 	if len(c.Pins) < 2 {
@@ -386,19 +391,19 @@ func (c *Channel) reposition() {
 		}
 		return
 	}
-	c.x, c.y = 0, 0
+	c.tx, c.ty = 0, 0
 	for t := range c.Pins {
-		c.x += t.x
-		c.y += t.y
+		c.tx += t.x
+		c.ty += t.y
 	}
 	n := float64(len(c.Pins))
-	c.x /= n
-	c.y /= n
-	c.steiner.Call("setAttribute", "cx", c.x)
-	c.steiner.Call("setAttribute", "cy", c.y)
+	c.tx /= n
+	c.ty /= n
+	c.steiner.Call("setAttribute", "cx", c.tx)
+	c.steiner.Call("setAttribute", "cy", c.ty)
 	for t := range c.Pins {
-		t.l.Call("setAttribute", "x2", c.x)
-		t.l.Call("setAttribute", "y2", c.y)
+		t.l.Call("setAttribute", "x2", c.tx)
+		t.l.Call("setAttribute", "y2", c.ty)
 	}
 	disp := ""
 	if len(c.Pins) == 2 {

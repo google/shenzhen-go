@@ -16298,7 +16298,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		this.Y = Y_;
 		this.g = g_;
 	});
-	Channel = $pkg.Channel = $newType(0, $kindStruct, "main.Channel", true, "github.com/google/shenzhen-go/view/svg", true, function(Type_, Cap_, Pins_, steiner_, x_, y_) {
+	Channel = $pkg.Channel = $newType(0, $kindStruct, "main.Channel", true, "github.com/google/shenzhen-go/view/svg", true, function(Type_, Cap_, Pins_, steiner_, x_, y_, tx_, ty_) {
 		this.$val = this;
 		if (arguments.length === 0) {
 			this.Type = "";
@@ -16307,6 +16307,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			this.steiner = null;
 			this.x = 0;
 			this.y = 0;
+			this.tx = 0;
+			this.ty = 0;
 			return;
 		}
 		this.Type = Type_;
@@ -16315,6 +16317,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		this.steiner = steiner_;
 		this.x = x_;
 		this.y = y_;
+		this.tx = tx_;
+		this.ty = ty_;
 	});
 	Graph = $pkg.Graph = $newType(0, $kindStruct, "main.Graph", true, "github.com/google/shenzhen-go/view/svg", true, function(Nodes_, Channels_) {
 		this.$val = this;
@@ -16382,7 +16386,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			if (p.node === q$1.node) {
 				$s = -1; return errors.New("both pins are on the same goroutine");
 			}
-			ch = new Channel.ptr(p.Type, 0, $makeMap(ptrType.keyFor, [{ k: p, v: new structType.ptr() }, { k: q$1, v: new structType.ptr() }]), makeSVGElement("circle"), 0, 0);
+			ch = new Channel.ptr(p.Type, 0, $makeMap(ptrType.keyFor, [{ k: p, v: new structType.ptr() }, { k: q$1, v: new structType.ptr() }]), makeSVGElement("circle"), 0, 0, 0, 0);
 			diagramSVG.appendChild(ch.steiner);
 			ch.steiner.setAttribute($externalize("r", $String), 5);
 			ch.reposition();
@@ -16455,6 +16459,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		}
 		if (!(p.ch === ptrType$2.nil)) {
 			p.ch.reposition();
+			p.ch.commit();
 		}
 	};
 	Pin.prototype.setPos = function(rx, ry) { return this.$val.setPos(rx, ry); };
@@ -16544,14 +16549,14 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_ref = q;
 		if ($assertType(_ref, ptrType, true)[1]) {
 			q$1 = _ref.$val;
-			_tmp = q$1.ch.x;
-			_tmp$1 = q$1.ch.y;
+			_tmp = q$1.ch.tx;
+			_tmp$1 = q$1.ch.ty;
 			x[0] = _tmp;
 			y[0] = _tmp$1;
 		} else if ($assertType(_ref, ptrType$2, true)[1]) {
 			q$2 = _ref.$val;
-			_tmp$2 = q$2.x;
-			_tmp$3 = q$2.y;
+			_tmp$2 = q$2.tx;
+			_tmp$3 = q$2.ty;
 			x[0] = _tmp$2;
 			y[0] = _tmp$3;
 		}
@@ -16571,6 +16576,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			return;
 		}
 		p.ch.setColour("#000");
+		p.ch.commit();
 	};
 	Pin.prototype.drop = function(e) { return this.$val.drop(e); };
 	Pin.ptr.prototype.makePinElement = function(n) {
@@ -16699,6 +16705,15 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		return [x, y];
 	};
 	Channel.prototype.Pt = function() { return this.$val.Pt(); };
+	Channel.ptr.prototype.commit = function() {
+		var $ptr, _tmp, _tmp$1, c;
+		c = this;
+		_tmp = c.tx;
+		_tmp$1 = c.ty;
+		c.x = _tmp;
+		c.y = _tmp$1;
+	};
+	Channel.prototype.commit = function() { return this.$val.commit(); };
 	Channel.ptr.prototype.reposition = function() {
 		var $ptr, _entry, _entry$1, _entry$2, _i, _i$1, _i$2, _keys, _keys$1, _keys$2, _ref, _ref$1, _ref$2, _tmp, _tmp$1, c, disp, n, t, t$1, t$2;
 		c = this;
@@ -16723,8 +16738,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		}
 		_tmp = 0;
 		_tmp$1 = 0;
-		c.x = _tmp;
-		c.y = _tmp$1;
+		c.tx = _tmp;
+		c.ty = _tmp$1;
 		_ref$1 = c.Pins;
 		_i$1 = 0;
 		_keys$1 = $keys(_ref$1);
@@ -16736,15 +16751,15 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 				continue;
 			}
 			t$1 = _entry$1.k;
-			c.x = c.x + (t$1.x);
-			c.y = c.y + (t$1.y);
+			c.tx = c.tx + (t$1.x);
+			c.ty = c.ty + (t$1.y);
 			_i$1++;
 		}
 		n = $keys(c.Pins).length;
-		c.x = c.x / (n);
-		c.y = c.y / (n);
-		c.steiner.setAttribute($externalize("cx", $String), c.x);
-		c.steiner.setAttribute($externalize("cy", $String), c.y);
+		c.tx = c.tx / (n);
+		c.ty = c.ty / (n);
+		c.steiner.setAttribute($externalize("cx", $String), c.tx);
+		c.steiner.setAttribute($externalize("cy", $String), c.ty);
 		_ref$2 = c.Pins;
 		_i$2 = 0;
 		_keys$2 = $keys(_ref$2);
@@ -16756,8 +16771,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 				continue;
 			}
 			t$2 = _entry$2.k;
-			t$2.l.setAttribute($externalize("x2", $String), c.x);
-			t$2.l.setAttribute($externalize("y2", $String), c.y);
+			t$2.l.setAttribute($externalize("x2", $String), c.tx);
+			t$2.l.setAttribute($externalize("y2", $String), c.ty);
 			_i$2++;
 		}
 		disp = "";
@@ -16922,12 +16937,12 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	ptrType.methods = [{prop: "connectTo", name: "connectTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([Point], [$error], false)}, {prop: "disconnect", name: "disconnect", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "setPos", name: "setPos", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [], false)}, {prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}, {prop: "String", name: "String", pkg: "", typ: $funcType([], [$String], false)}, {prop: "dragStart", name: "dragStart", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "dragTo", name: "dragTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "drop", name: "drop", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "makePinElement", name: "makePinElement", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$1], [ptrType$3], false)}];
 	ptrType$1.methods = [{prop: "makeNodeElement", name: "makeNodeElement", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "mouseDown", name: "mouseDown", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([ptrType$3], [], false)}, {prop: "moveTo", name: "moveTo", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [], false)}, {prop: "updatePinPositions", name: "updatePinPositions", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}];
-	ptrType$2.methods = [{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}, {prop: "reposition", name: "reposition", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "setColour", name: "setColour", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$String], [], false)}];
+	ptrType$2.methods = [{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}, {prop: "commit", name: "commit", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "reposition", name: "reposition", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([], [], false)}, {prop: "setColour", name: "setColour", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$String], [], false)}];
 	ptrType$4.methods = [{prop: "nearestPoint", name: "nearestPoint", pkg: "github.com/google/shenzhen-go/view/svg", typ: $funcType([$Float64, $Float64], [$Float64, Point], false)}];
 	Point.init([{prop: "Pt", name: "Pt", pkg: "", typ: $funcType([], [$Float64, $Float64], false)}]);
 	Pin.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "input", name: "input", exported: false, typ: $Bool, tag: ""}, {prop: "node", name: "node", exported: false, typ: ptrType$1, tag: ""}, {prop: "l", name: "l", exported: false, typ: ptrType$3, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}, {prop: "circ", name: "circ", exported: false, typ: ptrType$3, tag: ""}, {prop: "c", name: "c", exported: false, typ: ptrType$3, tag: ""}, {prop: "ch", name: "ch", exported: false, typ: ptrType$2, tag: ""}]);
 	Node.init("github.com/google/shenzhen-go/view/svg", [{prop: "Name", name: "Name", exported: true, typ: $String, tag: ""}, {prop: "Inputs", name: "Inputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "Outputs", name: "Outputs", exported: true, typ: sliceType$1, tag: ""}, {prop: "X", name: "X", exported: true, typ: $Float64, tag: ""}, {prop: "Y", name: "Y", exported: true, typ: $Float64, tag: ""}, {prop: "g", name: "g", exported: false, typ: ptrType$3, tag: ""}]);
-	Channel.init("github.com/google/shenzhen-go/view/svg", [{prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "Cap", name: "Cap", exported: true, typ: $Int, tag: ""}, {prop: "Pins", name: "Pins", exported: true, typ: mapType, tag: ""}, {prop: "steiner", name: "steiner", exported: false, typ: ptrType$3, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}]);
+	Channel.init("github.com/google/shenzhen-go/view/svg", [{prop: "Type", name: "Type", exported: true, typ: $String, tag: ""}, {prop: "Cap", name: "Cap", exported: true, typ: $Int, tag: ""}, {prop: "Pins", name: "Pins", exported: true, typ: mapType, tag: ""}, {prop: "steiner", name: "steiner", exported: false, typ: ptrType$3, tag: ""}, {prop: "x", name: "x", exported: false, typ: $Float64, tag: ""}, {prop: "y", name: "y", exported: false, typ: $Float64, tag: ""}, {prop: "tx", name: "tx", exported: false, typ: $Float64, tag: ""}, {prop: "ty", name: "ty", exported: false, typ: $Float64, tag: ""}]);
 	Graph.init("", [{prop: "Nodes", name: "Nodes", exported: true, typ: sliceType, tag: ""}, {prop: "Channels", name: "Channels", exported: true, typ: mapType$1, tag: ""}]);
 	$init = function() {
 		$pkg.$init = function() {};

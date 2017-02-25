@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//+build js
-
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math"
+	"net/http"
 
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -44,6 +45,8 @@ var (
 	document   = js.Global.Get("document")
 	diagramSVG = document.Call("getElementById", "diagram")
 	svgNS      = diagramSVG.Get("namespaceURI")
+
+	apiEndpoint = js.Global.Get("apiEndpoint").String()
 
 	dragItem interface{}
 
@@ -607,7 +610,24 @@ func mouseUp(e *js.Object) {
 	dragItem = nil
 }
 
+func loadGraph() {
+	resp, err := http.Get(apiEndpoint + "/graph")
+	if err != nil {
+		log.Printf("Querying API: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	d := json.NewDecoder(resp.Body)
+	if err := d.Decode(graph); err != nil {
+		log.Printf("Decoding response: %v", err)
+	}
+}
+
 func main() {
+	if apiEndpoint != "" {
+		loadGraph()
+	}
+
 	for _, n := range graph.Nodes {
 		n.makeNodeElement()
 	}

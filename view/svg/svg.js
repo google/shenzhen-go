@@ -16760,8 +16760,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	Channel.prototype.dragStart = function(e) { return this.$val.dragStart(e); };
 	Channel.ptr.prototype.dragTo = function(e) {
-		var $ptr, _r, _r$1, _tuple, _tuple$1, _tuple$2, c, d, e, err, p, q, x, y, $s, $r;
-		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; _tuple$2 = $f._tuple$2; c = $f.c; d = $f.d; e = $f.e; err = $f.err; p = $f.p; q = $f.q; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
+		var $ptr, _r, _r$1, _r$2, _tuple, _tuple$1, _tuple$2, c, d, e, err, p, q, x, y, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _r = $f._r; _r$1 = $f._r$1; _r$2 = $f._r$2; _tuple = $f._tuple; _tuple$1 = $f._tuple$1; _tuple$2 = $f._tuple$2; c = $f.c; d = $f.d; e = $f.e; err = $f.err; p = $f.p; q = $f.q; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		c = this;
 		_tuple = cursorPos(e);
 		x = _tuple[0];
@@ -16777,7 +16777,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		q = _tuple$1[1];
 		_tuple$2 = $assertType(q, ptrType, true);
 		p = _tuple$2[0];
-		if (p === c.p && d < 256) {
+		if (!(p === ptrType.nil) && p === c.p && d < 256) {
 			$s = -1; return;
 		}
 		if (d >= 256 || $interfaceIsEqual(q, c) || (!(p === ptrType.nil) && p.ch === c)) {
@@ -16792,7 +16792,11 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			c.l.setAttribute($externalize("display", $String), $externalize("", $String));
 			$s = -1; return;
 		}
-		if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) {
+		/* */ if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) { $s = 2; continue; }
+		/* */ $s = 3; continue;
+		/* if (p === ptrType.nil || !(p.ch === ptrType$2.nil)) { */ case 2:
+			_r$1 = fmt.Sprintf("trying to attach to %#v", new sliceType$2([q])); /* */ $s = 4; case 4: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
+			$global.console.log($externalize(_r$1, $String));
 			if (!(c.p === ptrType.nil)) {
 				c.p.disconnect();
 				c.p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
@@ -16803,9 +16807,9 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			c.c.setAttribute($externalize("display", $String), $externalize("", $String));
 			c.l.setAttribute($externalize("display", $String), $externalize("", $String));
 			$s = -1; return;
-		}
-		_r$1 = p.connectTo(c); /* */ $s = 2; case 2: if($c) { $c = false; _r$1 = _r$1.$blk(); } if (_r$1 && _r$1.$blk !== undefined) { break s; }
-		err = _r$1;
+		/* } */ case 3:
+		_r$2 = p.connectTo(c); /* */ $s = 5; case 5: if($c) { $c = false; _r$2 = _r$2.$blk(); } if (_r$2 && _r$2.$blk !== undefined) { break s; }
+		err = _r$2;
 		if (!($interfaceIsEqual(err, $ifaceNil))) {
 			if (!(c.p === ptrType.nil)) {
 				c.p.disconnect();
@@ -16824,7 +16828,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		c.l.setAttribute($externalize("display", $String), $externalize("none", $String));
 		c.c.setAttribute($externalize("display", $String), $externalize("none", $String));
 		$s = -1; return;
-		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.dragTo }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f._tuple$2 = _tuple$2; $f.c = c; $f.d = d; $f.e = e; $f.err = err; $f.p = p; $f.q = q; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.dragTo }; } $f.$ptr = $ptr; $f._r = _r; $f._r$1 = _r$1; $f._r$2 = _r$2; $f._tuple = _tuple; $f._tuple$1 = _tuple$1; $f._tuple$2 = _tuple$2; $f.c = c; $f.d = d; $f.e = e; $f.err = err; $f.p = p; $f.q = q; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Channel.prototype.dragTo = function(e) { return this.$val.dragTo(e); };
 	Channel.ptr.prototype.drop = function(e) {

@@ -438,7 +438,7 @@ func (c *Channel) dragTo(e *js.Object) {
 	d, q := graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
-	if p == c.p && d < snapQuad {
+	if p != nil && p == c.p && d < snapQuad {
 		return
 	}
 
@@ -483,6 +483,7 @@ func (c *Channel) dragTo(e *js.Object) {
 		return
 	}
 
+	// Let's snap!
 	c.p = p
 	p.l.Call("setAttribute", "display", "")
 	c.setColour(activeColour)

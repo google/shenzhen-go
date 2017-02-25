@@ -37,7 +37,7 @@ const (
 
 	pinRadius = 5
 	lineWidth = 2
-	snapQuad  = 256
+	snapQuad  = 144
 )
 
 var (

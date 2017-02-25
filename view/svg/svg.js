@@ -16586,9 +16586,9 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			$s = -1; return;
 			/* */ } return; } if ($f === undefined) { $f = { $blk: $b }; } $f.$ptr = $ptr; $f.col = col; $f.$s = $s; $f.$r = $r; return $f;
 		}; })(p, x, y);
-		/* */ if ($interfaceIsEqual(p[0], q) || d >= 256) { $s = 2; continue; }
+		/* */ if ($interfaceIsEqual(p[0], q) || d >= 144) { $s = 2; continue; }
 		/* */ $s = 3; continue;
-		/* if ($interfaceIsEqual(p[0], q) || d >= 256) { */ case 2:
+		/* if ($interfaceIsEqual(p[0], q) || d >= 144) { */ case 2:
 			$r = noSnap("#09f"); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			$s = -1; return;
 		/* } */ case 3:
@@ -16830,12 +16830,12 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		q = _tuple$1[1];
 		_tuple$2 = $assertType(q, ptrType, true);
 		p = _tuple$2[0];
-		if (!(p === ptrType.nil) && p === c[0].p && d < 256) {
+		if (!(p === ptrType.nil) && p === c[0].p && d < 144) {
 			$s = -1; return;
 		}
-		/* */ if (!(c[0].p === ptrType.nil) && (!(c[0].p === p) || d >= 256)) { $s = 2; continue; }
+		/* */ if (!(c[0].p === ptrType.nil) && (!(c[0].p === p) || d >= 144)) { $s = 2; continue; }
 		/* */ $s = 3; continue;
-		/* if (!(c[0].p === ptrType.nil) && (!(c[0].p === p) || d >= 256)) { */ case 2:
+		/* if (!(c[0].p === ptrType.nil) && (!(c[0].p === p) || d >= 144)) { */ case 2:
 			$r = c[0].p.disconnect(); /* */ $s = 4; case 4: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			c[0].p.circ.setAttribute($externalize("fill", $String), $externalize("#000", $String));
 			c[0].p.l.setAttribute($externalize("display", $String), $externalize("none", $String));
@@ -16850,9 +16850,9 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 			$s = -1; return;
 			/* */ } return; } if ($f === undefined) { $f = { $blk: $b }; } $f.$ptr = $ptr; $f.x$1 = x$1; $f.$s = $s; $f.$r = $r; return $f;
 		}; })(c, x, y);
-		/* */ if (d >= 256 || $interfaceIsEqual(q, c[0]) || (!(p === ptrType.nil) && p.ch === c[0])) { $s = 5; continue; }
+		/* */ if (d >= 144 || $interfaceIsEqual(q, c[0]) || (!(p === ptrType.nil) && p.ch === c[0])) { $s = 5; continue; }
 		/* */ $s = 6; continue;
-		/* if (d >= 256 || $interfaceIsEqual(q, c[0]) || (!(p === ptrType.nil) && p.ch === c[0])) { */ case 5:
+		/* if (d >= 144 || $interfaceIsEqual(q, c[0]) || (!(p === ptrType.nil) && p.ch === c[0])) { */ case 5:
 			$r = noSnap(); /* */ $s = 7; case 7: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 			c[0].setColour("#09f");
 			$s = -1; return;

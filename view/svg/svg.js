@@ -16528,12 +16528,15 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	Pin.prototype.String = function() { return this.$val.String(); };
 	Pin.ptr.prototype.dragStart = function(e) {
-		var $ptr, _tuple, e, p, x, y;
+		var $ptr, _tuple, e, p, x, y, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _tuple = $f._tuple; e = $f.e; p = $f.p; x = $f.x; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		p = this;
-		if (!(p.ch === ptrType$2.nil)) {
-			p.ch.dragStart(e);
-			return;
-		}
+		/* */ if (!(p.ch === ptrType$2.nil)) { $s = 1; continue; }
+		/* */ $s = 2; continue;
+		/* if (!(p.ch === ptrType$2.nil)) { */ case 1:
+			$r = p.ch.dragStart(e); /* */ $s = 3; case 3: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
+			$s = -1; return;
+		/* } */ case 2:
 		dragItem = p;
 		p.circ.setAttribute($externalize("fill", $String), $externalize("#09f", $String));
 		_tuple = cursorPos(e);
@@ -16547,6 +16550,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		p.l.setAttribute($externalize("stroke", $String), $externalize("#09f", $String));
 		p.c.setAttribute($externalize("display", $String), $externalize("", $String));
 		p.l.setAttribute($externalize("display", $String), $externalize("", $String));
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Pin.ptr.prototype.dragStart }; } $f.$ptr = $ptr; $f._tuple = _tuple; $f.e = e; $f.p = p; $f.x = x; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Pin.prototype.dragStart = function(e) { return this.$val.dragStart(e); };
 	Pin.ptr.prototype.dragTo = function(e) {
@@ -16791,7 +16796,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 	};
 	Channel.prototype.commit = function() { return this.$val.commit(); };
 	Channel.ptr.prototype.dragStart = function(e) {
-		var $ptr, _tuple, c, e, x, y;
+		var $ptr, _tuple, c, e, x, x$1, y, $s, $r;
+		/* */ $s = 0; var $f, $c = false; if (this !== undefined && this.$blk !== undefined) { $f = this; $c = true; $ptr = $f.$ptr; _tuple = $f._tuple; c = $f.c; e = $f.e; x = $f.x; x$1 = $f.x$1; y = $f.y; $s = $f.$s; $r = $f.$r; } s: while (true) { switch ($s) { case 0:
 		c = this;
 		dragItem = c;
 		c.steiner.setAttribute($externalize("display", $String), $externalize("", $String));
@@ -16799,6 +16805,7 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		_tuple = cursorPos(e);
 		x = _tuple[0];
 		y = _tuple[1];
+		$r = c.reposition((x$1 = new ephemeral.ptr(x, y), new x$1.constructor.elem(x$1))); /* */ $s = 1; case 1: if($c) { $c = false; $r = $r.$blk(); } if ($r && $r.$blk !== undefined) { break s; }
 		c.l.setAttribute($externalize("x1", $String), x);
 		c.l.setAttribute($externalize("y1", $String), y);
 		c.l.setAttribute($externalize("x2", $String), c.tx);
@@ -16807,6 +16814,8 @@ $packages["github.com/google/shenzhen-go/view/svg"] = (function() {
 		c.c.setAttribute($externalize("cy", $String), y);
 		c.c.setAttribute($externalize("display", $String), $externalize("", $String));
 		c.l.setAttribute($externalize("display", $String), $externalize("", $String));
+		$s = -1; return;
+		/* */ } return; } if ($f === undefined) { $f = { $blk: Channel.ptr.prototype.dragStart }; } $f.$ptr = $ptr; $f._tuple = _tuple; $f.c = c; $f.e = e; $f.x = x; $f.x$1 = x$1; $f.y = y; $f.$s = $s; $f.$r = $r; return $f;
 	};
 	Channel.prototype.dragStart = function(e) { return this.$val.dragStart(e); };
 	Channel.ptr.prototype.dragTo = function(e) {

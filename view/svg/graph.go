@@ -417,6 +417,7 @@ func (c *Channel) dragStart(e *js.Object) {
 	c.setColour(activeColour)
 
 	x, y := cursorPos(e)
+	c.reposition(ephemeral{x, y})
 	c.l.Call("setAttribute", "x1", x)
 	c.l.Call("setAttribute", "y1", y)
 	c.l.Call("setAttribute", "x2", c.tx)

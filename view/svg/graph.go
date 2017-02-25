@@ -222,32 +222,26 @@ func (p *Pin) dragTo(e *js.Object) {
 	}()
 	d, q := graph.nearestPoint(x, y)
 
-	// Don't connect P to itself, don't connect if nearest is far away.
-	if p == q || d >= snapQuad {
-		// Nothing nearby - use active colour and unsnap if necessary.
+	noSnap := func(col string) {
 		if p.ch != nil {
 			p.ch.setColour(normalColour)
 			p.disconnect()
 		}
 
-		p.circ.Call("setAttribute", "fill", activeColour)
-		p.l.Call("setAttribute", "stroke", activeColour)
-		p.c.Call("setAttribute", "stroke", activeColour)
+		p.circ.Call("setAttribute", "fill", col)
+		p.l.Call("setAttribute", "stroke", col)
+		p.c.Call("setAttribute", "stroke", col)
 		p.c.Call("setAttribute", "display", "")
+	}
+
+	// Don't connect P to itself, don't connect if nearest is far away.
+	if p == q || d >= snapQuad {
+		noSnap(activeColour)
 		return
 	}
 
 	if err := p.connectTo(q); err != nil {
-		// TODO: complain to user via message
-		if p.ch != nil {
-			p.ch.setColour(normalColour)
-			p.disconnect()
-		}
-
-		p.circ.Call("setAttribute", "fill", errorColour)
-		p.l.Call("setAttribute", "stroke", errorColour)
-		p.c.Call("setAttribute", "stroke", errorColour)
-		p.c.Call("setAttribute", "display", "")
+		noSnap(errorColour)
 		return
 	}
 	// Snap to q.ch, or q if q is a channel. Visual.

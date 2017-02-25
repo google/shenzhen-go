@@ -46,7 +46,6 @@ var (
 	svgNS      = diagramSVG.Get("namespaceURI")
 
 	currentThingy interface{}
-	relX, relY    float64
 
 	graph = &Graph{
 		Nodes: []Node{
@@ -300,6 +299,8 @@ type Node struct {
 	X, Y            float64
 
 	g *js.Object
+
+	relX, relY float64 // relative client offset for moving around
 }
 
 func (n *Node) makeNodeElement() {
@@ -341,7 +342,7 @@ func (n *Node) makeNodeElement() {
 
 func (n *Node) mouseDown(e *js.Object) {
 	currentThingy = n
-	relX, relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
+	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
 	diagramSVG.Call("appendChild", n.g)
@@ -590,7 +591,7 @@ func mouseMove(e *js.Object) {
 	}
 	switch t := currentThingy.(type) {
 	case *Node:
-		t.moveTo(e.Get("clientX").Float()-relX, e.Get("clientY").Float()-relY)
+		t.moveTo(e.Get("clientX").Float()-t.relX, e.Get("clientY").Float()-t.relY)
 	case *Channel:
 		t.dragTo(e)
 	case *Pin:

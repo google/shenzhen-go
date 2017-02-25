@@ -91,6 +91,10 @@ func cursorPos(e *js.Object) (x, y float64) {
 	return
 }
 
+type Point interface {
+	Pt() (x, y float64)
+}
+
 type Pin struct {
 	Name, Type string
 
@@ -104,7 +108,7 @@ type Pin struct {
 	ch   *Channel   // attached to this channel
 }
 
-func (p *Pin) connectTo(q interface{}) error {
+func (p *Pin) connectTo(q Point) error {
 	switch q := q.(type) {
 	case *Pin:
 		if p.ch != nil && p.ch != q.ch {
@@ -138,6 +142,7 @@ func (p *Pin) connectTo(q interface{}) error {
 		p.ch, q.ch = ch, ch
 		graph.Channels[ch] = struct{}{}
 		q.l.Call("setAttribute", "display", "")
+
 	case *Channel:
 		if p.ch != nil && p.ch != q {
 			p.disconnect()
@@ -183,6 +188,8 @@ func (p *Pin) setPos(rx, ry float64) {
 	}
 }
 
+func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
+
 func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
 
 func (p *Pin) dragStart(e *js.Object) {
@@ -207,7 +214,14 @@ func (p *Pin) dragStart(e *js.Object) {
 
 func (p *Pin) dragTo(e *js.Object) {
 	x, y := cursorPos(e)
-	d, q := graph.nearestPin(x, y)
+	defer func() {
+		p.l.Call("setAttribute", "x2", x)
+		p.l.Call("setAttribute", "y2", y)
+		p.c.Call("setAttribute", "cx", x)
+		p.c.Call("setAttribute", "cy", y)
+	}()
+	d, q := graph.nearestPoint(x, y)
+
 	// Don't connect P to itself, snap to near the pointer, connect inputs to outputs.
 	if p != q && d < snapQuad {
 
@@ -217,31 +231,32 @@ func (p *Pin) dragTo(e *js.Object) {
 			p.l.Call("setAttribute", "stroke", errorColour)
 			p.c.Call("setAttribute", "stroke", errorColour)
 			p.c.Call("setAttribute", "display", "")
-		} else {
-			// Snap to q.ch.
+			return
+		}
+		// Snap to q.ch, or q if q is a channel.
+		switch q := q.(type) {
+		case *Pin:
 			x, y = q.ch.x, q.ch.y
-
-			// Valid snap - ensure the colour is active.
-			p.ch.setColour(activeColour)
-			p.c.Call("setAttribute", "display", "none")
-		}
-	} else {
-		// Nothing nearby - use active colour and unsnap if necessary.
-		if p.ch != nil {
-			p.ch.setColour(normalColour)
-			p.disconnect()
+		case *Channel:
+			x, y = q.x, q.y
 		}
 
-		p.circ.Call("setAttribute", "fill", activeColour)
-		p.l.Call("setAttribute", "stroke", activeColour)
-		p.c.Call("setAttribute", "stroke", activeColour)
-		p.c.Call("setAttribute", "display", "")
+		// Valid snap - ensure the colour is active.
+		p.ch.setColour(activeColour)
+		p.c.Call("setAttribute", "display", "none")
+		return
 	}
 
-	p.l.Call("setAttribute", "x2", x)
-	p.l.Call("setAttribute", "y2", y)
-	p.c.Call("setAttribute", "cx", x)
-	p.c.Call("setAttribute", "cy", y)
+	// Nothing nearby - use active colour and unsnap if necessary.
+	if p.ch != nil {
+		p.ch.setColour(normalColour)
+		p.disconnect()
+	}
+
+	p.circ.Call("setAttribute", "fill", activeColour)
+	p.l.Call("setAttribute", "stroke", activeColour)
+	p.c.Call("setAttribute", "stroke", activeColour)
+	p.c.Call("setAttribute", "display", "")
 }
 
 func (p *Pin) drop(e *js.Object) {
@@ -360,6 +375,8 @@ type Channel struct {
 	x, y    float64    // centre of steiner point
 }
 
+func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
+
 func (c *Channel) reposition() {
 	if len(c.Pins) < 2 {
 		// Not actually a channel anymore - hide.
@@ -406,12 +423,13 @@ type Graph struct {
 	Channels map[*Channel]struct{}
 }
 
-func (g *Graph) nearestPin(x, y float64) (quad float64, pin *Pin) {
+func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 	quad = math.MaxFloat64
-	test := func(p *Pin) {
-		dx, dy := x-p.x, y-p.y
+	test := func(p Point) {
+		px, py := p.Pt()
+		dx, dy := x-px, y-py
 		if t := dx*dx + dy*dy; t < quad {
-			quad, pin = t, p
+			quad, pt = t, p
 		}
 	}
 	for _, n := range g.Nodes {
@@ -422,7 +440,10 @@ func (g *Graph) nearestPin(x, y float64) (quad float64, pin *Pin) {
 			test(p)
 		}
 	}
-	return quad, pin
+	for c := range g.Channels {
+		test(c)
+	}
+	return quad, pt
 }
 
 func mouseMove(e *js.Object) {

@@ -38,8 +38,8 @@ var (
 	dragItem interface{}
 
 	graph = &Graph{
-		Nodes: []Node{
-			{
+		Nodes: map[string]*Node{
+			"Hello, yes": {
 				Name: "Hello, yes",
 				Inputs: []*Pin{
 					{Name: "foo1", Type: "int", input: true},
@@ -53,7 +53,7 @@ var (
 				X: 100,
 				Y: 100,
 			},
-			{
+			"this is dog": {
 				Name: "this is dog",
 				Inputs: []*Pin{
 					{Name: "baz0", Type: "string", input: true},
@@ -68,7 +68,7 @@ var (
 				Y: 200,
 			},
 		},
-		Channels: make(map[*Channel]struct{}),
+		Channels: map[*Channel]struct{}{},
 	}
 )
 

@@ -19,10 +19,12 @@ import (
 	"log"
 	"math"
 	"net/http"
+
+	"github.com/google/shenzhen-go/api"
 )
 
 type Graph struct {
-	Nodes    []Node
+	Nodes    map[string]*Node
 	Channels map[*Channel]struct{}
 }
 
@@ -49,11 +51,6 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 	return quad, pt
 }
 
-type jsonGraph struct {
-	Nodes    []Node     `json:"nodes"`
-	Channels []*Channel `json:"channels"`
-}
-
 func loadGraph() {
 	resp, err := http.Get(apiEndpoint + "/graph")
 	if err != nil {
@@ -62,13 +59,48 @@ func loadGraph() {
 	}
 	defer resp.Body.Close()
 	d := json.NewDecoder(resp.Body)
-	var g jsonGraph
+	var g api.Graph
 	if err := d.Decode(&g); err != nil {
 		log.Printf("Decoding response: %v", err)
 	}
-	graph.Nodes = g.Nodes
+
+	chans := make(map[string]*Channel)
 	graph.Channels = make(map[*Channel]struct{})
-	for _, c := range g.Channels {
-		graph.Channels[c] = struct{}{}
+	for k, c := range g.Channels {
+		ch := &Channel{
+			Type: c.Type,
+			Cap:  c.Capacity,
+			Pins: make(map[*Pin]struct{}),
+		}
+		chans[k] = ch
+		graph.Channels[ch] = struct{}{}
 	}
+
+	graph.Nodes = make(map[string]*Node, len(g.Nodes))
+	for _, n := range g.Nodes {
+		m := &Node{
+			Name: n.Name,
+			X:    float64(n.X),
+			Y:    float64(n.Y),
+		}
+		for _, p := range n.Pins {
+			q := &Pin{
+				Name:  p.Name,
+				Type:  p.Type,
+				input: p.Direction == api.Input,
+			}
+			if q.input {
+				m.Inputs = append(m.Inputs, q)
+			} else {
+				m.Outputs = append(m.Outputs, q)
+			}
+
+			if c, ok := chans[p.Binding]; ok {
+				q.ch = c
+				c.Pins[q] = struct{}{}
+			}
+		}
+		graph.Nodes[n.Name] = m
+	}
+
 }

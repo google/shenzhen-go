@@ -24,14 +24,14 @@ import (
 type Pin struct {
 	Name, Type string
 
-	input bool  // am I an input?
-	node  *Node // owner.
+	input bool     // am I an input?
+	node  *Node    // owner.
+	ch    *Channel // attached to this channel
 
 	l    *js.Object // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
 	x, y float64    // computed, not relative to node
 	circ *js.Object // my main representation
 	c    *js.Object // circle, when dragging from a pin
-	ch   *Channel   // attached to this channel
 }
 
 func (p *Pin) connectTo(q Point) error {

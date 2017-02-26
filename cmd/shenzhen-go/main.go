@@ -86,7 +86,7 @@ func main() {
 		fmt.Fprintf(w, pingMsg)
 	})
 	http.Handle("/favicon.ico", view.Favicon)
-	http.Handle("/.api/", http.StripPrefix("/.api/", view.API))
+	http.Handle("/.api/", http.StripPrefix("/.api", view.API))
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 	http.Handle("/", view.NewBrowser())
 

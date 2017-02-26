@@ -15,8 +15,12 @@
 package view
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/google/shenzhen-go/api"
 )
 
 type apiHandler struct{}
@@ -27,5 +31,43 @@ var API apiHandler
 func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET api: %v", r.URL.Path)
 
-	// TODO
+	lg := loadedGraphs[r.URL.Path]
+	if lg == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// TODO: make translation easier
+	g := &api.Graph{
+		Nodes:    make([]*api.Node, 0, len(lg.Nodes)),
+		Channels: make(map[string]*api.Channel),
+	}
+
+	for _, n := range lg.Nodes {
+		m := &api.Node{
+			Name: n.Name,
+			Pins: make([]*api.Pin, 0, len(n.Pins)),
+		}
+		for k, p := range n.Pins {
+			m.Pins = append(m.Pins, &api.Pin{
+				Name:    k,
+				Type:    p.Type,
+				Binding: p.Value,
+			})
+		}
+		g.Nodes = append(g.Nodes, m)
+	}
+
+	for i, c := range lg.Channels {
+		g.Channels[fmt.Sprintf("c%d", i)] = &api.Channel{
+			Capacity: c.Cap,
+			Type:     c.Type,
+		}
+	}
+
+	e := json.NewEncoder(w)
+	if err := e.Encode(g); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Couldn't encode JSON: %v", err)
+	}
 }

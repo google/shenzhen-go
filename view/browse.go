@@ -53,19 +53,19 @@ const browseTemplateSrc = `<head>
 	</div>
 </body>`
 
-var browseTemplate = template.Must(template.New("browse").Parse(browseTemplateSrc))
+var (
+	browseTemplate = template.Must(template.New("browse").Parse(browseTemplateSrc))
+
+	loadedGraphs = make(map[string]*graph.Graph)
+)
 
 // dirBrowser serves a way of visually navigating the filesystem.
-type dirBrowser struct {
-	loadedGraphs map[string]*graph.Graph
-}
+type dirBrowser struct{}
 
 // NewBrowser makes a Handler that can browse the filesystem and also multiple
 // graphs stored in the filesystem.
 func NewBrowser() http.Handler {
-	return &dirBrowser{
-		loadedGraphs: make(map[string]*graph.Graph),
-	}
+	return &dirBrowser{}
 }
 
 type entry struct {
@@ -79,7 +79,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	path := r.URL.Path
 	_, reload := r.URL.Query()["reload"]
-	if g, ok := b.loadedGraphs[path]; ok && !reload {
+	if g, ok := loadedGraphs[path]; ok && !reload {
 		Graph(g, w, r)
 		return
 	}
@@ -105,7 +105,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
 			return
 		}
-		b.loadedGraphs[path] = g
+		loadedGraphs[path] = g
 		Graph(g, w, r)
 		return
 	}
@@ -119,7 +119,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		path = filepath.Join(path, nu)
-		b.loadedGraphs[path] = graph.New(nfp)
+		loadedGraphs[path] = graph.New(nfp)
 		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
 		return
 	}

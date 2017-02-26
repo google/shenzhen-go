@@ -15,8 +15,10 @@
 package view
 
 import (
+	"bytes"
 	"log"
 	"net/http"
+	"time"
 
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/gofont/gobolditalic"
@@ -222,8 +224,10 @@ pre.codeedit {
 
 var (
 	staticMap = map[string][]byte{
-		"fonts.css": []byte(fontsCSS),
-		"main.css":  []byte(mainCSS),
+		"fonts.css":  []byte(fontsCSS),
+		"main.css":   []byte(mainCSS),
+		"svg.js":     svgResources["svg.js"],
+		"svg.js.map": svgResources["svg.js.map"],
 
 		"fonts/GoMedium-Italic.ttf":   gomediumitalic.TTF,
 		"fonts/Go-Italic.ttf":         goitalic.TTF,
@@ -252,6 +256,5 @@ func (staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Cache-Control", "public")
 	w.Header().Add("Cache-Control", "max-age=86400")
-	w.WriteHeader(http.StatusOK)
-	w.Write(d)
+	http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
 }

@@ -26,7 +26,8 @@ import (
 )
 
 const (
-	graphEditorTemplateSrc = `<head>
+	graphEditorTemplateSrc = `<html>
+<head>
 	<title>{{$.Graph.Name}}</title>
 	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
 	<link type="text/css" rel="stylesheet" href="/.static/main.css">
@@ -58,12 +59,17 @@ const (
 	View as: <a href="?go">Go</a> <a href="?json">JSON</a>
 	<br><br>
 	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
+	<script>
+		var apiEndpoint = '/.api';
+	</script>
 	<script src="/.static/svg.js"></script>
 </div>
-</body>`
+</body>
+</html>`
 
 	// TODO: Replace these cobbled-together UIs with Polymer or something.
-	graphPropertiesTemplateSrc = `<head>
+	graphPropertiesTemplateSrc = `<html>
+<head>
 	<title>{{.Name}}</title>
 	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
 	<link type="text/css" rel="stylesheet" href="/.static/main.css">
@@ -97,7 +103,8 @@ const (
 		</div>
 	</form>
 </div>
-</body>`
+</body>
+</html>`
 )
 
 var (

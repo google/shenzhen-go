@@ -38,7 +38,7 @@ type Node struct {
 	relX, relY float64 // relative client offset for moving around
 }
 
-func (n *Node) makeNodeElement() {
+func (n *Node) makeElements() {
 	// Group
 	g := makeSVGElement("g")
 	diagramSVG.Call("appendChild", g)

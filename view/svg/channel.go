@@ -38,24 +38,29 @@ func newChannel(p, q *Pin) *Channel {
 			p: struct{}{},
 			q: struct{}{},
 		},
-		steiner: makeSVGElement("circle"),
-		l:       makeSVGElement("line"),
-		c:       makeSVGElement("circle"),
 	}
-	diagramSVG.Call("appendChild", ch.steiner)
-	diagramSVG.Call("appendChild", ch.l)
-	diagramSVG.Call("appendChild", ch.c)
-
-	ch.steiner.Call("setAttribute", "r", pinRadius)
-	ch.steiner.Call("addEventListener", "mousedown", ch.dragStart)
-
-	ch.l.Call("setAttribute", "stroke-width", lineWidth)
-	ch.l.Call("setAttribute", "display", "none")
-	ch.c.Call("setAttribute", "r", pinRadius)
-	ch.c.Call("setAttribute", "fill", "transparent")
-	ch.c.Call("setAttribute", "stroke-width", lineWidth)
-	ch.c.Call("setAttribute", "display", "none")
+	ch.makeElements()
 	return ch
+}
+
+func (c *Channel) makeElements() {
+	c.steiner = makeSVGElement("circle")
+	c.l = makeSVGElement("line")
+	c.c = makeSVGElement("circle")
+
+	diagramSVG.Call("appendChild", c.steiner)
+	diagramSVG.Call("appendChild", c.l)
+	diagramSVG.Call("appendChild", c.c)
+
+	c.steiner.Call("setAttribute", "r", pinRadius)
+	c.steiner.Call("addEventListener", "mousedown", c.dragStart)
+
+	c.l.Call("setAttribute", "stroke-width", lineWidth)
+	c.l.Call("setAttribute", "display", "none")
+	c.c.Call("setAttribute", "r", pinRadius)
+	c.c.Call("setAttribute", "fill", "transparent")
+	c.c.Call("setAttribute", "stroke-width", lineWidth)
+	c.c.Call("setAttribute", "display", "none")
 }
 
 func (c *Channel) Pt() (x, y float64) { return c.x, c.y }

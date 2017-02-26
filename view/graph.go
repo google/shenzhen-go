@@ -45,8 +45,8 @@ const (
 	<a href="?build" title="Export the graph to a Go package and 'go build' it">Build</a> | 
 	{{end -}}
 	<a href="?run" target="_blank" title="Export the graph to a Go package and execute it">Run</a> | 
-	New: <span class="dropdown">
-		<a href="javascript:void(0)">Goroutine</a> 
+	<span class="dropdown">
+		<a href="javascript:void(0)">New goroutine</a> 
 		<div class="dropdown-content">
 			<ul>
 			{{range $t, $null := $.PartTypes -}}
@@ -54,8 +54,7 @@ const (
 			{{- end}}
 			</ul>
 		</div>
-	</span>
-	<a href="?channel=new" title="Create a new channel">Channel</a> | 
+	</span> |
 	View as: <a href="?go">Go</a> <a href="?json">JSON</a>
 	<br><br>
 	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />

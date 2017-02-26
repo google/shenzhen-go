@@ -83,9 +83,9 @@ func loadGraph() {
 			X:    float64(n.X),
 			Y:    float64(n.Y),
 		}
-		for _, p := range n.Pins {
+		for k, p := range n.Pins {
 			q := &Pin{
-				Name:  p.Name,
+				Name:  k,
 				Type:  p.Type,
 				input: p.Direction == api.Input,
 			}

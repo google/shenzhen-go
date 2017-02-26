@@ -122,8 +122,11 @@ func mouseUp(e *js.Object) {
 
 func main() {
 	loadGraph()
+	for c := range graph.Channels {
+		c.makeElements()
+	}
 	for _, n := range graph.Nodes {
-		n.makeNodeElement()
+		n.makeElements()
 	}
 
 	diagramSVG.Call("addEventListener", "mousemove", mouseMove)

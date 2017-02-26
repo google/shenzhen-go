@@ -46,14 +46,19 @@ func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, n := range lg.Nodes {
 		m := &api.Node{
 			Name: n.Name,
-			Pins: make([]*api.Pin, 0, len(n.Pins)),
+			Pins: make(map[string]*api.Pin, len(n.Pins)),
 		}
 		for k, p := range n.Pins {
-			m.Pins = append(m.Pins, &api.Pin{
-				Name:    k,
+			b := p.Value
+			if b == "nil" {
+				b = ""
+			}
+			m.Pins[k] = &api.Pin{
 				Type:    p.Type,
-				Binding: p.Value,
-			})
+				Binding: b,
+				// TODO: Direction
+				Direction: api.Output,
+			}
 		}
 		g.Nodes = append(g.Nodes, m)
 	}

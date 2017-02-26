@@ -15,7 +15,6 @@
 package view
 
 import (
-	"bytes"
 	"fmt"
 	"html/template"
 	"log"
@@ -56,9 +55,10 @@ const (
 		</div>
 	</span>
 	<a href="?channel=new" title="Create a new channel">Channel</a> | 
-	View as: <a href="?go">Go</a> <a href="?dot">Dot</a> <a href="?json">JSON</a>
+	View as: <a href="?go">Go</a> <a href="?json">JSON</a>
 	<br><br>
-	{{$.Diagram}}
+	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
+	<script src="/.static/svg.js"></script>
 </div>
 </body>`
 
@@ -120,10 +120,6 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 			log.Printf("Could not execute graph properties editor template: %v", err)
 			http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
 		}
-		return
-	}
-	if _, t := q["dot"]; t {
-		outputDotSrc(g, w)
 		return
 	}
 	if _, t := q["go"]; t {
@@ -188,23 +184,10 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dot, svg bytes.Buffer
-	if err := g.WriteDotTo(&dot); err != nil {
-		log.Printf("Could not render to dot: %v", err)
-		http.Error(w, "Could not render to dot", http.StatusInternalServerError)
-		return
-	}
-	if err := dotToSVG(&svg, &dot); err != nil {
-		log.Printf("Could not render dot to SVG: %v", err)
-		http.Error(w, "Could not render dot to SVG", http.StatusInternalServerError)
-		return
-	}
 	d := &struct {
-		Diagram   template.HTML
 		Graph     *graph.Graph
 		PartTypes map[string]graph.PartFactory
 	}{
-		Diagram:   template.HTML(svg.String()),
 		Graph:     g,
 		PartTypes: graph.PartFactories,
 	}
@@ -259,15 +242,6 @@ func handlePropsPost(g *graph.Graph, w http.ResponseWriter, r *http.Request) err
 	g.IsCommand = (r.FormValue("IsCommand") == "on")
 
 	return graphPropertiesTemplate.Execute(w, g)
-}
-
-func outputDotSrc(g *graph.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/vnd.graphviz")
-	if err := g.WriteDotTo(w); err != nil {
-		log.Printf("Could not render to dot: %v", err)
-		http.Error(w, "Could not render to dot", http.StatusInternalServerError)
-	}
 }
 
 func outputGoSrc(g *graph.Graph, w http.ResponseWriter) {

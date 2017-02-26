@@ -214,12 +214,6 @@ func (g *Graph) SaveJSONFile() error {
 	return os.Rename(f.Name(), g.SourcePath)
 }
 
-// WriteDotTo writes the Dot language view of the graph to the io.Writer.
-func (g *Graph) WriteDotTo(dst io.Writer) error {
-	g.mapConnections()
-	return dotTemplate.Execute(dst, g)
-}
-
 // WriteGoTo writes the Go language view of the graph to the io.Writer.
 func (g *Graph) WriteGoTo(w io.Writer) error {
 	buf := &bytes.Buffer{}

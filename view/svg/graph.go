@@ -52,7 +52,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 }
 
 func loadGraph() {
-	resp, err := http.Get(apiEndpoint + "/graph")
+	resp, err := http.Get(apiEndpoint + graphPath)
 	if err != nil {
 		log.Printf("Querying API: %v", err)
 		return

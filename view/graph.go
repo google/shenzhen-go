@@ -60,7 +60,7 @@ const (
 	<br><br>
 	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
 	<script>
-		var apiEndpoint = '/.api';
+		var graphPath = '{{$.Graph.SourcePath}}';
 	</script>
 	<script src="/.static/svg.js"></script>
 </div>

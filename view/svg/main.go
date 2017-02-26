@@ -26,14 +26,15 @@ const (
 	pinRadius = 5
 	lineWidth = 2
 	snapQuad  = 144
+
+	apiEndpoint = "/.api/"
 )
 
 var (
 	document   = js.Global.Get("document")
 	diagramSVG = document.Call("getElementById", "diagram")
 	svgNS      = diagramSVG.Get("namespaceURI")
-
-	apiEndpoint = js.Global.Get("apiEndpoint").String()
+	graphPath  = js.Global.Get("graphPath").String()
 
 	dragItem interface{}
 
@@ -120,10 +121,7 @@ func mouseUp(e *js.Object) {
 }
 
 func main() {
-	if apiEndpoint != "" {
-		loadGraph()
-	}
-
+	loadGraph()
 	for _, n := range graph.Nodes {
 		n.makeNodeElement()
 	}

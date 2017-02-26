@@ -36,7 +36,7 @@ var (
 	svgNS      = diagramSVG.Get("namespaceURI")
 	graphPath  = js.Global.Get("graphPath").String()
 
-	dragItem interface{}
+	dragItem draggable
 
 	graph = &Graph{
 		Nodes: map[string]*Node{
@@ -89,34 +89,24 @@ type ephemeral struct{ x, y float64 }
 
 func (e ephemeral) Pt() (x, y float64) { return e.x, e.y }
 
+type draggable interface {
+	drag(*js.Object)
+	drop(*js.Object)
+}
+
 func mouseMove(e *js.Object) {
 	if dragItem == nil {
 		return
 	}
-	switch t := dragItem.(type) {
-	case *Node:
-		t.moveTo(e.Get("clientX").Float()-t.relX, e.Get("clientY").Float()-t.relY)
-	case *Channel:
-		t.dragTo(e)
-	case *Pin:
-		t.dragTo(e)
-	}
+	dragItem.drag(e)
 }
 
 func mouseUp(e *js.Object) {
 	if dragItem == nil {
 		return
 	}
-	mouseMove(e)
-
-	switch t := dragItem.(type) {
-	case *Node:
-		// Nothing
-	case *Channel:
-		t.drop(e)
-	case *Pin:
-		t.drop(e)
-	}
+	dragItem.drag(e)
+	dragItem.drop(e)
 	dragItem = nil
 }
 

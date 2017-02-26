@@ -83,12 +83,17 @@ func (n *Node) mouseDown(e *js.Object) {
 	diagramSVG.Call("appendChild", n.g)
 }
 
-func (n *Node) moveTo(x, y float64) {
+func (n *Node) drag(e *js.Object) {
+	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 	tf := n.g.Get("transform").Get("baseVal").Call("getItem", 0).Get("matrix")
 	tf.Set("e", x)
 	tf.Set("f", y)
 	n.X, n.Y = x, y
 	n.updatePinPositions()
+}
+
+func (n *Node) drop(e *js.Object) {
+	// TODO
 }
 
 func (n *Node) updatePinPositions() {

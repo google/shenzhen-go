@@ -135,7 +135,7 @@ func (p *Pin) dragStart(e *js.Object) {
 	p.l.Call("setAttribute", "display", "")
 }
 
-func (p *Pin) dragTo(e *js.Object) {
+func (p *Pin) drag(e *js.Object) {
 	x, y := cursorPos(e)
 	defer func() {
 		p.l.Call("setAttribute", "x2", x)

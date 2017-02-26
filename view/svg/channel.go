@@ -85,7 +85,7 @@ func (c *Channel) dragStart(e *js.Object) {
 	c.l.Call("setAttribute", "display", "")
 }
 
-func (c *Channel) dragTo(e *js.Object) {
+func (c *Channel) drag(e *js.Object) {
 	x, y := cursorPos(e)
 	c.steiner.Call("setAttribute", "display", "")
 	c.l.Call("setAttribute", "x1", x)

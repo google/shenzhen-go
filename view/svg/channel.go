@@ -70,6 +70,10 @@ func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 func (c *Channel) dragStart(e *js.Object) {
 	dragItem = c
 
+	// TODO: make it so that if the current configuration is invalid
+	// (e.g. all input pins / output pins) then use errorColour, and
+	// delete the whole channel if dropped.
+
 	c.steiner.Call("setAttribute", "display", "")
 	c.setColour(activeColour)
 

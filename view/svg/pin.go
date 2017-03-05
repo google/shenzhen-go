@@ -177,15 +177,17 @@ func (p *Pin) drag(e *js.Object) {
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
+		clearError()
 		noSnap()
 		return
 	}
 
 	if err := p.connectTo(q); err != nil {
-		// TODO: also complain about the error
+		setError(err, x, y)
 		noSnap()
 		return
 	}
+
 	// Snap to q.ch, or q if q is a channel. Visual.
 	switch q := q.(type) {
 	case *Pin:
@@ -195,11 +197,13 @@ func (p *Pin) drag(e *js.Object) {
 	}
 
 	// Valid snap - ensure the colour is active.
+	clearError()
 	p.ch.setColour(activeColour)
 	p.c.Call("setAttribute", "display", "none")
 }
 
 func (p *Pin) drop(e *js.Object) {
+	clearError()
 	p.circ.Call("setAttribute", "fill", normalColour)
 	p.c.Call("setAttribute", "display", "none")
 	if p.ch == nil {

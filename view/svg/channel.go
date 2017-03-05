@@ -15,6 +15,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -117,24 +119,28 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
+		clearError()
 		noSnap()
 		c.setColour(activeColour)
 		return
 	}
 
 	if p == nil || p.ch != nil {
+		setError(errors.New("cannot connect channels together"), x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	if err := p.connectTo(c); err != nil {
+		setError(err, x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	// Let's snap!
+	clearError()
 	c.p = p
 	p.l.Call("setAttribute", "display", "")
 	c.setColour(activeColour)
@@ -143,6 +149,7 @@ func (c *Channel) drag(e *js.Object) {
 }
 
 func (c *Channel) drop(e *js.Object) {
+	clearError()
 	c.reposition(nil)
 	c.commit()
 	c.setColour(normalColour)

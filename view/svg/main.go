@@ -23,6 +23,8 @@ const (
 	normalColour = "#000"
 	errorColour  = "#f06"
 
+	errLabelStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
+
 	pinRadius = 5
 	lineWidth = 2
 	snapQuad  = 144
@@ -35,6 +37,9 @@ var (
 	diagramSVG = document.Call("getElementById", "diagram")
 	svgNS      = diagramSVG.Get("namespaceURI")
 	graphPath  = js.Global.Get("graphPath").String()
+
+	errLabel     *js.Object
+	errLabelText *js.Object
 
 	dragItem draggable
 
@@ -110,6 +115,22 @@ func mouseUp(e *js.Object) {
 	dragItem = nil
 }
 
+func setError(err error, x, y float64) {
+	if err == nil {
+		clearError()
+		return
+	}
+	diagramSVG.Call("appendChild", errLabel) // Bring to front
+	errLabel.Call("setAttribute", "display", "")
+	errLabel.Call("setAttribute", "x", x+4)
+	errLabel.Call("setAttribute", "y", y-4)
+	errLabelText.Set("nodeValue", "Error: "+err.Error())
+}
+
+func clearError() {
+	errLabel.Call("setAttribute", "display", "none")
+}
+
 func main() {
 	loadGraph()
 	for c := range graph.Channels {
@@ -118,6 +139,13 @@ func main() {
 	for _, n := range graph.Nodes {
 		n.makeElements()
 	}
+
+	errLabel = makeSVGElement("text")
+	diagramSVG.Call("appendChild", errLabel)
+	errLabel.Call("setAttribute", "unselectable", "on")
+	errLabel.Call("setAttribute", "style", errLabelStyle)
+	errLabelText = document.Call("createTextNode", "")
+	errLabel.Call("appendChild", errLabelText)
 
 	diagramSVG.Call("addEventListener", "mousemove", mouseMove)
 	diagramSVG.Call("addEventListener", "mouseup", mouseUp)

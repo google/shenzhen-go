@@ -15,8 +15,6 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -126,14 +124,14 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	if p == nil || p.ch != nil {
-		setError(errors.New("cannot connect channels together"), x, y)
+		setError("Can't connect different channels together (use another goroutine)", x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	if err := p.connectTo(c); err != nil {
-		setError(err, x, y)
+		setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return

@@ -23,7 +23,8 @@ const (
 	normalColour = "#000"
 	errorColour  = "#f06"
 
-	errLabelStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
+	errRectStyle = "fill: #fee; fill-opacity: 0.3; stroke: #533; stroke-width:1"
+	errTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 
 	pinRadius = 5
 	lineWidth = 2
@@ -38,15 +39,14 @@ var (
 	svgNS      = diagramSVG.Get("namespaceURI")
 	graphPath  = js.Global.Get("graphPath").String()
 
-	errLabel     *js.Object
-	errLabelText *js.Object
+	errLabel *textBox
 
 	dragItem draggable
 
 	graph = &Graph{
 		Nodes: map[string]*Node{
-			"Hello, yes": {
-				Name: "Hello, yes",
+			"one": {
+				Name: "Hello",
 				Inputs: []*Pin{
 					{Name: "foo1", Type: "int", input: true},
 					{Name: "foo2", Type: "int", input: true},
@@ -59,8 +59,8 @@ var (
 				X: 100,
 				Y: 100,
 			},
-			"this is dog": {
-				Name: "this is dog",
+			"two": {
+				Name: "Yes",
 				Inputs: []*Pin{
 					{Name: "baz0", Type: "string", input: true},
 					{Name: "baz1", Type: "string", input: true},
@@ -115,20 +115,19 @@ func mouseUp(e *js.Object) {
 	dragItem = nil
 }
 
-func setError(err error, x, y float64) {
-	if err == nil {
+func setError(err string, x, y float64) {
+	if err == "" {
 		clearError()
 		return
 	}
-	diagramSVG.Call("appendChild", errLabel) // Bring to front
-	errLabel.Call("setAttribute", "display", "")
-	errLabel.Call("setAttribute", "x", x+4)
-	errLabel.Call("setAttribute", "y", y-4)
-	errLabelText.Set("nodeValue", "Error: "+err.Error())
+	diagramSVG.Call("appendChild", errLabel.group) // Bring to front
+	errLabel.moveTo(x+4, y-36)
+	errLabel.setText(err)
+	errLabel.show()
 }
 
 func clearError() {
-	errLabel.Call("setAttribute", "display", "none")
+	errLabel.hide()
 }
 
 func main() {
@@ -140,12 +139,8 @@ func main() {
 		n.makeElements()
 	}
 
-	errLabel = makeSVGElement("text")
-	diagramSVG.Call("appendChild", errLabel)
-	errLabel.Call("setAttribute", "unselectable", "on")
-	errLabel.Call("setAttribute", "style", errLabelStyle)
-	errLabelText = document.Call("createTextNode", "")
-	errLabel.Call("appendChild", errLabelText)
+	errLabel = newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32)
+	errLabel.hide()
 
 	diagramSVG.Call("addEventListener", "mousemove", mouseMove)
 	diagramSVG.Call("addEventListener", "mouseup", mouseUp)

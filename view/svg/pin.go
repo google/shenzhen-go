@@ -183,7 +183,7 @@ func (p *Pin) drag(e *js.Object) {
 	}
 
 	if err := p.connectTo(q); err != nil {
-		setError(err, x, y)
+		setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		return
 	}

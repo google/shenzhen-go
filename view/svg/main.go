@@ -21,7 +21,7 @@ const (
 	normalColour = "#000"
 	errorColour  = "#f06"
 
-	errRectStyle = "fill: #fee; fill-opacity: 0.3; stroke: #533; stroke-width:1"
+	errRectStyle = "fill: #fee; fill-opacity: 0.5; stroke: #533; stroke-width:1"
 	errTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 
 	pinRadius = 5

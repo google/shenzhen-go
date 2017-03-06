@@ -14,9 +14,7 @@
 
 package main
 
-import (
-	"github.com/gopherjs/gopherjs/js"
-)
+import "github.com/gopherjs/gopherjs/js"
 
 const (
 	activeColour = "#09f"

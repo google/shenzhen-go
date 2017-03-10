@@ -21,12 +21,21 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
+const (
+	nametagRectStyle = "fill: #efe; fill-opacity: 0.7; stroke: #353; stroke-width:1"
+	nametagTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
+)
+
+// Pin represents a node pin visually, and has enough information to know
+// if it is validly connected.
 type Pin struct {
 	Name, Type string
 
 	input bool     // am I an input?
 	node  *Node    // owner.
 	ch    *Channel // attached to this channel
+
+	nametag *textBox // Hello, my name is ...
 
 	l    *js.Object // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
 	x, y float64    // computed, not relative to node
@@ -120,6 +129,7 @@ func (p *Pin) setPos(rx, ry float64) {
 	}
 }
 
+// Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
 func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
 func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
@@ -234,5 +244,10 @@ func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.c.Call("setAttribute", "fill", "transparent")
 	p.c.Call("setAttribute", "stroke-width", lineWidth)
 	p.c.Call("setAttribute", "display", "none")
+
+	// Nametag
+	p.nametag = newTextBox(p.Name, nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.node.box.group.Call("appendChild", p.nametag.group)
+	p.nametag.hide()
 	return p.circ
 }

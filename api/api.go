@@ -42,8 +42,9 @@ func (p *Pin) FullType() string {
 
 // Node represents a goroutine.
 type Node struct {
-	Name string          `json:"name"`
-	Pins map[string]*Pin `json:"pins"`
+	Name    string          `json:"name"`
+	Pins    map[string]*Pin `json:"pins"`
+	Enabled bool            `json:"enabled"`
 
 	// Visual position - topleft corner
 	X int `json:"x"`

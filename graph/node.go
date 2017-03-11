@@ -31,11 +31,6 @@ type Part interface {
 	// AssociateEditor associates a template called "part_view" with the given template.
 	AssociateEditor(*template.Template) error
 
-	// Args returns any channel arguments to the part.
-	// inputs and outputs map argument names to types (the "<-chan" /
-	// "chan<-" part of the type is implied).
-	Args() (inputs, outputs map[string]string)
-
 	// Clone returns a copy of this part.
 	Clone() interface{}
 
@@ -54,6 +49,11 @@ type Part interface {
 
 	// Imports returns any extra import lines needed for the Part.
 	Imports() []string
+
+	// Pins returns any pins - "channel arguments" - to the part.
+	// inputs and outputs map argument names to types (the "<-chan" /
+	// "chan<-" part of the type is implied).
+	Pins() (inputs, outputs map[string]string)
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string
@@ -79,24 +79,31 @@ var PartFactories = map[string]PartFactory{
 
 type pin struct {
 	Type, Value string
+	Input       bool
 }
 
 // Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.
 type Node struct {
 	Part
 	Name         string
+	Enabled      bool
 	Multiplicity uint
 	Wait         bool
-	Pins         map[string]*pin // filled in by mapConnections
+	X, Y         int
+	Connections  map[string]*pin // filled in by mapConnections
 }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.
 func (n *Node) Copy() *Node {
 	return &Node{
 		Name:         "",
+		Enabled:      n.Enabled,
 		Multiplicity: n.Multiplicity,
 		Wait:         n.Wait,
 		Part:         n.Part.Clone().(Part),
+		// TODO: find a better location
+		X: n.X + 300,
+		Y: n.Y + 8,
 	}
 }
 
@@ -116,18 +123,6 @@ func (n *Node) ImplBody() string {
 func (n *Node) ImplTail() string {
 	_, _, t := n.Part.Impl()
 	return t
-}
-
-// InputArgs returns the Input args.
-func (n *Node) InputArgs() map[string]string {
-	i, _ := n.Part.Args()
-	return i
-}
-
-// OutputArgs returns the Output args.
-func (n *Node) OutputArgs() map[string]string {
-	_, o := n.Part.Args()
-	return o
 }
 
 // Identifier turns the name into a similar-looking identifier.
@@ -156,10 +151,13 @@ func (n *Node) String() string { return n.Name }
 
 type jsonNode struct {
 	Name         string          `json:"name"`
+	Enabled      bool            `json:"enabled"`
 	Wait         bool            `json:"wait"`
 	Multiplicity uint            `json:"multiplicity"`
 	Part         json.RawMessage `json:"part"`
 	PartType     string          `json:"part_type"`
+	X            int             `json:"x"`
+	Y            int             `json:"y"`
 }
 
 // MarshalJSON encodes the node and part as JSON.
@@ -175,8 +173,11 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 		Part:         p,
 		PartType:     n.Part.TypeKey(),
 		Name:         n.Name,
+		Enabled:      n.Enabled,
 		Wait:         n.Wait,
 		Multiplicity: n.Multiplicity,
+		X:            n.X,
+		Y:            n.Y,
 	})
 }
 
@@ -198,8 +199,10 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 		mp.Multiplicity = 1
 	}
 	n.Name = mp.Name
+	n.Enabled = mp.Enabled
 	n.Wait = mp.Wait
 	n.Multiplicity = mp.Multiplicity
 	n.Part = p
+	n.X, n.Y = mp.X, mp.Y
 	return nil
 }

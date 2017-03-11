@@ -98,15 +98,16 @@ func New(srcPath string) *Graph {
 func (g *Graph) mapConnections() {
 	// Erase existing connections.
 	for _, n := range g.Nodes {
-		n.Pins = make(map[string]*pin, len(n.InputArgs())+len(n.OutputArgs()))
-		for i, t := range n.InputArgs() {
-			n.Pins[i] = &pin{
+		ips, ops := n.Pins()
+		n.Connections = make(map[string]*pin, len(ips)+len(ops))
+		for i, t := range ips {
+			n.Connections[i] = &pin{
 				Type:  fmt.Sprintf("<-chan %s", t),
 				Value: "nil",
 			}
 		}
-		for o, t := range n.OutputArgs() {
-			n.Pins[o] = &pin{
+		for o, t := range ops {
+			n.Connections[o] = &pin{
 				Type:  fmt.Sprintf("chan<- %s", t),
 				Value: "nil",
 			}
@@ -125,7 +126,7 @@ func (g *Graph) mapConnections() {
 			if n == nil {
 				continue
 			}
-			i, o := n.Args()
+			i, o := n.Pins()
 			switch ch.Type {
 			case i[co.Arg]:
 				ch.Readers = append(ch.Readers, co)
@@ -134,7 +135,7 @@ func (g *Graph) mapConnections() {
 			default:
 				continue
 			}
-			n.Pins[co.Arg].Value = fmt.Sprintf("c%d", ind)
+			n.Connections[co.Arg].Value = fmt.Sprintf("c%d", ind)
 		}
 	}
 }

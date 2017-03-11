@@ -44,19 +44,30 @@ func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, n := range lg.Nodes {
+		i, o := n.Part.Pins()
 		m := &api.Node{
 			Name: n.Name,
-			Pins: make(map[string]*api.Pin, len(n.Pins)),
+			Pins: make(map[string]*api.Pin, len(i)+len(o)),
 		}
-		for k, p := range n.Pins {
-			b := p.Value
-			if b == "nil" {
-				b = ""
+		for k, t := range i {
+			b := ""
+			if p := n.Connections[k]; p != nil && p.Value != "nil" {
+				b = p.Value
 			}
 			m.Pins[k] = &api.Pin{
-				Type:    p.Type,
-				Binding: b,
-				// TODO: Direction
+				Type:      t,
+				Binding:   b,
+				Direction: api.Input,
+			}
+		}
+		for k, t := range o {
+			b := ""
+			if p := n.Connections[k]; p != nil && p.Value != "nil" {
+				b = p.Value
+			}
+			m.Pins[k] = &api.Pin{
+				Type:      t,
+				Binding:   b,
 				Direction: api.Output,
 			}
 		}

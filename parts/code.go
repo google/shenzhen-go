@@ -233,8 +233,8 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 	return err
 }
 
-// Args returns function arguments. These are 100% user-defined.
-func (c *Code) Args() (inputs, outputs map[string]string) { return c.Inputs, c.Outputs }
+// Pins returns pins. These are 100% user-defined.
+func (c *Code) Pins() (inputs, outputs map[string]string) { return c.Inputs, c.Outputs }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {

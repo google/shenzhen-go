@@ -54,6 +54,8 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 }
 
 func loadGraph() {
+	graph = new(Graph)
+
 	gj := js.Global.Get("GraphJSON")
 	if gj == nil {
 		return
@@ -62,10 +64,10 @@ func loadGraph() {
 	var g api.Graph
 	if err := d.Decode(&g); err != nil {
 		log.Printf("Decoding GraphJSON: %v", err)
+		return
 	}
 
 	chans := make(map[string]*Channel)
-	graph = new(Graph)
 	graph.Channels = make(map[*Channel]struct{})
 	for k, c := range g.Channels {
 		ch := &Channel{

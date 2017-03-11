@@ -29,7 +29,7 @@ package {{.PackageName}} {{if ne .PackagePath .PackageName}} // import "{{.Packa
 {{template "golang-defs" .}}
 
 {{range .Nodes}}
-func {{.Identifier}}({{range $name, $pin := .Pins}}{{$name}} {{$pin.Type}},{{end}}) {
+func {{.Identifier}}({{range $name, $pin := .Connections}}{{$name}} {{$pin.Type}},{{end}}) {
 	{{.ImplHead}}
 	{{if eq .Multiplicity 1 -}}
 	func(instanceNumber, multiplicity int) {
@@ -67,11 +67,11 @@ func Run() {
 		{{if .Wait -}}
 	wg.Add(1)
 	go func() {
-		{{.Identifier}}({{range .Pins}}{{.Value}},{{end}})
+		{{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
 		wg.Done()
 	}()
 		{{else}}
-	go {{.Identifier}}({{range .Pins}}{{.Value}},{{end}})
+	go {{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
 		{{- end}}
 	{{- end}}
 

@@ -18,9 +18,11 @@ import (
 	"encoding/json"
 	"log"
 	"math"
-	"net/http"
+	"strings"
 
 	"github.com/google/shenzhen-go/api"
+
+	"github.com/gopherjs/gopherjs/js"
 )
 
 type Graph struct {
@@ -52,19 +54,18 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 }
 
 func loadGraph() {
-	resp, err := http.Get(apiEndpoint + graphPath)
-	if err != nil {
-		log.Printf("Querying API: %v", err)
+	gj := js.Global.Get("GraphJSON")
+	if gj == nil {
 		return
 	}
-	defer resp.Body.Close()
-	d := json.NewDecoder(resp.Body)
+	d := json.NewDecoder(strings.NewReader(gj.String()))
 	var g api.Graph
 	if err := d.Decode(&g); err != nil {
-		log.Printf("Decoding response: %v", err)
+		log.Printf("Decoding GraphJSON: %v", err)
 	}
 
 	chans := make(map[string]*Channel)
+	graph = new(Graph)
 	graph.Channels = make(map[*Channel]struct{})
 	for k, c := range g.Channels {
 		ch := &Channel{

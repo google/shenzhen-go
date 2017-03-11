@@ -41,39 +41,7 @@ var (
 
 	dragItem draggable
 
-	graph = &Graph{
-		Nodes: map[string]*Node{
-			"one": {
-				Name: "Hello",
-				Inputs: []*Pin{
-					{Name: "foo1", Type: "int", input: true},
-					{Name: "foo2", Type: "int", input: true},
-					{Name: "foo3", Type: "string", input: true},
-				},
-				Outputs: []*Pin{
-					{Name: "bar", Type: "string"},
-					{Name: "baz", Type: "string"},
-				},
-				X: 100,
-				Y: 100,
-			},
-			"two": {
-				Name: "Yes",
-				Inputs: []*Pin{
-					{Name: "baz0", Type: "string", input: true},
-					{Name: "baz1", Type: "string", input: true},
-					{Name: "baz2", Type: "string", input: true},
-					{Name: "baz3", Type: "string", input: true},
-				},
-				Outputs: []*Pin{
-					{Name: "qux", Type: "float64"},
-				},
-				X: 100,
-				Y: 200,
-			},
-		},
-		Channels: map[*Channel]struct{}{},
-	}
+	graph *Graph
 )
 
 func makeSVGElement(n string) *js.Object { return document.Call("createElementNS", svgNS, n) }

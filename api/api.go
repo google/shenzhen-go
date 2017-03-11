@@ -20,8 +20,8 @@ type Direction string
 
 // The various directions.
 const (
-	Input  Direction = "input"
-	Output Direction = "output"
+	Input  Direction = "in"
+	Output Direction = "out"
 )
 
 // Pin represents a connecting pin on a Node.

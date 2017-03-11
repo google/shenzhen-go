@@ -19,6 +19,39 @@ limitations under the License. -->
 
 <body>
 <svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
+<script>
+    var GraphJSON = `{
+		"nodes": [
+			{
+				"name": "Hello",
+				"pins": {
+					"foo1": {"type": "int", "dir": "in"},
+					"foo2": {"type": "int", "dir": "in"},
+					"foo3": {"type": "string", "dir": "in"},
+					"bar": {"type": "string", "dir": "out"},
+					"baz": {"type": "string", "dir": "out"}
+				},
+                "enabled": true,
+				"x": 100,
+				"y": 100
+			},
+			{
+				"name": "Yes",
+				"pins": {
+					"baz0": {"type": "string", "dir": "in"},
+					"baz1": {"type": "string", "dir": "in"},
+					"baz2": {"type": "string", "dir": "in"},
+					"baz3": {"type": "string", "dir": "in"},
+					"qux": {"type": "float64", "dir": "out"}
+				},
+                "enabled": true,
+				"x": 100,
+				"y": 200
+			}
+		],
+		"channels": null
+	}`;
+</script>
 <script src="svg.js"></script>
 </body>
 </html>

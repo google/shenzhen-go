@@ -15,6 +15,7 @@
 package view
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -60,6 +61,7 @@ const (
 	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
 	<script>
 		var graphPath = '{{$.Graph.SourcePath}}';
+		var GraphJSON = "{{$.GraphJSON}}";
 	</script>
 	<script src="/.static/svg.js"></script>
 </div>
@@ -190,11 +192,20 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	gj, err := json.Marshal(g.ToAPI())
+	if err != nil {
+		log.Printf("Could not execute graph editor template: %v", err)
+		http.Error(w, "Could not execute graph editor template", http.StatusInternalServerError)
+		return
+	}
+
 	d := &struct {
 		Graph     *graph.Graph
+		GraphJSON string
 		PartTypes map[string]graph.PartFactory
 	}{
 		Graph:     g,
+		GraphJSON: string(gj),
 		PartTypes: graph.PartFactories,
 	}
 	if err := graphEditorTemplate.Execute(w, d); err != nil {

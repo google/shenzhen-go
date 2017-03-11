@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/google/shenzhen-go/api"
 )
 
 type apiHandler struct{}
@@ -37,50 +35,7 @@ func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: make translation easier
-	g := &api.Graph{
-		Nodes:    make([]*api.Node, 0, len(lg.Nodes)),
-		Channels: make(map[string]*api.Channel),
-	}
-
-	for _, n := range lg.Nodes {
-		i, o := n.Part.Pins()
-		m := &api.Node{
-			Name: n.Name,
-			Pins: make(map[string]*api.Pin, len(i)+len(o)),
-		}
-		for k, t := range i {
-			b := ""
-			if p := n.Connections[k]; p != nil && p.Value != "nil" {
-				b = p.Value
-			}
-			m.Pins[k] = &api.Pin{
-				Type:      t,
-				Binding:   b,
-				Direction: api.Input,
-			}
-		}
-		for k, t := range o {
-			b := ""
-			if p := n.Connections[k]; p != nil && p.Value != "nil" {
-				b = p.Value
-			}
-			m.Pins[k] = &api.Pin{
-				Type:      t,
-				Binding:   b,
-				Direction: api.Output,
-			}
-		}
-		g.Nodes = append(g.Nodes, m)
-	}
-
-	for i, c := range lg.Channels {
-		g.Channels[fmt.Sprintf("c%d", i)] = &api.Channel{
-			Capacity: c.Cap,
-			Type:     c.Type,
-		}
-	}
-
+	g := lg.ToAPI()
 	e := json.NewEncoder(w)
 	if err := e.Encode(g); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

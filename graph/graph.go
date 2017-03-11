@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/source"
 )
 
@@ -334,4 +335,51 @@ func (g *Graph) Run(stdout, stderr io.Writer) error {
 	go io.Copy(stdout, o)
 	go io.Copy(stderr, e)
 	return cmd.Wait()
+}
+
+// ToAPI translates to an *api.Graph.
+func (g *Graph) ToAPI() *api.Graph {
+	a := &api.Graph{
+		Nodes:    make([]*api.Node, 0, len(g.Nodes)),
+		Channels: make(map[string]*api.Channel),
+	}
+
+	for _, n := range g.Nodes {
+		i, o := n.Part.Pins()
+		m := &api.Node{
+			Name: n.Name,
+			Pins: make(map[string]*api.Pin, len(i)+len(o)),
+		}
+		for k, t := range i {
+			b := ""
+			if p := n.Connections[k]; p != nil && p.Value != "nil" {
+				b = p.Value
+			}
+			m.Pins[k] = &api.Pin{
+				Type:      t,
+				Binding:   b,
+				Direction: api.Input,
+			}
+		}
+		for k, t := range o {
+			b := ""
+			if p := n.Connections[k]; p != nil && p.Value != "nil" {
+				b = p.Value
+			}
+			m.Pins[k] = &api.Pin{
+				Type:      t,
+				Binding:   b,
+				Direction: api.Output,
+			}
+		}
+		a.Nodes = append(a.Nodes, m)
+	}
+
+	for i, c := range g.Channels {
+		a.Channels[fmt.Sprintf("c%d", i)] = &api.Channel{
+			Capacity: c.Cap,
+			Type:     c.Type,
+		}
+	}
+	return a
 }

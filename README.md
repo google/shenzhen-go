@@ -56,3 +56,5 @@ This is not an official Google product.
 
 This is an experimental project - expect plenty of rough edges and bugs, and 
 no support.
+
+For discussions, there is a Slack channel (#shenzhen-go) at gophers.slack.com.

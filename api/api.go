@@ -26,6 +26,7 @@ const (
 
 // Pin represents a connecting pin on a Node.
 type Pin struct {
+	Name      string    `json:"name"`
 	Type      string    `json:"type"`
 	Direction Direction `json:"dir"`
 	Binding   string    `json:"binding,omitempty"` // Channel key it is connected to, or empty.
@@ -42,7 +43,7 @@ func (p *Pin) FullType() string {
 
 // Node represents a goroutine.
 type Node struct {
-	Name    string          `json:"name"`
+	Name    string          `json:"-"`
 	Pins    map[string]*Pin `json:"pins"`
 	Enabled bool            `json:"enabled"`
 
@@ -53,12 +54,13 @@ type Node struct {
 
 // Channel represents connections between pins.
 type Channel struct {
+	Name     string `json:"-"`
 	Type     string `json:"type"`
 	Capacity int    `json:"cap"`
 }
 
 // Graph represents a package / program / collection of nodes and channels.
 type Graph struct {
-	Nodes    []*Node             `json:"nodes"`
+	Nodes    map[string]*Node    `json:"nodes"`
 	Channels map[string]*Channel `json:"channels"`
 }

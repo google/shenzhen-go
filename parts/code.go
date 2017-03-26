@@ -21,6 +21,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/google/shenzhen-go/api"
 )
 
 const codePartEditTemplateSrc = `
@@ -89,8 +91,8 @@ function addrowpls() {
 	<tr>
 	    <td>
 			<select name="PinDirection">
-				<option value="In" selected>Input</option>
-				<option value="Out">Output</option>
+				<option value="in" selected>Input</option>
+				<option value="out">Output</option>
 			</select>
 		</td>
 		<td>
@@ -108,8 +110,8 @@ function addrowpls() {
 	<tr>
 	    <td>
 			<select name="PinDirection">
-				<option value="In">Input</option>
-				<option value="Out" selected>Output</option>
+				<option value="in">Input</option>
+				<option value="out" selected>Output</option>
 			</select>
 		</td>
 		<td>
@@ -183,25 +185,23 @@ function switchto(e) {
 // Code is a component containing arbitrary code.
 type Code struct {
 	Head, Body, Tail string
-	Inputs, Outputs  map[string]string
+	CustomPins       []api.Pin
 }
 
 type jsonCode struct {
-	Head    []string          `json:"head"`
-	Body    []string          `json:"body"`
-	Tail    []string          `json:"tail"`
-	Inputs  map[string]string `json:"inputs"`
-	Outputs map[string]string `json:"outputs"`
+	Head []string  `json:"head"`
+	Body []string  `json:"body"`
+	Tail []string  `json:"tail"`
+	Pins []api.Pin `json:"pins"`
 }
 
 // MarshalJSON encodes the Code component as JSON.
 func (c *Code) MarshalJSON() ([]byte, error) {
 	k := &jsonCode{
-		Head:    strings.Split(c.Head, "\n"),
-		Body:    strings.Split(c.Body, "\n"),
-		Tail:    strings.Split(c.Tail, "\n"),
-		Inputs:  c.Inputs,
-		Outputs: c.Outputs,
+		Head: strings.Split(c.Head, "\n"),
+		Body: strings.Split(c.Body, "\n"),
+		Tail: strings.Split(c.Tail, "\n"),
+		Pins: c.CustomPins,
 	}
 	stripCR(k.Head)
 	stripCR(k.Body)
@@ -222,8 +222,7 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 		// TODO: revisit all this
 		log.Printf("Couldn't format or determine channels used: %v", err)
 	}
-	c.Inputs = mp.Inputs
-	c.Outputs = mp.Outputs
+	c.CustomPins = mp.Pins
 	return nil
 }
 
@@ -234,22 +233,15 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 }
 
 // Pins returns pins. These are 100% user-defined.
-func (c *Code) Pins() (inputs, outputs map[string]string) { return c.Inputs, c.Outputs }
+func (c *Code) Pins() []api.Pin { return c.CustomPins }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
 	c2 := &Code{
-		Head:    c.Head,
-		Body:    c.Body,
-		Tail:    c.Tail,
-		Inputs:  make(map[string]string, len(c.Inputs)),
-		Outputs: make(map[string]string, len(c.Outputs)),
-	}
-	for k, v := range c.Inputs {
-		c2.Inputs[k] = v
-	}
-	for k, v := range c.Outputs {
-		c2.Outputs[k] = v
+		Head:       c.Head,
+		Body:       c.Body,
+		Tail:       c.Tail,
+		CustomPins: append([]api.Pin{}, c.CustomPins...),
 	}
 	return c2
 }
@@ -323,14 +315,13 @@ func (c *Code) Update(r *http.Request) error {
 		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
 	}
 	pd, pn, pt := r.Form["PinDirection"], r.Form["PinName"], r.Form["PinType"]
-	c.Inputs, c.Outputs = make(map[string]string), make(map[string]string)
+	c.CustomPins = make([]api.Pin, 0, len(pd))
 	for i, d := range pd {
-		switch d {
-		case "In":
-			c.Inputs[pn[i]] = pt[i]
-		case "Out":
-			c.Outputs[pn[i]] = pt[i]
-		}
+		c.CustomPins = append(c.CustomPins, api.Pin{
+			Name:      pn[i],
+			Direction: api.Direction(d),
+			Type:      pt[i],
+		})
 	}
 	return c.refresh(h, b, t)
 }

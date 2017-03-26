@@ -22,6 +22,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/parts"
 )
 
@@ -53,7 +54,7 @@ type Part interface {
 	// Pins returns any pins - "channel arguments" - to the part.
 	// inputs and outputs map argument names to types (the "<-chan" /
 	// "chan<-" part of the type is implied).
-	Pins() (inputs, outputs map[string]string)
+	Pins() []api.Pin
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string

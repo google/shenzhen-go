@@ -32,48 +32,25 @@ import (
 	"github.com/google/shenzhen-go/source"
 )
 
-// Connection attaches a channel to a node argument.
-type Connection struct {
-	Node string `json:"node"`
-	Arg  string `json:"arg"`
-}
-
-func (c Connection) String() string { return fmt.Sprintf("%s.%s", c.Node, c.Arg) }
-
-// Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.
-type Channel struct {
-	Type        string       `json:"type"`
-	Cap         int          `json:"cap"`
-	Connections []Connection `json:"connections"`
-
-	// Readers and writers are for the benefit of the template.
-	// They are only valid after mapConnections is called.
-	Readers, Writers []Connection `json:"-"`
-}
-
-// IsSimple returns true if its in-degree and out-degree are both 1.
-// This causes the channel to appear as a single arrow instead of an intermediate node.
-// This is only valid after mapConnections is called.
-func (c *Channel) IsSimple() bool {
-	return len(c.Readers) == 1 && len(c.Writers) == 1
-}
-
 // Graph describes a Go program as a graph. It can be marshalled and unmarshalled to JSON sensibly.
 type Graph struct {
-	SourcePath  string           `json:"-"` // path to the JSON source.
-	Name        string           `json:"name"`
-	PackagePath string           `json:"package_path"`
-	Imports     []string         `json:"imports"`
-	IsCommand   bool             `json:"is_command"`
-	Nodes       map[string]*Node `json:"nodes"`
-	Channels    []*Channel       `json:"channels"`
+	SourcePath  string   `json:"-"` // path to the JSON source.
+	Name        string   `json:"name"`
+	PackagePath string   `json:"package_path"`
+	Imports     []string `json:"imports"`
+	IsCommand   bool     `json:"is_command"`
+
+	*api.Graph `json:"-"`
 }
 
 // New returns a new empty graph associated with a file path.
 func New(srcPath string) *Graph {
 	g := &Graph{
 		SourcePath: srcPath,
-		Nodes:      make(map[string]*Node),
+		Graph: &api.Graph{
+			Channels: make(map[string]*api.Channel),
+			Nodes:    make(map[string]*api.Node),
+		},
 	}
 
 	// Attempt to find a sensible package path.
@@ -99,7 +76,7 @@ func New(srcPath string) *Graph {
 func (g *Graph) mapConnections() {
 	// Erase existing connections.
 	for _, n := range g.Nodes {
-		ips, ops := n.Pins()
+		ps := n.Pins()
 		n.Connections = make(map[string]*pin, len(ips)+len(ops))
 		for i, t := range ips {
 			n.Connections[i] = &pin{

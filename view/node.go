@@ -15,17 +15,10 @@
 package view
 
 import (
-	"fmt"
 	"html/template"
 	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 
 	"github.com/google/shenzhen-go/model"
-	"github.com/google/shenzhen-go/model/parts"
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
@@ -87,77 +80,8 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
-// Node handles viewing/editing a node.
-func Node(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s %s", r.Method, r.URL)
-
-	q := r.URL.Query()
-	_, clone := q["clone"]
-	_, convert := q["convert"]
-	_, del := q["delete"]
-
-	var n *model.Node
-	if name == "new" {
-		if clone || convert || del {
-			http.Error(w, "Asked for a new node, but also to clone/convert/delete the node", http.StatusBadRequest)
-			return
-		}
-		t := q.Get("type")
-		pf, ok := model.PartFactories[t]
-		if !ok {
-			http.Error(w, "Asked for a new node, but didn't supply a valid type", http.StatusBadRequest)
-			return
-		}
-		n = &model.Node{
-			Part: pf(),
-			Wait: true,
-		}
-	} else {
-		n1, found := g.Nodes[name]
-		if !found {
-			http.Error(w, fmt.Sprintf("Node %q not found", name), http.StatusNotFound)
-			return
-		}
-		n = n1
-	}
-
-	switch {
-	case clone:
-		n = n.Copy()
-	case convert:
-		h, b, t := n.Part.Impl()
-		n.Part = &parts.Code{
-			Head: h,
-			Body: b,
-			Tail: t,
-		}
-	case del:
-		delete(g.Nodes, n.Name)
-		u := *r.URL
-		u.RawQuery = ""
-		log.Printf("redirecting to %v", &u)
-		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
-		return
-	}
-
-	var err error
-	switch r.Method {
-	case "POST":
-		err = handleNodePost(g, n, w, r)
-	case "GET":
-		err = renderNodeEditor(w, g, n)
-	default:
-		err = fmt.Errorf("unsupported verb %q", r.Method)
-	}
-
-	if err != nil {
-		msg := fmt.Sprintf("Could not handle request: %v", err)
-		log.Printf(msg)
-		http.Error(w, msg, http.StatusInternalServerError)
-	}
-}
-
-func renderNodeEditor(dst io.Writer, g *model.Graph, n *model.Node) error {
+// Node displays the node editor for a particular node.
+func Node(w io.Writer, g *model.Graph, n *model.Node) error {
 	t, err := nodeEditorTemplate.Clone()
 	if err != nil {
 		return err
@@ -165,61 +89,8 @@ func renderNodeEditor(dst io.Writer, g *model.Graph, n *model.Node) error {
 	if err := n.Part.AssociateEditor(t); err != nil {
 		return err
 	}
-	return t.Execute(dst, &struct {
+	return t.Execute(w, &struct {
 		*model.Graph
 		*model.Node
 	}{g, n})
-}
-
-func handleNodePost(g *model.Graph, n *model.Node, w http.ResponseWriter, r *http.Request) error {
-	if err := r.ParseForm(); err != nil {
-		return err
-	}
-
-	// Validate.
-	nm := strings.TrimSpace(r.FormValue("Name"))
-	if nm == "" {
-		return fmt.Errorf(`name is empty [%q == ""]`, nm)
-	}
-
-	mult, err := strconv.Atoi(r.FormValue("Multiplicity"))
-	if err != nil {
-		return err
-	}
-	if mult < 1 {
-		return fmt.Errorf("multiplicity too small [%d < 1]", mult)
-	}
-
-	// Create a new part of the same type, and update it.
-	// This ensures the settings for the part are valid before
-	// updating the node.
-	part := model.PartFactories[n.Part.TypeKey()]()
-	if err := part.Update(r); err != nil {
-		return err
-	}
-
-	// Update.
-	n.Multiplicity = uint(mult)
-	n.Wait = (r.FormValue("Wait") == "on")
-	n.Part = part
-
-	// No name change? No need to readjust the map or redirect.
-	// So render the usual editor.
-	if nm == n.Name {
-		return renderNodeEditor(w, g, n)
-	}
-
-	// Do name changes last since they cause a redirect.
-	if n.Name != "" {
-		delete(g.Nodes, n.Name)
-	}
-	n.Name = nm
-	g.Nodes[nm] = n
-
-	q := url.Values{"node": []string{nm}}
-	u := *r.URL
-	u.RawQuery = q.Encode()
-	log.Printf("redirecting to %v", &u)
-	http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
-	return nil
 }

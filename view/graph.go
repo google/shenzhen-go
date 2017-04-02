@@ -16,14 +16,10 @@ package view
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
-	"strings"
 
-	"github.com/google/shenzhen-go/controller"
 	"github.com/google/shenzhen-go/model"
 )
 
@@ -114,85 +110,8 @@ var (
 	graphPropertiesTemplate = template.Must(template.New("graphProperties").Parse(graphPropertiesTemplateSrc))
 )
 
-// Graph handles displaying/editing a graph.
-func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s graph: %s", r.Method, r.URL)
-	q := r.URL.Query()
-
-	if _, t := q["up"]; t {
-		d := filepath.Dir(g.SourcePath)
-		http.Redirect(w, r, "/"+d, http.StatusFound)
-		return
-	}
-	if _, t := q["props"]; t {
-		if err := handlePropsRequest(g, w, r); err != nil {
-			log.Printf("Could not execute graph properties editor template: %v", err)
-			http.Error(w, "Could not execute graph properties editor template", http.StatusInternalServerError)
-		}
-		return
-	}
-	if _, t := q["go"]; t {
-		outputGoSrc(g, w)
-		return
-	}
-	if _, t := q["rawgo"]; t {
-		outputRawGoSrc(g, w)
-		return
-	}
-	if _, t := q["json"]; t {
-		outputJSON(g, w)
-		return
-	}
-	if _, t := q["build"]; t {
-		if err := controller.Build(g); err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error building:\n%v", err)
-			return
-		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
-		return
-	}
-	if _, t := q["install"]; t {
-		if err := controller.Install(g); err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error installing:\n%v", err)
-			return
-		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
-		return
-	}
-	if _, t := q["run"]; t {
-		w.Header().Set("Content-Type", "text/plain")
-		if err := controller.Run(g, w, w); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error building or running:\n%v", err)
-		}
-		return
-	}
-	if _, t := q["save"]; t {
-		if err := controller.SaveJSONFile(g); err != nil {
-			log.Printf("Failed to save JSON file: %v", err)
-		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
-		return
-	}
-	if n := q.Get("node"); n != "" {
-		Node(g, n, w, r)
-		return
-	}
-	if n := q.Get("channel"); n != "" {
-		Channel(g, n, w, r)
-		return
-	}
-
+// Graph displays a graph.
+func Graph(w http.ResponseWriter, g *model.Graph) {
 	gj, err := json.Marshal(g)
 	if err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
@@ -215,76 +134,10 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePropsRequest(g *model.Graph, w http.ResponseWriter, r *http.Request) error {
-	switch r.Method {
-	case "POST":
-		return handlePropsPost(g, w, r)
-	case "GET":
-		return graphPropertiesTemplate.Execute(w, g)
-	default:
-		return fmt.Errorf("unsupported verb %q", r.Method)
-	}
-}
-
-func handlePropsPost(g *model.Graph, w http.ResponseWriter, r *http.Request) error {
-	if err := r.ParseForm(); err != nil {
-		return err
-	}
-
-	// Validate.
-	nm := strings.TrimSpace(r.FormValue("Name"))
-	if nm == "" {
-		return fmt.Errorf(`name is empty [%q == ""]`, nm)
-	}
-	pp := strings.TrimSpace(r.FormValue("PackagePath"))
-	if pp == "" {
-		return fmt.Errorf(`package path is empty [%q == ""]`, pp)
-	}
-
-	imps := strings.Split(r.FormValue("Imports"), "\n")
-	i := 0
-	for _, imp := range imps {
-		imp = strings.TrimSpace(imp)
-		if imp == "" {
-			continue
-		}
-		imps[i] = imp
-		i++
-	}
-	imps = imps[:i]
-
-	// Update.
-	g.Name = nm
-	g.PackagePath = pp
-	g.IsCommand = (r.FormValue("IsCommand") == "on")
-
-	return graphPropertiesTemplate.Execute(w, g)
-}
-
-func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/golang")
-	if err := controller.WriteGoTo(w, g); err != nil {
-		log.Printf("Could not render to Go: %v", err)
-		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
-	}
-}
-
-func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/golang")
-	if err := controller.WriteRawGoTo(w, g); err != nil {
-		log.Printf("Could not render to Go: %v", err)
-		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
-	}
-}
-
-func outputJSON(g *model.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "application/json")
-	if err := controller.WriteJSONTo(w, g); err != nil {
-		log.Printf("Could not encode JSON: %v", err)
-		http.Error(w, "Could not encode JSON", http.StatusInternalServerError)
-		return
+// GraphProperties displays the graph properties editor.
+func GraphProperties(w http.ResponseWriter, g *model.Graph) {
+	if err := graphPropertiesTemplate.Execute(w, g); err != nil {
+		log.Printf("Could not execute graph properties template: %v", err)
+		http.Error(w, "Could not execute graph properties template", http.StatusInternalServerError)
 	}
 }

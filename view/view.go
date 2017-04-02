@@ -14,33 +14,3 @@
 
 // Package view provides the user interface.
 package view
-
-import (
-	"io"
-	"os/exec"
-)
-
-// TODO: Deduplicate.
-func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	if _, err := io.Copy(stdin, src); err != nil {
-		return err
-	}
-	if err := stdin.Close(); err != nil {
-		return err
-	}
-	if _, err := io.Copy(dst, stdout); err != nil {
-		return err
-	}
-	return cmd.Wait()
-}

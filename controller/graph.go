@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package controller manages everything.
 package controller
 
 import (
@@ -22,6 +21,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,6 +29,7 @@ import (
 
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/source"
+	"github.com/google/shenzhen-go/view"
 )
 
 // GuessPackagePath attempts to find a sensible package path.
@@ -221,4 +222,162 @@ func Run(g *model.Graph, stdout, stderr io.Writer) error {
 	go io.Copy(stdout, o)
 	go io.Copy(stderr, e)
 	return cmd.Wait()
+}
+
+// Graph handles displaying/editing a graph.
+func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s graph: %s", r.Method, r.URL)
+	q := r.URL.Query()
+
+	if _, t := q["up"]; t {
+		d := filepath.Dir(g.SourcePath)
+		http.Redirect(w, r, "/"+d, http.StatusFound)
+		return
+	}
+	if _, t := q["props"]; t {
+		handlePropsRequest(g, w, r)
+		return
+	}
+	if _, t := q["go"]; t {
+		outputGoSrc(g, w)
+		return
+	}
+	if _, t := q["rawgo"]; t {
+		outputRawGoSrc(g, w)
+		return
+	}
+	if _, t := q["json"]; t {
+		outputJSON(g, w)
+		return
+	}
+	if _, t := q["build"]; t {
+		if err := Build(g); err != nil {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error building:\n%v", err)
+			return
+		}
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
+		return
+	}
+	if _, t := q["install"]; t {
+		if err := Install(g); err != nil {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error installing:\n%v", err)
+			return
+		}
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
+		return
+	}
+	if _, t := q["run"]; t {
+		w.Header().Set("Content-Type", "text/plain")
+		if err := Run(g, w, w); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error building or running:\n%v", err)
+		}
+		return
+	}
+	if _, t := q["save"]; t {
+		if err := SaveJSONFile(g); err != nil {
+			log.Printf("Failed to save JSON file: %v", err)
+		}
+		u := *r.URL
+		u.RawQuery = ""
+		http.Redirect(w, r, u.String(), http.StatusFound)
+		return
+	}
+	if n := q.Get("node"); n != "" {
+		Node(g, n, w, r)
+		return
+	}
+	if n := q.Get("channel"); n != "" {
+		Channel(g, n, w, r)
+		return
+	}
+
+	view.Graph(w, g)
+}
+
+func handlePropsRequest(g *model.Graph, w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		handlePropsPost(g, w, r)
+	case "GET":
+		view.GraphProperties(w, g)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Unsupported verb %q", r.Method)
+	}
+}
+
+func handlePropsPost(g *model.Graph, w http.ResponseWriter, r *http.Request) {
+	defer view.GraphProperties(w, g)
+
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Couldn't parse posted form: %v", err)
+		return
+	}
+
+	// Validate.
+	nm := strings.TrimSpace(r.FormValue("Name"))
+	if nm == "" {
+		log.Printf(`Name field is empty [%q == ""]`, nm)
+		return
+
+	}
+	pp := strings.TrimSpace(r.FormValue("PackagePath"))
+	if pp == "" {
+		log.Printf(`PackagePath is empty [%q == ""]`, pp)
+		return
+	}
+
+	imps := strings.Split(r.FormValue("Imports"), "\n")
+	i := 0
+	for _, imp := range imps {
+		imp = strings.TrimSpace(imp)
+		if imp == "" {
+			continue
+		}
+		imps[i] = imp
+		i++
+	}
+	imps = imps[:i]
+
+	// Update.
+	g.Name = nm
+	g.PackagePath = pp
+	g.IsCommand = (r.FormValue("IsCommand") == "on")
+}
+
+func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "text/golang")
+	if err := WriteGoTo(w, g); err != nil {
+		log.Printf("Could not render to Go: %v", err)
+		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
+	}
+}
+
+func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "text/golang")
+	if err := WriteRawGoTo(w, g); err != nil {
+		log.Printf("Could not render to Go: %v", err)
+		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
+	}
+}
+
+func outputJSON(g *model.Graph, w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "application/json")
+	if err := WriteJSONTo(w, g); err != nil {
+		log.Printf("Could not encode JSON: %v", err)
+		http.Error(w, "Could not encode JSON", http.StatusInternalServerError)
+		return
+	}
 }

@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package view
+package controller
 
 import (
-	"github.com/google/shenzhen-go/controller"
 	"log"
 	"net/http"
 )
@@ -34,7 +33,7 @@ func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := controller.WriteJSONTo(w, g); err != nil {
+	if err := WriteJSONTo(w, g); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Writing JSON: %v", err)
 	}

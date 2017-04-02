@@ -15,14 +15,9 @@
 package view
 
 import (
-	"fmt"
 	"html/template"
-	"log"
-	"math/rand"
 	"net/http"
-	"net/url"
 	"regexp"
-	"strconv"
 
 	"github.com/google/shenzhen-go/model"
 )
@@ -92,101 +87,11 @@ var (
 	identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 )
 
-// Channel handles viewing/editing a channel.
-func Channel(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s %s", r.Method, r.URL)
-
-	q := r.URL.Query()
-	_, clone := q["clone"]
-	_, del := q["delete"]
-
-	var e *model.Channel
-	if name == "new" {
-		if clone || del {
-			http.Error(w, "Asked for a new channel, but also to clone or delete the channel", http.StatusBadRequest)
-			return
-		}
-		e = new(model.Channel)
-	} else {
-		e := g.Channels[name]
-		if e == nil {
-			http.Error(w, fmt.Sprintf("Channel %q not found", name), http.StatusNotFound)
-			return
-		}
-	}
-
-	switch {
-	case clone:
-		e2 := *e
-		e = &e2
-	case del:
-		delete(g.Channels, e.Name)
-		u := *r.URL
-		u.RawQuery = ""
-		log.Printf("redirecting to %v", &u)
-		http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
-		return
-	}
-
-	var err error
-	switch r.Method {
-	case "POST":
-		err = handleChannelPost(g, e, w, r)
-	case "GET":
-		err = channelEditorTemplate.Execute(w, &struct {
-			*model.Graph
-			*model.Channel
-			New bool
-		}{g, e, name == "new"})
-	default:
-		err = fmt.Errorf("unsupported verb %q", r.Method)
-	}
-
-	if err != nil {
-		log.Printf("Could not handle request: %v", err)
-		http.Error(w, "Could not handle request", http.StatusInternalServerError)
-	}
-}
-
-func handleChannelPost(g *model.Graph, e *model.Channel, w http.ResponseWriter, r *http.Request) error {
-	if err := r.ParseForm(); err != nil {
-		return err
-	}
-
-	// Validate.
-	ci, err := strconv.Atoi(r.FormValue("Cap"))
-	if err != nil {
-		return err
-	}
-	if ci < 0 {
-		return fmt.Errorf("invalid capacity [%d < 0]", ci)
-	}
-
-	// Update.
-	nu := r.FormValue("New") == "true"
-	name := r.FormValue("Name")
-	e.Anonymous = (name == "")
-	if e.Anonymous && e.Name == "" {
-		for {
-			name = fmt.Sprintf("anonymous_channel_%d", rand.Int())
-			if _, exists := g.Channels[name]; !exists {
-				break
-			}
-		}
-	}
-	e.Name = name
-	e.Type = r.FormValue("Type")
-	e.Capacity = ci
-	if !nu {
-		return channelEditorTemplate.Execute(w, e)
-	}
-	g.Channels[name] = e
-	q := url.Values{
-		"channel": []string{name},
-	}
-	u := *r.URL
-	u.RawQuery = q.Encode()
-	log.Printf("redirecting to %v", u)
-	http.Redirect(w, r, u.String(), http.StatusSeeOther) // should cause GET
-	return nil
+// Channel displays the channel editor for a particular channel.
+func Channel(w http.ResponseWriter, g *model.Graph, e *model.Channel, new bool) error {
+	return channelEditorTemplate.Execute(w, &struct {
+		*model.Graph
+		*model.Channel
+		New bool
+	}{g, e, new})
 }

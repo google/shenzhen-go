@@ -28,6 +28,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/shenzhen-go/controller"
 	"github.com/google/shenzhen-go/view"
 )
 
@@ -85,10 +86,12 @@ func main() {
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
 	})
+
 	http.Handle("/favicon.ico", view.Favicon)
-	http.Handle("/.api/", http.StripPrefix("/.api", view.API))
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
-	http.Handle("/", view.NewBrowser())
+
+	http.Handle("/.api/", http.StripPrefix("/.api", controller.API))
+	http.Handle("/", controller.NewBrowser())
 
 	// As soon as we're serving, launch "open" which should launch a browser,
 	// or ask the user to do so.

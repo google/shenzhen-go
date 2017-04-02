@@ -27,8 +27,8 @@ import (
 	"github.com/google/shenzhen-go/view"
 )
 
-// Node handles viewing/editing a node.
-func Node(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
+// node handles viewing/editing a node.
+func handleNodeRequest(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	q := r.URL.Query()

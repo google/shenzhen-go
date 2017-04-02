@@ -292,11 +292,11 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if n := q.Get("node"); n != "" {
-		Node(g, n, w, r)
+		handleNodeRequest(g, n, w, r)
 		return
 	}
 	if n := q.Get("channel"); n != "" {
-		Channel(g, n, w, r)
+		handleChannelRequest(g, n, w, r)
 		return
 	}
 

@@ -29,8 +29,8 @@ import (
 
 var identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
-// Channel handles viewing/editing a channel.
-func Channel(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
+// handleChannelRequest handles viewing/editing a channel.
+func handleChannelRequest(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	q := r.URL.Query()

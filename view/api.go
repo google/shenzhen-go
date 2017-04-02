@@ -15,8 +15,7 @@
 package view
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/google/shenzhen-go/controller"
 	"log"
 	"net/http"
 )
@@ -29,16 +28,14 @@ var API apiHandler
 func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET api: %v", r.URL.Path)
 
-	lg := loadedGraphs[r.URL.Path]
-	if lg == nil {
+	g := loadedGraphs[r.URL.Path]
+	if g == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	g := lg.ToAPI()
-	e := json.NewEncoder(w)
-	if err := e.Encode(g); err != nil {
+	if err := controller.WriteJSONTo(w, g); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Couldn't encode JSON: %v", err)
+		log.Printf("Writing JSON: %v", err)
 	}
 }

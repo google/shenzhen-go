@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/model"
-
+	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -86,21 +86,23 @@ func loadGraph() {
 			X:    float64(n.X),
 			Y:    float64(n.Y),
 		}
-		for k, p := range n.Pins {
+		pd := n.Pins()
+		for _, p := range pd {
 			q := &Pin{
-				Name:  k,
+				Name:  p.Name,
 				Type:  p.Type,
-				input: p.Direction == api.Input,
+				input: p.Direction == pin.Input,
 			}
 			if q.input {
 				m.Inputs = append(m.Inputs, q)
 			} else {
 				m.Outputs = append(m.Outputs, q)
 			}
-
-			if c, ok := chans[p.Binding]; ok {
-				q.ch = c
-				c.Pins[q] = struct{}{}
+			if b := n.Connections[p.Name]; b != "" {
+				if c := chans[b]; c != nil {
+					q.ch = c
+					c.Pins[q] = struct{}{}
+				}
 			}
 		}
 		graph.Nodes[n.Name] = m

@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/shenzhen-go/controller"
 	"github.com/google/shenzhen-go/model"
 )
 
@@ -56,7 +57,7 @@ const browseTemplateSrc = `<head>
 var (
 	browseTemplate = template.Must(template.New("browse").Parse(browseTemplateSrc))
 
-	loadedGraphs = make(map[string]*graph.Graph)
+	loadedGraphs = make(map[string]*model.Graph)
 )
 
 // dirBrowser serves a way of visually navigating the filesystem.
@@ -99,7 +100,7 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !fi.IsDir() {
-		g, err := graph.LoadJSON(f, base)
+		g, err := model.LoadJSON(f, base)
 		if err != nil {
 			log.Printf("Not a directory or a valid JSON-encoded graph: %v", err)
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
@@ -119,7 +120,11 @@ func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		path = filepath.Join(path, nu)
-		loadedGraphs[path] = graph.New(nfp)
+		pkgp, err := controller.GuessPackagePath(nfp)
+		if err != nil {
+			log.Printf("Guessing a package path: %v", err)
+		}
+		loadedGraphs[path] = model.NewGraph(nfp, pkgp)
 		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
 		return
 	}

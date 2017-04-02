@@ -44,7 +44,3 @@ func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
 	}
 	return cmd.Wait()
 }
-
-func dotToSVG(dst io.Writer, src io.Reader) error {
-	return pipeThru(dst, exec.Command(`dot`, `-Tsvg`), src)
-}

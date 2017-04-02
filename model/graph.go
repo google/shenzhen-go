@@ -15,17 +15,19 @@
 package model
 
 import (
+	"encoding/json"
+	"io"
 	"strings"
 )
 
 // Graph represents a package / program / collection of nodes and channels.
 type Graph struct {
-	SourcePath  string              `json:"-"` // path to the JSON source.
+	SourcePath  string              `json:"-"` // path to the JSON source
 	Name        string              `json:"name"`
 	PackagePath string              `json:"package_path"`
 	IsCommand   bool                `json:"is_command"`
-	Nodes       map[string]*Node    `json:"nodes"`
-	Channels    map[string]*Channel `json:"channels"`
+	Nodes       map[string]*Node    `json:"nodes"`    // name -> node
+	Channels    map[string]*Channel `json:"channels"` // name -> channel
 }
 
 // NewGraph returns a new empty graph associated with a file path.
@@ -36,6 +38,18 @@ func NewGraph(srcPath, pkgPath string) *Graph {
 		Channels:    make(map[string]*Channel),
 		Nodes:       make(map[string]*Node),
 	}
+}
+
+// LoadJSON loads a JSON-encoded Graph from an io.Reader.
+func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
+	dec := json.NewDecoder(r)
+	g := &Graph{
+		SourcePath: sourcePath,
+	}
+	if err := dec.Decode(g); err != nil {
+		return nil, err
+	}
+	return g, nil
 }
 
 // PackageName extracts the name of the package from the package path ("full" package name).

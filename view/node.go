@@ -88,7 +88,7 @@ const nodeEditorTemplateSrc = `{{with .Node -}}
 var nodeEditorTemplate = template.Must(template.New("nodeEditor").Parse(nodeEditorTemplateSrc))
 
 // Node handles viewing/editing a node.
-func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
+func Node(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	q := r.URL.Query()
@@ -96,19 +96,19 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	_, convert := q["convert"]
 	_, del := q["delete"]
 
-	var n *graph.Node
+	var n *model.Node
 	if name == "new" {
 		if clone || convert || del {
 			http.Error(w, "Asked for a new node, but also to clone/convert/delete the node", http.StatusBadRequest)
 			return
 		}
 		t := q.Get("type")
-		pf, ok := graph.PartFactories[t]
+		pf, ok := model.PartFactories[t]
 		if !ok {
 			http.Error(w, "Asked for a new node, but didn't supply a valid type", http.StatusBadRequest)
 			return
 		}
-		n = &graph.Node{
+		n = &model.Node{
 			Part: pf(),
 			Wait: true,
 		}
@@ -157,7 +157,7 @@ func Node(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
+func renderNodeEditor(dst io.Writer, g *model.Graph, n *model.Node) error {
 	t, err := nodeEditorTemplate.Clone()
 	if err != nil {
 		return err
@@ -166,12 +166,12 @@ func renderNodeEditor(dst io.Writer, g *graph.Graph, n *graph.Node) error {
 		return err
 	}
 	return t.Execute(dst, &struct {
-		*graph.Graph
-		*graph.Node
+		*model.Graph
+		*model.Node
 	}{g, n})
 }
 
-func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *http.Request) error {
+func handleNodePost(g *model.Graph, n *model.Node, w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func handleNodePost(g *graph.Graph, n *graph.Node, w http.ResponseWriter, r *htt
 	// Create a new part of the same type, and update it.
 	// This ensures the settings for the part are valid before
 	// updating the node.
-	part := graph.PartFactories[n.Part.TypeKey()]()
+	part := model.PartFactories[n.Part.TypeKey()]()
 	if err := part.Update(r); err != nil {
 		return err
 	}

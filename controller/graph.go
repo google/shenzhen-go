@@ -70,17 +70,6 @@ func AllImports(g *model.Graph) []string {
 	return m.Slice()
 }
 
-// LoadJSON loads a JSON-encoded Graph from an io.Reader.
-func LoadJSON(r io.Reader, sourcePath string) (*model.Graph, error) {
-	dec := json.NewDecoder(r)
-	var g model.Graph
-	if err := dec.Decode(&g); err != nil {
-		return nil, err
-	}
-	g.SourcePath = sourcePath
-	return &g, nil
-}
-
 // LoadJSONFile loads a JSON-encoded Graph from a file at a given path.
 func LoadJSONFile(path string) (*model.Graph, error) {
 	f, err := os.Open(path)
@@ -88,7 +77,7 @@ func LoadJSONFile(path string) (*model.Graph, error) {
 		return nil, err
 	}
 	defer f.Close()
-	return LoadJSON(f, path)
+	return model.LoadJSON(f, path)
 }
 
 // WriteJSONTo writes nicely-formatted JSON to the given Writer.

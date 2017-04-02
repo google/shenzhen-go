@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -39,6 +40,7 @@ const channelEditorTemplateSrc = `<head>
 	<a href="?channel={{.Index}}&delete">Delete</a>
 	{{end}}
 	<form method="post">
+		<input type="hidden" name="New" value="{{.New}}>
 		<div class="formfield">
 			<label for="Type">Type</label>
 			<input type="text" name="Type" required value="{{.Type}}">
@@ -91,33 +93,26 @@ var (
 )
 
 // Channel handles viewing/editing a channel.
-func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request) {
+func Channel(g *model.Graph, name string, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 
 	q := r.URL.Query()
 	_, clone := q["clone"]
 	_, del := q["delete"]
 
-	var e *graph.Channel
-	var n int
+	var e *model.Channel
 	if name == "new" {
 		if clone || del {
 			http.Error(w, "Asked for a new channel, but also to clone or delete the channel", http.StatusBadRequest)
 			return
 		}
-		e = new(graph.Channel)
-		n = len(g.Channels)
+		e = new(model.Channel)
 	} else {
-		n1, err := strconv.Atoi(name)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Channel %q not a number: %v", name, err), http.StatusNotFound)
-			return
-		}
-		if n < 0 || n >= len(g.Channels) {
+		e := g.Channels[name]
+		if e == nil {
 			http.Error(w, fmt.Sprintf("Channel %q not found", name), http.StatusNotFound)
 			return
 		}
-		e, n = g.Channels[n1], n1
 	}
 
 	switch {
@@ -125,7 +120,7 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 		e2 := *e
 		e = &e2
 	case del:
-		g.Channels = append(g.Channels[:n], g.Channels[n+1:]...)
+		delete(g.Channels, e.Name)
 		u := *r.URL
 		u.RawQuery = ""
 		log.Printf("redirecting to %v", &u)
@@ -136,14 +131,13 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 	var err error
 	switch r.Method {
 	case "POST":
-		err = handleChannelPost(g, e, n, w, r)
+		err = handleChannelPost(g, e, w, r)
 	case "GET":
 		err = channelEditorTemplate.Execute(w, &struct {
-			*graph.Graph
-			*graph.Channel
-			Index int
-			New   bool
-		}{g, e, n, n == len(g.Channels)})
+			*model.Graph
+			*model.Channel
+			New bool
+		}{g, e, name == "new"})
 	default:
 		err = fmt.Errorf("unsupported verb %q", r.Method)
 	}
@@ -154,7 +148,7 @@ func Channel(g *graph.Graph, name string, w http.ResponseWriter, r *http.Request
 	}
 }
 
-func handleChannelPost(g *graph.Graph, e *graph.Channel, n int, w http.ResponseWriter, r *http.Request) error {
+func handleChannelPost(g *model.Graph, e *model.Channel, w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
@@ -169,14 +163,26 @@ func handleChannelPost(g *graph.Graph, e *graph.Channel, n int, w http.ResponseW
 	}
 
 	// Update.
+	nu := r.FormValue("New") == "true"
+	name := r.FormValue("Name")
+	e.Anonymous = (name == "")
+	if e.Anonymous && e.Name == "" {
+		for {
+			name = fmt.Sprintf("anonymous_channel_%d", rand.Int())
+			if _, exists := g.Channels[name]; !exists {
+				break
+			}
+		}
+	}
+	e.Name = name
 	e.Type = r.FormValue("Type")
-	e.Cap = ci
-	if n < len(g.Channels) {
+	e.Capacity = ci
+	if !nu {
 		return channelEditorTemplate.Execute(w, e)
 	}
-	g.Channels = append(g.Channels, e)
+	g.Channels[name] = e
 	q := url.Values{
-		"channel": []string{strconv.Itoa(n)},
+		"channel": []string{name},
 	}
 	u := *r.URL
 	u.RawQuery = q.Encode()

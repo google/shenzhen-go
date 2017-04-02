@@ -47,7 +47,7 @@ type Node struct {
 	Multiplicity uint
 	Wait         bool
 	X, Y         int
-	Connections  map[string]*Pin // Pin name ->
+	Connections  map[string]string // Pin name -> channel name
 }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.
@@ -107,14 +107,15 @@ func (n *Node) Identifier() string {
 func (n *Node) String() string { return n.Name }
 
 type jsonNode struct {
-	Name         string          `json:"name"`
-	Enabled      bool            `json:"enabled"`
-	Wait         bool            `json:"wait"`
-	Multiplicity uint            `json:"multiplicity"`
-	Part         json.RawMessage `json:"part,omitempty"`
-	PartType     string          `json:"part_type,omitempty"`
-	X            int             `json:"x"`
-	Y            int             `json:"y"`
+	Name         string            `json:"name"`
+	Enabled      bool              `json:"enabled"`
+	Wait         bool              `json:"wait"`
+	Multiplicity uint              `json:"multiplicity"`
+	Part         json.RawMessage   `json:"part,omitempty"`
+	PartType     string            `json:"part_type,omitempty"`
+	X            int               `json:"x"`
+	Y            int               `json:"y"`
+	Connections  map[string]string `json:"connections"`
 }
 
 // MarshalJSON encodes the node and part as JSON.
@@ -135,6 +136,7 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 		Multiplicity: n.Multiplicity,
 		X:            n.X,
 		Y:            n.Y,
+		Connections:  n.Connections,
 	})
 }
 
@@ -161,5 +163,6 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	n.Multiplicity = mp.Multiplicity
 	n.Part = p
 	n.X, n.Y = mp.X, mp.Y
+	n.Connections = mp.Connections
 	return nil
 }

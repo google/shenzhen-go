@@ -17,17 +17,11 @@ type Definition struct {
 	Direction Direction `json:"dir"`
 }
 
-// Pin represents a connecting pin on a Node.
-type Pin struct {
-	Definition
-	Binding string `json:"binding,omitempty"` // Channel value it is connected to, or empty.
-}
-
 // FullType returns the full pin type, including the <-chan / chan<-.
-func (p *Pin) FullType() string {
+func (d *Definition) FullType() string {
 	c := "<-chan "
-	if p.Direction == Output {
+	if d.Direction == Output {
 		c = "chan<- "
 	}
-	return c + p.Type
+	return c + d.Type
 }

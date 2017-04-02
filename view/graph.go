@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/shenzhen-go/controller"
 	"github.com/google/shenzhen-go/model"
 )
 
@@ -114,7 +115,7 @@ var (
 )
 
 // Graph handles displaying/editing a graph.
-func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
+func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s graph: %s", r.Method, r.URL)
 	q := r.URL.Query()
 
@@ -143,7 +144,7 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, t := q["build"]; t {
-		if err := g.Build(); err != nil {
+		if err := controller.Build(g); err != nil {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building:\n%v", err)
@@ -155,7 +156,7 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, t := q["install"]; t {
-		if err := g.Install(); err != nil {
+		if err := controller.Install(g); err != nil {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error installing:\n%v", err)
@@ -168,14 +169,14 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 	if _, t := q["run"]; t {
 		w.Header().Set("Content-Type", "text/plain")
-		if err := g.Run(w, w); err != nil {
+		if err := controller.Run(g, w, w); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building or running:\n%v", err)
 		}
 		return
 	}
 	if _, t := q["save"]; t {
-		if err := g.SaveJSONFile(); err != nil {
+		if err := controller.SaveJSONFile(g); err != nil {
 			log.Printf("Failed to save JSON file: %v", err)
 		}
 		u := *r.URL
@@ -192,7 +193,7 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gj, err := json.Marshal(g.ToAPI())
+	gj, err := json.Marshal(g)
 	if err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
 		http.Error(w, "Could not execute graph editor template", http.StatusInternalServerError)
@@ -200,13 +201,13 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 
 	d := &struct {
-		Graph     *graph.Graph
+		Graph     *model.Graph
 		GraphJSON string
-		PartTypes map[string]graph.PartFactory
+		PartTypes map[string]model.PartFactory
 	}{
 		Graph:     g,
 		GraphJSON: string(gj),
-		PartTypes: graph.PartFactories,
+		PartTypes: model.PartFactories,
 	}
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
@@ -214,7 +215,7 @@ func Graph(g *graph.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePropsRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) error {
+func handlePropsRequest(g *model.Graph, w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case "POST":
 		return handlePropsPost(g, w, r)
@@ -225,7 +226,7 @@ func handlePropsRequest(g *graph.Graph, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func handlePropsPost(g *graph.Graph, w http.ResponseWriter, r *http.Request) error {
+func handlePropsPost(g *model.Graph, w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
@@ -255,34 +256,33 @@ func handlePropsPost(g *graph.Graph, w http.ResponseWriter, r *http.Request) err
 	// Update.
 	g.Name = nm
 	g.PackagePath = pp
-	g.Imports = imps
 	g.IsCommand = (r.FormValue("IsCommand") == "on")
 
 	return graphPropertiesTemplate.Execute(w, g)
 }
 
-func outputGoSrc(g *graph.Graph, w http.ResponseWriter) {
+func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "text/golang")
-	if err := g.WriteGoTo(w); err != nil {
+	if err := controller.WriteGoTo(w, g); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
 	}
 }
 
-func outputRawGoSrc(g *graph.Graph, w http.ResponseWriter) {
+func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "text/golang")
-	if err := g.WriteRawGoTo(w); err != nil {
+	if err := controller.WriteRawGoTo(w, g); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
 	}
 }
 
-func outputJSON(g *graph.Graph, w http.ResponseWriter) {
+func outputJSON(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "application/json")
-	if err := g.WriteJSONTo(w); err != nil {
+	if err := controller.WriteJSONTo(w, g); err != nil {
 		log.Printf("Could not encode JSON: %v", err)
 		http.Error(w, "Could not encode JSON", http.StatusInternalServerError)
 		return

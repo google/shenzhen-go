@@ -15,7 +15,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"math"
 	"strings"
@@ -60,9 +59,8 @@ func loadGraph() {
 	if gj == nil {
 		return
 	}
-	d := json.NewDecoder(strings.NewReader(gj.String()))
-	var g model.Graph
-	if err := d.Decode(&g); err != nil {
+	g, err := model.LoadJSON(strings.NewReader(gj.String()), "")
+	if err != nil {
 		log.Printf("Decoding GraphJSON: %v", err)
 		return
 	}

@@ -14,5 +14,5 @@
 
 package main
 
-//go:generate env GOARCH=js gopherjs build
+//go:generate gopherjs build
 //go:generate go run ../../scripts/embed.go -p view -v svgResources -o ../static-svg.go svg.js svg.js.map

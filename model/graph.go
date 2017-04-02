@@ -49,6 +49,12 @@ func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
 	if err := dec.Decode(g); err != nil {
 		return nil, err
 	}
+	for k, n := range g.Nodes {
+		n.Name = k
+	}
+	for k, c := range g.Channels {
+		c.Name = k
+	}
 	return g, nil
 }
 

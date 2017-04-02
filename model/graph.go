@@ -28,6 +28,16 @@ type Graph struct {
 	Channels    map[string]*Channel `json:"channels"`
 }
 
+// NewGraph returns a new empty graph associated with a file path.
+func NewGraph(srcPath, pkgPath string) *Graph {
+	return &Graph{
+		SourcePath:  srcPath,
+		PackagePath: pkgPath,
+		Channels:    make(map[string]*Channel),
+		Nodes:       make(map[string]*Node),
+	}
+}
+
 // PackageName extracts the name of the package from the package path ("full" package name).
 func (g *Graph) PackageName() string {
 	i := strings.LastIndex(g.PackagePath, "/")

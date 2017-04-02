@@ -20,6 +20,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
+	"path/filepath"
 )
 
 func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
@@ -67,4 +69,17 @@ func gofmt(dst io.Writer, src io.Reader) error {
 func goimports(dst io.Writer, src io.Reader) error {
 	// TODO: Use golang.org/x/tools/imports package instead.
 	return pipeThru(dst, exec.Command(`goimports`), src)
+}
+
+func gopath() (string, error) {
+	p, _ := os.LookupEnv("GOPATH")
+	if p != "" {
+		return p, nil
+	}
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	// The Go 1.8 default.
+	return filepath.Join(u.HomeDir, "go"), nil
 }

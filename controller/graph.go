@@ -18,7 +18,6 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -32,55 +31,36 @@ import (
 	"github.com/google/shenzhen-go/source"
 )
 
-// New returns a new empty graph associated with a file path.
-func New(srcPath string) *model.Graph {
-	g := &Graph{
-		SourcePath: srcPath,
-		Channels:   make(map[string]*Channel),
-		Nodes:      make(map[string]*Node),
-	}
-
-	// Attempt to find a sensible package path.
-	gopath, ok := os.LookupEnv("GOPATH")
-	if !ok || gopath == "" {
-		return g
+// GuessPackagePath attempts to find a sensible package path.
+func GuessPackagePath(srcPath string) (string, error) {
+	gp, err := gopath()
+	if err != nil {
+		return "", err
 	}
 	abs, err := filepath.Abs(srcPath)
 	if err != nil {
-		log.Print(err)
-		return g
+		return "", err
 	}
-	rel, err := filepath.Rel(gopath+"/src", abs)
+	rel, err := filepath.Rel(gp+"/src", abs)
 	if err != nil {
-		log.Print(err)
-		return g
+		return "", err
 	}
-	g.PackagePath = strings.TrimSuffix(rel, filepath.Ext(rel))
-	return g
+	return strings.TrimSuffix(rel, filepath.Ext(rel)), nil
 }
 
 // Definitions returns the imports and channel var blocks from the Go program.
 // This is useful for advanced parsing and typechecking.
-func (g *Graph) Definitions() string {
+func Definitions(g *model.Graph) string {
 	b := new(bytes.Buffer)
 	goDefinitionsTemplate.Execute(b, g)
 	return b.String()
 }
 
-// PackageName extracts the name of the package from the package path ("full" package name).
-func (g *Graph) PackageName() string {
-	i := strings.LastIndex(g.PackagePath, "/")
-	if i < 0 {
-		return g.PackagePath
-	}
-	return g.PackagePath[i+1:]
-}
-
 // AllImports combines all desired imports into one slice.
 // It doesn't fix conflicting names, but dedupes any whole lines.
 // TODO: Put nodes in separate files to solve all import issues.
-func (g *Graph) AllImports() []string {
-	m := source.NewStringSet(g.Imports...)
+func AllImports(g *model.Graph) []string {
+	m := source.NewStringSet()
 	m.Add(`"sync"`)
 	for _, n := range g.Nodes {
 		for _, i := range n.Part.Imports() {
@@ -91,9 +71,9 @@ func (g *Graph) AllImports() []string {
 }
 
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.
-func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
+func LoadJSON(r io.Reader, sourcePath string) (*model.Graph, error) {
 	dec := json.NewDecoder(r)
-	var g Graph
+	var g model.Graph
 	if err := dec.Decode(&g); err != nil {
 		return nil, err
 	}
@@ -102,7 +82,7 @@ func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
 }
 
 // LoadJSONFile loads a JSON-encoded Graph from a file at a given path.
-func LoadJSONFile(path string) (*Graph, error) {
+func LoadJSONFile(path string) (*model.Graph, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -112,20 +92,20 @@ func LoadJSONFile(path string) (*Graph, error) {
 }
 
 // WriteJSONTo writes nicely-formatted JSON to the given Writer.
-func (g *Graph) WriteJSONTo(w io.Writer) error {
+func WriteJSONTo(w io.Writer, g *model.Graph) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "\t") // For diffability!
 	return enc.Encode(g)
 }
 
 // SaveJSONFile saves the JSON-encoded Graph to the SourcePath.
-func (g *Graph) SaveJSONFile() error {
+func SaveJSONFile(g *model.Graph) error {
 	f, err := ioutil.TempFile(filepath.Dir(g.SourcePath), filepath.Base(g.SourcePath))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	if err := g.WriteJSONTo(f); err != nil {
+	if err := WriteJSONTo(f, g); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {
@@ -135,27 +115,27 @@ func (g *Graph) SaveJSONFile() error {
 }
 
 // WriteGoTo writes the Go language view of the graph to the io.Writer.
-func (g *Graph) WriteGoTo(w io.Writer) error {
+func WriteGoTo(w io.Writer, g *model.Graph) error {
 	buf := &bytes.Buffer{}
-	if err := g.WriteRawGoTo(buf); err != nil {
+	if err := WriteRawGoTo(buf, g); err != nil {
 		return err
 	}
 	return gofmt(w, buf)
 }
 
 // WriteRawGoTo writes the Go language view of the graph to the io.Writer, without formatting.
-func (g *Graph) WriteRawGoTo(w io.Writer) error {
+func WriteRawGoTo(w io.Writer, g *model.Graph) error {
 	return goTemplate.Execute(w, g)
 }
 
 // GeneratePackage writes the Go view of the graph to a file called generated.go in
 // ${GOPATH}/src/${g.PackagePath}/, returning the full path.
-func (g *Graph) GeneratePackage() (string, error) {
-	gopath, ok := os.LookupEnv("GOPATH")
-	if !ok || gopath == "" {
-		return "", errors.New("cannot use $GOPATH; empty or undefined")
+func GeneratePackage(g *model.Graph) (string, error) {
+	gp, err := gopath()
+	if err != nil {
+		return "", err
 	}
-	pp := filepath.Join(gopath, "src", g.PackagePath)
+	pp := filepath.Join(gp, "src", g.PackagePath)
 	if err := os.Mkdir(pp, os.FileMode(0755)); err != nil {
 		log.Printf("Could not make path %q, continuing: %v", pp, err)
 	}
@@ -165,7 +145,7 @@ func (g *Graph) GeneratePackage() (string, error) {
 		return "", err
 	}
 	defer f.Close()
-	if err := g.WriteGoTo(f); err != nil {
+	if err := WriteGoTo(f, g); err != nil {
 		return "", err
 	}
 	if err := f.Close(); err != nil {
@@ -175,8 +155,8 @@ func (g *Graph) GeneratePackage() (string, error) {
 }
 
 // Build saves the graph as Go source code and tries to "go build" it.
-func (g *Graph) Build() error {
-	if _, err := g.GeneratePackage(); err != nil {
+func Build(g *model.Graph) error {
+	if _, err := GeneratePackage(g); err != nil {
 		return err
 	}
 	o, err := exec.Command(`go`, `build`, g.PackagePath).CombinedOutput()
@@ -188,8 +168,8 @@ func (g *Graph) Build() error {
 }
 
 // Install saves the graph as Go source code and tries to "go install" it.
-func (g *Graph) Install() error {
-	if _, err := g.GeneratePackage(); err != nil {
+func Install(g *model.Graph) error {
+	if _, err := GeneratePackage(g); err != nil {
 		return err
 	}
 	o, err := exec.Command(`go`, `install`, g.PackagePath).CombinedOutput()
@@ -200,7 +180,7 @@ func (g *Graph) Install() error {
 	return nil
 }
 
-func (g *Graph) writeTempRunner() (string, error) {
+func writeTempRunner(g *model.Graph) (string, error) {
 	fn := filepath.Join(os.TempDir(), fmt.Sprintf("shenzhen-go-runner.%s.go", g.PackageName()))
 	f, err := os.Create(fn)
 	if err != nil {
@@ -218,10 +198,10 @@ func (g *Graph) writeTempRunner() (string, error) {
 
 // Run saves the graph as Go source code, creates a temporary runner, and tries to run it.
 // The stdout and stderr pipes are copied to the given io.Writers.
-func (g *Graph) Run(stdout, stderr io.Writer) error {
+func Run(g *model.Graph, stdout, stderr io.Writer) error {
 	// Don't have to explicitly build, but must at least have the file ready
 	// so that go run can build it.
-	gp, err := g.GeneratePackage()
+	gp, err := GeneratePackage(g)
 	if err != nil {
 		return err
 	}
@@ -231,7 +211,7 @@ func (g *Graph) Run(stdout, stderr io.Writer) error {
 	if !g.IsCommand {
 		// Since it's a library which needs Run to be called,
 		// generate and run the temporary runner.
-		p, err := g.writeTempRunner()
+		p, err := writeTempRunner(g)
 		if err != nil {
 			return err
 		}
@@ -253,6 +233,3 @@ func (g *Graph) Run(stdout, stderr io.Writer) error {
 	go io.Copy(stderr, e)
 	return cmd.Wait()
 }
-
-// ToAPI translates to an *api.Graph.
-func (g *Graph) ToAPI() *api.Graph { return g.Graph }

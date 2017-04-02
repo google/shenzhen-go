@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/shenzhen-go/graph"
+	"github.com/google/shenzhen-go/model"
 )
 
 const browseTemplateSrc = `<head>

@@ -20,7 +20,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/google/shenzhen-go/api"
+	"github.com/google/shenzhen-go/model"
 
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -61,7 +61,7 @@ func loadGraph() {
 		return
 	}
 	d := json.NewDecoder(strings.NewReader(gj.String()))
-	var g api.Graph
+	var g model.Graph
 	if err := d.Decode(&g); err != nil {
 		log.Printf("Decoding GraphJSON: %v", err)
 		return

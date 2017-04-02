@@ -24,9 +24,3 @@ func stripCR(in []string) {
 		in[i] = strings.TrimSuffix(in[i], "\r")
 	}
 }
-
-// PinDef defines a pin (but not what it connects to).
-type PinDef struct {
-	Name, Type string
-	Input      bool
-}

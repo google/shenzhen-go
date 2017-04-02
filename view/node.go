@@ -24,8 +24,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/shenzhen-go/graph"
-	"github.com/google/shenzhen-go/parts"
+	"github.com/google/shenzhen-go/model"
+	"github.com/google/shenzhen-go/model/parts"
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.

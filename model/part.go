@@ -18,7 +18,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/google/shenzhen-go/model/parts"
+	"github.com/google/shenzhen-go/model/pin"
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be
@@ -49,7 +49,7 @@ type Part interface {
 	// Pins returns any pins - "channel arguments" - to the part.
 	// inputs and outputs map argument names to types (the "<-chan" /
 	// "chan<-" part of the type is implied).
-	Pins() []parts.PinDef
+	Pins() []pin.Definition
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string

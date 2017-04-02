@@ -47,7 +47,7 @@ type Node struct {
 	Multiplicity uint
 	Wait         bool
 	X, Y         int
-	Connections  map[string]*Pin
+	Connections  map[string]*Pin // Pin name ->
 }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.

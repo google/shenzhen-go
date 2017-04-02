@@ -21,6 +21,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/google/shenzhen-go/model/pin"
 )
 
 const codePartEditTemplateSrc = `
@@ -183,14 +185,14 @@ function switchto(e) {
 // Code is a component containing arbitrary code.
 type Code struct {
 	Head, Body, Tail string
-	CustomPins       []PinDef
+	CustomPins       []pin.Definition
 }
 
 type jsonCode struct {
-	Head []string `json:"head"`
-	Body []string `json:"body"`
-	Tail []string `json:"tail"`
-	Pins []PinDef `json:"pins"`
+	Head []string         `json:"head"`
+	Body []string         `json:"body"`
+	Tail []string         `json:"tail"`
+	Pins []pin.Definition `json:"pins"`
 }
 
 // MarshalJSON encodes the Code component as JSON.
@@ -231,7 +233,7 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 }
 
 // Pins returns pins. These are 100% user-defined.
-func (c *Code) Pins() []PinDef { return c.CustomPins }
+func (c *Code) Pins() []pin.Definition { return c.CustomPins }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
@@ -239,7 +241,7 @@ func (c *Code) Clone() interface{} {
 		Head:       c.Head,
 		Body:       c.Body,
 		Tail:       c.Tail,
-		CustomPins: append([]PinDef{}, c.CustomPins...),
+		CustomPins: append([]pin.Definition{}, c.CustomPins...),
 	}
 	return c2
 }
@@ -313,12 +315,12 @@ func (c *Code) Update(r *http.Request) error {
 		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
 	}
 	pd, pn, pt := r.Form["PinDirection"], r.Form["PinName"], r.Form["PinType"]
-	c.CustomPins = make([]PinDef, 0, len(pd))
+	c.CustomPins = make([]pin.Definition, 0, len(pd))
 	for i, d := range pd {
-		c.CustomPins = append(c.CustomPins, PinDef{
-			Name:  pn[i],
-			Input: d == "in",
-			Type:  pt[i],
+		c.CustomPins = append(c.CustomPins, pin.Definition{
+			Name:      pn[i],
+			Direction: pin.Direction(d),
+			Type:      pt[i],
 		})
 	}
 	return c.refresh(h, b, t)

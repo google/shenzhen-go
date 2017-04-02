@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package api holds types needed to communicate with the UI.
-package api
+// Package model has the model types.
+package model
 
 // Direction describes which way information flows in a Pin.
 type Direction string
@@ -29,7 +29,7 @@ type Pin struct {
 	Name      string    `json:"name"`
 	Type      string    `json:"type"`
 	Direction Direction `json:"dir"`
-	Binding   string    `json:"binding,omitempty"` // Channel key it is connected to, or empty.
+	Binding   string    `json:"binding,omitempty"` // Channel value it is connected to, or empty.
 }
 
 // FullType returns the full pin type, including the <-chan / chan<-.
@@ -41,26 +41,9 @@ func (p *Pin) FullType() string {
 	return c + p.Type
 }
 
-// Node represents a goroutine.
-type Node struct {
-	Name    string          `json:"-"`
-	Pins    map[string]*Pin `json:"pins"`
-	Enabled bool            `json:"enabled"`
-
-	// Visual position - topleft corner
-	X int `json:"x"`
-	Y int `json:"y"`
-}
-
 // Channel represents connections between pins.
 type Channel struct {
 	Name     string `json:"-"`
 	Type     string `json:"type"`
 	Capacity int    `json:"cap"`
-}
-
-// Graph represents a package / program / collection of nodes and channels.
-type Graph struct {
-	Nodes    map[string]*Node    `json:"nodes"`
-	Channels map[string]*Channel `json:"channels"`
 }

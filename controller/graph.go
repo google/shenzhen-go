@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package graph manages programs stored as graphs.
-package graph
+// Package controller manages everything.
+package controller
 
 import (
 	"bytes"
@@ -28,29 +28,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/shenzhen-go/api"
+	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/source"
 )
 
-// Graph describes a Go program as a graph. It can be marshalled and unmarshalled to JSON sensibly.
-type Graph struct {
-	SourcePath  string   `json:"-"` // path to the JSON source.
-	Name        string   `json:"name"`
-	PackagePath string   `json:"package_path"`
-	Imports     []string `json:"imports"`
-	IsCommand   bool     `json:"is_command"`
-
-	*api.Graph `json:"-"`
-}
-
 // New returns a new empty graph associated with a file path.
-func New(srcPath string) *Graph {
+func New(srcPath string) *model.Graph {
 	g := &Graph{
 		SourcePath: srcPath,
-		Graph: &api.Graph{
-			Channels: make(map[string]*api.Channel),
-			Nodes:    make(map[string]*api.Node),
-		},
+		Channels:   make(map[string]*Channel),
+		Nodes:      make(map[string]*Node),
 	}
 
 	// Attempt to find a sensible package path.
@@ -70,52 +57,6 @@ func New(srcPath string) *Graph {
 	}
 	g.PackagePath = strings.TrimSuffix(rel, filepath.Ext(rel))
 	return g
-}
-
-// mapConnections builds node parameters.
-func (g *Graph) mapConnections() {
-	// Erase existing connections.
-	for _, n := range g.Nodes {
-		ps := n.Pins()
-		n.Connections = make(map[string]*pin, len(ips)+len(ops))
-		for i, t := range ips {
-			n.Connections[i] = &pin{
-				Type:  fmt.Sprintf("<-chan %s", t),
-				Value: "nil",
-			}
-		}
-		for o, t := range ops {
-			n.Connections[o] = &pin{
-				Type:  fmt.Sprintf("chan<- %s", t),
-				Value: "nil",
-			}
-		}
-	}
-	for _, ch := range g.Channels {
-		ch.Readers, ch.Writers = nil, nil
-	}
-
-	// Re-attach connections defined by channels.
-	// This means assigning channels to arguments, and
-	// classifying connections as readers or writers.
-	for ind, ch := range g.Channels {
-		for _, co := range ch.Connections {
-			n := g.Nodes[co.Node]
-			if n == nil {
-				continue
-			}
-			i, o := n.Pins()
-			switch ch.Type {
-			case i[co.Arg]:
-				ch.Readers = append(ch.Readers, co)
-			case o[co.Arg]:
-				ch.Writers = append(ch.Writers, co)
-			default:
-				continue
-			}
-			n.Connections[co.Arg].Value = fmt.Sprintf("c%d", ind)
-		}
-	}
 }
 
 // Definitions returns the imports and channel var blocks from the Go program.
@@ -204,7 +145,6 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 
 // WriteRawGoTo writes the Go language view of the graph to the io.Writer, without formatting.
 func (g *Graph) WriteRawGoTo(w io.Writer) error {
-	g.mapConnections()
 	return goTemplate.Execute(w, g)
 }
 
@@ -315,48 +255,4 @@ func (g *Graph) Run(stdout, stderr io.Writer) error {
 }
 
 // ToAPI translates to an *api.Graph.
-func (g *Graph) ToAPI() *api.Graph {
-	a := &api.Graph{
-		Nodes:    make([]*api.Node, 0, len(g.Nodes)),
-		Channels: make(map[string]*api.Channel),
-	}
-
-	for _, n := range g.Nodes {
-		i, o := n.Part.Pins()
-		m := &api.Node{
-			Name: n.Name,
-			Pins: make(map[string]*api.Pin, len(i)+len(o)),
-		}
-		for k, t := range i {
-			b := ""
-			if p := n.Connections[k]; p != nil && p.Value != "nil" {
-				b = p.Value
-			}
-			m.Pins[k] = &api.Pin{
-				Type:      t,
-				Binding:   b,
-				Direction: api.Input,
-			}
-		}
-		for k, t := range o {
-			b := ""
-			if p := n.Connections[k]; p != nil && p.Value != "nil" {
-				b = p.Value
-			}
-			m.Pins[k] = &api.Pin{
-				Type:      t,
-				Binding:   b,
-				Direction: api.Output,
-			}
-		}
-		a.Nodes = append(a.Nodes, m)
-	}
-
-	for i, c := range g.Channels {
-		a.Channels[fmt.Sprintf("c%d", i)] = &api.Channel{
-			Capacity: c.Cap,
-			Type:     c.Type,
-		}
-	}
-	return a
-}
+func (g *Graph) ToAPI() *api.Graph { return g.Graph }

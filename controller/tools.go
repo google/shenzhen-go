@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package graph
+package controller
 
 import (
 	"go/format"
@@ -49,10 +49,6 @@ func pipeThru(dst io.Writer, cmd *exec.Cmd, src io.Reader) error {
 		return err
 	}
 	return cmd.Wait()
-}
-
-func dotToSVG(dst io.Writer, src io.Reader) error {
-	return pipeThru(dst, exec.Command(`dot`, `-Tsvg`), src)
 }
 
 func gofmt(dst io.Writer, src io.Reader) error {

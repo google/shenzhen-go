@@ -12,56 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package graph
+package model
 
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
-	"net/http"
 	"strings"
 	"unicode"
 
-	"github.com/google/shenzhen-go/api"
-	"github.com/google/shenzhen-go/parts"
+	"github.com/google/shenzhen-go/model/parts"
 )
-
-// Part abstracts the implementation of a node. Concrete implementations should be
-// able to be marshalled to and unmarshalled from JSON sensibly.
-type Part interface {
-	// AssociateEditor associates a template called "part_view" with the given template.
-	AssociateEditor(*template.Template) error
-
-	// Clone returns a copy of this part.
-	Clone() interface{}
-
-	// Help returns a helpful description of what this part can do.
-	Help() template.HTML
-
-	// Impl returns Go source code implementing the part.
-	// The head is executed, then the body is executed (# Multiplicity
-	// instances of the body concurrently), then the tail (once the body/bodies
-	// are finished).
-	//
-	// This allows cleanly closing channels for nodes with Multiplicity > 1.
-	// The tail is deferred so that the body can use "return" and it is still
-	// executed.
-	Impl() (head, body, tail string)
-
-	// Imports returns any extra import lines needed for the Part.
-	Imports() []string
-
-	// Pins returns any pins - "channel arguments" - to the part.
-	// inputs and outputs map argument names to types (the "<-chan" /
-	// "chan<-" part of the type is implied).
-	Pins() []api.Pin
-
-	// TypeKey returns the "type" of part.
-	TypeKey() string
-
-	// Update sets fields in the part based on info in the given Request.
-	Update(*http.Request) error
-}
 
 // PartFactory creates a part.
 type PartFactory func() Part
@@ -78,12 +38,8 @@ var PartFactories = map[string]PartFactory{
 		"Unslicer":       func() Part { return new(parts.Unslicer) },*/
 }
 
-type pin struct {
-	Type, Value string
-	Input       bool
-}
-
-// Node models a goroutine. It can be marshalled and unmarshalled to JSON sensibly.
+// Node models a goroutine. This is the "real" model type for nodes.
+// It can be marshalled and unmarshalled to JSON sensibly.
 type Node struct {
 	Part
 	Name         string
@@ -91,7 +47,7 @@ type Node struct {
 	Multiplicity uint
 	Wait         bool
 	X, Y         int
-	Connections  map[string]*pin // filled in by mapConnections
+	Connections  map[string]*Pin
 }
 
 // Copy returns a copy of this node, but with an empty name and a clone of the Part.
@@ -103,8 +59,8 @@ func (n *Node) Copy() *Node {
 		Wait:         n.Wait,
 		Part:         n.Part.Clone().(Part),
 		// TODO: find a better location
-		X: n.X + 300,
-		Y: n.Y + 8,
+		X: n.X + 8,
+		Y: n.Y + 100,
 	}
 }
 
@@ -155,8 +111,8 @@ type jsonNode struct {
 	Enabled      bool            `json:"enabled"`
 	Wait         bool            `json:"wait"`
 	Multiplicity uint            `json:"multiplicity"`
-	Part         json.RawMessage `json:"part"`
-	PartType     string          `json:"part_type"`
+	Part         json.RawMessage `json:"part,omitempty"`
+	PartType     string          `json:"part_type,omitempty"`
 	X            int             `json:"x"`
 	Y            int             `json:"y"`
 }

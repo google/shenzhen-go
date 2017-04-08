@@ -64,6 +64,11 @@ func (n *Node) Copy() *Node {
 	}
 }
 
+// FlatImports returns the imports as a single string.
+func (n *Node) FlatImports() string {
+	return strings.Join(n.Part.Imports(), "\n")
+}
+
 // ImplHead returns the Head part of the implementation.
 func (n *Node) ImplHead() string {
 	h, _, _ := n.Part.Impl()

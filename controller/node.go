@@ -65,12 +65,7 @@ func handleNodeRequest(g *model.Graph, name string, w http.ResponseWriter, r *ht
 	case clone:
 		n = n.Copy()
 	case convert:
-		h, b, t := n.Part.Impl()
-		n.Part = &parts.Code{
-			Head: h,
-			Body: b,
-			Tail: t,
-		}
+		n.Part = parts.NewCodeFromAny(n.Part)
 	case del:
 		delete(g.Nodes, n.Name)
 		u := *r.URL

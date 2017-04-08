@@ -8,6 +8,9 @@
 			"wait": true,
 			"multiplicity": 1,
 			"part": {
+				"imports": [
+					"\"fmt\""
+				],
 				"head": [
 					""
 				],

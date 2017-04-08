@@ -109,24 +109,32 @@ function addrowpls() {
 </tbody>
 </table>
 <hr>
+<input type="hidden" id="himports" name="Imports" value="">
 <input type="hidden" id="hhead" name="Head" value="">
 <input type="hidden" id="hbody" name="Body" value="">
 <input type="hidden" id="htail" name="Tail" value="">
 <script>
 function switchto(e) {
+	i = document.getElementById('importstab');
 	h = document.getElementById('headtab');
 	b = document.getElementById('bodytab');
 	t = document.getElementById('tailtab');
 	x = document.getElementById(e);
+	i.style.display = 'none';
 	h.style.display = 'none';
 	b.style.display = 'none';
 	t.style.display = 'none';
 	x.style.display = 'block';
 }
 </script>
+<a href="javascript:void(0)" onclick="switchto('importstab')">Imports</a> |
 <a href="javascript:void(0)" onclick="switchto('headtab')">Head</a> |
 <a href="javascript:void(0)" onclick="switchto('bodytab')">Body</a> |
 <a href="javascript:void(0)" onclick="switchto('tailtab')">Tail</a>
+<div id="importstab" style="display:none">
+	<h4>Imports</h4>
+	<pre class="codeedit" id="imports">{{.Node.FlatImports}}</pre>
+</div>
 <div id="headtab" style="display:none">
 	<h4>Head</h4>
 	<pre class="codeedit" id="head">{{.Node.ImplHead}}</pre>
@@ -143,9 +151,13 @@ function switchto(e) {
 <script>
     var theme = 'ace/theme/chrome';
 	var lang = 'ace/mode/golang';
+	var imps = ace.edit('imports');
     var head = ace.edit('head');
 	var body = ace.edit('body');
 	var tail = ace.edit('tail');
+    imps.setTheme(theme);
+    imps.getSession().setMode(lang);
+	imps.getSession().setUseSoftTabs(false);
     head.setTheme(theme);
     head.getSession().setMode(lang);
 	head.getSession().setUseSoftTabs(false);
@@ -156,6 +168,7 @@ function switchto(e) {
     tail.getSession().setMode(lang);
 	tail.getSession().setUseSoftTabs(false);
 	this.parent.onsubmit = function() {
+		document.getElementById('himports').value = imports.getValue();
 		document.getElementById('hhead').value = head.getValue();
 		document.getElementById('hbody').value = body.getValue();
 		docuemnt.getElementById('htail').value = tail.getValue();
@@ -165,25 +178,48 @@ function switchto(e) {
 
 // Code is a component containing arbitrary code.
 type Code struct {
-	Head, Body, Tail string
-	CustomPins       []pin.Definition
+	imports          []string
+	head, body, tail string
+	pins             []pin.Definition
+}
+
+type part interface {
+	Imports() []string
+	Impl() (head, body, tail string)
+	Pins() []pin.Definition
+}
+
+// NewCodeFromAny creates a new Code, copying the implementation details
+// out of an existing part.
+func NewCodeFromAny(p part) *Code {
+	h, b, t := p.Impl()
+	return &Code{
+		imports: p.Imports(),
+		head:    h,
+		body:    b,
+		tail:    t,
+		pins:    p.Pins(),
+	}
 }
 
 type jsonCode struct {
-	Head []string         `json:"head"`
-	Body []string         `json:"body"`
-	Tail []string         `json:"tail"`
-	Pins []pin.Definition `json:"pins"`
+	Imports []string         `json:"imports"`
+	Head    []string         `json:"head"`
+	Body    []string         `json:"body"`
+	Tail    []string         `json:"tail"`
+	Pins    []pin.Definition `json:"pins"`
 }
 
 // MarshalJSON encodes the Code component as JSON.
 func (c *Code) MarshalJSON() ([]byte, error) {
 	k := &jsonCode{
-		Head: strings.Split(c.Head, "\n"),
-		Body: strings.Split(c.Body, "\n"),
-		Tail: strings.Split(c.Tail, "\n"),
-		Pins: c.CustomPins,
+		Imports: c.imports,
+		Head:    strings.Split(c.head, "\n"),
+		Body:    strings.Split(c.body, "\n"),
+		Tail:    strings.Split(c.tail, "\n"),
+		Pins:    c.pins,
 	}
+	stripCR(k.Imports)
 	stripCR(k.Head)
 	stripCR(k.Body)
 	stripCR(k.Tail)
@@ -203,7 +239,8 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 		// TODO: revisit all this
 		log.Printf("Couldn't format or determine channels used: %v", err)
 	}
-	c.CustomPins = mp.Pins
+	c.imports = mp.Imports
+	c.pins = mp.Pins
 	return nil
 }
 
@@ -214,15 +251,16 @@ func (c *Code) AssociateEditor(tmpl *template.Template) error {
 }
 
 // Pins returns pins. These are 100% user-defined.
-func (c *Code) Pins() []pin.Definition { return c.CustomPins }
+func (c *Code) Pins() []pin.Definition { return c.pins }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
 	c2 := &Code{
-		Head:       c.Head,
-		Body:       c.Body,
-		Tail:       c.Tail,
-		CustomPins: append([]pin.Definition{}, c.CustomPins...),
+		imports: c.imports,
+		head:    c.head,
+		body:    c.body,
+		tail:    c.tail,
+		pins:    append([]pin.Definition{}, c.pins...),
 	}
 	return c2
 }
@@ -258,18 +296,18 @@ func (*Code) Help() template.HTML {
 
 // Impl returns the implementation of the goroutine.
 func (c *Code) Impl() (Head, Body, Tail string) {
-	return c.Head, c.Body, c.Tail
+	return c.head, c.body, c.tail
 }
 
 // Imports returns a nil slice.
-func (*Code) Imports() []string { return nil }
+func (c *Code) Imports() []string { return c.imports }
 
 // TypeKey returns "Code".
 func (*Code) TypeKey() string { return "Code" }
 
 func (c *Code) refresh(h, b, t string) error {
 	// At least save what the user entered.
-	c.Head, c.Body, c.Tail = h, b, t
+	c.head, c.body, c.tail = h, b, t
 
 	// Try to format it.
 	hf, err := format.Source([]byte(h))
@@ -285,20 +323,20 @@ func (c *Code) refresh(h, b, t string) error {
 		return err
 	}
 
-	c.Head, c.Body, c.Tail = string(hf), string(bf), string(tf)
+	c.head, c.body, c.tail = string(hf), string(bf), string(tf)
 	return nil
 }
 
 // Update sets relevant fields based on the given Request.
 func (c *Code) Update(r *http.Request) error {
-	h, b, t := c.Head, c.Body, c.Tail
+	h, b, t := c.head, c.body, c.tail
 	if r != nil {
 		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
 	}
 	pd, pn, pt := r.Form["PinDirection"], r.Form["PinName"], r.Form["PinType"]
-	c.CustomPins = make([]pin.Definition, 0, len(pd))
+	c.pins = make([]pin.Definition, 0, len(pd))
 	for i, d := range pd {
-		c.CustomPins = append(c.CustomPins, pin.Definition{
+		c.pins = append(c.pins, pin.Definition{
 			Name:      pn[i],
 			Direction: pin.Direction(d),
 			Type:      pt[i],

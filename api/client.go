@@ -12,11 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package controller manages everything.
-package controller
-
-import (
-	"github.com/google/shenzhen-go/model"
-)
-
-var loadedGraphs = make(map[string]*model.Graph)
+// Package api has types for communicating between the UI and the server.
+package api

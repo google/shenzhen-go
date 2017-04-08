@@ -25,18 +25,12 @@ import (
 	"github.com/google/shenzhen-go/view"
 )
 
-var loadedGraphs = make(map[string]*model.Graph)
-
-// dirBrowser serves a way of visually navigating the filesystem.
 type dirBrowser struct{}
 
-// NewBrowser makes a Handler that can browse the filesystem and also multiple
-// graphs stored in the filesystem.
-func NewBrowser() http.Handler {
-	return &dirBrowser{}
-}
+// DirBrowser serves a way of visually navigating the filesystem.
+var DirBrowser dirBrowser
 
-func (b *dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
 	path := r.URL.Path

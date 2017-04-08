@@ -21,20 +21,10 @@ import (
 
 type apiHandler struct{}
 
-// API handles API requests.
+// API handles all API requests.
 var API apiHandler
 
 func (apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("GET api: %v", r.URL.Path)
+	log.Printf("%s api: %s", r.Method, r.URL)
 
-	g := loadedGraphs[r.URL.Path]
-	if g == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if err := WriteJSONTo(w, g); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("Writing JSON: %v", err)
-	}
 }

@@ -20,11 +20,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -35,8 +33,8 @@ import (
 const pingMsg = "Pong!"
 
 var (
-	serveAddr = flag.String("addr", "localhost", "Address to bind server to")
-	servePort = flag.Int("port", 8088, "Port to serve from")
+	apiAddr = flag.String("api_addr", "localhost:8089", "Address to bind API server to")
+	uiAddr  = flag.String("ui_addr", "localhost:8088", "Address to bind UI server to")
 )
 
 func open(args ...string) error {
@@ -56,7 +54,7 @@ func open(args ...string) error {
 
 // TODO: Implement this better.
 func openWhenUp(addr string) {
-	base := fmt.Sprintf("http://%s/", addr)
+	base := fmt.Sprintf(`http://%s/`, addr)
 	t := time.NewTicker(100 * time.Millisecond)
 	for range t.C {
 		resp, err := http.Get(base + "ping")
@@ -81,7 +79,6 @@ func openWhenUp(addr string) {
 
 func main() {
 	flag.Parse()
-	addr := net.JoinHostPort(*serveAddr, strconv.Itoa(*servePort))
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprintf(w, pingMsg)
@@ -90,14 +87,13 @@ func main() {
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
-	http.Handle("/.api/", http.StripPrefix("/.api", controller.API))
-	http.Handle("/", controller.NewBrowser())
+	http.Handle("/", controller.DirBrowser)
 
 	// As soon as we're serving, launch "open" which should launch a browser,
 	// or ask the user to do so.
-	go openWhenUp(addr)
+	go openWhenUp(*uiAddr)
 
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	if err := http.ListenAndServe(*uiAddr, nil); err != nil {
 		log.Fatal(err)
 	}
 }

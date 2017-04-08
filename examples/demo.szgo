@@ -1,15 +1,11 @@
 {
 	"name": "demo",
 	"package_path": "github.com/google/shenzhen-go/examples/demo",
-	"imports": [
-		"\"fmt\""
-	],
 	"is_command": true,
 	"nodes": {
 		"blah": {
-			"name": "blah",
-			"wait": true,
 			"enabled": true,
+			"wait": true,
 			"multiplicity": 1,
 			"part": {
 				"head": [
@@ -23,40 +19,40 @@
 				],
 				"pins": [
 					{
-						"name": "bar", 
-						"type": "rune", 
+						"name": "bar",
+						"type": "rune",
 						"dir": "in"
 					},
 					{
-						"name": "foo", 
-						"type": "int", 
+						"name": "foo",
+						"type": "int",
 						"dir": "in"
 					},
 					{
-						"name": "tuz", 
-						"type": "int64", 
+						"name": "tuz",
+						"type": "int64",
 						"dir": "in"
 					},
 					{
-						"name": "baz", 
-						"type": "float64", 
+						"name": "baz",
+						"type": "float64",
 						"dir": "out"
 					},
 					{
 						"name": "quux",
-						 "type": "string", 
-						 "dir": "out"
+						"type": "string",
+						"dir": "out"
 					},
 					{
-						"name": "qux", 
-						"type": "int", 
+						"name": "qux",
+						"type": "int",
 						"dir": "out"
 					}
 				]
 			},
 			"part_type": "Code",
-			"x": 100,
-			"y": 100,
+			"x": 115,
+			"y": 112,
 			"connections": {}
 		}
 	},

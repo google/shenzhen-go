@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/model"
-	"github.com/google/shenzhen-go/source"
 	"github.com/google/shenzhen-go/view"
 )
 
@@ -55,20 +54,6 @@ func Definitions(g *model.Graph) string {
 	b := new(bytes.Buffer)
 	goDefinitionsTemplate.Execute(b, g)
 	return b.String()
-}
-
-// AllImports combines all desired imports into one slice.
-// It doesn't fix conflicting names, but dedupes any whole lines.
-// TODO: Put nodes in separate files to solve all import issues.
-func AllImports(g *model.Graph) []string {
-	m := source.NewStringSet()
-	m.Add(`"sync"`)
-	for _, n := range g.Nodes {
-		for _, i := range n.Part.Imports() {
-			m.Add(i)
-		}
-	}
-	return m.Slice()
 }
 
 // WriteJSONTo writes nicely-formatted JSON to the given Writer.

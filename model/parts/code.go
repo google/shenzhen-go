@@ -87,38 +87,19 @@ function addrowpls() {
 	</tr>
 </thead>
 <tbody id="pins">
-{{range $name, $type := $.Node.Part.Inputs}}
+{{range $.Node.Part.Pins}}
 	<tr>
 	    <td>
 			<select name="PinDirection">
-				<option value="in" selected>Input</option>
-				<option value="out">Output</option>
+				<option value="in" {{if eq .Direction "in"}}selected{{end}}>Input</option>
+				<option value="out" {{if eq .Direction "out"}}selected{{end}}>Output</option>
 			</select>
 		</td>
 		<td>
-			<input type="text" name="PinName" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{$name}}">
+			<input type="text" name="PinName" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{.Name}}">
 		</td>
 		<td>
-			<input type="text" name="PinType" required value="{{$type}}">
-		</td>
-		<td>
-			<a href="javascript:void(0)" onclick="removemepls(this.parentNode.parentNode)">Remove pin</a>
-		</td>
-	</tr>
-{{end -}}
-{{range $name, $type := $.Node.Part.Outputs}}
-	<tr>
-	    <td>
-			<select name="PinDirection">
-				<option value="in">Input</option>
-				<option value="out" selected>Output</option>
-			</select>
-		</td>
-		<td>
-			<input type="text" name="PinName" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{$name}}">
-		</td>
-		<td>
-			<input type="text" name="PinType" required value="{{$type}}">
+			<input type="text" name="PinType" required value="{{.Type}}">
 		</td>
 		<td>
 			<a href="javascript:void(0)" onclick="removemepls(this.parentNode.parentNode)">Remove pin</a>

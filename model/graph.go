@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
+
+	"github.com/google/shenzhen-go/source"
 )
 
 // Graph represents a package / program / collection of nodes and channels.
@@ -68,4 +70,18 @@ func (g *Graph) PackageName() string {
 		return g.PackagePath
 	}
 	return g.PackagePath[i+1:]
+}
+
+// AllImports combines all desired imports into one slice.
+// It doesn't fix conflicting names, but dedupes any whole lines.
+// TODO: Put nodes in separate files to solve all import issues.
+func (g *Graph) AllImports() []string {
+	m := source.NewStringSet()
+	m.Add(`"sync"`)
+	for _, n := range g.Nodes {
+		for _, i := range n.Part.Imports() {
+			m.Add(i)
+		}
+	}
+	return m.Slice()
 }

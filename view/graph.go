@@ -75,7 +75,7 @@ const (
 </head>
 <body>
 <h1>{{.Name}} Properties</h1>
-{{.SourcePath}}
+{{.FilePath}}
 <div>
     <form method="post">
 		<div class="formfield">
@@ -85,12 +85,6 @@ const (
 		<div class="formfield">
 		    <label for="PackagePath">Package path</label>
 			<input name="PackagePath" type="text" required value="{{.PackagePath}}">
-		</div>
-		<div class="formfield">
-		    <label for="Imports">Imports</label>
-			<textarea name="Imports" rows="10" cols="36">
-				{{- range .Imports}}{{.}}{{"\n"}}{{end -}}
-			</textarea>
 		</div>
 		<div class="formfield">
 		    <label for="IsCommand">Is a command?</label>

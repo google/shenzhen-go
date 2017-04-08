@@ -32,40 +32,40 @@ func (h apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	api.Dispatch(h, w, r)
 }
 
-func lookupGraph(graph string) (*model.Graph, error) {
-	g := loadedGraphs[graph]
+func lookupGraph(req *api.Request) (*model.Graph, error) {
+	g := loadedGraphs[req.Graph]
 	if g == nil {
-		return nil, api.Statusf(http.StatusNotFound, "graph not loaded: %q", graph)
+		return nil, api.Statusf(http.StatusNotFound, "graph not loaded: %q", req.Graph)
 	}
 	return g, nil
 }
 
-func lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
-	g, err := lookupGraph(graph)
+func lookupChannel(req *api.ChannelRequest) (*model.Graph, *model.Channel, error) {
+	g, err := lookupGraph(&req.Request)
 	if err != nil {
 		return nil, nil, err
 	}
-	c := g.Channels[channel]
+	c := g.Channels[req.Channel]
 	if c == nil {
-		return nil, nil, api.Statusf(http.StatusNotFound, "no such channel: %q", channel)
+		return nil, nil, api.Statusf(http.StatusNotFound, "no such channel: %q", req.Channel)
 	}
 	return g, c, nil
 }
 
-func lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
-	g, err := lookupGraph(graph)
+func lookupNode(req *api.NodeRequest) (*model.Graph, *model.Node, error) {
+	g, err := lookupGraph(&req.Request)
 	if err != nil {
 		return nil, nil, err
 	}
-	n := g.Nodes[node]
+	n := g.Nodes[req.Node]
 	if n == nil {
-		return nil, nil, api.Statusf(http.StatusNotFound, "no such node: %q", node)
+		return nil, nil, api.Statusf(http.StatusNotFound, "no such node: %q", req.Node)
 	}
 	return g, n, nil
 }
 
 func (h apiHandler) SetPosition(req *api.SetPositionRequest) error {
-	_, n, err := lookupNode(req.Graph, req.Node)
+	_, n, err := lookupNode(&req.NodeRequest)
 	if err != nil {
 		return err
 	}

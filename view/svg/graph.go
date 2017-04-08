@@ -59,7 +59,7 @@ func loadGraph() {
 	if gj == nil {
 		return
 	}
-	g, err := model.LoadJSON(strings.NewReader(gj.String()), "")
+	g, err := model.LoadJSON(strings.NewReader(gj.String()), "", "")
 	if err != nil {
 		log.Printf("Decoding GraphJSON: %v", err)
 		return

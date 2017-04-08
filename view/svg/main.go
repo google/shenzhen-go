@@ -14,7 +14,11 @@
 
 package main
 
-import "github.com/gopherjs/gopherjs/js"
+import (
+	"github.com/gopherjs/gopherjs/js"
+
+	"github.com/google/shenzhen-go/api"
+)
 
 const (
 	activeColour = "#09f"
@@ -36,12 +40,15 @@ var (
 	diagramSVG = document.Call("getElementById", "diagram")
 	svgNS      = diagramSVG.Get("namespaceURI")
 	graphPath  = js.Global.Get("graphPath").String()
+	apiURL     = js.Global.Get("apiURL").String()
 
 	errLabel *textBox
 
 	dragItem draggable
 
 	graph *Graph
+
+	client api.Interface
 )
 
 func makeSVGElement(n string) *js.Object { return document.Call("createElementNS", svgNS, n) }
@@ -97,6 +104,8 @@ func clearError() {
 }
 
 func main() {
+	client = api.NewClient(apiURL)
+
 	loadGraph()
 	for c := range graph.Channels {
 		c.makeElements()

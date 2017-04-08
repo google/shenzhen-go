@@ -71,16 +71,6 @@ func AllImports(g *model.Graph) []string {
 	return m.Slice()
 }
 
-// LoadJSONFile loads a JSON-encoded Graph from a file at a given path.
-func LoadJSONFile(path string) (*model.Graph, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return model.LoadJSON(f, path)
-}
-
 // WriteJSONTo writes nicely-formatted JSON to the given Writer.
 func WriteJSONTo(w io.Writer, g *model.Graph) error {
 	enc := json.NewEncoder(w)
@@ -90,7 +80,7 @@ func WriteJSONTo(w io.Writer, g *model.Graph) error {
 
 // SaveJSONFile saves the JSON-encoded Graph to the SourcePath.
 func SaveJSONFile(g *model.Graph) error {
-	f, err := ioutil.TempFile(filepath.Dir(g.SourcePath), filepath.Base(g.SourcePath))
+	f, err := ioutil.TempFile(filepath.Dir(g.FilePath), filepath.Base(g.FilePath))
 	if err != nil {
 		return err
 	}
@@ -101,7 +91,7 @@ func SaveJSONFile(g *model.Graph) error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	return os.Rename(f.Name(), g.SourcePath)
+	return os.Rename(f.Name(), g.FilePath)
 }
 
 // WriteGoTo writes the Go language view of the graph to the io.Writer.
@@ -230,7 +220,7 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	if _, t := q["up"]; t {
-		d := filepath.Dir(g.SourcePath)
+		d := filepath.Dir(g.FilePath)
 		http.Redirect(w, r, "/"+d, http.StatusFound)
 		return
 	}

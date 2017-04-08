@@ -17,7 +17,6 @@ package api
 import (
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 )
 
@@ -41,12 +40,7 @@ func TestSetPositionRoundTrip(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	u, err := url.Parse(srv.URL)
-	if err != nil {
-		t.Fatalf("httptest is doing something weird: %v", err)
-	}
-	cl := NewClient(u)
-
+	cl := NewClient(srv.URL)
 	req := &SetPositionRequest{
 		NodeRequest: NodeRequest{
 			Request: Request{

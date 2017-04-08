@@ -57,7 +57,8 @@ const (
 	<br><br>
 	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
 	<script>
-		var graphPath = '{{$.Graph.SourcePath}}';
+		var graphPath = '{{$.Graph.URLPath}}';
+		var apiURL = '/.api';
 		var GraphJSON = "{{$.GraphJSON}}";
 	</script>
 	<script src="/.static/svg.js"></script>

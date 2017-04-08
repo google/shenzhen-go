@@ -22,7 +22,8 @@ import (
 
 // Graph represents a package / program / collection of nodes and channels.
 type Graph struct {
-	SourcePath  string              `json:"-"` // path to the JSON source
+	FilePath    string              `json:"-"` // path to the JSON source
+	URLPath     string              `json:"-"` // path in the URL
 	Name        string              `json:"name"`
 	PackagePath string              `json:"package_path"`
 	IsCommand   bool                `json:"is_command"`
@@ -31,9 +32,10 @@ type Graph struct {
 }
 
 // NewGraph returns a new empty graph associated with a file path.
-func NewGraph(srcPath, pkgPath string) *Graph {
+func NewGraph(filePath, urlPath, pkgPath string) *Graph {
 	return &Graph{
-		SourcePath:  srcPath,
+		FilePath:    filePath,
+		URLPath:     urlPath,
 		PackagePath: pkgPath,
 		Channels:    make(map[string]*Channel),
 		Nodes:       make(map[string]*Node),
@@ -41,10 +43,11 @@ func NewGraph(srcPath, pkgPath string) *Graph {
 }
 
 // LoadJSON loads a JSON-encoded Graph from an io.Reader.
-func LoadJSON(r io.Reader, sourcePath string) (*Graph, error) {
+func LoadJSON(r io.Reader, filePath, urlPath string) (*Graph, error) {
 	dec := json.NewDecoder(r)
 	g := &Graph{
-		SourcePath: sourcePath,
+		FilePath: filePath,
+		URLPath:  urlPath,
 	}
 	if err := dec.Decode(g); err != nil {
 		return nil, err

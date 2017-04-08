@@ -18,7 +18,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"strconv"
 )
 
 var (
@@ -41,10 +43,10 @@ type jsonRequest struct {
 	Message json.RawMessage `json:"message"`
 }
 
-func dispatch(s Interface, r io.Reader) ([]byte, error) {
-	var req jsonRequest
-	if err := json.NewDecoder(r).Decode(&req); err != nil {
-		return nil, Statusf(http.StatusBadRequest, "ill-formed request: %v")
+func dispatch(server Interface, request io.Reader) ([]byte, error) {
+	req := new(jsonRequest)
+	if err := json.NewDecoder(request).Decode(req); err != nil {
+		return nil, Statusf(http.StatusBadRequest, "ill-formed request: %v", err)
 	}
 
 	d, ok := dispatchers[req.Method]
@@ -56,7 +58,7 @@ func dispatch(s Interface, r io.Reader) ([]byte, error) {
 	if err := json.Unmarshal(req.Message, v); err != nil {
 		return nil, Statusf(http.StatusBadRequest, "ill-formed message: %v", err)
 	}
-	resp, err := d.method(s, v)
+	resp, err := d.method(server, v)
 	if err != nil {
 		return nil, err
 	}
@@ -70,15 +72,22 @@ func dispatch(s Interface, r io.Reader) ([]byte, error) {
 
 // Dispatch calls the interface function given by the request.
 func Dispatch(s Interface, w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		log.Printf("Ignoring API request with method %q", r.Method)
+		return
+	}
+
 	rb, err := dispatch(s, r.Body)
 	if err != nil {
+		code := http.StatusInternalServerError
 		if st := err.(*Status); st != nil {
-			w.WriteHeader(st.Code)
-			return
+			code = st.Code
 		}
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(code)
 		fmt.Fprintf(w, "%v", err)
 		return
 	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Length", strconv.Itoa(len(rb)))
 	w.Write(rb)
 }

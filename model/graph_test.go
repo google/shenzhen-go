@@ -32,14 +32,18 @@ func TestLoadJSON(t *testing.T) {
 		"baz": {},
 		"qux": {}
 	}
-}`), "sourcePath")
+}`), "filePath", "urlPath")
 	if err != nil {
 		t.Fatalf("LoadJSON() error = %v", err)
 	}
 
-	if got, want := got.SourcePath, "sourcePath"; got != want {
-		t.Errorf("LoadJSON().SourcePath = %q, want %q", got, want)
+	if got, want := got.FilePath, "filePath"; got != want {
+		t.Errorf("LoadJSON().FilePath = %q, want %q", got, want)
 	}
+	if got, want := got.URLPath, "urlPath"; got != want {
+		t.Errorf("LoadJSON().URLPath = %q, want %q", got, want)
+	}
+
 	wantNodes := map[string]*Node{
 		"foo": {
 			Name:         "foo",

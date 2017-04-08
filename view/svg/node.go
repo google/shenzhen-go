@@ -15,7 +15,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gopherjs/gopherjs/js"
+
+	"github.com/google/shenzhen-go/api"
 )
 
 const (
@@ -74,7 +78,23 @@ func (n *Node) drag(e *js.Object) {
 }
 
 func (n *Node) drop(e *js.Object) {
-	// TODO
+	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
+	req := &api.SetPositionRequest{
+		NodeRequest: api.NodeRequest{
+			Request: api.Request{
+				Graph: graphPath,
+			},
+			Node: n.Name,
+		},
+		X: int(x),
+		Y: int(y),
+	}
+
+	go func() { // cannot block in callback
+		if err := client.SetPosition(req); err != nil {
+			log.Printf("Couldn't SetPosition: %v", err)
+		}
+	}()
 }
 
 func (n *Node) updatePinPositions() {

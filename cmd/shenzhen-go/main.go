@@ -86,7 +86,7 @@ func main() {
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
-	http.Handle("/.api/", controller.API)
+	http.Handle("/.api", controller.API)
 	http.Handle("/", controller.DirBrowser)
 
 	// As soon as we're serving, launch "open" which should launch a browser,

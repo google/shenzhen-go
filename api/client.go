@@ -18,8 +18,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
 )
 
 const contentType = "application/vnd.api+json"
@@ -31,9 +31,9 @@ type client struct {
 
 // NewClient returns a client that makes queries to the endpoint, for each
 // request.
-func NewClient(endpoint *url.URL) Interface {
+func NewClient(endpoint string) Interface {
 	return &client{
-		endpoint: endpoint.String(),
+		endpoint: endpoint,
 	}
 }
 
@@ -54,6 +54,13 @@ func (c *client) query(method string, req, resp interface{}) error {
 		return fmt.Errorf("posting request: %v", err)
 	}
 	defer rsp.Body.Close()
+
+	if rsp.StatusCode != http.StatusOK {
+		b := new(bytes.Buffer)
+		io.Copy(b, rsp.Body)
+		return fmt.Errorf("non-200 status code: %s", b)
+	}
+
 	if err := json.NewDecoder(rsp.Body).Decode(resp); err != nil {
 		return fmt.Errorf("unmarshalling response: %v", err)
 	}

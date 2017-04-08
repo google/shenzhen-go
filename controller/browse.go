@@ -33,14 +33,13 @@ var DirBrowser dirBrowser
 func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
-	path := r.URL.Path
 	_, reload := r.URL.Query()["reload"]
-	if g, ok := loadedGraphs[path]; ok && !reload {
+	if g, ok := loadedGraphs[r.URL.Path]; ok && !reload {
 		Graph(g, w, r)
 		return
 	}
 
-	base := filepath.Join(".", path)
+	base := filepath.Join(".", r.URL.Path)
 	f, err := os.Open(base)
 	if err != nil {
 		log.Printf("Couldn't open: %v", err)
@@ -55,13 +54,13 @@ func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !fi.IsDir() {
-		g, err := model.LoadJSON(f, base)
+		g, err := model.LoadJSON(f, base, r.URL.Path)
 		if err != nil {
 			log.Printf("Not a directory or a valid JSON-encoded graph: %v", err)
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
 			return
 		}
-		loadedGraphs[path] = g
+		loadedGraphs[r.URL.Path] = g
 		Graph(g, w, r)
 		return
 	}
@@ -74,12 +73,12 @@ func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "File already exists", http.StatusNotModified)
 			return
 		}
-		path = filepath.Join(path, nu)
+		path := filepath.Join(r.URL.Path, nu)
 		pkgp, err := GuessPackagePath(nfp)
 		if err != nil {
 			log.Printf("Guessing a package path: %v", err)
 		}
-		loadedGraphs[path] = model.NewGraph(nfp, pkgp)
+		loadedGraphs[path] = model.NewGraph(nfp, path, pkgp)
 		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
 		return
 	}
@@ -99,7 +98,7 @@ func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		e = append(e, view.DirectoryEntry{
 			IsDir: fi.IsDir(),
 			Name:  fi.Name(),
-			Path:  filepath.Join(path, fi.Name()),
+			Path:  filepath.Join(r.URL.Path, fi.Name()),
 		})
 	}
 

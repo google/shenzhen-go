@@ -15,85 +15,9 @@
 // Package api has types for communicating with the UI.
 package api
 
-import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-)
-
-var (
-	dispatchers = map[string]struct {
-		request func() interface{}
-		method  func(Server, interface{}) (interface{}, error)
-	}{
-		"SetPosition": {
-			request: func() interface{} { return new(SetPositionRequest) },
-			method: func(s Server, req interface{}) (interface{}, error) {
-				err := s.SetPosition(req.(*SetPositionRequest))
-				return &Empty{}, err
-			},
-		},
-	}
-)
-
-// Status bundles a HTTP status code together with an error reason.
-type Status struct {
-	Code   int
-	Reason error
-}
-
-func (s *Status) Error() string {
-	return fmt.Sprintf("status %d: %v", s.Code, s.Reason)
-}
-
-// Statusf creates a Status with a format string and arguments.
-func Statusf(code int, f string, args ...interface{}) *Status {
-	if code == http.StatusOK {
-		return nil
-	}
-	return &Status{
-		Code:   code,
-		Reason: fmt.Errorf(f, args...),
-	}
-}
-
-// Server is the interface that is used to handle requests.
-type Server interface {
+// Interface is "the API" - the interface defining available requests.
+type Interface interface {
 	SetPosition(*SetPositionRequest) error
-}
-
-type jsonRequest struct {
-	Method  string          `json:"method"`
-	Message json.RawMessage `json:"message"`
-}
-
-// Dispatch calls the server function given by the request.
-func Dispatch(s Server, r io.Reader) ([]byte, error) {
-	var req jsonRequest
-	if err := json.NewDecoder(r).Decode(&req); err != nil {
-		return nil, Statusf(http.StatusBadRequest, "ill-formed request: %v")
-	}
-
-	d, ok := dispatchers[req.Method]
-	if !ok {
-		return nil, Statusf(http.StatusBadRequest, "unknown method")
-	}
-
-	v := d.request()
-	if err := json.Unmarshal(req.Message, v); err != nil {
-		return nil, Statusf(http.StatusBadRequest, "ill-formed message: %v", err)
-	}
-	resp, err := d.method(s, v)
-	if err != nil {
-		return nil, err
-	}
-
-	w, err := json.Marshal(resp)
-	if err != nil {
-		return nil, Statusf(http.StatusInternalServerError, "marshalling response: %v", err)
-	}
-	return w, nil
 }
 
 // Empty is just an empty message.

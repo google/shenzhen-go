@@ -33,8 +33,7 @@ import (
 const pingMsg = "Pong!"
 
 var (
-	apiAddr = flag.String("api_addr", "localhost:8089", "Address to bind API server to")
-	uiAddr  = flag.String("ui_addr", "localhost:8088", "Address to bind UI server to")
+	uiAddr = flag.String("ui_addr", "localhost:8088", "Address to bind UI server to")
 )
 
 func open(args ...string) error {
@@ -87,6 +86,7 @@ func main() {
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
+	http.Handle("/.api/", controller.API)
 	http.Handle("/", controller.DirBrowser)
 
 	// As soon as we're serving, launch "open" which should launch a browser,

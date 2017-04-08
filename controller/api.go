@@ -15,7 +15,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -30,27 +29,27 @@ var API apiHandler
 
 func (h apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s api: %s", r.Method, r.URL)
-
-	rb, err := api.Dispatch(h, r.Body)
-	if err != nil {
-		if st := err.(*api.Status); st != nil {
-			w.WriteHeader(st.Code)
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "%v", err)
-		return
-	}
-
-	w.Write(rb)
+	api.Dispatch(h, w, r)
 }
 
-func lookupGraph(path string) (*model.Graph, error) {
-	g := loadedGraphs[path]
+func lookupGraph(graph string) (*model.Graph, error) {
+	g := loadedGraphs[graph]
 	if g == nil {
-		return nil, api.Statusf(http.StatusNotFound, "graph not loaded: %q", path)
+		return nil, api.Statusf(http.StatusNotFound, "graph not loaded: %q", graph)
 	}
 	return g, nil
+}
+
+func lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
+	g, err := lookupGraph(graph)
+	if err != nil {
+		return nil, nil, err
+	}
+	c := g.Channels[channel]
+	if c == nil {
+		return nil, nil, api.Statusf(http.StatusNotFound, "no such channel: %q", channel)
+	}
+	return g, c, nil
 }
 
 func lookupNode(graph, node string) (*model.Graph, *model.Node, error) {

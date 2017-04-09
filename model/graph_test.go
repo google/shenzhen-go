@@ -38,7 +38,8 @@ func TestLoadJSON(t *testing.T) {
 				]
 			},
 			"connections": {
-				"output": "baz"
+				"output": "baz",
+				"ignored": "ignored"
 			}
 		},
 		"bar": {
@@ -53,7 +54,8 @@ func TestLoadJSON(t *testing.T) {
 				]
 			},
 			"connections": {
-				"input": "baz"
+				"input": "baz",
+				"ignored": "ignored"
 			}
 		}
 	},

@@ -19,24 +19,7 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
-
-	"github.com/google/shenzhen-go/model/parts"
 )
-
-// PartFactory creates a part.
-type PartFactory func() Part
-
-// PartFactories translates part type strings into part factories.
-var PartFactories = map[string]PartFactory{
-	/*	"Aggregator":     func() Part { return new(parts.Aggregator) },
-		"Broadcast":      func() Part { return new(parts.Broadcast) }, */
-	"Code": func() Part { return new(parts.Code) },
-	/*	"Filter":         func() Part { return new(parts.Filter) },
-		"HTTPServer":     func() Part { return new(parts.HTTPServer) },
-		"StaticSend":     func() Part { return new(parts.StaticSend) },
-		"TextFileReader": func() Part { return new(parts.TextFileReader) },
-		"Unslicer":       func() Part { return new(parts.Unslicer) },*/
-}
 
 // Node models a goroutine. This is the "real" model type for nodes.
 // It can be marshalled and unmarshalled to JSON sensibly.

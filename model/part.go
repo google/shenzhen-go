@@ -18,6 +18,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/google/shenzhen-go/model/parts"
 	"github.com/google/shenzhen-go/model/pin"
 )
 
@@ -56,4 +57,19 @@ type Part interface {
 
 	// Update sets fields in the part based on info in the given Request.
 	Update(*http.Request) error
+}
+
+// PartFactory creates a part.
+type PartFactory func() Part
+
+// PartFactories translates part type strings into part factories.
+var PartFactories = map[string]PartFactory{
+	/*	"Aggregator":     func() Part { return new(parts.Aggregator) },
+		"Broadcast":      func() Part { return new(parts.Broadcast) }, */
+	"Code": func() Part { return new(parts.Code) },
+	/*	"Filter":         func() Part { return new(parts.Filter) },
+		"HTTPServer":     func() Part { return new(parts.HTTPServer) },
+		"StaticSend":     func() Part { return new(parts.StaticSend) },
+		"TextFileReader": func() Part { return new(parts.TextFileReader) },
+		"Unslicer":       func() Part { return new(parts.Unslicer) },*/
 }

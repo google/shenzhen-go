@@ -17,6 +17,10 @@ package api
 
 // Interface is "the API" - the interface defining available requests.
 type Interface interface {
+	CreateChannel(*CreateChannelRequest) error
+	ConnectPin(*ConnectPinRequest) error
+	DeleteChannel(*ChannelRequest) error
+	DisconnectPin(*PinRequest) error
 	SetPosition(*SetPositionRequest) error
 }
 
@@ -34,6 +38,15 @@ type ChannelRequest struct {
 	Channel string `json:"channel"`
 }
 
+// CreateChannelRequest asks for a channel to be created.
+type CreateChannelRequest struct {
+	Request
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Anonymous bool   `json:"anon"`
+	Capacity  int    `json:"cap"`
+}
+
 // NodeRequest is the embedded base of all requests to do with nodes.
 type NodeRequest struct {
 	Request
@@ -45,4 +58,16 @@ type SetPositionRequest struct {
 	NodeRequest
 	X int `json:"x"`
 	Y int `json:"y"`
+}
+
+// PinRequest is the embedded base of all requests to do with pins.
+type PinRequest struct {
+	NodeRequest
+	Pin string `json:"pin"`
+}
+
+// ConnectPinRequest asks for a pin to be attached to a channel.
+type ConnectPinRequest struct {
+	PinRequest
+	Channel string `json:"channel"`
 }

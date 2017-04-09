@@ -64,6 +64,57 @@ func lookupNode(req *api.NodeRequest) (*model.Graph, *model.Node, error) {
 	return g, n, nil
 }
 
+func (h apiHandler) CreateChannel(req *api.CreateChannelRequest) error {
+	g, err := lookupGraph(&req.Request)
+	if err != nil {
+		return err
+	}
+	if _, found := g.Channels[req.Name]; found {
+		return api.Statusf(http.StatusBadRequest, "channel %q already exists", req.Name)
+	}
+	// TODO: validate the name isn't silly, the type isn't silly...
+	g.Channels[req.Name] = &model.Channel{
+		Name:      req.Name,
+		Type:      req.Type,
+		Anonymous: req.Anonymous,
+		Capacity:  req.Capacity,
+	}
+	return nil
+}
+
+func (h apiHandler) ConnectPin(req *api.ConnectPinRequest) error {
+	_, n, err := lookupNode(&req.NodeRequest)
+	if err != nil {
+		return err
+	}
+	if _, found := n.Connections[req.Pin]; !found {
+		return api.Statusf(http.StatusNotFound, "no pin %q on node %q", req.Pin, req.Node)
+	}
+	n.Connections[req.Pin] = req.Channel
+	return nil
+}
+
+func (h apiHandler) DeleteChannel(req *api.ChannelRequest) error {
+	g, _, err := lookupChannel(req)
+	if err != nil {
+		return err
+	}
+	delete(g.Channels, req.Channel)
+	return nil
+}
+
+func (h apiHandler) DisconnectPin(req *api.PinRequest) error {
+	_, n, err := lookupNode(&req.NodeRequest)
+	if err != nil {
+		return err
+	}
+	if _, found := n.Connections[req.Pin]; !found {
+		return api.Statusf(http.StatusNotFound, "no pin %q on node %q", req.Pin, req.Node)
+	}
+	n.Connections[req.Pin] = "nil"
+	return nil
+}
+
 func (h apiHandler) SetPosition(req *api.SetPositionRequest) error {
 	_, n, err := lookupNode(&req.NodeRequest)
 	if err != nil {

@@ -67,6 +67,22 @@ func (c *client) query(method string, req, resp interface{}) error {
 	return nil
 }
 
+func (c *client) CreateChannel(req *CreateChannelRequest) error {
+	return c.query("CreateChannel", req, &Empty{})
+}
+
+func (c *client) ConnectPin(req *ConnectPinRequest) error {
+	return c.query("ConnectPin", req, &Empty{})
+}
+
+func (c *client) DeleteChannel(req *ChannelRequest) error {
+	return c.query("DeleteChannel", req, &Empty{})
+}
+
+func (c *client) DisconnectPin(req *PinRequest) error {
+	return c.query("DisconnectPin", req, &Empty{})
+}
+
 func (c *client) SetPosition(req *SetPositionRequest) error {
 	return c.query("SetPosition", req, &Empty{})
 }

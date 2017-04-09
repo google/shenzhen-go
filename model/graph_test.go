@@ -34,6 +34,11 @@ func TestLoadJSON(t *testing.T) {
 						"name": "output",
 						"type": "int",
 						"dir": "out"
+					},
+					{
+						"name": "nc",
+						"type": "int",
+						"dir": "in"
 					}
 				]
 			},
@@ -50,6 +55,11 @@ func TestLoadJSON(t *testing.T) {
 						"name": "input",
 						"type": "int",
 						"dir": "in"
+					},
+					{
+						"name": "nc",
+						"type": "int",
+						"dir": "out"
 					}
 				]
 			},
@@ -87,9 +97,15 @@ func TestLoadJSON(t *testing.T) {
 					Direction: pin.Output,
 					Type:      "int",
 				},
+				{
+					Name:      "nc",
+					Type:      "int",
+					Direction: pin.Input,
+				},
 			}),
 			Connections: map[string]string{
 				"output": "baz",
+				"nc":     "nil",
 			},
 		},
 		"bar": {
@@ -101,9 +117,15 @@ func TestLoadJSON(t *testing.T) {
 					Direction: pin.Input,
 					Type:      "int",
 				},
+				{
+					Name:      "nc",
+					Type:      "int",
+					Direction: pin.Output,
+				},
 			}),
 			Connections: map[string]string{
 				"input": "baz",
+				"nc":    "nil",
 			},
 		},
 	}

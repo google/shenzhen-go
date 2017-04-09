@@ -20,19 +20,50 @@ import (
 	"testing"
 
 	"github.com/google/shenzhen-go/model/parts"
+	"github.com/google/shenzhen-go/model/pin"
 )
 
 func TestLoadJSON(t *testing.T) {
-	got, err := LoadJSON(strings.NewReader(`{
+	json := strings.NewReader(`{
 	"nodes": {
-		"foo": {"part_type": "Code", "part": {}},
-		"bar": {"part_type": "Code", "part": {}}
+		"foo": {
+			"part_type": "Code", 
+			"part": {
+				"pins": [
+					{
+						"name": "output",
+						"type": "int",
+						"dir": "out"
+					}
+				]
+			},
+			"connections": {
+				"output": "baz"
+			}
+		},
+		"bar": {
+			"part_type": "Code", 
+			"part": {
+				"pins": [
+					{
+						"name": "input",
+						"type": "int",
+						"dir": "in"
+					}
+				]
+			},
+			"connections": {
+				"input": "baz"
+			}
+		}
 	},
 	"channels": {
-		"baz": {},
-		"qux": {}
+		"baz": {
+			"type": "int"
+		}
 	}
-}`), "filePath", "urlPath")
+}`)
+	got, err := LoadJSON(json, "filePath", "urlPath")
 	if err != nil {
 		t.Fatalf("LoadJSON() error = %v", err)
 	}
@@ -48,20 +79,40 @@ func TestLoadJSON(t *testing.T) {
 		"foo": {
 			Name:         "foo",
 			Multiplicity: 1,
-			Part:         &parts.Code{},
+			Part: parts.NewCode(nil, "", "", "", []pin.Definition{
+				{
+					Name:      "output",
+					Direction: pin.Output,
+					Type:      "int",
+				},
+			}),
+			Connections: map[string]string{
+				"output": "baz",
+			},
 		},
 		"bar": {
 			Name:         "bar",
 			Multiplicity: 1,
-			Part:         &parts.Code{},
+			Part: parts.NewCode(nil, "", "", "", []pin.Definition{
+				{
+					Name:      "input",
+					Direction: pin.Input,
+					Type:      "int",
+				},
+			}),
+			Connections: map[string]string{
+				"input": "baz",
+			},
 		},
 	}
 	if got, want := got.Nodes, wantNodes; !reflect.DeepEqual(got, want) {
 		t.Errorf("LoadJSON().Nodes = %#v, want %#v", got, want)
 	}
 	wantChans := map[string]*Channel{
-		"baz": {Name: "baz"},
-		"qux": {Name: "qux"},
+		"baz": {
+			Name: "baz",
+			Type: "int",
+		},
 	}
 	if got, want := got.Channels, wantChans; !reflect.DeepEqual(got, want) {
 		t.Errorf("LoadJSON().Channels = %#v, want %#v", got, want)

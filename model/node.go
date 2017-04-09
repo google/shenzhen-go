@@ -109,9 +109,6 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if n.Multiplicity < 1 {
-		n.Multiplicity = 1
-	}
 	return json.Marshal(&jsonNode{
 		Part:         p,
 		PartType:     n.Part.TypeKey(),
@@ -146,6 +143,16 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	n.Multiplicity = mp.Multiplicity
 	n.Part = p
 	n.X, n.Y = mp.X, mp.Y
-	n.Connections = mp.Connections
+
+	// Set connections, ensure only pins that exist are mapped.
+	pd := p.Pins()
+	n.Connections = make(map[string]string)
+	for _, d := range pd {
+		c := mp.Connections[d.Name]
+		if c == "" {
+			c = "nil"
+		}
+		n.Connections[d.Name] = c
+	}
 	return nil
 }

@@ -183,6 +183,17 @@ type Code struct {
 	pins             []pin.Definition
 }
 
+// NewCode just makes a new *Code.
+func NewCode(imports []string, head, body, tail string, pins []pin.Definition) *Code {
+	return &Code{
+		imports: imports,
+		head:    head,
+		body:    body,
+		tail:    tail,
+		pins:    pins,
+	}
+}
+
 type part interface {
 	Imports() []string
 	Impl() (head, body, tail string)

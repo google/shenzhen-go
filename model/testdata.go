@@ -16,6 +16,7 @@ package model
 
 import (
 	"github.com/google/shenzhen-go/model/parts"
+	"github.com/google/shenzhen-go/model/pin"
 )
 
 // TestGraphs contains graphs that are useful for testing.
@@ -42,11 +43,20 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part:         &parts.Code{},
+				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
+					{
+						Name:      "output",
+						Type:      "int",
+						Direction: pin.Output,
+					},
+				}),
 				Name:         "foo",
 				Enabled:      true,
 				Multiplicity: 1,
 				Wait:         true,
+				Connections: map[string]string{
+					"output": "bar",
+				},
 			},
 		},
 		Channels: map[string]*Channel{
@@ -66,11 +76,20 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part:         &parts.Code{},
+				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
+					{
+						Name:      "output",
+						Type:      "int",
+						Direction: pin.Output,
+					},
+				}),
 				Name:         "foo",
 				Enabled:      false,
 				Multiplicity: 1,
 				Wait:         false,
+				Connections: map[string]string{
+					"output": "nil",
+				},
 			},
 		},
 	},
@@ -82,11 +101,20 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part:         &parts.Code{},
+				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
+					{
+						Name:      "output",
+						Type:      "int",
+						Direction: pin.Output,
+					},
+				}),
 				Name:         "foo",
 				Enabled:      true,
 				Multiplicity: 50,
 				Wait:         true,
+				Connections: map[string]string{
+					"output": "nil",
+				},
 			},
 		},
 	},
@@ -98,11 +126,20 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part:         &parts.Code{},
+				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
+					{
+						Name:      "output",
+						Type:      "int",
+						Direction: pin.Output,
+					},
+				}),
 				Name:         "foo",
 				Enabled:      true,
 				Multiplicity: 1,
 				Wait:         false,
+				Connections: map[string]string{
+					"output": "nil",
+				},
 			},
 		},
 	},

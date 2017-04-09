@@ -29,7 +29,7 @@ package {{.PackageName}}{{if ne .PackagePath .PackageName}} // import "{{.Packag
 {{template "golang-defs" .}}
 
 {{range .Nodes}}
-func {{.Identifier}}({{range $name, $pin := .Connections}}{{$name}} {{$pin.Type}},{{end}}) {
+func {{.Identifier}}({{range $pin := .Pins}}{{$pin.Name}} {{$pin.FullType}},{{end}}) {
 	{{.ImplHead}}
 	{{if eq .Multiplicity 1 -}}
 	func(instanceNumber, multiplicity int) {
@@ -63,16 +63,16 @@ func Run() {
 	{{- end}}
 
 	var wg sync.WaitGroup
-	{{range .Nodes}}
-		{{if .Enabled -}}
-			{{if .Wait -}}
+	{{range $node := .Nodes}}
+		{{if $node.Enabled -}}
+			{{if $node.Wait -}}
 	wg.Add(1)
 	go func() {
-			{{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
+			{{$node.Identifier}}({{range $pin := $node.Pins}}{{index $node.Connections $pin.Name}},{{end}})
 		wg.Done()
 	}()
 			{{else}}
-	go {{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
+	go {{$node.Identifier}}({{range $pin := $node.Pins}}{{index $node.Connections $pin.Name}},{{end}})
 			{{- end}}
 		{{- end}}
 	{{- end}}

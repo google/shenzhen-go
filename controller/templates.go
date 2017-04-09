@@ -64,14 +64,16 @@ func Run() {
 
 	var wg sync.WaitGroup
 	{{range .Nodes}}
-		{{if .Wait -}}
+		{{if .Enabled -}}
+			{{if .Wait -}}
 	wg.Add(1)
 	go func() {
-		{{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
+			{{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
 		wg.Done()
 	}()
-		{{else}}
+			{{else}}
 	go {{.Identifier}}({{range .Connections}}{{.Value}},{{end}})
+			{{- end}}
 		{{- end}}
 	{{- end}}
 

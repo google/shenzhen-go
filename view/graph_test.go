@@ -1,4 +1,4 @@
-// Copyright 2016 Google Inc.
+// Copyright 2017 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package view
 
 import (
 	"testing"
@@ -24,11 +24,25 @@ type nopWriter struct{}
 
 func (nopWriter) Write(r []byte) (int, error) { return len(r), nil }
 
-func TestGoTemplate(t *testing.T) {
-	// Smoke-testing the template.
+func TestGraphEditorTemplate(t *testing.T) {
+	// Smoke testing the editor template.
 	for name, g := range model.TestGraphs {
-		if err := goTemplate.Execute(nopWriter{}, g); err != nil {
-			t.Errorf("goTemplate.Execute(%v) = %v, want nil error", name, err)
+		ei := &editorInput{
+			Graph:     g,
+			GraphJSON: `{"json": true}`,
+			PartTypes: model.PartFactories,
+		}
+
+		if err := graphEditorTemplate.Execute(nopWriter{}, ei); err != nil {
+			t.Errorf("graphEditorTemplate.Execute(%v) = %v, want nil error", name, err)
+		}
+	}
+}
+
+func TestGraphPropertiesTemplate(t *testing.T) {
+	for name, g := range model.TestGraphs {
+		if err := graphPropertiesTemplate.Execute(nopWriter{}, g); err != nil {
+			t.Errorf("graphPropertiesTemplate.Execute(%v) = %v, want nil error", name, err)
 		}
 	}
 }

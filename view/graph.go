@@ -105,6 +105,12 @@ var (
 	graphPropertiesTemplate = template.Must(template.New("graphProperties").Parse(graphPropertiesTemplateSrc))
 )
 
+type editorInput struct {
+	Graph     *model.Graph
+	GraphJSON string
+	PartTypes map[string]model.PartFactory
+}
+
 // Graph displays a graph.
 func Graph(w http.ResponseWriter, g *model.Graph) {
 	gj, err := json.Marshal(g)
@@ -114,11 +120,7 @@ func Graph(w http.ResponseWriter, g *model.Graph) {
 		return
 	}
 
-	d := &struct {
-		Graph     *model.Graph
-		GraphJSON string
-		PartTypes map[string]model.PartFactory
-	}{
+	d := &editorInput{
 		Graph:     g,
 		GraphJSON: string(gj),
 		PartTypes: model.PartFactories,

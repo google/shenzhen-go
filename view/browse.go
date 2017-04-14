@@ -27,8 +27,8 @@ const browseTemplateSrc = `<head>
 	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
-<h1>SHENZHEN GO</h1>
-	<div>
+	<div class="browse-container">
+		<h1>SHENZHEN GO</h1>
 		<h2>{{$.Base}}</h2>
 		<a href="/{{.Up}}">Up</a> |
 		<div class="dropdown"> 

@@ -28,6 +28,11 @@ const graphEditorTemplateSrc = `<html>
 	<title>{{$.Graph.Name}}</title>
 	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
 	<link type="text/css" rel="stylesheet" href="/.static/main.css">
+	<script>
+		var graphPath = '{{$.Graph.URLPath}}';
+		var apiURL = '/.api';
+		var GraphJSON = "{{$.GraphJSON}}";
+	</script>
 </head>
 <body>
 	<div class="head">
@@ -55,35 +60,31 @@ const graphEditorTemplateSrc = `<html>
 	<div class="box">
 		<div class="container">
 			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" />
-			<script>
-				var graphPath = '{{$.Graph.URLPath}}';
-				var apiURL = '/.api';
-				var GraphJSON = "{{$.GraphJSON}}";
-			</script>
-			<script src="/.static/svg.js"></script>
 		</div>
 		<div class="container" style="padding: 6px">
-			<h3>{{$.Graph.Name}} Properties</h3>
-			<form method="post">
-				<div class="formfield">
-				    <label for="Name">Name</label>
-					<input name="Name" type="text" required value="{{$.Graph.Name}}">
-				</div>
-				<div class="formfield">
-				    <label for="PackagePath">Package path</label>
-					<input name="PackagePath" type="text" required value="{{$.Graph.PackagePath}}">
-				</div>
-				<div class="formfield">
-				    <label for="IsCommand">Is a command?</label>
-					<input name="IsCommand" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
-				</div>
-				<div class="formfield hcentre">
-				    <input type="submit" value="Save">
-					<input type="button" value="Return" onclick="window.location.href='?'">
-				</div>
-			</form>
+			<div id="graph-properties">
+				<h3>{{$.Graph.Name}} Properties</h3>
+				<form method="post">
+					<div class="formfield">
+					    <label for="Name">Name</label>
+						<input name="Name" type="text" required value="{{$.Graph.Name}}">
+					</div>
+					<div class="formfield">
+					    <label for="PackagePath">Package path</label>
+						<input name="PackagePath" type="text" required value="{{$.Graph.PackagePath}}">
+					</div>
+					<div class="formfield">
+					    <label for="IsCommand">Is a command?</label>
+						<input name="IsCommand" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
+					</div>
+					<div class="formfield hcentre">
+					    <input type="submit" value="Save">
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
+	<script src="/.static/svg.js"></script>
 </body>
 </html>`
 

@@ -38,11 +38,3 @@ func TestGraphEditorTemplate(t *testing.T) {
 		}
 	}
 }
-
-func TestGraphPropertiesTemplate(t *testing.T) {
-	for name, g := range model.TestGraphs {
-		if err := graphPropertiesTemplate.Execute(nopWriter{}, g); err != nil {
-			t.Errorf("graphPropertiesTemplate.Execute(%v) = %v, want nil error", name, err)
-		}
-	}
-}

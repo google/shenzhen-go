@@ -170,6 +170,10 @@ input {
 div.formfield input[type=text] {
 	width: 65%;
 }
+div.browse-container {
+	margin: 0 auto 8px;
+	min-width: 800px;
+}
 select {
 	font-family: Go,'San Francisco','Helvetica Neue',Helvetica,Arial,sans-serif;
 	font-size: 12pt;

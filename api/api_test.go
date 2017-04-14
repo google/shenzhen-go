@@ -26,10 +26,11 @@ type fakeServer struct {
 }
 
 // Not implemented in this fake.
-func (*fakeServer) CreateChannel(*CreateChannelRequest) error { return nil }
-func (*fakeServer) ConnectPin(*ConnectPinRequest) error       { return nil }
-func (*fakeServer) DeleteChannel(*ChannelRequest) error       { return nil }
-func (*fakeServer) DisconnectPin(*PinRequest) error           { return nil }
+func (*fakeServer) CreateChannel(*CreateChannelRequest) error           { return nil }
+func (*fakeServer) ConnectPin(*ConnectPinRequest) error                 { return nil }
+func (*fakeServer) DeleteChannel(*ChannelRequest) error                 { return nil }
+func (*fakeServer) DisconnectPin(*PinRequest) error                     { return nil }
+func (*fakeServer) SetGraphProperties(*SetGraphPropertiesRequest) error { return nil }
 
 func (f *fakeServer) SetPosition(req *SetPositionRequest) error {
 	f.graph = req.Graph

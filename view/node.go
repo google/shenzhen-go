@@ -22,7 +22,6 @@ import (
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
-// TODO: Some way of deleting nodes.
 const nodeEditorTemplateSrc = `{{with .Node -}}
 <head>
 	<title>{{if .Name}}{{.Name}}{{else}}[New]{{end}}</title>

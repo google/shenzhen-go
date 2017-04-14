@@ -19,6 +19,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
@@ -51,6 +52,22 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 		test(c)
 	}
 	return quad, pt
+}
+
+func (g *Graph) saveProperties(*js.Object) {
+	req := &api.SetGraphPropertiesRequest{
+		Request: api.Request{
+			Graph: graphPath,
+		},
+		Name:        document.Call("getElementById", "graph-prop-name").Get("value").String(),
+		PackagePath: document.Call("getElementById", "graph-prop-package-path").Get("value").String(),
+		IsCommand:   document.Call("getElementById", "graph-prop-is-command").Get("checked").Bool(),
+	}
+	go func() { // cannot block in callback
+		if err := client.SetGraphProperties(req); err != nil {
+			log.Printf("Couldn't SetGraphProperties: %v", err)
+		}
+	}()
 }
 
 func loadGraph() {

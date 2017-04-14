@@ -40,6 +40,8 @@ var (
 	graphPath  = js.Global.Get("graphPath").String()
 	apiURL     = js.Global.Get("apiURL").String()
 
+	saveGraphPropsLink = document.Call("getElementById", "save-graph-properties")
+
 	errLabel *textBox
 
 	dragItem draggable
@@ -118,4 +120,6 @@ func main() {
 
 	diagramSVG.Call("addEventListener", "mousemove", mouseMove)
 	diagramSVG.Call("addEventListener", "mouseup", mouseUp)
+
+	saveGraphPropsLink.Call("addEventListener", "click", graph.saveProperties)
 }

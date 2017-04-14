@@ -115,6 +115,17 @@ func (h apiHandler) DisconnectPin(req *api.PinRequest) error {
 	return nil
 }
 
+func (h apiHandler) SetGraphProperties(req *api.SetGraphPropertiesRequest) error {
+	g, err := lookupGraph(&req.Request)
+	if err != nil {
+		return err
+	}
+	g.Name = req.Name
+	g.PackagePath = req.PackagePath
+	g.IsCommand = req.IsCommand
+	return nil
+}
+
 func (h apiHandler) SetPosition(req *api.SetPositionRequest) error {
 	_, n, err := lookupNode(&req.NodeRequest)
 	if err != nil {

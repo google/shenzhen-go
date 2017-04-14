@@ -32,9 +32,7 @@ type client struct {
 // NewClient returns a client that makes queries to the endpoint, for each
 // request.
 func NewClient(endpoint string) Interface {
-	return &client{
-		endpoint: endpoint,
-	}
+	return &client{endpoint: endpoint}
 }
 
 func (c *client) query(method string, req, resp interface{}) error {
@@ -81,6 +79,10 @@ func (c *client) DeleteChannel(req *ChannelRequest) error {
 
 func (c *client) DisconnectPin(req *PinRequest) error {
 	return c.query("DisconnectPin", req, &Empty{})
+}
+
+func (c *client) SetGraphProperties(req *SetGraphPropertiesRequest) error {
+	return c.query("SetGraphProperties", req, &Empty{})
 }
 
 func (c *client) SetPosition(req *SetPositionRequest) error {

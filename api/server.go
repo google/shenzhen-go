@@ -28,6 +28,13 @@ var (
 		request func() interface{}
 		method  func(Interface, interface{}) (interface{}, error)
 	}{
+		"SetGraphProperties": {
+			request: func() interface{} { return new(SetGraphPropertiesRequest) },
+			method: func(s Interface, req interface{}) (interface{}, error) {
+				err := s.SetGraphProperties(req.(*SetGraphPropertiesRequest))
+				return &Empty{}, err
+			},
+		},
 		"SetPosition": {
 			request: func() interface{} { return new(SetPositionRequest) },
 			method: func(s Interface, req interface{}) (interface{}, error) {

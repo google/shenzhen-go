@@ -22,6 +22,7 @@ type Interface interface {
 	DeleteChannel(*ChannelRequest) error
 	DisconnectPin(*PinRequest) error
 	SetPosition(*SetPositionRequest) error
+	SetGraphProperties(*SetGraphPropertiesRequest) error
 }
 
 // Empty is just an empty message.
@@ -30,6 +31,14 @@ type Empty struct{}
 // Request is the embedded base of all requests.
 type Request struct {
 	Graph string `json:"graph"`
+}
+
+// SetGraphPropertiesRequest is a request to set graph metadata.
+type SetGraphPropertiesRequest struct {
+	Request
+	Name        string `json:"name"`
+	PackagePath string `json:"package_path"`
+	IsCommand   bool   `json:"is_command"`
 }
 
 // ChannelRequest is the embedded base of all requests to do with channels.

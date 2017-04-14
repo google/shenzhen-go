@@ -23,8 +23,7 @@ import (
 	"github.com/google/shenzhen-go/model"
 )
 
-const (
-	graphEditorTemplateSrc = `<html>
+const graphEditorTemplateSrc = `<html>
 <head>
 	<title>{{$.Graph.Name}}</title>
 	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
@@ -33,7 +32,6 @@ const (
 <body>
 	<div class="head">
 		<a href="?up" title="Go up to the files in the current directory">Up</a> |
-		<a href="?props" title="Edit the properties of this graph">Properties</a> | 
 		<a href="?save" title="Save current changes to disk">Save</a> | 
 		<a href="?reload" class="destructive" title="Revert to last saved file">Revert</a> |
 		{{if $.Graph.IsCommand -}}
@@ -64,51 +62,32 @@ const (
 			</script>
 			<script src="/.static/svg.js"></script>
 		</div>
-		<div class="container">
-			Here's the right-hand side of the window.
+		<div class="container" style="padding: 6px">
+			<h3>{{$.Graph.Name}} Properties</h3>
+			<form method="post">
+				<div class="formfield">
+				    <label for="Name">Name</label>
+					<input name="Name" type="text" required value="{{$.Graph.Name}}">
+				</div>
+				<div class="formfield">
+				    <label for="PackagePath">Package path</label>
+					<input name="PackagePath" type="text" required value="{{$.Graph.PackagePath}}">
+				</div>
+				<div class="formfield">
+				    <label for="IsCommand">Is a command?</label>
+					<input name="IsCommand" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
+				</div>
+				<div class="formfield hcentre">
+				    <input type="submit" value="Save">
+					<input type="button" value="Return" onclick="window.location.href='?'">
+				</div>
+			</form>
 		</div>
 	</div>
 </body>
 </html>`
 
-	// TODO: Replace these cobbled-together UIs with Polymer or something.
-	graphPropertiesTemplateSrc = `<html>
-<head>
-	<title>{{.Name}}</title>
-	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
-	<link type="text/css" rel="stylesheet" href="/.static/main.css">
-</head>
-<body>
-<h1>{{.Name}} Properties</h1>
-{{.FilePath}}
-<div>
-    <form method="post">
-		<div class="formfield">
-		    <label for="Name">Name</label>
-			<input name="Name" type="text" required value="{{.Name}}">
-		</div>
-		<div class="formfield">
-		    <label for="PackagePath">Package path</label>
-			<input name="PackagePath" type="text" required value="{{.PackagePath}}">
-		</div>
-		<div class="formfield">
-		    <label for="IsCommand">Is a command?</label>
-			<input name="IsCommand" type="checkbox" {{if .IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
-		</div>
-		<div class="formfield hcentre">
-		    <input type="submit" value="Save">
-			<input type="button" value="Return" onclick="window.location.href='?'">
-		</div>
-	</form>
-</div>
-</body>
-</html>`
-)
-
-var (
-	graphEditorTemplate     = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
-	graphPropertiesTemplate = template.Must(template.New("graphProperties").Parse(graphPropertiesTemplateSrc))
-)
+var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(graphEditorTemplateSrc))
 
 type editorInput struct {
 	Graph     *model.Graph
@@ -133,13 +112,5 @@ func Graph(w http.ResponseWriter, g *model.Graph) {
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
 		http.Error(w, "Could not execute graph editor template", http.StatusInternalServerError)
-	}
-}
-
-// GraphProperties displays the graph properties editor.
-func GraphProperties(w http.ResponseWriter, g *model.Graph) {
-	if err := graphPropertiesTemplate.Execute(w, g); err != nil {
-		log.Printf("Could not execute graph properties template: %v", err)
-		http.Error(w, "Could not execute graph properties template", http.StatusInternalServerError)
 	}
 }

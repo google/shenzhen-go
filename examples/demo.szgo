@@ -1,5 +1,5 @@
 {
-	"name": "demo",
+	"name": "Demo",
 	"package_path": "github.com/google/shenzhen-go/examples/demo",
 	"is_command": true,
 	"nodes": {
@@ -54,9 +54,16 @@
 				]
 			},
 			"part_type": "Code",
-			"x": 115,
-			"y": 112,
-			"connections": {}
+			"x": 264,
+			"y": 113,
+			"connections": {
+				"bar": "nil",
+				"baz": "nil",
+				"foo": "nil",
+				"quux": "nil",
+				"qux": "nil",
+				"tuz": "nil"
+			}
 		}
 	},
 	"channels": {

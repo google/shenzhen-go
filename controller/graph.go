@@ -209,10 +209,6 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/"+d, http.StatusFound)
 		return
 	}
-	if _, t := q["props"]; t {
-		handlePropsRequest(g, w, r)
-		return
-	}
 	if _, t := q["go"]; t {
 		outputGoSrc(g, w)
 		return
@@ -274,16 +270,12 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 		handleChannelRequest(g, n, w, r)
 		return
 	}
-
-	view.Graph(w, g)
-}
-
-func handlePropsRequest(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		handlePropsPost(g, w, r)
+		view.Graph(w, g)
 	case "GET":
-		view.GraphProperties(w, g)
+		view.Graph(w, g)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Unsupported verb %q", r.Method)
@@ -291,8 +283,6 @@ func handlePropsRequest(g *model.Graph, w http.ResponseWriter, r *http.Request) 
 }
 
 func handlePropsPost(g *model.Graph, w http.ResponseWriter, r *http.Request) {
-	defer view.GraphProperties(w, g)
-
 	if err := r.ParseForm(); err != nil {
 		log.Printf("Couldn't parse posted form: %v", err)
 		return

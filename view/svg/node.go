@@ -30,6 +30,7 @@ const (
 	nodeTextOffset  = 5
 )
 
+// Node is the view's model of a node.
 type Node struct {
 	Name            string
 	Inputs, Outputs []*Pin

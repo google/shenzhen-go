@@ -31,8 +31,6 @@ const (
 	pinRadius = 5
 	lineWidth = 2
 	snapQuad  = 144
-
-	apiEndpoint = "/.api/"
 )
 
 var (
@@ -59,6 +57,7 @@ func cursorPos(e *js.Object) (x, y float64) {
 	return
 }
 
+// Point is anything that has a position on the canvas.
 type Point interface {
 	Pt() (x, y float64)
 }

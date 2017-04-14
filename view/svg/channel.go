@@ -18,6 +18,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
+// Channel is the view's model of a channel.
 type Channel struct {
 	Type string
 	Cap  int
@@ -63,6 +64,7 @@ func (c *Channel) makeElements() {
 	c.c.Call("setAttribute", "display", "none")
 }
 
+// Pt implements Point.
 func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }

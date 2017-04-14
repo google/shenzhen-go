@@ -24,6 +24,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
+// Graph is the view's model of a graph.
 type Graph struct {
 	Nodes    map[string]*Node
 	Channels map[*Channel]struct{}

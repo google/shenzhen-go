@@ -103,11 +103,15 @@ const (
 	font-style: italic;
 }`
 
-	mainCSS = `body {
+	mainCSS = `
+body {
 	font-family: Go,'San Francisco','Helvetica Neue',Helvetica,Arial,sans-serif;
 	float: none;
-	max-width: 800px;
-	margin: 20 auto 0;
+	margin: 0;
+	display: flex;
+	flex-flow: column;
+	height: 100%;
+	max-height: 100%;
 }
 a:link, a:visited {
 	color: #05d;
@@ -174,9 +178,20 @@ textarea {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;
 }
-div svg {
-	display: block;
-	margin: 0 auto;
+div.head {
+	padding: 6px;
+	flex: 0 1 auto;
+	border-bottom-style: dashed;
+	border-bottom-color: #555;
+}
+div.box {
+	display: flex;
+	flex-flow: row;
+	flex: 0 1 auto;
+}
+div.container {
+	flex: 1 1 50%;
+	overflow: scroll;
 }
 div.hcentre {
 	text-align: center;

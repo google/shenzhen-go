@@ -31,38 +31,43 @@ const (
 	<link type="text/css" rel="stylesheet" href="/.static/main.css">
 </head>
 <body>
-<h1>{{$.Graph.Name}}</h1>
-<div>
-	<a href="?up" title="Go up to the files in the current directory">Up</a> |
-	<a href="?props" title="Edit the properties of this graph">Properties</a> | 
-	<a href="?save" title="Save current changes to disk">Save</a> | 
-	<a href="?reload" class="destructive" title="Revert to last saved file">Revert</a> |
-	{{if $.Graph.IsCommand -}}
-	<a href="?install" title="Export the graph to a Go package and 'go install' it">Install</a> | 
-	{{else -}}
-	<a href="?build" title="Export the graph to a Go package and 'go build' it">Build</a> | 
-	{{end -}}
-	<a href="?run" target="_blank" title="Export the graph to a Go package and execute it">Run</a> | 
-	<span class="dropdown">
-		<a href="javascript:void(0)">New goroutine</a> 
-		<div class="dropdown-content">
-			<ul>
-			{{range $t, $null := $.PartTypes -}}
-				<li><a href="?node=new&type={{$t}}">{{$t}}</a></li>
-			{{- end}}
-			</ul>
+	<div class="head">
+		<a href="?up" title="Go up to the files in the current directory">Up</a> |
+		<a href="?props" title="Edit the properties of this graph">Properties</a> | 
+		<a href="?save" title="Save current changes to disk">Save</a> | 
+		<a href="?reload" class="destructive" title="Revert to last saved file">Revert</a> |
+		{{if $.Graph.IsCommand -}}
+		<a href="?install" title="Export the graph to a Go package and 'go install' it">Install</a> | 
+		{{else -}}
+		<a href="?build" title="Export the graph to a Go package and 'go build' it">Build</a> | 
+		{{end -}}
+		<a href="?run" target="_blank" title="Export the graph to a Go package and execute it">Run</a> | 
+		<span class="dropdown">
+			<a href="javascript:void(0)">New goroutine</a> 
+			<div class="dropdown-content">
+				<ul>
+				{{range $t, $null := $.PartTypes -}}
+					<li><a href="?node=new&type={{$t}}">{{$t}}</a></li>
+				{{- end}}
+				</ul>
+			</div>
+		</span> |
+		View as: <a href="?go">Go</a> <a href="?json">JSON</a>
+	</div>
+	<div class="box">
+		<div class="container">
+			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" />
+			<script>
+				var graphPath = '{{$.Graph.URLPath}}';
+				var apiURL = '/.api';
+				var GraphJSON = "{{$.GraphJSON}}";
+			</script>
+			<script src="/.static/svg.js"></script>
 		</div>
-	</span> |
-	View as: <a href="?go">Go</a> <a href="?json">JSON</a>
-	<br><br>
-	<svg id="diagram" width="800" height="800" viewBox="0 0 800 800" />
-	<script>
-		var graphPath = '{{$.Graph.URLPath}}';
-		var apiURL = '/.api';
-		var GraphJSON = "{{$.GraphJSON}}";
-	</script>
-	<script src="/.static/svg.js"></script>
-</div>
+		<div class="container">
+			Here's the right-hand side of the window.
+		</div>
+	</div>
 </body>
 </html>`
 

@@ -64,23 +64,35 @@ const graphEditorTemplateSrc = `<html>
 		<div class="container" style="padding: 6px">
 			<div id="graph-properties">
 				<h3>Graph Properties</h3>
-				<form method="post">
-					<div class="formfield">
-					    <label for="Name">Name</label>
-						<input id="graph-prop-name" name="Name" type="text" required value="{{$.Graph.Name}}">
-					</div>
-					<div class="formfield">
-					    <label for="PackagePath">Package path</label>
-						<input id="graph-prop-package-path" name="PackagePath" type="text" required value="{{$.Graph.PackagePath}}">
-					</div>
-					<div class="formfield">
-					    <label for="IsCommand">Is a command?</label>
-						<input id="graph-prop-is-command" name="IsCommand" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
-					</div>
-					<div class="formfield hcentre">
-					    <a id="save-graph-properties" href="javascript:void(0)">Save</a>
-					</div>
-				</form>
+				<a id="save-graph-properties" href="javascript:void(0)">Save</a>
+				<div class="formfield">
+				    <label for="Name">Name</label>
+					<input id="graph-prop-name" name="Name" type="text" required value="{{$.Graph.Name}}">
+				</div>
+				<div class="formfield">
+				    <label for="PackagePath">Package path</label>
+					<input id="graph-prop-package-path" name="PackagePath" type="text" required value="{{$.Graph.PackagePath}}">
+				</div>
+				<div class="formfield">
+				    <label for="IsCommand">Is a command?</label>
+					<input id="graph-prop-is-command" name="IsCommand" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
+				</div>
+			</div>
+			<div id="node-properties" style="display:none">
+				<h3>Node Properties</h3>
+				<a id="save-node-properties" href="javascript:void(0)">Save</a>
+				<div class="formfield">
+					<label for="Name">Name</label>
+					<input name="Name" type="text" required value=".Name">
+				</div>
+				<div class="formfield">
+					<label for="Multiplicity">Multiplicity</label>
+					<input name="Multiplicity" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="1">
+				</div>
+				<div class="formfield">
+					<label for="Wait">Wait for this to finish</label>
+					<input name="Wait" type="checkbox" checked>
+				</div>
 			</div>
 		</div>
 	</div>

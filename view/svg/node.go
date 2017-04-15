@@ -22,11 +22,12 @@ import (
 )
 
 const (
-	nodeRectStyle   = "fill: #eff; stroke: #355; stroke-width:1"
-	nodeTextStyle   = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
-	nodeWidthPerPin = 20
-	nodeHeight      = 50
-	nodeTextOffset  = 5
+	nodeNormalRectStyle   = "fill: #eff; stroke: #355; stroke-width:1"
+	nodeSelectedRectStyle = "fill: #cef; stroke: #145; stroke-width:2"
+	nodeTextStyle         = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
+	nodeWidthPerPin       = 20
+	nodeHeight            = 50
+	nodeTextOffset        = 5
 )
 
 // Node is the view's model of a node.
@@ -50,8 +51,9 @@ func max(a, b int) int {
 
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = newTextBox(n.d, n.Name, nodeTextStyle, nodeRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
+	n.box = newTextBox(n.d, n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
 	n.box.rect.Call("addEventListener", "mousedown", n.mouseDown)
+	n.box.rect.Call("addEventListener", "mousedown", n.d.selecter(n))
 
 	// Pins
 	for _, p := range n.Inputs {
@@ -96,6 +98,14 @@ func (n *Node) drop(e *js.Object) {
 			log.Printf("Couldn't SetPosition: %v", err)
 		}
 	}()
+}
+
+func (n *Node) gainFocus(e *js.Object) {
+	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
+}
+
+func (n *Node) loseFocus(e *js.Object) {
+	n.box.rect.Call("setAttribute", "style", nodeNormalRectStyle)
 }
 
 func (n *Node) updatePinPositions() {

@@ -19,11 +19,12 @@ import (
 )
 
 type diagram struct {
-	*js.Object
+	*js.Object // the SVG element
 
-	dragItem draggable
-	errLabel *textBox
-	graph    *Graph
+	dragItem     draggable  // nil if nothing is being dragged
+	selectedItem selectable // nil if nothing is selected
+	errLabel     *textBox
+	graph        *Graph
 }
 
 func (d *diagram) makeSVGElement(n string) *js.Object {
@@ -37,11 +38,20 @@ func (d *diagram) cursorPos(e *js.Object) (x, y float64) {
 	return
 }
 
+func (d *diagram) mouseDown(e *js.Object) {
+	if d.selectedItem == nil {
+		return
+	}
+	d.selectedItem.loseFocus(e)
+	e.Call("stopPropagation")
+}
+
 func (d *diagram) mouseMove(e *js.Object) {
 	if d.dragItem == nil {
 		return
 	}
 	d.dragItem.drag(e)
+	e.Call("stopPropagation")
 }
 
 func (d *diagram) mouseUp(e *js.Object) {
@@ -51,6 +61,19 @@ func (d *diagram) mouseUp(e *js.Object) {
 	d.dragItem.drag(e)
 	d.dragItem.drop(e)
 	d.dragItem = nil
+	e.Call("stopPropagation")
+}
+
+// selecter makes an onclick handler for a selectable.
+func (d *diagram) selecter(s selectable) func(*js.Object) {
+	return func(e *js.Object) {
+		if d.selectedItem != nil {
+			d.selectedItem.loseFocus(e)
+		}
+		d.selectedItem = s
+		s.gainFocus(e)
+		e.Call("stopPropagation")
+	}
 }
 
 func (d *diagram) setError(err string, x, y float64) {
@@ -80,4 +103,9 @@ func (e ephemeral) Pt() (x, y float64) { return e.x, e.y }
 type draggable interface {
 	drag(*js.Object)
 	drop(*js.Object)
+}
+
+type selectable interface {
+	gainFocus(*js.Object)
+	loseFocus(*js.Object)
 }

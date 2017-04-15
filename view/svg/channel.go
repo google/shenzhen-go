@@ -166,6 +166,14 @@ func (c *Channel) drop(e *js.Object) {
 	}
 }
 
+func (c *Channel) gainFocus(e *js.Object) {
+	// TODO
+}
+
+func (c *Channel) loseFocus(e *js.Object) {
+	// TODO
+}
+
 func (c *Channel) reposition(additional Point) {
 	np := len(c.Pins)
 	if additional != nil {

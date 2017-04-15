@@ -63,6 +63,7 @@ func main() {
 	}
 	d.graph = g
 
+	d.Call("addEventListener", "mousedown", d.mouseDown)
 	d.Call("addEventListener", "mousemove", d.mouseMove)
 	d.Call("addEventListener", "mouseup", d.mouseUp)
 

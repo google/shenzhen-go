@@ -72,7 +72,7 @@ func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 
 func (c *Channel) dragStart(e *js.Object) {
-	dragItem = c
+	c.d.dragItem = c
 
 	// TODO: make it so that if the current configuration is invalid
 	// (e.g. all input pins / output pins) then use errorColour, and
@@ -100,7 +100,7 @@ func (c *Channel) drag(e *js.Object) {
 	c.l.Call("setAttribute", "y1", y)
 	c.c.Call("setAttribute", "cx", x)
 	c.c.Call("setAttribute", "cy", y)
-	d, q := graph.nearestPoint(x, y)
+	d, q := c.d.graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
 	if p != nil && p == c.p && d < snapQuad {
@@ -121,7 +121,7 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
-		clearError()
+		c.d.clearError()
 		noSnap()
 		c.setColour(activeColour)
 		return
@@ -142,7 +142,7 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	// Let's snap!
-	clearError()
+	c.d.clearError()
 	c.p = p
 	p.l.Call("setAttribute", "display", "")
 	c.setColour(activeColour)
@@ -151,7 +151,7 @@ func (c *Channel) drag(e *js.Object) {
 }
 
 func (c *Channel) drop(e *js.Object) {
-	clearError()
+	c.d.clearError()
 	c.reposition(nil)
 	c.commit()
 	c.setColour(normalColour)

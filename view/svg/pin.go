@@ -69,7 +69,7 @@ func (p *Pin) connectTo(q Point) error {
 		ch := newChannel(p.node.d, p, q)
 		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
-		graph.Channels[ch] = struct{}{}
+		p.node.d.graph.Channels[ch] = struct{}{}
 		q.l.Call("setAttribute", "display", "")
 
 	case *Channel:
@@ -110,7 +110,7 @@ func (p *Pin) disconnect() {
 		for q := range p.ch.Pins {
 			q.ch = nil
 		}
-		delete(graph.Channels, p.ch)
+		delete(p.node.d.graph.Channels, p.ch)
 	}
 	p.ch = nil
 }
@@ -148,7 +148,7 @@ func (p *Pin) dragStart(e *js.Object) {
 			return
 		}
 	}
-	dragItem = p
+	p.node.d.dragItem = p
 
 	p.circ.Call("setAttribute", "fill", errorColour)
 
@@ -171,7 +171,7 @@ func (p *Pin) drag(e *js.Object) {
 		p.c.Call("setAttribute", "cx", x)
 		p.c.Call("setAttribute", "cy", y)
 	}()
-	d, q := graph.nearestPoint(x, y)
+	d, q := p.node.d.graph.nearestPoint(x, y)
 
 	noSnap := func() {
 		if p.ch != nil {
@@ -187,7 +187,7 @@ func (p *Pin) drag(e *js.Object) {
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
-		clearError()
+		p.node.d.clearError()
 		noSnap()
 		return
 	}
@@ -207,13 +207,13 @@ func (p *Pin) drag(e *js.Object) {
 	}
 
 	// Valid snap - ensure the colour is active.
-	clearError()
+	p.node.d.clearError()
 	p.ch.setColour(activeColour)
 	p.c.Call("setAttribute", "display", "none")
 }
 
 func (p *Pin) drop(e *js.Object) {
-	clearError()
+	p.node.d.clearError()
 	p.circ.Call("setAttribute", "fill", normalColour)
 	p.c.Call("setAttribute", "display", "none")
 	if p.ch == nil {

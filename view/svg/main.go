@@ -38,21 +38,16 @@ var (
 	document = js.Global.Get("document")
 
 	graphPath = js.Global.Get("graphPath").String()
-	apiURL    = js.Global.Get("apiURL").String()
-
-	saveGraphPropsLink = document.Call("getElementById", "save-graph-properties")
-
-	errLabel *textBox
-
-	dragItem draggable
-
-	graph *Graph
 
 	client api.Interface
 )
 
 type diagram struct {
 	*js.Object
+
+	dragItem draggable
+	errLabel *textBox
+	graph    *Graph
 }
 
 func (d *diagram) makeSVGElement(n string) *js.Object {
@@ -80,61 +75,63 @@ type draggable interface {
 	drop(*js.Object)
 }
 
-func mouseMove(e *js.Object) {
-	if dragItem == nil {
+func (d *diagram) mouseMove(e *js.Object) {
+	if d.dragItem == nil {
 		return
 	}
-	dragItem.drag(e)
+	d.dragItem.drag(e)
 }
 
-func mouseUp(e *js.Object) {
-	if dragItem == nil {
+func (d *diagram) mouseUp(e *js.Object) {
+	if d.dragItem == nil {
 		return
 	}
-	dragItem.drag(e)
-	dragItem.drop(e)
-	dragItem = nil
+	d.dragItem.drag(e)
+	d.dragItem.drop(e)
+	d.dragItem = nil
 }
 
 func (d *diagram) setError(err string, x, y float64) {
 	if err == "" {
-		clearError()
+		d.clearError()
 		return
 	}
-	d.Call("appendChild", errLabel.group) // Bring to front
-	errLabel.moveTo(x+4, y-36)
-	errLabel.setText(err)
-	errLabel.show()
+	d.Call("appendChild", d.errLabel.group) // Bring to front
+	d.errLabel.moveTo(x+4, y-36)
+	d.errLabel.setText(err)
+	d.errLabel.show()
 }
 
-func clearError() {
-	errLabel.hide()
+func (d *diagram) clearError() {
+	d.errLabel.hide()
 }
 
 func main() {
+	apiURL := js.Global.Get("apiURL").String()
+
 	client = api.NewClient(apiURL)
-	d := &diagram{document.Call("getElementById", "diagram")}
+
+	d := &diagram{
+		Object: document.Call("getElementById", "diagram"),
+	}
 	if d.Object == nil {
 		log.Fatalf("Couldn't find diagram element")
 	}
+	d.errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
+	d.errLabel.hide()
 
 	g, err := loadGraph(d)
 	if err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}
-	graph = g
-	for c := range graph.Channels {
-		c.makeElements()
+	d.graph = g
+
+	d.Call("addEventListener", "mousemove", d.mouseMove)
+	d.Call("addEventListener", "mouseup", d.mouseUp)
+
+	sgp := document.Call("getElementById", "save-graph-properties")
+	if sgp == nil {
+		log.Fatalf("Couldn't find save-graph-properties element")
 	}
-	for _, n := range graph.Nodes {
-		n.makeElements()
-	}
-
-	errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
-	errLabel.hide()
-
-	d.Call("addEventListener", "mousemove", mouseMove)
-	d.Call("addEventListener", "mouseup", mouseUp)
-
-	saveGraphPropsLink.Call("addEventListener", "click", graph.saveProperties)
+	sgp.Call("addEventListener", "click", d.graph.saveProperties)
 }

@@ -95,6 +95,7 @@ func loadGraph(d *diagram) (*Graph, error) {
 		}
 		chans[k] = ch
 		graph.Channels[ch] = struct{}{}
+		ch.makeElements()
 	}
 
 	graph.Nodes = make(map[string]*Node, len(g.Nodes))
@@ -125,6 +126,7 @@ func loadGraph(d *diagram) (*Graph, error) {
 			}
 		}
 		graph.Nodes[n.Name] = m
+		m.makeElements()
 	}
 	return graph, nil
 }

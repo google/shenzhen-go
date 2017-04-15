@@ -64,7 +64,7 @@ func (n *Node) makeElements() {
 }
 
 func (n *Node) mouseDown(e *js.Object) {
-	dragItem = n
+	n.d.dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front

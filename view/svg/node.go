@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/google/shenzhen-go/api"
+	"github.com/google/shenzhen-go/model"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -32,6 +33,8 @@ const (
 
 // Node is the view's model of a node.
 type Node struct {
+	*model.Node
+
 	Name            string
 	Inputs, Outputs []*Pin
 	X, Y            float64
@@ -102,10 +105,12 @@ func (n *Node) drop(e *js.Object) {
 
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
+	showRHSPanel(nodePropertiesPanel)
 }
 
 func (n *Node) loseFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeNormalRectStyle)
+	showRHSPanel(graphPropertiesPanel)
 }
 
 func (n *Node) updatePinPositions() {

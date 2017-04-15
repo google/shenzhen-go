@@ -15,7 +15,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -72,13 +71,8 @@ func (g *Graph) saveProperties(*js.Object) {
 	}()
 }
 
-func loadGraph(d *diagram) (*Graph, error) {
-
-	gj := js.Global.Get("GraphJSON")
-	if gj == nil {
-		return nil, errors.New("no global GraphJSON")
-	}
-	g, err := model.LoadJSON(strings.NewReader(gj.String()), "", "")
+func loadGraph(d *diagram, gj string) (*Graph, error) {
+	g, err := model.LoadJSON(strings.NewReader(gj), "", "")
 	if err != nil {
 		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
 	}
@@ -101,6 +95,7 @@ func loadGraph(d *diagram) (*Graph, error) {
 	graph.Nodes = make(map[string]*Node, len(g.Nodes))
 	for _, n := range g.Nodes {
 		m := &Node{
+			Node: n,
 			Name: n.Name,
 			X:    float64(n.X),
 			Y:    float64(n.Y),

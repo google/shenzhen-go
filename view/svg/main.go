@@ -38,13 +38,26 @@ var (
 	document  = js.Global.Get("document")
 	graphPath = js.Global.Get("graphPath").String()
 
+	graphPropertiesPanel = document.Call("getElementById", "graph-properties")
+	nodePropertiesPanel  = document.Call("getElementById", "node-properties")
+	rhsPanel             = graphPropertiesPanel
+
 	client api.Interface
 )
+
+func showRHSPanel(p *js.Object) {
+	if p == rhsPanel {
+		return
+	}
+	rhsPanel.Get("style").Set("display", "none")
+	rhsPanel = p
+	rhsPanel.Get("style").Set("display", "block")
+}
 
 func main() {
 	apiURL := js.Global.Get("apiURL").String()
 	if apiURL == "" {
-		log.Fatalf("Couldn't find API URL")
+		log.Fatalf("Couldn't find global apiURL")
 	}
 	client = api.NewClient(apiURL)
 
@@ -57,7 +70,12 @@ func main() {
 	d.errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	d.errLabel.hide()
 
-	g, err := loadGraph(d)
+	gj := js.Global.Get("GraphJSON")
+	if gj == nil {
+		log.Fatalf("Couldn't find global GraphJSON")
+	}
+
+	g, err := loadGraph(d, gj.String())
 	if err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}

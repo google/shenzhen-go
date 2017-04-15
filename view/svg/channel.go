@@ -25,6 +25,7 @@ type Channel struct {
 
 	Pins map[*Pin]struct{}
 
+	d       *diagram   // I'm in this diagram
 	steiner *js.Object // symbol representing the channel itself, not used if channel is simple
 	x, y    float64    // centre of steiner point, for snapping
 	tx, ty  float64    // temporary centre of steiner point, for display
@@ -32,26 +33,27 @@ type Channel struct {
 	p       *Pin       // considering attaching to this pin
 }
 
-func newChannel(p, q *Pin) *Channel {
+func newChannel(d *diagram, p, q *Pin) *Channel {
 	ch := &Channel{
 		Type: p.Type,
 		Pins: map[*Pin]struct{}{
 			p: struct{}{},
 			q: struct{}{},
 		},
+		d: d,
 	}
 	ch.makeElements()
 	return ch
 }
 
 func (c *Channel) makeElements() {
-	c.steiner = makeSVGElement("circle")
-	c.l = makeSVGElement("line")
-	c.c = makeSVGElement("circle")
+	c.steiner = c.d.makeSVGElement("circle")
+	c.l = c.d.makeSVGElement("line")
+	c.c = c.d.makeSVGElement("circle")
 
-	diagramSVG.Call("appendChild", c.steiner)
-	diagramSVG.Call("appendChild", c.l)
-	diagramSVG.Call("appendChild", c.c)
+	c.d.Call("appendChild", c.steiner)
+	c.d.Call("appendChild", c.l)
+	c.d.Call("appendChild", c.c)
 
 	c.steiner.Call("setAttribute", "r", pinRadius)
 	c.steiner.Call("addEventListener", "mousedown", c.dragStart)
@@ -79,7 +81,7 @@ func (c *Channel) dragStart(e *js.Object) {
 	c.steiner.Call("setAttribute", "display", "")
 	c.setColour(activeColour)
 
-	x, y := cursorPos(e)
+	x, y := c.d.cursorPos(e)
 	c.reposition(ephemeral{x, y})
 	c.l.Call("setAttribute", "x1", x)
 	c.l.Call("setAttribute", "y1", y)
@@ -92,7 +94,7 @@ func (c *Channel) dragStart(e *js.Object) {
 }
 
 func (c *Channel) drag(e *js.Object) {
-	x, y := cursorPos(e)
+	x, y := c.d.cursorPos(e)
 	c.steiner.Call("setAttribute", "display", "")
 	c.l.Call("setAttribute", "x1", x)
 	c.l.Call("setAttribute", "y1", y)
@@ -126,14 +128,14 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	if p == nil || p.ch != nil {
-		setError("Can't connect different channels together (use another goroutine)", x, y)
+		c.d.setError("Can't connect different channels together (use another goroutine)", x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	if err := p.connectTo(c); err != nil {
-		setError("Can't connect: "+err.Error(), x, y)
+		c.d.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return

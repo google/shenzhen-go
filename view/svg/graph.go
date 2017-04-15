@@ -15,6 +15,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"math"
 	"strings"
@@ -70,19 +72,18 @@ func (g *Graph) saveProperties(*js.Object) {
 	}()
 }
 
-func loadGraph() {
-	graph = new(Graph)
+func loadGraph(d *diagram) (*Graph, error) {
 
 	gj := js.Global.Get("GraphJSON")
 	if gj == nil {
-		return
+		return nil, errors.New("no global GraphJSON")
 	}
 	g, err := model.LoadJSON(strings.NewReader(gj.String()), "", "")
 	if err != nil {
-		log.Printf("Decoding GraphJSON: %v", err)
-		return
+		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
 	}
 
+	graph := new(Graph)
 	chans := make(map[string]*Channel)
 	graph.Channels = make(map[*Channel]struct{})
 	for k, c := range g.Channels {
@@ -90,6 +91,7 @@ func loadGraph() {
 			Type: c.Type,
 			Cap:  c.Capacity,
 			Pins: make(map[*Pin]struct{}),
+			d:    d,
 		}
 		chans[k] = ch
 		graph.Channels[ch] = struct{}{}
@@ -101,6 +103,7 @@ func loadGraph() {
 			Name: n.Name,
 			X:    float64(n.X),
 			Y:    float64(n.Y),
+			d:    d,
 		}
 		pd := n.Pins()
 		for _, p := range pd {
@@ -123,5 +126,5 @@ func loadGraph() {
 		}
 		graph.Nodes[n.Name] = m
 	}
-
+	return graph, nil
 }

@@ -17,9 +17,8 @@ package main
 import (
 	"log"
 
-	"github.com/gopherjs/gopherjs/js"
-
 	"github.com/google/shenzhen-go/api"
+	"github.com/gopherjs/gopherjs/js"
 )
 
 const (
@@ -36,6 +35,7 @@ type Node struct {
 	Inputs, Outputs []*Pin
 	X, Y            float64
 
+	d   *diagram
 	box *textBox
 
 	relX, relY float64 // relative client offset for moving around
@@ -50,7 +50,7 @@ func max(a, b int) int {
 
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = newTextBox(n.Name, nodeTextStyle, nodeRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
+	n.box = newTextBox(n.d, n.Name, nodeTextStyle, nodeRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
 	n.box.rect.Call("addEventListener", "mousedown", n.mouseDown)
 
 	// Pins
@@ -68,7 +68,7 @@ func (n *Node) mouseDown(e *js.Object) {
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
-	diagramSVG.Call("appendChild", n.box.group)
+	n.d.Call("appendChild", n.box.group)
 }
 
 func (n *Node) drag(e *js.Object) {

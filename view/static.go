@@ -200,6 +200,9 @@ div.container {
 div.hcentre {
 	text-align: center;
 }
+svg#diagram {
+	background: #f8f8ff;
+}
 table.browse {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;

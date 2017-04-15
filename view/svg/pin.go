@@ -66,7 +66,7 @@ func (p *Pin) connectTo(q Point) error {
 		}
 
 		// Create a new channel to connect to
-		ch := newChannel(p, q)
+		ch := newChannel(p.node.d, p, q)
 		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
 		graph.Channels[ch] = struct{}{}
@@ -152,7 +152,7 @@ func (p *Pin) dragStart(e *js.Object) {
 
 	p.circ.Call("setAttribute", "fill", errorColour)
 
-	x, y := cursorPos(e)
+	x, y := p.node.d.cursorPos(e)
 	p.l.Call("setAttribute", "x2", x)
 	p.l.Call("setAttribute", "y2", y)
 	p.c.Call("setAttribute", "cx", x)
@@ -164,7 +164,7 @@ func (p *Pin) dragStart(e *js.Object) {
 }
 
 func (p *Pin) drag(e *js.Object) {
-	x, y := cursorPos(e)
+	x, y := p.node.d.cursorPos(e)
 	defer func() {
 		p.l.Call("setAttribute", "x2", x)
 		p.l.Call("setAttribute", "y2", y)
@@ -193,7 +193,7 @@ func (p *Pin) drag(e *js.Object) {
 	}
 
 	if err := p.connectTo(q); err != nil {
-		setError("Can't connect: "+err.Error(), x, y)
+		p.node.d.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		return
 	}
@@ -226,27 +226,27 @@ func (p *Pin) drop(e *js.Object) {
 
 func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.node = n
-	p.circ = makeSVGElement("circle")
+	p.circ = p.node.d.makeSVGElement("circle")
 	p.circ.Call("setAttribute", "r", pinRadius)
 	p.circ.Call("setAttribute", "fill", normalColour)
 	p.circ.Call("addEventListener", "mousedown", p.dragStart)
 
 	// Line
-	p.l = makeSVGElement("line")
-	diagramSVG.Call("appendChild", p.l)
+	p.l = p.node.d.makeSVGElement("line")
+	p.node.d.Call("appendChild", p.l)
 	p.l.Call("setAttribute", "stroke-width", lineWidth)
 	p.l.Call("setAttribute", "display", "none")
 
 	// Another circ
-	p.c = makeSVGElement("circle")
-	diagramSVG.Call("appendChild", p.c)
+	p.c = p.node.d.makeSVGElement("circle")
+	p.node.d.Call("appendChild", p.c)
 	p.c.Call("setAttribute", "r", pinRadius)
 	p.c.Call("setAttribute", "fill", "transparent")
 	p.c.Call("setAttribute", "stroke-width", lineWidth)
 	p.c.Call("setAttribute", "display", "none")
 
 	// Nametag
-	p.nametag = newTextBox(p.Name, nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.nametag = newTextBox(p.node.d, p.Name, nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
 	p.node.box.group.Call("appendChild", p.nametag.group)
 	p.nametag.hide()
 	return p.circ

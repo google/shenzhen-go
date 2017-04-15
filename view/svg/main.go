@@ -15,9 +15,10 @@
 package main
 
 import (
-	"github.com/gopherjs/gopherjs/js"
+	"log"
 
 	"github.com/google/shenzhen-go/api"
+	"github.com/gopherjs/gopherjs/js"
 )
 
 const (
@@ -34,11 +35,10 @@ const (
 )
 
 var (
-	document   = js.Global.Get("document")
-	diagramSVG = document.Call("getElementById", "diagram")
-	svgNS      = diagramSVG.Get("namespaceURI")
-	graphPath  = js.Global.Get("graphPath").String()
-	apiURL     = js.Global.Get("apiURL").String()
+	document = js.Global.Get("document")
+
+	graphPath = js.Global.Get("graphPath").String()
+	apiURL    = js.Global.Get("apiURL").String()
 
 	saveGraphPropsLink = document.Call("getElementById", "save-graph-properties")
 
@@ -51,9 +51,16 @@ var (
 	client api.Interface
 )
 
-func makeSVGElement(n string) *js.Object { return document.Call("createElementNS", svgNS, n) }
-func cursorPos(e *js.Object) (x, y float64) {
-	bcr := diagramSVG.Call("getBoundingClientRect")
+type diagram struct {
+	*js.Object
+}
+
+func (d *diagram) makeSVGElement(n string) *js.Object {
+	return document.Call("createElementNS", d.Get("namespaceURI"), n)
+}
+
+func (d *diagram) cursorPos(e *js.Object) (x, y float64) {
+	bcr := d.Call("getBoundingClientRect")
 	x = e.Get("clientX").Float() - bcr.Get("left").Float()
 	y = e.Get("clientY").Float() - bcr.Get("top").Float()
 	return
@@ -89,12 +96,12 @@ func mouseUp(e *js.Object) {
 	dragItem = nil
 }
 
-func setError(err string, x, y float64) {
+func (d *diagram) setError(err string, x, y float64) {
 	if err == "" {
 		clearError()
 		return
 	}
-	diagramSVG.Call("appendChild", errLabel.group) // Bring to front
+	d.Call("appendChild", errLabel.group) // Bring to front
 	errLabel.moveTo(x+4, y-36)
 	errLabel.setText(err)
 	errLabel.show()
@@ -106,8 +113,16 @@ func clearError() {
 
 func main() {
 	client = api.NewClient(apiURL)
+	d := &diagram{document.Call("getElementById", "diagram")}
+	if d.Object == nil {
+		log.Fatalf("Couldn't find diagram element")
+	}
 
-	loadGraph()
+	g, err := loadGraph(d)
+	if err != nil {
+		log.Fatalf("Couldn't load graph: %v", err)
+	}
+	graph = g
 	for c := range graph.Channels {
 		c.makeElements()
 	}
@@ -115,11 +130,11 @@ func main() {
 		n.makeElements()
 	}
 
-	errLabel = newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32)
+	errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	errLabel.hide()
 
-	diagramSVG.Call("addEventListener", "mousemove", mouseMove)
-	diagramSVG.Call("addEventListener", "mouseup", mouseUp)
+	d.Call("addEventListener", "mousemove", mouseMove)
+	d.Call("addEventListener", "mouseup", mouseUp)
 
 	saveGraphPropsLink.Call("addEventListener", "click", graph.saveProperties)
 }

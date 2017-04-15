@@ -26,20 +26,22 @@ const (
 )
 
 type textBox struct {
+	d                           *diagram
 	group, rect, text, textNode *js.Object
 	width, minWidth             float64
 }
 
-func newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
+func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		group:    makeSVGElement("g"),
-		rect:     makeSVGElement("rect"),
-		text:     makeSVGElement("text"),
+		d:        d,
+		group:    d.makeSVGElement("g"),
+		rect:     d.makeSVGElement("rect"),
+		text:     d.makeSVGElement("text"),
 		textNode: document.Call("createTextNode", text),
 		minWidth: minWidth,
 	}
 
-	diagramSVG.Call("appendChild", b.group)
+	d.Call("appendChild", b.group)
 	b.group.Call("appendChild", b.rect)
 	b.group.Call("appendChild", b.text)
 	b.text.Call("appendChild", b.textNode)

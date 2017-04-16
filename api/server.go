@@ -35,6 +35,13 @@ var (
 				return &Empty{}, err
 			},
 		},
+		"SetNodeProperties": {
+			request: func() interface{} { return new(SetNodePropertiesRequest) },
+			method: func(s Interface, req interface{}) (interface{}, error) {
+				err := s.SetNodeProperties(req.(*SetNodePropertiesRequest))
+				return &Empty{}, err
+			},
+		},
 		"SetPosition": {
 			request: func() interface{} { return new(SetPositionRequest) },
 			method: func(s Interface, req interface{}) (interface{}, error) {

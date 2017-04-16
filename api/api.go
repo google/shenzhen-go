@@ -21,8 +21,9 @@ type Interface interface {
 	ConnectPin(*ConnectPinRequest) error
 	DeleteChannel(*ChannelRequest) error
 	DisconnectPin(*PinRequest) error
-	SetPosition(*SetPositionRequest) error
 	SetGraphProperties(*SetGraphPropertiesRequest) error
+	SetNodeProperties(*SetNodePropertiesRequest) error
+	SetPosition(*SetPositionRequest) error
 }
 
 // Empty is just an empty message.
@@ -60,6 +61,15 @@ type CreateChannelRequest struct {
 type NodeRequest struct {
 	Request
 	Node string `json:"node"`
+}
+
+// SetNodePropertiesRequest is a request to change metadata of a node.
+type SetNodePropertiesRequest struct {
+	NodeRequest
+	Name         string `json:"name"`
+	Enabled      bool   `json:"enabled"`
+	Multiplicity uint   `json:"multiplicity"`
+	Wait         bool   `json:"wait"`
 }
 
 // SetPositionRequest is a request to change the position of a node.

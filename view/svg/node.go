@@ -126,7 +126,33 @@ func (n *Node) loseFocus(e *js.Object) {
 }
 
 func (n *Node) save(e *js.Object) {
-
+	req := &api.SetNodePropertiesRequest{
+		NodeRequest: api.NodeRequest{
+			Request: api.Request{
+				Graph: graphPath,
+			},
+			Node: n.Node.Name,
+		},
+		Name:         nodeNameElement.Get("value").String(),
+		Enabled:      true, // TODO
+		Multiplicity: uint(nodeMultiplicityElement.Get("value").Int()),
+		Wait:         nodeWaitElement.Get("checked").Bool(),
+	}
+	go func() {
+		if err := client.SetNodeProperties(req); err != nil {
+			log.Printf("Couldn't update node properties: %v", err)
+			return
+		}
+		// Update local copy
+		if n.Name != req.Name {
+			delete(n.d.graph.Nodes, n.Name)
+			n.d.graph.Nodes[req.Name] = n
+			n.Name = req.Name // TODO: simplify view-model
+			n.Node.Name = req.Name
+		}
+		n.Node.Multiplicity = req.Multiplicity
+		n.Node.Wait = req.Wait
+	}()
 }
 
 func (n *Node) updatePinPositions() {

@@ -31,6 +31,7 @@ func (*fakeServer) ConnectPin(*ConnectPinRequest) error                 { return
 func (*fakeServer) DeleteChannel(*ChannelRequest) error                 { return nil }
 func (*fakeServer) DisconnectPin(*PinRequest) error                     { return nil }
 func (*fakeServer) SetGraphProperties(*SetGraphPropertiesRequest) error { return nil }
+func (*fakeServer) SetNodeProperties(*SetNodePropertiesRequest) error   { return nil }
 
 func (f *fakeServer) SetPosition(req *SetPositionRequest) error {
 	f.graph = req.Graph

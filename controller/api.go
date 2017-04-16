@@ -15,6 +15,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -123,6 +124,26 @@ func (h apiHandler) SetGraphProperties(req *api.SetGraphPropertiesRequest) error
 	g.Name = req.Name
 	g.PackagePath = req.PackagePath
 	g.IsCommand = req.IsCommand
+	return nil
+}
+
+func (h apiHandler) SetNodeProperties(req *api.SetNodePropertiesRequest) error {
+	g, n, err := lookupNode(&req.NodeRequest)
+	if err != nil {
+		return err
+	}
+	if n.Name != req.Name {
+		if _, exists := g.Nodes[req.Name]; exists {
+			return fmt.Errorf("node %q already exists", req.Name)
+		}
+		delete(g.Nodes, n.Name)
+		n.Name = req.Name
+		g.Nodes[n.Name] = n
+	}
+	n.Multiplicity = req.Multiplicity
+	n.Enabled = req.Enabled
+	n.Wait = req.Wait
+
 	return nil
 }
 

@@ -85,6 +85,10 @@ func (c *client) SetGraphProperties(req *SetGraphPropertiesRequest) error {
 	return c.query("SetGraphProperties", req, &Empty{})
 }
 
+func (c *client) SetNodeProperties(req *SetNodePropertiesRequest) error {
+	return c.query("SetNodeProperties", req, &Empty{})
+}
+
 func (c *client) SetPosition(req *SetPositionRequest) error {
 	return c.query("SetPosition", req, &Empty{})
 }

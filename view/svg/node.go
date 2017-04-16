@@ -105,6 +105,11 @@ func (n *Node) drop(e *js.Object) {
 
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
+	document.Call("getElementById", "node-part-help-title").Set("innerText", n.Node.Part.TypeKey())
+	document.Call("getElementById", "node-part-help-contents").Set("innerHTML", n.Node.Part.Help())
+	document.Call("getElementById", "node-name").Set("value", n.Node.Name)
+	document.Call("getElementById", "node-multiplicity").Set("value", n.Node.Multiplicity)
+	document.Call("getElementById", "node-wait").Set("checked", n.Node.Wait)
 	showRHSPanel(nodePropertiesPanel)
 }
 

@@ -33,6 +33,18 @@ const graphEditorTemplateSrc = `<html>
 		var apiURL = '/.api';
 		var GraphJSON = "{{$.GraphJSON}}";
 	</script>
+	<script>
+		function showhidehelp(l) {
+			d = document.getElementById('node-part-help');
+			if (d.style.display == 'none') {
+				d.style.display = 'block';
+				l.innerText = 'Hide Help';
+			} else {
+				d.style.display = 'none';
+				l.innerText = 'Show Help';
+			}
+		}
+	</script>
 </head>
 <body>
 	<div class="head">
@@ -64,7 +76,7 @@ const graphEditorTemplateSrc = `<html>
 		<div class="container" style="padding: 6px">
 			<div id="graph-properties">
 				<h3>Graph Properties</h3>
-				<a id="save-graph-properties" href="javascript:void(0)">Save</a>
+				<a id="graph-properties-save" href="javascript:void(0)">Save</a>
 				<div class="formfield">
 				    <label for="Name">Name</label>
 					<input id="graph-prop-name" name="Name" type="text" required value="{{$.Graph.Name}}">
@@ -80,18 +92,25 @@ const graphEditorTemplateSrc = `<html>
 			</div>
 			<div id="node-properties" style="display:none">
 				<h3>Node Properties</h3>
-				<a id="save-node-properties" href="javascript:void(0)">Save</a>
+				<a id="node-properties-save" href="javascript:void(0)">Save</a> |
+				<a id="node-help-link" href="javascript:void(0);" onclick="showhidehelp(this);">Show Help</a>
+				<div id="node-part-help" style="display:none">
+					<h3 id="node-part-help-title">{Part.TypeKey}</h3>
+					<div id="node-part-help-contents">
+						{.Part.Help}
+					</div>
+				</div>
 				<div class="formfield">
 					<label for="Name">Name</label>
-					<input name="Name" type="text" required value=".Name">
+					<input id="node-name" name="Name" type="text" required value=".Name">
 				</div>
 				<div class="formfield">
 					<label for="Multiplicity">Multiplicity</label>
-					<input name="Multiplicity" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="1">
+					<input id="node-multiplicity" name="Multiplicity" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="1">
 				</div>
 				<div class="formfield">
 					<label for="Wait">Wait for this to finish</label>
-					<input name="Wait" type="checkbox" checked>
+					<input id="node-wait" name="Wait" type="checkbox" checked>
 				</div>
 			</div>
 		</div>

@@ -85,9 +85,9 @@ func main() {
 	d.Call("addEventListener", "mousemove", d.mouseMove)
 	d.Call("addEventListener", "mouseup", d.mouseUp)
 
-	sgp := document.Call("getElementById", "save-graph-properties")
+	sgp := document.Call("getElementById", "graph-properties-save")
 	if sgp == nil {
-		log.Fatalf("Couldn't find save-graph-properties element")
+		log.Fatalf("Couldn't find graph-properties-save element")
 	}
 	sgp.Call("addEventListener", "click", d.graph.saveProperties)
 }

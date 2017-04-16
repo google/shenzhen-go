@@ -31,6 +31,14 @@ const (
 	nodeTextOffset        = 5
 )
 
+var (
+	nodeHelpTitleElement    = mustGetElement("node-part-help-title")
+	nodeHelpContentsElement = mustGetElement("node-part-help-contents")
+	nodeNameElement         = mustGetElement("node-name")
+	nodeMultiplicityElement = mustGetElement("node-multiplicity")
+	nodeWaitElement         = mustGetElement("node-wait")
+)
+
 // Node is the view's model of a node.
 type Node struct {
 	*model.Node
@@ -105,17 +113,20 @@ func (n *Node) drop(e *js.Object) {
 
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
-	document.Call("getElementById", "node-part-help-title").Set("innerText", n.Node.Part.TypeKey())
-	document.Call("getElementById", "node-part-help-contents").Set("innerHTML", n.Node.Part.Help())
-	document.Call("getElementById", "node-name").Set("value", n.Node.Name)
-	document.Call("getElementById", "node-multiplicity").Set("value", n.Node.Multiplicity)
-	document.Call("getElementById", "node-wait").Set("checked", n.Node.Wait)
+	nodeHelpTitleElement.Set("innerText", n.Node.Part.TypeKey())
+	nodeHelpContentsElement.Set("innerHTML", n.Node.Part.Help())
+	nodeNameElement.Set("value", n.Node.Name)
+	nodeMultiplicityElement.Set("value", n.Node.Multiplicity)
+	nodeWaitElement.Set("checked", n.Node.Wait)
 	showRHSPanel(nodePropertiesPanel)
 }
 
 func (n *Node) loseFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeNormalRectStyle)
-	showRHSPanel(graphPropertiesPanel)
+}
+
+func (n *Node) save(e *js.Object) {
+
 }
 
 func (n *Node) updatePinPositions() {

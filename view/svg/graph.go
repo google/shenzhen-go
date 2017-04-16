@@ -26,6 +26,12 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
+var (
+	graphNameElement        = mustGetElement("graph-prop-name")
+	graphPackagePathElement = mustGetElement("graph-prop-package-path")
+	graphIsCommandElement   = mustGetElement("graph-prop-is-command")
+)
+
 // Graph is the view's model of a graph.
 type Graph struct {
 	Nodes    map[string]*Node
@@ -60,9 +66,9 @@ func (g *Graph) saveProperties(*js.Object) {
 		Request: api.Request{
 			Graph: graphPath,
 		},
-		Name:        document.Call("getElementById", "graph-prop-name").Get("value").String(),
-		PackagePath: document.Call("getElementById", "graph-prop-package-path").Get("value").String(),
-		IsCommand:   document.Call("getElementById", "graph-prop-is-command").Get("checked").Bool(),
+		Name:        graphNameElement.Get("value").String(),
+		PackagePath: graphPackagePathElement.Get("value").String(),
+		IsCommand:   graphIsCommandElement.Get("checked").Bool(),
 	}
 	go func() { // cannot block in callback
 		if err := client.SetGraphProperties(req); err != nil {

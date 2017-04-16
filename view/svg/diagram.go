@@ -28,7 +28,7 @@ type diagram struct {
 }
 
 func (d *diagram) makeSVGElement(n string) *js.Object {
-	return document.Call("createElementNS", d.Get("namespaceURI"), n)
+	return mustGetGlobal("document").Call("createElementNS", d.Get("namespaceURI"), n)
 }
 
 func (d *diagram) cursorPos(e *js.Object) (x, y float64) {
@@ -43,6 +43,7 @@ func (d *diagram) mouseDown(e *js.Object) {
 		return
 	}
 	d.selectedItem.loseFocus(e)
+	showRHSPanel(graphPropertiesPanel)
 	e.Call("stopPropagation")
 }
 
@@ -74,6 +75,13 @@ func (d *diagram) selecter(s selectable) func(*js.Object) {
 		s.gainFocus(e)
 		e.Call("stopPropagation")
 	}
+}
+
+func (d *diagram) saveSelected(e *js.Object) {
+	if d.selectedItem == nil {
+		return
+	}
+	d.selectedItem.save(e)
 }
 
 func (d *diagram) setError(err string, x, y float64) {
@@ -108,4 +116,5 @@ type draggable interface {
 type selectable interface {
 	gainFocus(*js.Object)
 	loseFocus(*js.Object)
+	save(*js.Object)
 }

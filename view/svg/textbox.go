@@ -37,7 +37,7 @@ func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, h
 		group:    d.makeSVGElement("g"),
 		rect:     d.makeSVGElement("rect"),
 		text:     d.makeSVGElement("text"),
-		textNode: document.Call("createTextNode", text),
+		textNode: mustGetGlobal("document").Call("createTextNode", text),
 		minWidth: minWidth,
 	}
 

@@ -35,15 +35,30 @@ const (
 )
 
 var (
-	document  = js.Global.Get("document")
-	graphPath = js.Global.Get("graphPath").String()
+	graphPath = mustGetGlobal("graphPath").String()
 
-	graphPropertiesPanel = document.Call("getElementById", "graph-properties")
-	nodePropertiesPanel  = document.Call("getElementById", "node-properties")
+	graphPropertiesPanel = mustGetElement("graph-properties")
+	nodePropertiesPanel  = mustGetElement("node-properties")
 	rhsPanel             = graphPropertiesPanel
 
 	client api.Interface
 )
+
+func mustGetGlobal(id string) *js.Object {
+	e := js.Global.Get(id)
+	if e == nil {
+		log.Fatalf("Couldn't get global %q", id)
+	}
+	return e
+}
+
+func mustGetElement(id string) *js.Object {
+	e := mustGetGlobal("document").Call("getElementById", id)
+	if e == nil {
+		log.Fatalf("Couldn't get element %q", id)
+	}
+	return e
+}
 
 func showRHSPanel(p *js.Object) {
 	if p == rhsPanel {
@@ -55,27 +70,15 @@ func showRHSPanel(p *js.Object) {
 }
 
 func main() {
-	apiURL := js.Global.Get("apiURL").String()
-	if apiURL == "" {
-		log.Fatalf("Couldn't find global apiURL")
-	}
-	client = api.NewClient(apiURL)
+	client = api.NewClient(mustGetGlobal("apiURL").String())
 
 	d := &diagram{
-		Object: document.Call("getElementById", "diagram"),
-	}
-	if d.Object == nil {
-		log.Fatalf("Couldn't find diagram element")
+		Object: mustGetElement("diagram"),
 	}
 	d.errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	d.errLabel.hide()
 
-	gj := js.Global.Get("GraphJSON")
-	if gj == nil {
-		log.Fatalf("Couldn't find global GraphJSON")
-	}
-
-	g, err := loadGraph(d, gj.String())
+	g, err := loadGraph(d, mustGetGlobal("GraphJSON").String())
 	if err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}
@@ -85,9 +88,6 @@ func main() {
 	d.Call("addEventListener", "mousemove", d.mouseMove)
 	d.Call("addEventListener", "mouseup", d.mouseUp)
 
-	sgp := document.Call("getElementById", "graph-properties-save")
-	if sgp == nil {
-		log.Fatalf("Couldn't find graph-properties-save element")
-	}
-	sgp.Call("addEventListener", "click", d.graph.saveProperties)
+	mustGetElement("graph-properties-save").Call("addEventListener", "click", g.saveProperties)
+	mustGetElement("graph-properties-save").Call("addEventListener", "click", d.saveSelected)
 }

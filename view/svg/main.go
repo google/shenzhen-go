@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/shenzhen-go/api"
@@ -95,4 +96,13 @@ func main() {
 	mustGetElement("node-metadata-link").Call("addEventListener", "click", func(*js.Object) {
 		d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
 	})
+
+	for n, e := range nodePartEditors {
+		for m, p := range e.Panels {
+			p := p
+			mustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).Call("addEventListener", "click", func(*js.Object) {
+				d.selectedItem.(*Node).showSubPanel(p)
+			})
+		}
+	}
 }

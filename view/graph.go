@@ -88,10 +88,11 @@ const graphEditorTemplateSrc = `<html>
 				<div id="node-panels" class="head">
 					<a id="node-metadata-link" href="javascript:void(0);">Properties</a> 
 					{{range $tk, $type := $.PartTypes}}
-					| <a id="node-{{$tk}}-help-link" href="javascript:void(0);">Help</a>
+					<span id="node-{{$tk}}-links" style="display:none">
 					{{range $type.Panels }}
 					| <a id="node-{{$tk}}-{{.Name}}-link" href="javascript:void(0);">{{.Name}}</a>
 					{{end}}
+					</span>
 					{{end}}
 				</div>
 				<div id="node-metadata-panel">
@@ -113,12 +114,6 @@ const graphEditorTemplateSrc = `<html>
 					</div>
 				</div>
 				{{range $tk, $type := $.PartTypes}}
-				<div id="node-{{$tk}}-help-panel" style="display:none">
-					<h3>{{$tk}}</h3>
-					<div>
-						{{$type.Help}}
-					</div>
-				</div>
 				{{range $type.Panels}}
 				<div id="node-{{$tk}}-{{.Name}}-panel" style="display:none">
 					{{.Editor}}

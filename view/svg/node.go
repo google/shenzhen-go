@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/shenzhen-go/api"
@@ -39,7 +40,27 @@ var (
 	nodeEnabledInput      = mustGetElement("node-enabled")
 	nodeMultiplicityInput = mustGetElement("node-multiplicity")
 	nodeWaitInput         = mustGetElement("node-wait")
+
+	nodePartEditors = make(map[string]*partEditor, len(model.PartTypes))
 )
+
+type partEditor struct {
+	Links  *js.Object
+	Panels map[string]*js.Object
+}
+
+func init() {
+	for n, t := range model.PartTypes {
+		p := make(map[string]*js.Object, len(t.Panels))
+		for _, d := range t.Panels {
+			p[d.Name] = mustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
+		}
+		nodePartEditors[n] = &partEditor{
+			Links:  mustGetElement(fmt.Sprintf("node-%s-links", n)),
+			Panels: p,
+		}
+	}
+}
 
 // Node is the view's model of a node.
 type Node struct {
@@ -122,6 +143,7 @@ func (n *Node) gainFocus(e *js.Object) {
 	nodeMultiplicityInput.Set("value", n.Node.Multiplicity)
 	nodeWaitInput.Set("checked", n.Node.Wait)
 	showRHSPanel(nodePropertiesPanel)
+	nodePartEditors[n.Node.Part.TypeKey()].Links.Get("style").Set("display", "inline")
 	if n.subpanel == nil {
 		n.subpanel = nodeMetadataSubpanel
 	}

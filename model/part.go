@@ -57,7 +57,6 @@ type Part interface {
 // The HTML is loaded with the editor.
 type PartType struct {
 	New    func() Part
-	Help   template.HTML
 	Panels []struct {
 		Name   string
 		Editor template.HTML
@@ -70,7 +69,6 @@ var PartTypes = map[string]*PartType{
 		"Broadcast":      func() Part { return new(parts.Broadcast) }, */
 	"Code": {
 		New:    func() Part { return new(parts.Code) },
-		Help:   parts.CodeHelp,
 		Panels: parts.CodePanels,
 	},
 	/*	"Filter":         func() Part { return new(parts.Filter) },

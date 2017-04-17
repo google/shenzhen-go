@@ -16,7 +16,6 @@ package controller
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/google/shenzhen-go/api"
@@ -29,7 +28,6 @@ type apiHandler struct{}
 var API apiHandler
 
 func (h apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s api: %s", r.Method, r.URL)
 	api.Dispatch(h, w, r)
 }
 

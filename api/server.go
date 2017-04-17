@@ -70,6 +70,8 @@ func dispatch(server Interface, request io.Reader) ([]byte, error) {
 		return nil, Statusf(http.StatusBadRequest, "ill-formed request: %v", err)
 	}
 
+	log.Printf("POST api: %s", req.Method)
+
 	d, ok := dispatchers[req.Method]
 	if !ok {
 		return nil, Statusf(http.StatusBadRequest, "unknown method")

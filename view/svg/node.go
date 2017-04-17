@@ -32,11 +32,17 @@ const (
 )
 
 var (
-	nodeHelpTitleElement    = mustGetElement("node-part-help-title")
-	nodeHelpContentsElement = mustGetElement("node-part-help-contents")
-	nodeNameElement         = mustGetElement("node-name")
-	nodeMultiplicityElement = mustGetElement("node-multiplicity")
-	nodeWaitElement         = mustGetElement("node-wait")
+	nodeMetadataSubpanel = mustGetElement("node-metadata-panel")
+	nodeHelpSubpanel     = mustGetElement("node-help-panel")
+	nodeCurrentSubpanel  = nodeMetadataSubpanel
+
+	nodeHelpTitleH3     = mustGetElement("node-part-help-title")
+	nodeHelpContentsDiv = mustGetElement("node-part-help-contents")
+
+	nodeNameInput         = mustGetElement("node-name")
+	nodeEnabledInput      = mustGetElement("node-enabled")
+	nodeMultiplicityInput = mustGetElement("node-multiplicity")
+	nodeWaitInput         = mustGetElement("node-wait")
 )
 
 // Node is the view's model of a node.
@@ -51,6 +57,8 @@ type Node struct {
 	box *textBox
 
 	relX, relY float64 // relative client offset for moving around
+
+	subpanel *js.Object // temporarily remember last subpanel for each node
 }
 
 func max(a, b int) int {
@@ -113,12 +121,17 @@ func (n *Node) drop(e *js.Object) {
 
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
-	nodeHelpTitleElement.Set("innerText", n.Node.Part.TypeKey())
-	nodeHelpContentsElement.Set("innerHTML", n.Node.Part.Help())
-	nodeNameElement.Set("value", n.Node.Name)
-	nodeMultiplicityElement.Set("value", n.Node.Multiplicity)
-	nodeWaitElement.Set("checked", n.Node.Wait)
+	nodeHelpTitleH3.Set("innerText", n.Node.Part.TypeKey())
+	nodeHelpContentsDiv.Set("innerHTML", n.Node.Part.Help())
+	nodeNameInput.Set("value", n.Node.Name)
+	nodeEnabledInput.Set("checked", n.Node.Enabled)
+	nodeMultiplicityInput.Set("value", n.Node.Multiplicity)
+	nodeWaitInput.Set("checked", n.Node.Wait)
 	showRHSPanel(nodePropertiesPanel)
+	if n.subpanel == nil {
+		n.subpanel = nodeMetadataSubpanel
+	}
+	n.showSubPanel(n.subpanel)
 }
 
 func (n *Node) loseFocus(e *js.Object) {
@@ -133,10 +146,10 @@ func (n *Node) save(e *js.Object) {
 			},
 			Node: n.Node.Name,
 		},
-		Name:         nodeNameElement.Get("value").String(),
-		Enabled:      true, // TODO
-		Multiplicity: uint(nodeMultiplicityElement.Get("value").Int()),
-		Wait:         nodeWaitElement.Get("checked").Bool(),
+		Name:         nodeNameInput.Get("value").String(),
+		Enabled:      nodeEnabledInput.Get("checked").Bool(),
+		Multiplicity: uint(nodeMultiplicityInput.Get("value").Int()),
+		Wait:         nodeWaitInput.Get("checked").Bool(),
 	}
 	go func() {
 		if err := client.SetNodeProperties(req); err != nil {
@@ -153,6 +166,7 @@ func (n *Node) save(e *js.Object) {
 			n.box.setText(req.Name)
 			n.updatePinPositions()
 		}
+		n.Node.Enabled = req.Enabled
 		n.Node.Multiplicity = req.Multiplicity
 		n.Node.Wait = req.Wait
 	}()
@@ -170,4 +184,14 @@ func (n *Node) updatePinPositions() {
 	for i, p := range n.Outputs {
 		p.setPos(osp*float64(i+1), float64(nodeHeight+pinRadius))
 	}
+}
+
+func (n *Node) showSubPanel(p *js.Object) {
+	n.subpanel = p
+	if nodeCurrentSubpanel == p {
+		return
+	}
+	nodeCurrentSubpanel.Get("style").Set("display", "none")
+	nodeCurrentSubpanel = p
+	nodeCurrentSubpanel.Get("style").Set("display", "block")
 }

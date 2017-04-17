@@ -185,8 +185,9 @@ textarea {
 div.head {
 	padding: 6px;
 	flex: 0 1 auto;
-	border-bottom-style: dashed;
-	border-bottom-color: #555;
+	border-bottom-style: solid;
+	border-bottom-color: #aaa;
+	border-bottom-width: 1px;
 }
 div.box {
 	display: flex;

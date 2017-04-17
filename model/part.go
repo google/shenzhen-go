@@ -25,9 +25,6 @@ import (
 // Part abstracts the implementation of a node. Concrete implementations should be
 // able to be marshalled to and unmarshalled from JSON sensibly.
 type Part interface {
-	// AssociateEditor associates a template called "part_view" with the given template.
-	AssociateEditor(*template.Template) error
-
 	// Clone returns a copy of this part.
 	Clone() interface{}
 

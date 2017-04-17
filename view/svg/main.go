@@ -90,5 +90,12 @@ func main() {
 
 	mustGetElement("graph-save").Call("addEventListener", "click", g.save)
 	mustGetElement("graph-properties-save").Call("addEventListener", "click", g.saveProperties)
-	mustGetElement("node-properties-save").Call("addEventListener", "click", d.saveSelected)
+
+	mustGetElement("node-save-link").Call("addEventListener", "click", d.saveSelected)
+	mustGetElement("node-metadata-link").Call("addEventListener", "click", func(*js.Object) {
+		d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
+	})
+	mustGetElement("node-help-link").Call("addEventListener", "click", func(*js.Object) {
+		d.selectedItem.(*Node).showSubPanel(nodeHelpSubpanel)
+	})
 }

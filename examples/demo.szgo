@@ -54,8 +54,8 @@
 				]
 			},
 			"part_type": "Code",
-			"x": 151,
-			"y": 266,
+			"x": 182,
+			"y": 170,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",

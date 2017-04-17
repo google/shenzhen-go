@@ -116,6 +116,14 @@ func (h apiHandler) DisconnectPin(req *api.PinRequest) error {
 	return nil
 }
 
+func (h apiHandler) Save(req *api.Request) error {
+	g, err := lookupGraph(req)
+	if err != nil {
+		return err
+	}
+	return SaveJSONFile(g)
+}
+
 func (h apiHandler) SetGraphProperties(req *api.SetGraphPropertiesRequest) error {
 	g, err := lookupGraph(&req.Request)
 	if err != nil {

@@ -17,12 +17,28 @@ package api
 
 // Interface is "the API" - the interface defining available requests.
 type Interface interface {
+	// CreateChannel makes a new channel.
 	CreateChannel(*CreateChannelRequest) error
+
+	// ConnectPin connects a pin to a channel.
 	ConnectPin(*ConnectPinRequest) error
+
+	// DeleteChannel deletes a channel (and all connections).
 	DeleteChannel(*ChannelRequest) error
+
+	// DisconnectPin deletes the connection from a pin to a channel.
 	DisconnectPin(*PinRequest) error
+
+	// Save saves the graph to disk.
+	Save(*Request) error
+
+	// SetGraphProperties changes metdata such as name and package path.
 	SetGraphProperties(*SetGraphPropertiesRequest) error
+
+	// SetNodeProperties changes node metadata such as name and multiplicity.
 	SetNodeProperties(*SetNodePropertiesRequest) error
+
+	// SetPosition changes the node position in the diagram.
 	SetPosition(*SetPositionRequest) error
 }
 

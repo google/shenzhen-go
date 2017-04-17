@@ -49,7 +49,7 @@ const graphEditorTemplateSrc = `<html>
 <body>
 	<div class="head">
 		<a href="?up" title="Go up to the files in the current directory">Up</a> |
-		<a href="?save" title="Save current changes to disk">Save</a> | 
+		<a id="graph-save" href="javascript:void(0)" title="Save current changes to disk">Save</a> | 
 		<a href="?reload" class="destructive" title="Revert to last saved file">Revert</a> |
 		{{if $.Graph.IsCommand -}}
 		<a href="?install" title="Export the graph to a Go package and 'go install' it">Install</a> | 

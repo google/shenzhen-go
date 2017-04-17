@@ -88,6 +88,7 @@ func main() {
 	d.Call("addEventListener", "mousemove", d.mouseMove)
 	d.Call("addEventListener", "mouseup", d.mouseUp)
 
+	mustGetElement("graph-save").Call("addEventListener", "click", g.save)
 	mustGetElement("graph-properties-save").Call("addEventListener", "click", g.saveProperties)
 	mustGetElement("node-properties-save").Call("addEventListener", "click", d.saveSelected)
 }

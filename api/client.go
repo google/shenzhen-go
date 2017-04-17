@@ -81,6 +81,10 @@ func (c *client) DisconnectPin(req *PinRequest) error {
 	return c.query("DisconnectPin", req, &Empty{})
 }
 
+func (c *client) Save(req *Request) error {
+	return c.query("Save", req, &Empty{})
+}
+
 func (c *client) SetGraphProperties(req *SetGraphPropertiesRequest) error {
 	return c.query("SetGraphProperties", req, &Empty{})
 }

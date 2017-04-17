@@ -61,6 +61,14 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 	return quad, pt
 }
 
+func (g *Graph) save(*js.Object) {
+	go func() { // cannot block in callback
+		if err := client.Save(&api.Request{Graph: graphPath}); err != nil {
+			log.Printf("Couldn't Save: %v", err)
+		}
+	}()
+}
+
 func (g *Graph) saveProperties(*js.Object) {
 	req := &api.SetGraphPropertiesRequest{
 		Request: api.Request{

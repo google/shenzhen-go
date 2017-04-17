@@ -253,15 +253,6 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if _, t := q["save"]; t {
-		if err := SaveJSONFile(g); err != nil {
-			log.Printf("Failed to save JSON file: %v", err)
-		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
-		return
-	}
 	if n := q.Get("node"); n != "" {
 		handleNodeRequest(g, n, w, r)
 		return

@@ -30,6 +30,7 @@ func (*fakeServer) CreateChannel(*CreateChannelRequest) error           { return
 func (*fakeServer) ConnectPin(*ConnectPinRequest) error                 { return nil }
 func (*fakeServer) DeleteChannel(*ChannelRequest) error                 { return nil }
 func (*fakeServer) DisconnectPin(*PinRequest) error                     { return nil }
+func (*fakeServer) Save(*Request) error                                 { return nil }
 func (*fakeServer) SetGraphProperties(*SetGraphPropertiesRequest) error { return nil }
 func (*fakeServer) SetNodeProperties(*SetNodePropertiesRequest) error   { return nil }
 

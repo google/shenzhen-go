@@ -149,6 +149,9 @@ func (n *Node) save(e *js.Object) {
 			n.d.graph.Nodes[req.Name] = n
 			n.Name = req.Name // TODO: simplify view-model
 			n.Node.Name = req.Name
+
+			n.box.setText(req.Name)
+			n.updatePinPositions()
 		}
 		n.Node.Multiplicity = req.Multiplicity
 		n.Node.Wait = req.Wait

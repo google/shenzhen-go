@@ -3,7 +3,7 @@
 	"package_path": "github.com/google/shenzhen-go/examples/demo",
 	"is_command": true,
 	"nodes": {
-		"blah": {
+		"Demo node": {
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
@@ -54,8 +54,8 @@
 				]
 			},
 			"part_type": "Code",
-			"x": 264,
-			"y": 113,
+			"x": 151,
+			"y": 266,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",

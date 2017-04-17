@@ -33,11 +33,7 @@ const (
 
 var (
 	nodeMetadataSubpanel = mustGetElement("node-metadata-panel")
-	nodeHelpSubpanel     = mustGetElement("node-help-panel")
 	nodeCurrentSubpanel  = nodeMetadataSubpanel
-
-	nodeHelpTitleH3     = mustGetElement("node-part-help-title")
-	nodeHelpContentsDiv = mustGetElement("node-part-help-contents")
 
 	nodeNameInput         = mustGetElement("node-name")
 	nodeEnabledInput      = mustGetElement("node-enabled")
@@ -121,8 +117,6 @@ func (n *Node) drop(e *js.Object) {
 
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
-	nodeHelpTitleH3.Set("innerText", n.Node.Part.TypeKey())
-	nodeHelpContentsDiv.Set("innerHTML", n.Node.Part.Help())
 	nodeNameInput.Set("value", n.Node.Name)
 	nodeEnabledInput.Set("checked", n.Node.Enabled)
 	nodeMultiplicityInput.Set("value", n.Node.Multiplicity)

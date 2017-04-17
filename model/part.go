@@ -28,9 +28,6 @@ type Part interface {
 	// Clone returns a copy of this part.
 	Clone() interface{}
 
-	// Help returns a helpful description of what this part can do.
-	Help() template.HTML
-
 	// Impl returns Go source code implementing the part.
 	// The head is executed, then the body is executed (# Multiplicity
 	// instances of the body concurrently), then the tail (once the body/bodies
@@ -56,14 +53,26 @@ type Part interface {
 	Update(*http.Request) error
 }
 
-// PartFactory creates a part.
-type PartFactory func() Part
+// PartType has metadata common to this type of part, and is also a part factory.
+// The HTML is loaded with the editor.
+type PartType struct {
+	New    func() Part
+	Help   template.HTML
+	Panels []struct {
+		Name   string
+		Editor template.HTML
+	}
+}
 
-// PartFactories translates part type strings into part factories.
-var PartFactories = map[string]PartFactory{
+// PartTypes translates part type strings into useful information.
+var PartTypes = map[string]*PartType{
 	/*	"Aggregator":     func() Part { return new(parts.Aggregator) },
 		"Broadcast":      func() Part { return new(parts.Broadcast) }, */
-	"Code": func() Part { return new(parts.Code) },
+	"Code": {
+		New:    func() Part { return new(parts.Code) },
+		Help:   parts.CodeHelp,
+		Panels: parts.CodePanels,
+	},
 	/*	"Filter":         func() Part { return new(parts.Filter) },
 		"HTTPServer":     func() Part { return new(parts.HTTPServer) },
 		"StaticSend":     func() Part { return new(parts.StaticSend) },

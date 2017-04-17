@@ -25,8 +25,73 @@ import (
 	"github.com/google/shenzhen-go/model/pin"
 )
 
-const codePartEditTemplateSrc = `
+const (
+	codePartEditTemplateSrc = `
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
+    var theme = 'ace/theme/chrome';
+	var lang = 'ace/mode/golang';
+	var imps = ace.edit('imports');
+    var head = ace.edit('head');
+	var body = ace.edit('body');
+	var tail = ace.edit('tail');
+    imps.setTheme(theme);
+    imps.getSession().setMode(lang);
+	imps.getSession().setUseSoftTabs(false);
+    head.setTheme(theme);
+    head.getSession().setMode(lang);
+	head.getSession().setUseSoftTabs(false);
+    body.setTheme(theme);
+    body.getSession().setMode(lang);
+	body.getSession().setUseSoftTabs(false);
+    tail.setTheme(theme);
+    tail.getSession().setMode(lang);
+	tail.getSession().setUseSoftTabs(false);
+	this.parent.onsubmit = function() {
+		document.getElementById('himports').value = imports.getValue();
+		document.getElementById('hhead').value = head.getValue();
+		document.getElementById('hbody').value = body.getValue();
+		docuemnt.getElementById('htail').value = tail.getValue();
+	};
+</script>
+`
+	// CodeHelp is help for code-type parts.
+	CodeHelp template.HTML = `<p>
+	A Code part runs (executes) any Go code that you write.
+	</p><p>
+	It consists of 3 parts: a Head, a Body, and a Tail. 
+	The Head runs first, and only runs once, no matter what number Multiplicity is set to. 
+	The Body runs next. The number of concurrent copies of the Body that run is set by Multiplicity.
+	Finally, when all copies of the Body return, the Tail runs. 
+	</p><p>
+	The Head and Tail are useful for operations that should only be done once. For example, any 
+	output channels written to in the Body can be correctly closed (if desired) in the Tail.
+	</p><p>
+	Each instance of the Body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
+	to distinguish which instance is running and how many are running, if necessary. 
+	<code>0 <= instanceNumber < multiplicity</code>
+	</p><p>
+	Any channels referred to will automatically be detected and shown in the graph, and
+	when channels are renamed, these will be safely updated in the Code where they are
+	referred to.
+	</p><p>
+	The <code>return</code> statement is allowed but optional in Code. There are no values that
+	need to be returned.
+	Using <code>return</code> in the Head will prevent the Body or Tail from executing, but 
+	using <code>return</code> in the Body won't affect whether the Tail is executed.
+	</p>
+	`
+)
+
+var (
+	// CodePanels are subpanels for editing code-type parts.
+	CodePanels = []struct {
+		Name   string
+		Editor template.HTML
+	}{
+		{
+			Name: "Pins",
+			Editor: `<script>
 function removemepls(e) {
 	e.parentNode.removeChild(e);
 }
@@ -107,74 +172,26 @@ function addrowpls() {
 	</tr>
 {{end -}}
 </tbody>
-</table>
-<hr>
-<input type="hidden" id="himports" name="Imports" value="">
-<input type="hidden" id="hhead" name="Head" value="">
-<input type="hidden" id="hbody" name="Body" value="">
-<input type="hidden" id="htail" name="Tail" value="">
-<script>
-function switchto(e) {
-	i = document.getElementById('importstab');
-	h = document.getElementById('headtab');
-	b = document.getElementById('bodytab');
-	t = document.getElementById('tailtab');
-	x = document.getElementById(e);
-	i.style.display = 'none';
-	h.style.display = 'none';
-	b.style.display = 'none';
-	t.style.display = 'none';
-	x.style.display = 'block';
-}
-</script>
-<a href="javascript:void(0)" onclick="switchto('importstab')">Imports</a> |
-<a href="javascript:void(0)" onclick="switchto('headtab')">Head</a> |
-<a href="javascript:void(0)" onclick="switchto('bodytab')">Body</a> |
-<a href="javascript:void(0)" onclick="switchto('tailtab')">Tail</a>
-<div id="importstab" style="display:none">
-	<h4>Imports</h4>
-	<pre class="codeedit" id="imports">{{.Node.FlatImports}}</pre>
-</div>
-<div id="headtab" style="display:none">
-	<h4>Head</h4>
-	<pre class="codeedit" id="head">{{.Node.ImplHead}}</pre>
-</div>
-<div id="bodytab" style="display:block">
-	<h4>Body</h4>
-	<pre class="codeedit" id="body">{{.Node.ImplBody}}</pre>
-</div>
-<div id="tailtab" style="display:none">
-	<h4>Tail</h4>
-	<pre class="codeedit" id="tail">{{.Node.ImplTail}}</pre>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-<script>
-    var theme = 'ace/theme/chrome';
-	var lang = 'ace/mode/golang';
-	var imps = ace.edit('imports');
-    var head = ace.edit('head');
-	var body = ace.edit('body');
-	var tail = ace.edit('tail');
-    imps.setTheme(theme);
-    imps.getSession().setMode(lang);
-	imps.getSession().setUseSoftTabs(false);
-    head.setTheme(theme);
-    head.getSession().setMode(lang);
-	head.getSession().setUseSoftTabs(false);
-    body.setTheme(theme);
-    body.getSession().setMode(lang);
-	body.getSession().setUseSoftTabs(false);
-    tail.setTheme(theme);
-    tail.getSession().setMode(lang);
-	tail.getSession().setUseSoftTabs(false);
-	this.parent.onsubmit = function() {
-		document.getElementById('himports').value = imports.getValue();
-		document.getElementById('hhead').value = head.getValue();
-		document.getElementById('hbody').value = body.getValue();
-		docuemnt.getElementById('htail').value = tail.getValue();
-	};
-</script>
-`
+</table>`,
+		},
+		{
+			Name:   "Imports",
+			Editor: `<pre class="codeedit" id="imports">{.Node.FlatImports}</pre>`,
+		},
+		{
+			Name:   "Head",
+			Editor: `<pre class="codeedit" id="head">{.Node.ImplHead}</pre>`,
+		},
+		{
+			Name:   "Body",
+			Editor: `<pre class="codeedit" id="body">{.Node.ImplBody}</pre>`,
+		},
+		{
+			Name:   "Tail",
+			Editor: `<pre class="codeedit" id="tail">{.Node.ImplTail}</pre>`,
+		},
+	}
+)
 
 // Code is a component containing arbitrary code.
 type Code struct {
@@ -255,12 +272,6 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 	return nil
 }
 
-// AssociateEditor adds a "part_view" template to the given template.
-func (c *Code) AssociateEditor(tmpl *template.Template) error {
-	_, err := tmpl.New("part_view").Parse(codePartEditTemplateSrc)
-	return err
-}
-
 // Pins returns pins. These are 100% user-defined.
 func (c *Code) Pins() []pin.Definition { return c.pins }
 
@@ -274,35 +285,6 @@ func (c *Code) Clone() interface{} {
 		pins:    append([]pin.Definition{}, c.pins...),
 	}
 	return c2
-}
-
-// Help returns a helpful explanation.
-func (*Code) Help() template.HTML {
-	return `<p>
-	A Code part runs (executes) any Go code that you write.
-	</p><p>
-	It consists of 3 parts: a Head, a Body, and a Tail. 
-	The Head runs first, and only runs once, no matter what number Multiplicity is set to. 
-	The Body runs next. The number of concurrent copies of the Body that run is set by Multiplicity.
-	Finally, when all copies of the Body return, the Tail runs. 
-	</p><p>
-	The Head and Tail are useful for operations that should only be done once. For example, any 
-	output channels written to in the Body can be correctly closed (if desired) in the Tail.
-	</p><p>
-	Each instance of the Body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
-	to distinguish which instance is running and how many are running, if necessary. 
-	<code>0 <= instanceNumber < multiplicity</code>
-	</p><p>
-	Any channels referred to will automatically be detected and shown in the graph, and
-	when channels are renamed, these will be safely updated in the Code where they are
-	referred to.
-	</p><p>
-	The <code>return</code> statement is allowed but optional in Code. There are no values that
-	need to be returned.
-	Using <code>return</code> in the Head will prevent the Body or Tail from executing, but 
-	using <code>return</code> in the Body won't affect whether the Tail is executed.
-	</p>
-	`
 }
 
 // Impl returns the implementation of the goroutine.

@@ -30,7 +30,7 @@ func TestGraphEditorTemplate(t *testing.T) {
 		ei := &editorInput{
 			Graph:     g,
 			GraphJSON: `{"json": true}`,
-			PartTypes: model.PartFactories,
+			PartTypes: model.PartTypes,
 		}
 
 		if err := graphEditorTemplate.Execute(nopWriter{}, ei); err != nil {

@@ -95,7 +95,4 @@ func main() {
 	mustGetElement("node-metadata-link").Call("addEventListener", "click", func(*js.Object) {
 		d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
 	})
-	mustGetElement("node-help-link").Call("addEventListener", "click", func(*js.Object) {
-		d.selectedItem.(*Node).showSubPanel(nodeHelpSubpanel)
-	})
 }

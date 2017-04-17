@@ -86,8 +86,13 @@ const graphEditorTemplateSrc = `<html>
 					<a id="node-delete-link" href="javascript:void(0);" class="destructive" title="Delete this goroutine">Delete</a> | 
 				</div>
 				<div id="node-panels" class="head">
-					<a id="node-metadata-link" href="javascript:void(0);">Properties</a> |
-					<a id="node-help-link" href="javascript:void(0);">Help</a>
+					<a id="node-metadata-link" href="javascript:void(0);">Properties</a> 
+					{{range $tk, $type := $.PartTypes}}
+					| <a id="node-{{$tk}}-help-link" href="javascript:void(0);">Help</a>
+					{{range $type.Panels }}
+					| <a id="node-{{$tk}}-{{.Name}}-link" href="javascript:void(0);">{{.Name}}</a>
+					{{end}}
+					{{end}}
 				</div>
 				<div id="node-metadata-panel">
 					<div class="formfield">
@@ -106,16 +111,20 @@ const graphEditorTemplateSrc = `<html>
 						<label for="Wait">Wait for this to finish</label>
 						<input id="node-wait" name="Wait" type="checkbox" checked>
 					</div>
-					<div id="node-part-metadata">
-						Part metadata editor
+				</div>
+				{{range $tk, $type := $.PartTypes}}
+				<div id="node-{{$tk}}-help-panel" style="display:none">
+					<h3>{{$tk}}</h3>
+					<div>
+						{{$type.Help}}
 					</div>
 				</div>
-				<div id="node-help-panel" style="display:none">
-					<h3 id="node-part-help-title">{Part.TypeKey}</h3>
-					<div id="node-part-help-contents">
-						{.Part.Help}
-					</div>
+				{{range $type.Panels}}
+				<div id="node-{{$tk}}-{{.Name}}-panel" style="display:none">
+					{{.Editor}}
 				</div>
+				{{end}}
+				{{end}}
 			</div>
 		</div>
 	</div>
@@ -128,7 +137,7 @@ var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(graphE
 type editorInput struct {
 	Graph     *model.Graph
 	GraphJSON string
-	PartTypes map[string]model.PartFactory
+	PartTypes map[string]*model.PartType
 }
 
 // Graph displays a graph.
@@ -143,7 +152,7 @@ func Graph(w http.ResponseWriter, g *model.Graph) {
 	d := &editorInput{
 		Graph:     g,
 		GraphJSON: string(gj),
-		PartTypes: model.PartFactories,
+		PartTypes: model.PartTypes,
 	}
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)

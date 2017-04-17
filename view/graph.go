@@ -52,9 +52,9 @@ const graphEditorTemplateSrc = `<html>
 		<a id="graph-save" href="javascript:void(0)" title="Save current changes to disk">Save</a> | 
 		<a href="?reload" class="destructive" title="Revert to last saved file">Revert</a> |
 		{{if $.Graph.IsCommand -}}
-		<a href="?install" title="Export the graph to a Go package and 'go install' it">Install</a> | 
+		<a href="?install" target="_blank" title="Export the graph to a Go package and 'go install' it">Install</a> | 
 		{{else -}}
-		<a href="?build" title="Export the graph to a Go package and 'go build' it">Build</a> | 
+		<a href="?build" target="_blank" title="Export the graph to a Go package and 'go build' it">Build</a> | 
 		{{end -}}
 		<a href="?run" target="_blank" title="Export the graph to a Go package and execute it">Run</a> | 
 		<span class="dropdown">
@@ -67,7 +67,7 @@ const graphEditorTemplateSrc = `<html>
 				</ul>
 			</div>
 		</span> |
-		View as: <a href="?go">Go</a> <a href="?json">JSON</a>
+		View as: <a href="?go" target="_blank">Go</a> <a href="?json" target="_blank">JSON</a>
 	</div>
 	<div class="box">
 		<div class="container">

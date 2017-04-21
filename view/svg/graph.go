@@ -21,15 +21,16 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/api"
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
 )
 
 var (
-	graphNameElement        = mustGetElement("graph-prop-name")
-	graphPackagePathElement = mustGetElement("graph-prop-package-path")
-	graphIsCommandElement   = mustGetElement("graph-prop-is-command")
+	graphNameElement        = jsutil.MustGetElement("graph-prop-name")
+	graphPackagePathElement = jsutil.MustGetElement("graph-prop-package-path")
+	graphIsCommandElement   = jsutil.MustGetElement("graph-prop-is-command")
 )
 
 // Graph is the view's model of a graph.

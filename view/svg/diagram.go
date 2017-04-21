@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -28,7 +29,7 @@ type diagram struct {
 }
 
 func (d *diagram) makeSVGElement(n string) *js.Object {
-	return mustGetGlobal("document").Call("createElementNS", d.Get("namespaceURI"), n)
+	return jsutil.MustGetGlobal("document").Call("createElementNS", d.Get("namespaceURI"), n)
 }
 
 func (d *diagram) cursorPos(e *js.Object) (x, y float64) {

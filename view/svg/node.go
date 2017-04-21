@@ -19,6 +19,7 @@ import (
 	"log"
 
 	"github.com/google/shenzhen-go/api"
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -33,13 +34,13 @@ const (
 )
 
 var (
-	nodeMetadataSubpanel = mustGetElement("node-metadata-panel")
+	nodeMetadataSubpanel = jsutil.MustGetElement("node-metadata-panel")
 	nodeCurrentSubpanel  = nodeMetadataSubpanel
 
-	nodeNameInput         = mustGetElement("node-name")
-	nodeEnabledInput      = mustGetElement("node-enabled")
-	nodeMultiplicityInput = mustGetElement("node-multiplicity")
-	nodeWaitInput         = mustGetElement("node-wait")
+	nodeNameInput         = jsutil.MustGetElement("node-name")
+	nodeEnabledInput      = jsutil.MustGetElement("node-enabled")
+	nodeMultiplicityInput = jsutil.MustGetElement("node-multiplicity")
+	nodeWaitInput         = jsutil.MustGetElement("node-wait")
 
 	nodePartEditors = make(map[string]*partEditor, len(model.PartTypes))
 )
@@ -53,10 +54,10 @@ func init() {
 	for n, t := range model.PartTypes {
 		p := make(map[string]*js.Object, len(t.Panels))
 		for _, d := range t.Panels {
-			p[d.Name] = mustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
+			p[d.Name] = jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
 		}
 		nodePartEditors[n] = &partEditor{
-			Links:  mustGetElement(fmt.Sprintf("node-%s-links", n)),
+			Links:  jsutil.MustGetElement(fmt.Sprintf("node-%s-links", n)),
 			Panels: p,
 		}
 	}

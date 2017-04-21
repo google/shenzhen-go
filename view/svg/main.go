@@ -19,6 +19,7 @@ import (
 	"log"
 
 	"github.com/google/shenzhen-go/api"
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -36,30 +37,14 @@ const (
 )
 
 var (
-	graphPath = mustGetGlobal("graphPath").String()
+	graphPath = jsutil.MustGetGlobal("graphPath").String()
 
-	graphPropertiesPanel = mustGetElement("graph-properties")
-	nodePropertiesPanel  = mustGetElement("node-properties")
+	graphPropertiesPanel = jsutil.MustGetElement("graph-properties")
+	nodePropertiesPanel  = jsutil.MustGetElement("node-properties")
 	rhsPanel             = graphPropertiesPanel
 
 	client api.Interface
 )
-
-func mustGetGlobal(id string) *js.Object {
-	e := js.Global.Get(id)
-	if e == nil {
-		log.Fatalf("Couldn't get global %q", id)
-	}
-	return e
-}
-
-func mustGetElement(id string) *js.Object {
-	e := mustGetGlobal("document").Call("getElementById", id)
-	if e == nil {
-		log.Fatalf("Couldn't get element %q", id)
-	}
-	return e
-}
 
 func showRHSPanel(p *js.Object) {
 	if p == rhsPanel {
@@ -71,15 +56,15 @@ func showRHSPanel(p *js.Object) {
 }
 
 func main() {
-	client = api.NewClient(mustGetGlobal("apiURL").String())
+	client = api.NewClient(jsutil.MustGetGlobal("apiURL").String())
 
 	d := &diagram{
-		Object: mustGetElement("diagram"),
+		Object: jsutil.MustGetElement("diagram"),
 	}
 	d.errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	d.errLabel.hide()
 
-	g, err := loadGraph(d, mustGetGlobal("GraphJSON").String())
+	g, err := loadGraph(d, jsutil.MustGetGlobal("GraphJSON").String())
 	if err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}
@@ -89,18 +74,18 @@ func main() {
 	d.Call("addEventListener", "mousemove", d.mouseMove)
 	d.Call("addEventListener", "mouseup", d.mouseUp)
 
-	mustGetElement("graph-save").Call("addEventListener", "click", g.save)
-	mustGetElement("graph-properties-save").Call("addEventListener", "click", g.saveProperties)
+	jsutil.MustGetElement("graph-save").Call("addEventListener", "click", g.save)
+	jsutil.MustGetElement("graph-properties-save").Call("addEventListener", "click", g.saveProperties)
 
-	mustGetElement("node-save-link").Call("addEventListener", "click", d.saveSelected)
-	mustGetElement("node-metadata-link").Call("addEventListener", "click", func(*js.Object) {
+	jsutil.MustGetElement("node-save-link").Call("addEventListener", "click", d.saveSelected)
+	jsutil.MustGetElement("node-metadata-link").Call("addEventListener", "click", func(*js.Object) {
 		d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
 	})
 
 	for n, e := range nodePartEditors {
 		for m, p := range e.Panels {
 			p := p
-			mustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).Call("addEventListener", "click", func(*js.Object) {
+			jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).Call("addEventListener", "click", func(*js.Object) {
 				d.selectedItem.(*Node).showSubPanel(p)
 			})
 		}

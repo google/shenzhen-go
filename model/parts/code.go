@@ -126,7 +126,6 @@ function addrowpls() {
 	</tr>
 </thead>
 <tbody id="pins">
-{{range $.Node.Part.Pins}}
 	<tr>
 	    <td>
 			<select name="PinDirection">
@@ -144,25 +143,32 @@ function addrowpls() {
 			<a href="javascript:void(0)" onclick="removemepls(this.parentNode.parentNode)">Remove pin</a>
 		</td>
 	</tr>
-{{end -}}
 </tbody>
 </table>`,
 		},
 		{
-			Name:   "Imports",
-			Editor: `<pre class="codeedit" id="imports">{.Node.FlatImports}</pre>`,
+			Name: "Imports",
+			Editor: `
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+				<pre class="codeedit" id="code-imports">{.Node.FlatImports}</pre>`,
 		},
 		{
-			Name:   "Head",
-			Editor: `<pre class="codeedit" id="head">{.Node.ImplHead}</pre>`,
+			Name: "Head",
+			Editor: `
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+				<pre class="codeedit" id="code-head">{.Node.ImplHead}</pre>`,
 		},
 		{
-			Name:   "Body",
-			Editor: `<pre class="codeedit" id="body">{.Node.ImplBody}</pre>`,
+			Name: "Body",
+			Editor: `
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+				<pre class="codeedit" id="code-body">{.Node.ImplBody}</pre>`,
 		},
 		{
-			Name:   "Tail",
-			Editor: `<pre class="codeedit" id="tail">{.Node.ImplTail}</pre>`,
+			Name: "Tail",
+			Editor: `
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+				<pre class="codeedit" id="code-tail">{.Node.ImplTail}</pre>`,
 		},
 		{
 			Name: "Help",

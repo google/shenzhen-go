@@ -18,6 +18,7 @@ package parts
 
 import (
 	"log"
+	"strings"
 
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/gopherjs/gopherjs/js"
@@ -50,6 +51,8 @@ func aceEdit(id string) *js.Object {
 }
 
 func (c *Code) GainFocus(*js.Object) {
-	// TODO
-	//codeImports.
+	codeImports.Set("innerText", strings.Join(c.imports, "\n"))
+	codeHead.Set("innerText", c.head)
+	codeBody.Set("innerText", c.body)
+	codeTail.Set("innerText", c.tail)
 }

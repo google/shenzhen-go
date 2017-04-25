@@ -147,28 +147,20 @@ function addrowpls() {
 </table>`,
 		},
 		{
-			Name: "Imports",
-			Editor: `
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-				<pre class="codeedit" id="code-imports">{.Node.FlatImports}</pre>`,
+			Name:   "Imports",
+			Editor: `<div class="codeedit" id="code-imports">{.Node.FlatImports}</div>`,
 		},
 		{
-			Name: "Head",
-			Editor: `
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-				<pre class="codeedit" id="code-head">{.Node.ImplHead}</pre>`,
+			Name:   "Head",
+			Editor: `<div class="codeedit" id="code-head">{.Node.ImplHead}</div>`,
 		},
 		{
-			Name: "Body",
-			Editor: `
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-				<pre class="codeedit" id="code-body">{.Node.ImplBody}</pre>`,
+			Name:   "Body",
+			Editor: `<div class="codeedit" id="code-body">{.Node.ImplBody}</div>`,
 		},
 		{
-			Name: "Tail",
-			Editor: `
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-				<pre class="codeedit" id="code-tail">{.Node.ImplTail}</pre>`,
+			Name:   "Tail",
+			Editor: `<div class="codeedit" id="code-tail">{.Node.ImplTail}</div>`,
 		},
 		{
 			Name: "Help",

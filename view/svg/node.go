@@ -137,6 +137,10 @@ func (n *Node) drop(e *js.Object) {
 	}()
 }
 
+type focusablePart interface {
+	GainFocus(*js.Object)
+}
+
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
 	nodeNameInput.Set("value", n.Node.Name)
@@ -149,6 +153,10 @@ func (n *Node) gainFocus(e *js.Object) {
 		n.subpanel = nodeMetadataSubpanel
 	}
 	n.showSubPanel(n.subpanel)
+
+	if f := n.Node.Part.(focusablePart); f != nil {
+		f.GainFocus(e)
+	}
 }
 
 func (n *Node) loseFocus(e *js.Object) {

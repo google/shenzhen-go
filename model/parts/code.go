@@ -25,38 +25,6 @@ import (
 	"github.com/google/shenzhen-go/model/pin"
 )
 
-const (
-	codePartEditTemplateSrc = `
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-<script>
-    var theme = 'ace/theme/chrome';
-	var lang = 'ace/mode/golang';
-	var imps = ace.edit('imports');
-    var head = ace.edit('head');
-	var body = ace.edit('body');
-	var tail = ace.edit('tail');
-    imps.setTheme(theme);
-    imps.getSession().setMode(lang);
-	imps.getSession().setUseSoftTabs(false);
-    head.setTheme(theme);
-    head.getSession().setMode(lang);
-	head.getSession().setUseSoftTabs(false);
-    body.setTheme(theme);
-    body.getSession().setMode(lang);
-	body.getSession().setUseSoftTabs(false);
-    tail.setTheme(theme);
-    tail.getSession().setMode(lang);
-	tail.getSession().setUseSoftTabs(false);
-	this.parent.onsubmit = function() {
-		document.getElementById('himports').value = imports.getValue();
-		document.getElementById('hhead').value = head.getValue();
-		document.getElementById('hbody').value = body.getValue();
-		docuemnt.getElementById('htail').value = tail.getValue();
-	};
-</script>
-`
-)
-
 var (
 	// CodePanels are subpanels for editing code-type parts.
 	CodePanels = []struct {

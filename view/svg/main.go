@@ -52,7 +52,7 @@ func showRHSPanel(p *js.Object) {
 	}
 	rhsPanel.Get("style").Set("display", "none")
 	rhsPanel = p
-	rhsPanel.Get("style").Set("display", "block")
+	rhsPanel.Get("style").Set("display", nil)
 }
 
 func main() {

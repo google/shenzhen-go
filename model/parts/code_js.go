@@ -24,35 +24,35 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
-var (
-	ace = jsutil.MustGetGlobal("ace")
-
-	codeImports = aceEdit("code-imports")
-	codeHead    = aceEdit("code-head")
-	codeBody    = aceEdit("code-body")
-	codeTail    = aceEdit("code-tail")
-)
-
 const (
 	aceMode  = "ace/mode/golang"
 	aceTheme = "ace/theme/chrome"
 )
 
-func aceEdit(id string) *js.Object {
+var (
+	ace = jsutil.MustGetGlobal("ace")
+
+	_, codeImportsSession = aceEdit("code-imports")
+	_, codeHeadSession    = aceEdit("code-head")
+	_, codeBodySession    = aceEdit("code-body")
+	_, codeTailSession    = aceEdit("code-tail")
+)
+
+func aceEdit(id string) (editor, session *js.Object) {
 	r := ace.Call("edit", id)
-	if r != nil {
+	if r == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
 	r.Call("setTheme", aceTheme)
 	s := r.Call("getSession")
 	s.Call("setMode", aceMode)
 	s.Call("setUseSoftTabs", false)
-	return r
+	return r, s
 }
 
 func (c *Code) GainFocus(*js.Object) {
-	codeImports.Set("innerText", strings.Join(c.imports, "\n"))
-	codeHead.Set("innerText", c.head)
-	codeBody.Set("innerText", c.body)
-	codeTail.Set("innerText", c.tail)
+	codeImportsSession.Call("setValue", strings.Join(c.imports, "\n"))
+	codeHeadSession.Call("setValue", c.head)
+	codeBodySession.Call("setValue", c.body)
+	codeTailSession.Call("setValue", c.tail)
 }

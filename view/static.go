@@ -196,7 +196,24 @@ div.box {
 }
 div.container {
 	flex: 1 1 50%;
+}
+div#diagram-container {
 	overflow: scroll;
+}
+div#panels-container {
+	padding: 6px;
+	display: flex;
+	flex-flow: column;
+}
+div#node-properties {
+	display: flex;
+	flex-flow: column;
+	flex: auto;
+}
+div.node-panel {
+	display: flex;
+	flex-flow: column;
+	flex: auto;
 }
 div.hcentre {
 	text-align: center;
@@ -236,11 +253,10 @@ fieldset#pathtemplate {
    	padding: 0;
    	overflow: hidden;
 }
-pre.codeedit {
+.codeedit {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 14px;
-	height: 600px;
-    width: 100%;
+	flex: auto;
 }
 `
 )

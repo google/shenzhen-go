@@ -59,10 +59,10 @@ const graphEditorTemplateSrc = `<html>
 		View as: <a href="?go" target="_blank">Go</a> <a href="?json" target="_blank">JSON</a>
 	</div>
 	<div class="box">
-		<div class="container">
+		<div class="container" id="diagram-container">
 			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" />
 		</div>
-		<div class="container" style="padding: 6px">
+		<div class="container" id="panels-container">
 			<div id="graph-properties">
 				<h3>Graph Properties</h3>
 				<a id="graph-properties-save" href="javascript:void(0)">Save</a>
@@ -116,7 +116,7 @@ const graphEditorTemplateSrc = `<html>
 				</div>
 				{{range $tk, $type := $.PartTypes}}
 				{{range $type.Panels}}
-				<div id="node-{{$tk}}-{{.Name}}-panel" style="display:none">
+				<div class="node-panel" id="node-{{$tk}}-{{.Name}}-panel" style="display:none">
 					{{.Editor}}
 				</div>
 				{{end}}

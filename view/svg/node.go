@@ -153,7 +153,6 @@ func (n *Node) gainFocus(e *js.Object) {
 		n.subpanel = nodeMetadataSubpanel
 	}
 	n.showSubPanel(n.subpanel)
-
 	if f := n.Node.Part.(focusablePart); f != nil {
 		f.GainFocus(e)
 	}
@@ -218,5 +217,5 @@ func (n *Node) showSubPanel(p *js.Object) {
 	}
 	nodeCurrentSubpanel.Get("style").Set("display", "none")
 	nodeCurrentSubpanel = p
-	nodeCurrentSubpanel.Get("style").Set("display", "block")
+	nodeCurrentSubpanel.Get("style").Set("display", nil)
 }

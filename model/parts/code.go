@@ -164,30 +164,32 @@ function addrowpls() {
 		},
 		{
 			Name: "Help",
-			Editor: `<p>
-	A Code part runs (executes) any Go code that you write.
+			Editor: `<div>
+	<p>
+		A Code part runs (executes) any Go code that you write.
 	</p><p>
-	It consists of 3 parts: a Head, a Body, and a Tail. 
-	The Head runs first, and only runs once, no matter what number Multiplicity is set to. 
-	The Body runs next. The number of concurrent copies of the Body that run is set by Multiplicity.
-	Finally, when all copies of the Body return, the Tail runs. 
+		It consists of 3 parts: a Head, a Body, and a Tail. 
+		The Head runs first, and only runs once, no matter what number Multiplicity is set to. 
+		The Body runs next. The number of concurrent copies of the Body that run is set by Multiplicity.
+		Finally, when all copies of the Body return, the Tail runs. 
 	</p><p>
-	The Head and Tail are useful for operations that should only be done once. For example, any 
-	output channels written to in the Body can be correctly closed (if desired) in the Tail.
+		The Head and Tail are useful for operations that should only be done once. For example, any 
+		output channels written to in the Body can be correctly closed (if desired) in the Tail.
 	</p><p>
-	Each instance of the Body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
-	to distinguish which instance is running and how many are running, if necessary. 
-	<code>0 <= instanceNumber < multiplicity</code>
+		Each instance of the Body can use the int parameters <code>instanceNumber</code> and <code>multiplicity</code>
+		to distinguish which instance is running and how many are running, if necessary. 
+		<code>0 <= instanceNumber < multiplicity</code>
 	</p><p>
-	Any channels referred to will automatically be detected and shown in the graph, and
-	when channels are renamed, these will be safely updated in the Code where they are
-	referred to.
+		Any channels referred to will automatically be detected and shown in the graph, and
+		when channels are renamed, these will be safely updated in the Code where they are
+		referred to.
 	</p><p>
-	The <code>return</code> statement is allowed but optional in Code. There are no values that
-	need to be returned.
-	Using <code>return</code> in the Head will prevent the Body or Tail from executing, but 
-	using <code>return</code> in the Body won't affect whether the Tail is executed.
+		The <code>return</code> statement is allowed but optional in Code. There are no values that
+		need to be returned.
+		Using <code>return</code> in the Head will prevent the Body or Tail from executing, but 
+		using <code>return</code> in the Body won't affect whether the Tail is executed.
 	</p>
+	</div>
 	`,
 		},
 	}

@@ -18,6 +18,7 @@ package parts
 
 import (
 	"log"
+	"math"
 	"strings"
 
 	"github.com/google/shenzhen-go/jsutil"
@@ -44,6 +45,7 @@ func aceEdit(id string) (editor, session *js.Object) {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
 	r.Call("setTheme", aceTheme)
+	r.Set("$blockScrolling", math.Inf(1)) // Make console warnings shut up
 	s := r.Call("getSession")
 	s.Call("setMode", aceMode)
 	s.Call("setUseSoftTabs", false)

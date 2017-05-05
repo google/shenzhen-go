@@ -224,12 +224,29 @@ func (p *Pin) drop(e *js.Object) {
 	p.ch.commit()
 }
 
+func (p *Pin) mouseEnter(*js.Object) {
+	x, y := p.x-p.node.X, p.y-p.node.Y
+	if p.input {
+		y -= 38
+	} else {
+		y += 8
+	}
+	p.nametag.moveTo(x, y)
+	p.nametag.show()
+}
+
+func (p *Pin) mouseLeave(*js.Object) {
+	p.nametag.hide()
+}
+
 func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.node = n
 	p.circ = p.node.d.makeSVGElement("circle")
 	p.circ.Call("setAttribute", "r", pinRadius)
 	p.circ.Call("setAttribute", "fill", normalColour)
 	p.circ.Call("addEventListener", "mousedown", p.dragStart)
+	p.circ.Call("addEventListener", "mouseenter", p.mouseEnter)
+	p.circ.Call("addEventListener", "mouseleave", p.mouseLeave)
 
 	// Line
 	p.l = p.node.d.makeSVGElement("line")
@@ -246,7 +263,7 @@ func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.c.Call("setAttribute", "display", "none")
 
 	// Nametag
-	p.nametag = newTextBox(p.node.d, p.Name, nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.nametag = newTextBox(p.node.d, fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
 	p.node.box.group.Call("appendChild", p.nametag.group)
 	p.nametag.hide()
 	return p.circ

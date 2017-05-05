@@ -32,103 +32,24 @@ var (
 		Editor template.HTML
 	}{
 		{
-			Name: "Pins",
-			Editor: `<script>
-function removemepls(e) {
-	e.parentNode.removeChild(e);
-}
-function addrowpls() {
-	var tr = document.createElement('tr');
-	
-	var c1 = document.createElement('td');
-	tr.appendChild(c1);
-	var dir = document.createElement('select');
-	dir.name = 'PinDirection';
-	c1.appendChild(dir);
-	var inop = document.createElement('option');
-	inop.value = 'In';
-	inop.innerText = 'Input';
-	dir.appendChild(inop);
-	var outop = document.createElement('option');
-	outop.value = 'Out';
-	outop.innerText = 'Output';
-	dir.appendChild(outop);
-
-	var c2 = document.createElement('td');
-	tr.appendChild(c2);
-	var name = document.createElement('input');
-	name.type = 'text';
-	name.name = 'PinName';
-	name.required = true;
-	name.pattern = '^[_a-zA-Z][_a-zA-Z0-9]*$';
-	name.title = 'Must start with a letter or underscore, and only contain letters, digits, or underscores.';
-	c2.appendChild(name);
-
-	var c3 = document.createElement('td');
-	tr.appendChild(c3);
-	var typ = document.createElement('input');
-	typ.type = 'text';
-	typ.name = 'PinType';
-	typ.required = true;
-	c3.appendChild(typ);
-	
-	var c4 = document.createElement('td');
-	tr.appendChild(c4);
-	var rem = document.createElement('a');
-	rem.href = 'javascript:void(0)';
-	rem.onclick = function() { removemepls(tr); };
-	rem.innerText = 'Remove pin';
-	c4.appendChild(rem);
-
-	var pins = document.getElementById('pins');
-	pins.appendChild(tr);
-}
-</script>
-<table>
-<thead>
-	<tr>
-		<th class="pin-col-1">Direction</th>
-		<th class="pin-col-2">Name</th>
-		<th class="pin-col-3">Type</th>
-		<th class="pin-col-4"><a href="javascript:void(0)" onclick="addrowpls()">Add pin</a></th>
-	</tr>
-</thead>
-<tbody id="pins">
-	<tr>
-	    <td>
-			<select name="PinDirection">
-				<option value="in" {{if eq .Direction "in"}}selected{{end}}>Input</option>
-				<option value="out" {{if eq .Direction "out"}}selected{{end}}>Output</option>
-			</select>
-		</td>
-		<td>
-			<input type="text" name="PinName" required pattern="^[_a-zA-Z][_a-zA-Z0-9]*$" title="Must start with a letter or underscore, and only contain letters, digits, or underscores." value="{{.Name}}">
-		</td>
-		<td>
-			<input type="text" name="PinType" required value="{{.Type}}">
-		</td>
-		<td>
-			<a href="javascript:void(0)" onclick="removemepls(this.parentNode.parentNode)">Remove pin</a>
-		</td>
-	</tr>
-</tbody>
-</table>`,
+			Name:   "Pins",
+			Editor: `<div class="codeedit" id="code-pins"></div>`,
 		},
 		{
 			Name:   "Imports",
-			Editor: `<div class="codeedit" id="code-imports">{.Node.FlatImports}</div>`,
+			Editor: `<div class="codeedit" id="code-imports"></div>`,
 		},
 		{
 			Name:   "Head",
-			Editor: `<div class="codeedit" id="code-head">{.Node.ImplHead}</div>`,
+			Editor: `<div class="codeedit" id="code-head"></div>`,
 		},
 		{
 			Name:   "Body",
-			Editor: `<div class="codeedit" id="code-body">{.Node.ImplBody}</div>`,
+			Editor: `<div class="codeedit" id="code-body"></div>`,
 		},
 		{
 			Name:   "Tail",
-			Editor: `<div class="codeedit" id="code-tail">{.Node.ImplTail}</div>`,
+			Editor: `<div class="codeedit" id="code-tail"></div>`,
 		},
 		{
 			Name: "Help",

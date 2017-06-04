@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/jsutil"
+	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -35,14 +36,20 @@ const (
 var (
 	ace = jsutil.MustGetGlobal("ace")
 
-	_, codePinsSession    = aceEdit("code-pins", aceJSONMode, aceChromeTheme)
-	_, codeImportsSession = aceEdit("code-imports", aceGoMode, aceChromeTheme)
-	_, codeHeadSession    = aceEdit("code-head", aceGoMode, aceChromeTheme)
-	_, codeBodySession    = aceEdit("code-body", aceGoMode, aceChromeTheme)
-	_, codeTailSession    = aceEdit("code-tail", aceGoMode, aceChromeTheme)
+	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *js.Object
+
+	focused *Code
 )
 
-func aceEdit(id, mode, theme string) (editor, session *js.Object) {
+func init() {
+	codePinsSession = aceEdit("code-pins", aceJSONMode, aceChromeTheme, (*Code).handlePinsChange)
+	codeImportsSession = aceEdit("code-imports", aceGoMode, aceChromeTheme, (*Code).handleImportsChange)
+	codeHeadSession = aceEdit("code-head", aceGoMode, aceChromeTheme, (*Code).handleHeadChange)
+	codeBodySession = aceEdit("code-body", aceGoMode, aceChromeTheme, (*Code).handleBodyChange)
+	codeTailSession = aceEdit("code-tail", aceGoMode, aceChromeTheme, (*Code).handleTailChange)
+}
+
+func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) *js.Object {
 	r := ace.Call("edit", id)
 	if r == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
@@ -52,10 +59,31 @@ func aceEdit(id, mode, theme string) (editor, session *js.Object) {
 	s := r.Call("getSession")
 	s.Call("setMode", mode)
 	s.Call("setUseSoftTabs", false)
-	return r, s
+	s.Call("on", "change", func(e *js.Object) {
+		handler(focused, e)
+	})
+	return s
 }
 
+func (c *Code) handlePinsChange(e *js.Object) {
+	var p []pin.Definition
+	if err := json.Unmarshal([]byte(codePinsSession.Get("value").String()), &p); err != nil {
+		// Ignore
+		return
+	}
+	c.pins = p
+}
+
+func (c *Code) handleImportsChange(e *js.Object) {
+	c.imports = strings.Split(codeImportsSession.Get("value").String(), "\n")
+}
+
+func (c *Code) handleHeadChange(e *js.Object) { c.head = codeHeadSession.Get("value").String() }
+func (c *Code) handleBodyChange(e *js.Object) { c.body = codeBodySession.Get("value").String() }
+func (c *Code) handleTailChange(e *js.Object) { c.tail = codeTailSession.Get("value").String() }
+
 func (c *Code) GainFocus(*js.Object) {
+	focused = c
 	p, err := json.MarshalIndent(c.pins, "", "\t")
 	if err != nil {
 		// Should have parsed correctly beforehand.

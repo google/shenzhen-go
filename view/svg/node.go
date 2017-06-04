@@ -15,6 +15,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -137,7 +138,7 @@ func (n *Node) drop(e *js.Object) {
 	}()
 }
 
-type focusablePart interface {
+type focusable interface {
 	GainFocus(*js.Object)
 }
 
@@ -153,7 +154,7 @@ func (n *Node) gainFocus(e *js.Object) {
 		n.subpanel = nodeMetadataSubpanel
 	}
 	n.showSubPanel(n.subpanel)
-	if f := n.Node.Part.(focusablePart); f != nil {
+	if f := n.Node.Part.(focusable); f != nil {
 		f.GainFocus(e)
 	}
 }
@@ -163,6 +164,11 @@ func (n *Node) loseFocus(e *js.Object) {
 }
 
 func (n *Node) save(e *js.Object) {
+	p, err := json.Marshal(n.Part)
+	if err != nil {
+		log.Printf("Couldn't marshal part: %v", err)
+		return
+	}
 	req := &api.SetNodePropertiesRequest{
 		NodeRequest: api.NodeRequest{
 			Request: api.Request{
@@ -174,13 +180,15 @@ func (n *Node) save(e *js.Object) {
 		Enabled:      nodeEnabledInput.Get("checked").Bool(),
 		Multiplicity: uint(nodeMultiplicityInput.Get("value").Int()),
 		Wait:         nodeWaitInput.Get("checked").Bool(),
+		Part:         p,
+		PartType:     n.Part.TypeKey(),
 	}
 	go func() {
 		if err := client.SetNodeProperties(req); err != nil {
 			log.Printf("Couldn't update node properties: %v", err)
 			return
 		}
-		// Update local copy
+		// Update local copy, since these were read at save time.
 		if n.Name != req.Name {
 			delete(n.d.graph.Nodes, n.Name)
 			n.d.graph.Nodes[req.Name] = n

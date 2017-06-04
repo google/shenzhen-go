@@ -15,6 +15,8 @@
 // Package api has types for communicating with the UI.
 package api
 
+import "encoding/json"
+
 // Interface is "the API" - the interface defining available requests.
 type Interface interface {
 	// CreateChannel makes a new channel.
@@ -82,10 +84,12 @@ type NodeRequest struct {
 // SetNodePropertiesRequest is a request to change metadata of a node.
 type SetNodePropertiesRequest struct {
 	NodeRequest
-	Name         string `json:"name"`
-	Enabled      bool   `json:"enabled"`
-	Multiplicity uint   `json:"multiplicity"`
-	Wait         bool   `json:"wait"`
+	Name         string          `json:"name"`
+	Enabled      bool            `json:"enabled"`
+	Multiplicity uint            `json:"multiplicity"`
+	Wait         bool            `json:"wait"`
+	PartType     string          `json:"part_type"`
+	Part         json.RawMessage `json:"part"`
 }
 
 // SetPositionRequest is a request to change the position of a node.

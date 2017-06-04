@@ -16,7 +16,6 @@ package model
 
 import (
 	"html/template"
-	"net/http"
 
 	"github.com/google/shenzhen-go/model/parts"
 	"github.com/google/shenzhen-go/model/pin"
@@ -48,9 +47,6 @@ type Part interface {
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string
-
-	// Update sets fields in the part based on info in the given Request.
-	Update(*http.Request) error
 }
 
 // PartType has metadata common to this type of part, and is also a part factory.

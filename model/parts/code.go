@@ -19,7 +19,6 @@ import (
 	"go/format"
 	"html/template"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/google/shenzhen-go/model/pin"
@@ -209,22 +208,4 @@ func (c *Code) refresh(h, b, t string) error {
 
 	c.head, c.body, c.tail = string(hf), string(bf), string(tf)
 	return nil
-}
-
-// Update sets relevant fields based on the given Request.
-func (c *Code) Update(r *http.Request) error {
-	h, b, t := c.head, c.body, c.tail
-	if r != nil {
-		h, b, t = r.FormValue("Head"), r.FormValue("Body"), r.FormValue("Tail")
-	}
-	pd, pn, pt := r.Form["PinDirection"], r.Form["PinName"], r.Form["PinType"]
-	c.pins = make([]pin.Definition, 0, len(pd))
-	for i, d := range pd {
-		c.pins = append(c.pins, pin.Definition{
-			Name:      pn[i],
-			Direction: pin.Direction(d),
-			Type:      pt[i],
-		})
-	}
-	return c.refresh(h, b, t)
 }

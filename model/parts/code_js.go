@@ -41,6 +41,7 @@ var (
 	focused *Code
 )
 
+// Needed to resolve initialization cycle. (*Code).handleFoo uses the value loaded here.
 func init() {
 	codePinsSession = aceEdit("code-pins", aceJSONMode, aceChromeTheme, (*Code).handlePinsChange)
 	codeImportsSession = aceEdit("code-imports", aceGoMode, aceChromeTheme, (*Code).handleImportsChange)

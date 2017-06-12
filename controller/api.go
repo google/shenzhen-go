@@ -138,6 +138,10 @@ func (h apiHandler) SetNodeProperties(req *api.SetNodePropertiesRequest) error {
 	if err != nil {
 		return err
 	}
+	p, err := req.PartJSON.Unmarshal()
+	if err != nil {
+		return err
+	}
 	if n.Name != req.Name {
 		if _, exists := g.Nodes[req.Name]; exists {
 			return fmt.Errorf("node %q already exists", req.Name)
@@ -149,7 +153,7 @@ func (h apiHandler) SetNodeProperties(req *api.SetNodePropertiesRequest) error {
 	n.Multiplicity = req.Multiplicity
 	n.Enabled = req.Enabled
 	n.Wait = req.Wait
-
+	n.Part = p
 	return nil
 }
 

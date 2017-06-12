@@ -16,7 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -93,11 +92,10 @@ func (n *Node) Identifier() string {
 }
 
 type jsonNode struct {
+	*PartJSON
 	Enabled      bool              `json:"enabled"`
 	Wait         bool              `json:"wait"`
-	Multiplicity uint              `json:"multiplicity"`
-	Part         json.RawMessage   `json:"part,omitempty"`
-	PartType     string            `json:"part_type,omitempty"`
+	Multiplicity uint              `json:"multiplicity,omitempty"`
 	X            int               `json:"x"`
 	Y            int               `json:"y"`
 	Connections  map[string]string `json:"connections"`
@@ -105,13 +103,12 @@ type jsonNode struct {
 
 // MarshalJSON encodes the node and part as JSON.
 func (n *Node) MarshalJSON() ([]byte, error) {
-	p, err := json.Marshal(n.Part)
+	pj, err := MarshalPart(n.Part)
 	if err != nil {
 		return nil, err
 	}
 	return json.Marshal(&jsonNode{
-		Part:         p,
-		PartType:     n.Part.TypeKey(),
+		PartJSON:     pj,
 		Enabled:      n.Enabled,
 		Wait:         n.Wait,
 		Multiplicity: n.Multiplicity,
@@ -127,12 +124,8 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if err := json.Unmarshal(j, &mp); err != nil {
 		return err
 	}
-	pt, ok := PartTypes[mp.PartType]
-	if !ok {
-		return fmt.Errorf("unknown part type %q", mp.PartType)
-	}
-	p := pt.New()
-	if err := json.Unmarshal(mp.Part, p); err != nil {
+	p, err := mp.PartJSON.Unmarshal()
+	if err != nil {
 		return err
 	}
 	if mp.Multiplicity < 1 {

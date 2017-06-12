@@ -67,7 +67,7 @@ func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) *js.Object
 
 func (c *Code) handlePinsChange(e *js.Object) {
 	var p []pin.Definition
-	if err := json.Unmarshal([]byte(codePinsSession.Get("value").String()), &p); err != nil {
+	if err := json.Unmarshal([]byte(codePinsSession.Call("getValue").String()), &p); err != nil {
 		// Ignore
 		return
 	}
@@ -75,12 +75,12 @@ func (c *Code) handlePinsChange(e *js.Object) {
 }
 
 func (c *Code) handleImportsChange(e *js.Object) {
-	c.imports = strings.Split(codeImportsSession.Get("value").String(), "\n")
+	c.imports = strings.Split(codeImportsSession.Call("getValue").String(), "\n")
 }
 
-func (c *Code) handleHeadChange(e *js.Object) { c.head = codeHeadSession.Get("value").String() }
-func (c *Code) handleBodyChange(e *js.Object) { c.body = codeBodySession.Get("value").String() }
-func (c *Code) handleTailChange(e *js.Object) { c.tail = codeTailSession.Get("value").String() }
+func (c *Code) handleHeadChange(e *js.Object) { c.head = codeHeadSession.Call("getValue").String() }
+func (c *Code) handleBodyChange(e *js.Object) { c.body = codeBodySession.Call("getValue").String() }
+func (c *Code) handleTailChange(e *js.Object) { c.tail = codeTailSession.Call("getValue").String() }
 
 func (c *Code) GainFocus(*js.Object) {
 	focused = c

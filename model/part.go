@@ -15,8 +15,10 @@
 package model
 
 import (
+	"fmt"
 	"html/template"
 
+	"encoding/json"
 	"github.com/google/shenzhen-go/model/parts"
 	"github.com/google/shenzhen-go/model/pin"
 )
@@ -72,4 +74,32 @@ var PartTypes = map[string]*PartType{
 		"StaticSend":     func() Part { return new(parts.StaticSend) },
 		"TextFileReader": func() Part { return new(parts.TextFileReader) },
 		"Unslicer":       func() Part { return new(parts.Unslicer) },*/
+}
+
+// PartJSON is a convenient JSON-plus-type-key type.
+type PartJSON struct {
+	Part json.RawMessage `json:"part,omitempty"`
+	Type string          `json:"part_type,omitempty"`
+}
+
+// MarshalPart turns a rich Part into JSON-with-type.
+func MarshalPart(p Part) (*PartJSON, error) {
+	m, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	return &PartJSON{Part: m, Type: p.TypeKey()}, nil
+}
+
+// Unmarshal converts the JSON into a Part, via the type key.
+func (pj *PartJSON) Unmarshal() (Part, error) {
+	pt, ok := PartTypes[pj.Type]
+	if !ok {
+		return nil, fmt.Errorf("unknown part type %q", pj.Type)
+	}
+	p := pt.New()
+	if err := json.Unmarshal(pj.Part, p); err != nil {
+		return nil, err
+	}
+	return p, nil
 }

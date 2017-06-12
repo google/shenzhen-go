@@ -15,7 +15,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -164,7 +163,7 @@ func (n *Node) loseFocus(e *js.Object) {
 }
 
 func (n *Node) save(e *js.Object) {
-	p, err := json.Marshal(n.Part)
+	pj, err := model.MarshalPart(n.Part)
 	if err != nil {
 		log.Printf("Couldn't marshal part: %v", err)
 		return
@@ -180,8 +179,7 @@ func (n *Node) save(e *js.Object) {
 		Enabled:      nodeEnabledInput.Get("checked").Bool(),
 		Multiplicity: uint(nodeMultiplicityInput.Get("value").Int()),
 		Wait:         nodeWaitInput.Get("checked").Bool(),
-		Part:         p,
-		PartType:     n.Part.TypeKey(),
+		PartJSON:     pj,
 	}
 	go func() {
 		if err := client.SetNodeProperties(req); err != nil {

@@ -58,7 +58,9 @@ func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, h
 				"unselectable": "on",
 				"style":        textStyle,
 			},
-				nil),
+				nil,
+				b.textNode,
+			),
 		))
 	b.computeWidth()
 	return b

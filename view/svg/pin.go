@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -242,25 +243,35 @@ func (p *Pin) mouseLeave(*js.Object) {
 func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.node = n
 	p.circ = p.node.d.makeSVGElement("circle")
-	p.circ.Call("setAttribute", "r", pinRadius)
-	p.circ.Call("setAttribute", "fill", normalColour)
-	p.circ.Call("addEventListener", "mousedown", p.dragStart)
-	p.circ.Call("addEventListener", "mouseenter", p.mouseEnter)
-	p.circ.Call("addEventListener", "mouseleave", p.mouseLeave)
+	p.l = p.node.d.makeSVGElement("line")
+	p.c = p.node.d.makeSVGElement("circle")
+
+	jsutil.Setup(p.circ,
+		map[string]interface{}{
+			"r":    pinRadius,
+			"fill": normalColour,
+		},
+		map[string]func(*js.Object){
+			"mousedown":  p.dragStart,
+			"mouseenter": p.mouseEnter,
+			"mouseleave": p.mouseLeave,
+		})
 
 	// Line
-	p.l = p.node.d.makeSVGElement("line")
 	p.node.d.Call("appendChild", p.l)
-	p.l.Call("setAttribute", "stroke-width", lineWidth)
-	p.l.Call("setAttribute", "display", "none")
+	jsutil.Setup(p.l, map[string]interface{}{
+		"stroke-width": lineWidth,
+		"display":      "none",
+	}, nil)
 
 	// Another circ
-	p.c = p.node.d.makeSVGElement("circle")
 	p.node.d.Call("appendChild", p.c)
-	p.c.Call("setAttribute", "r", pinRadius)
-	p.c.Call("setAttribute", "fill", "transparent")
-	p.c.Call("setAttribute", "stroke-width", lineWidth)
-	p.c.Call("setAttribute", "display", "none")
+	jsutil.Setup(p.c, map[string]interface{}{
+		"r":            pinRadius,
+		"fill":         "transparent",
+		"stroke-width": lineWidth,
+		"display":      "none",
+	}, nil)
 
 	// Nametag
 	p.nametag = newTextBox(p.node.d, fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)

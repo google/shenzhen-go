@@ -42,22 +42,25 @@ func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, h
 		minWidth: minWidth,
 	}
 
-	d.Call("appendChild", b.group)
-	b.group.Call("appendChild", b.rect)
-	b.group.Call("appendChild", b.text)
-	b.text.Call("appendChild", b.textNode)
+	jsutil.Setup(d.Object, nil, nil,
+		jsutil.Setup(b.group, map[string]interface{}{
+			"transform": fmt.Sprintf("translate(%f, %f)", x, y),
+		},
+			nil,
+			jsutil.Setup(b.rect, map[string]interface{}{
+				"height": height,
+				"style":  rectStyle,
+			},
+				nil),
+			jsutil.Setup(b.text, map[string]interface{}{
+				"y":            height/2 + nodeTextOffset,
+				"text-anchor":  "middle",
+				"unselectable": "on",
+				"style":        textStyle,
+			},
+				nil),
+		))
 	b.computeWidth()
-
-	b.group.Call("setAttribute", "transform", fmt.Sprintf("translate(%f, %f)", x, y))
-
-	b.rect.Call("setAttribute", "height", height)
-	b.rect.Call("setAttribute", "style", rectStyle)
-
-	b.text.Call("setAttribute", "y", height/2+nodeTextOffset)
-	b.text.Call("setAttribute", "text-anchor", "middle")
-	b.text.Call("setAttribute", "unselectable", "on")
-	b.text.Call("setAttribute", "style", textStyle)
-
 	return b
 }
 

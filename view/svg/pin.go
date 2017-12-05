@@ -38,10 +38,10 @@ type Pin struct {
 
 	nametag *textBox // Hello, my name is ...
 
-	l    *js.Object // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
-	x, y float64    // computed, not relative to node
-	circ *js.Object // my main representation
-	c    *js.Object // circle, when dragging from a pin
+	l    *jsutil.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
+	x, y float64         // computed, not relative to node
+	circ *jsutil.Element // my main representation
+	c    *jsutil.Element // circle, when dragging from a pin
 }
 
 func (p *Pin) connectTo(q Point) error {
@@ -240,39 +240,29 @@ func (p *Pin) mouseLeave(*js.Object) {
 	p.nametag.hide()
 }
 
-func (p *Pin) makePinElement(n *Node) *js.Object {
+func (p *Pin) makePinElement(n *Node) *jsutil.Element {
 	p.node = n
 
-	p.circ = jsutil.Setup(
-		jsutil.MakeSVGElement("circle"),
-		map[string]interface{}{
-			"r":    pinRadius,
-			"fill": normalColour,
-		},
-		map[string]func(*js.Object){
-			"mousedown":  p.dragStart,
-			"mouseenter": p.mouseEnter,
-			"mouseleave": p.mouseLeave,
-		})
+	p.circ = jsutil.MakeSVGElement("circle").
+		SetAttribute("r", pinRadius).
+		SetAttribute("fill", normalColour).
+		AddEventListener("mousedown", p.dragStart).
+		AddEventListener("mouseenter", p.mouseEnter).
+		AddEventListener("mouseleave", p.mouseLeave)
 
 	// Line
-	p.l = jsutil.Setup(
-		jsutil.MakeSVGElement("line"),
-		map[string]interface{}{
-			"stroke-width": lineWidth,
-			"display":      "none",
-		}, nil)
-	p.node.d.Call("appendChild", p.l)
+	p.l = jsutil.MakeSVGElement("line").
+		SetAttribute("stroke-width", lineWidth).
+		SetAttribute("display", "none")
 
 	// Another circ
-	p.c = jsutil.Setup(
-		jsutil.MakeSVGElement("circle"),
-		map[string]interface{}{
-			"r":            pinRadius,
-			"fill":         "transparent",
-			"stroke-width": lineWidth,
-			"display":      "none",
-		}, nil)
+	p.c = jsutil.MakeSVGElement("circle").
+		SetAttribute("r", pinRadius).
+		SetAttribute("fill", "transparent").
+		SetAttribute("stroke-width", lineWidth).
+		SetAttribute("display", "none")
+
+	p.node.d.Call("appendChild", p.l)
 	p.node.d.Call("appendChild", p.c)
 
 	// Nametag

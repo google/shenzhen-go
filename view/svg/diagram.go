@@ -14,10 +14,13 @@
 
 package main
 
-import "github.com/gopherjs/gopherjs/js"
+import (
+	"github.com/google/shenzhen-go/jsutil"
+	"github.com/gopherjs/gopherjs/js"
+)
 
 type diagram struct {
-	*js.Object // the SVG element
+	*jsutil.Element // the SVG element
 
 	dragItem     draggable  // nil if nothing is being dragged
 	selectedItem selectable // nil if nothing is selected

@@ -26,12 +26,12 @@ type Channel struct {
 
 	Pins map[*Pin]struct{}
 
-	d       *diagram   // I'm in this diagram
-	steiner *js.Object // symbol representing the channel itself, not used if channel is simple
-	x, y    float64    // centre of steiner point, for snapping
-	tx, ty  float64    // temporary centre of steiner point, for display
-	l, c    *js.Object // for dragging to more pins
-	p       *Pin       // considering attaching to this pin
+	d       *diagram        // I'm in this diagram
+	steiner *jsutil.Element // symbol representing the channel itself, not used if channel is simple
+	x, y    float64         // centre of steiner point, for snapping
+	tx, ty  float64         // temporary centre of steiner point, for display
+	l, c    *jsutil.Element // for dragging to more pins
+	p       *Pin            // considering attaching to this pin
 }
 
 func newChannel(d *diagram, p, q *Pin) *Channel {

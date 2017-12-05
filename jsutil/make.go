@@ -14,27 +14,10 @@
 
 package jsutil
 
-import "github.com/gopherjs/gopherjs/js"
-
 const svgNamespaceURI = "http://www.w3.org/2000/svg"
 
 // MakeSVGElement creates an element in the global document,
 // belonging to the the SVG NS (http://www.w3.org/2000/svg).
-func MakeSVGElement(n string) *js.Object {
-	return MustGetGlobal("document").Call("createElementNS", svgNamespaceURI, n)
-}
-
-// Setup calls setAttribute for each pair in attrs, and appendChild for each
-// element in children. It returns the element given.
-func Setup(element *js.Object, attrs map[string]interface{}, events map[string]func(*js.Object), children ...*js.Object) *js.Object {
-	for k, v := range attrs {
-		element.Call("setAttribute", k, v)
-	}
-	for k, v := range events {
-		element.Call("addEventListener", k, v)
-	}
-	for _, c := range children {
-		element.Call("appendChild", c)
-	}
-	return element
+func MakeSVGElement(n string) *Element {
+	return &Element{Document.Call("createElementNS", svgNamespaceURI, n)}
 }

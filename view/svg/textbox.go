@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/google/shenzhen-go/jsutil"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 const (
@@ -28,7 +27,7 @@ const (
 
 type textBox struct {
 	d                           *diagram
-	group, rect, text, textNode *js.Object
+	group, rect, text, textNode *jsutil.Element
 	width, minWidth             float64
 }
 
@@ -38,30 +37,27 @@ func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, h
 		group:    jsutil.MakeSVGElement("g"),
 		rect:     jsutil.MakeSVGElement("rect"),
 		text:     jsutil.MakeSVGElement("text"),
-		textNode: jsutil.MustGetGlobal("document").Call("createTextNode", text),
+		textNode: &jsutil.Element{Object: jsutil.MustGetGlobal("document").Call("createTextNode", text)},
 		minWidth: minWidth,
 	}
 
-	jsutil.Setup(d.Object, nil, nil,
-		jsutil.Setup(b.group, map[string]interface{}{
-			"transform": fmt.Sprintf("translate(%f, %f)", x, y),
-		},
-			nil,
-			jsutil.Setup(b.rect, map[string]interface{}{
-				"height": height,
-				"style":  rectStyle,
-			},
-				nil),
-			jsutil.Setup(b.text, map[string]interface{}{
-				"y":            height/2 + nodeTextOffset,
-				"text-anchor":  "middle",
-				"unselectable": "on",
-				"style":        textStyle,
-			},
-				nil,
-				b.textNode,
+	d.AddChildren(
+		b.group.
+			SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y)).
+			AddChildren(
+				b.rect.
+					SetAttribute("height", height).
+					SetAttribute("style", rectStyle),
+				b.text.
+					SetAttribute("y", height/2+nodeTextOffset).
+					SetAttribute("text-anchor", "middle").
+					SetAttribute("unselectable", "on").
+					SetAttribute("style", textStyle).
+					AddChildren(
+						b.textNode,
+					),
 			),
-		))
+	)
 	b.computeWidth()
 	return b
 }

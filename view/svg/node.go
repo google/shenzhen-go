@@ -46,13 +46,13 @@ var (
 )
 
 type partEditor struct {
-	Links  *js.Object
-	Panels map[string]*js.Object
+	Links  *jsutil.Element
+	Panels map[string]*jsutil.Element
 }
 
 func init() {
 	for n, t := range model.PartTypes {
-		p := make(map[string]*js.Object, len(t.Panels))
+		p := make(map[string]*jsutil.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
 		}
@@ -76,7 +76,7 @@ type Node struct {
 
 	relX, relY float64 // relative client offset for moving around
 
-	subpanel *js.Object // temporarily remember last subpanel for each node
+	subpanel *jsutil.Element // temporarily remember last subpanel for each node
 }
 
 func max(a, b int) int {
@@ -216,7 +216,7 @@ func (n *Node) updatePinPositions() {
 	}
 }
 
-func (n *Node) showSubPanel(p *js.Object) {
+func (n *Node) showSubPanel(p *jsutil.Element) {
 	n.subpanel = p
 	if nodeCurrentSubpanel == p {
 		return

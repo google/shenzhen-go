@@ -46,7 +46,7 @@ var (
 	client api.Interface
 )
 
-func showRHSPanel(p *js.Object) {
+func showRHSPanel(p *jsutil.Element) {
 	if p == rhsPanel {
 		return
 	}
@@ -59,7 +59,7 @@ func main() {
 	client = api.NewClient(jsutil.MustGetGlobal("apiURL").String())
 
 	d := &diagram{
-		Object: jsutil.MustGetElement("diagram"),
+		Element: jsutil.MustGetElement("diagram"),
 	}
 	d.errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	d.errLabel.hide()

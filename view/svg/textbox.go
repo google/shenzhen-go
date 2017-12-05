@@ -35,9 +35,9 @@ type textBox struct {
 func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
 		d:        d,
-		group:    d.makeSVGElement("g"),
-		rect:     d.makeSVGElement("rect"),
-		text:     d.makeSVGElement("text"),
+		group:    jsutil.MakeSVGElement("g"),
+		rect:     jsutil.MakeSVGElement("rect"),
+		text:     jsutil.MakeSVGElement("text"),
 		textNode: jsutil.MustGetGlobal("document").Call("createTextNode", text),
 		minWidth: minWidth,
 	}

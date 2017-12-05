@@ -14,10 +14,7 @@
 
 package main
 
-import (
-	"github.com/google/shenzhen-go/jsutil"
-	"github.com/gopherjs/gopherjs/js"
-)
+import "github.com/gopherjs/gopherjs/js"
 
 type diagram struct {
 	*js.Object // the SVG element
@@ -26,10 +23,6 @@ type diagram struct {
 	selectedItem selectable // nil if nothing is selected
 	errLabel     *textBox
 	graph        *Graph
-}
-
-func (d *diagram) makeSVGElement(n string) *js.Object {
-	return jsutil.MustGetGlobal("document").Call("createElementNS", d.Get("namespaceURI"), n)
 }
 
 func (d *diagram) cursorPos(e *js.Object) (x, y float64) {

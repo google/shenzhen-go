@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -47,9 +48,9 @@ func newChannel(d *diagram, p, q *Pin) *Channel {
 }
 
 func (c *Channel) makeElements() {
-	c.steiner = c.d.makeSVGElement("circle")
-	c.l = c.d.makeSVGElement("line")
-	c.c = c.d.makeSVGElement("circle")
+	c.steiner = jsutil.MakeSVGElement("circle")
+	c.l = jsutil.MakeSVGElement("line")
+	c.c = jsutil.MakeSVGElement("circle")
 
 	c.d.Call("appendChild", c.steiner)
 	c.d.Call("appendChild", c.l)

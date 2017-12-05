@@ -242,11 +242,9 @@ func (p *Pin) mouseLeave(*js.Object) {
 
 func (p *Pin) makePinElement(n *Node) *js.Object {
 	p.node = n
-	p.circ = p.node.d.makeSVGElement("circle")
-	p.l = p.node.d.makeSVGElement("line")
-	p.c = p.node.d.makeSVGElement("circle")
 
-	jsutil.Setup(p.circ,
+	p.circ = jsutil.Setup(
+		jsutil.MakeSVGElement("circle"),
 		map[string]interface{}{
 			"r":    pinRadius,
 			"fill": normalColour,
@@ -258,20 +256,24 @@ func (p *Pin) makePinElement(n *Node) *js.Object {
 		})
 
 	// Line
+	p.l = jsutil.Setup(
+		jsutil.MakeSVGElement("line"),
+		map[string]interface{}{
+			"stroke-width": lineWidth,
+			"display":      "none",
+		}, nil)
 	p.node.d.Call("appendChild", p.l)
-	jsutil.Setup(p.l, map[string]interface{}{
-		"stroke-width": lineWidth,
-		"display":      "none",
-	}, nil)
 
 	// Another circ
+	p.c = jsutil.Setup(
+		jsutil.MakeSVGElement("circle"),
+		map[string]interface{}{
+			"r":            pinRadius,
+			"fill":         "transparent",
+			"stroke-width": lineWidth,
+			"display":      "none",
+		}, nil)
 	p.node.d.Call("appendChild", p.c)
-	jsutil.Setup(p.c, map[string]interface{}{
-		"r":            pinRadius,
-		"fill":         "transparent",
-		"stroke-width": lineWidth,
-		"display":      "none",
-	}, nil)
 
 	// Nametag
 	p.nametag = newTextBox(p.node.d, fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)

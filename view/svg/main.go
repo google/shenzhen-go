@@ -70,24 +70,31 @@ func main() {
 	}
 	d.graph = g
 
-	d.Call("addEventListener", "mousedown", d.mouseDown)
-	d.Call("addEventListener", "mousemove", d.mouseMove)
-	d.Call("addEventListener", "mouseup", d.mouseUp)
+	d.
+		AddEventListener("mousedown", d.mouseDown).
+		AddEventListener("mousemove", d.mouseMove).
+		AddEventListener("mouseup", d.mouseUp)
 
-	jsutil.MustGetElement("graph-save").Call("addEventListener", "click", g.save)
-	jsutil.MustGetElement("graph-properties-save").Call("addEventListener", "click", g.saveProperties)
+	jsutil.MustGetElement("graph-save").
+		AddEventListener("click", g.save)
+	jsutil.MustGetElement("graph-properties-save").
+		AddEventListener("click", g.saveProperties)
 
-	jsutil.MustGetElement("node-save-link").Call("addEventListener", "click", d.saveSelected)
-	jsutil.MustGetElement("node-metadata-link").Call("addEventListener", "click", func(*js.Object) {
-		d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
-	})
+	jsutil.MustGetElement("node-save-link").
+		AddEventListener("click", d.saveSelected)
+	jsutil.MustGetElement("node-metadata-link").
+		AddEventListener("click", func(*js.Object) {
+			d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
+		})
 
 	for n, e := range nodePartEditors {
 		for m, p := range e.Panels {
 			p := p
-			jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).Call("addEventListener", "click", func(*js.Object) {
-				d.selectedItem.(*Node).showSubPanel(p)
-			})
+			jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).
+				AddEventListener("click",
+					func(*js.Object) {
+						d.selectedItem.(*Node).showSubPanel(p)
+					})
 		}
 	}
 }

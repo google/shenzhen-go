@@ -71,7 +71,7 @@ func (p *Pin) connectTo(q Point) error {
 		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
 		p.node.d.graph.Channels[ch] = struct{}{}
-		q.l.Call("setAttribute", "display", "")
+		q.l.Show()
 
 	case *Channel:
 		if p.ch != nil && p.ch != q {
@@ -117,12 +117,14 @@ func (p *Pin) disconnect() {
 }
 
 func (p *Pin) setPos(rx, ry float64) {
-	p.circ.Call("setAttribute", "cx", rx)
-	p.circ.Call("setAttribute", "cy", ry)
+	p.circ.
+		SetAttribute("cx", rx).
+		SetAttribute("cy", ry)
 	p.x, p.y = rx+p.node.X, ry+p.node.Y
 	if p.l != nil {
-		p.l.Call("setAttribute", "x1", p.x)
-		p.l.Call("setAttribute", "y1", p.y)
+		p.l.
+			SetAttribute("x1", p.x).
+			SetAttribute("y1", p.y)
 	}
 	if p.ch != nil {
 		p.ch.reposition(nil)
@@ -139,7 +141,7 @@ func (p *Pin) dragStart(e *js.Object) {
 	// If the pin is attached to something, detach and drag from that instead.
 	if ch := p.ch; ch != nil {
 		p.disconnect()
-		p.l.Call("setAttribute", "display", "none")
+		p.l.Hide()
 		if len(ch.Pins) > 1 {
 			ch.dragStart(e)
 			return
@@ -151,26 +153,30 @@ func (p *Pin) dragStart(e *js.Object) {
 	}
 	p.node.d.dragItem = p
 
-	p.circ.Call("setAttribute", "fill", errorColour)
+	p.circ.SetAttribute("fill", errorColour)
 
 	x, y := p.node.d.cursorPos(e)
-	p.l.Call("setAttribute", "x2", x)
-	p.l.Call("setAttribute", "y2", y)
-	p.c.Call("setAttribute", "cx", x)
-	p.c.Call("setAttribute", "cy", y)
-	p.c.Call("setAttribute", "stroke", errorColour)
-	p.l.Call("setAttribute", "stroke", errorColour)
-	p.c.Call("setAttribute", "display", "")
-	p.l.Call("setAttribute", "display", "")
+	p.l.
+		SetAttribute("x2", x).
+		SetAttribute("y2", y).
+		SetAttribute("stroke", errorColour).
+		Show()
+	p.c.
+		SetAttribute("cx", x).
+		SetAttribute("cy", y).
+		SetAttribute("stroke", errorColour).
+		Show()
 }
 
 func (p *Pin) drag(e *js.Object) {
 	x, y := p.node.d.cursorPos(e)
 	defer func() {
-		p.l.Call("setAttribute", "x2", x)
-		p.l.Call("setAttribute", "y2", y)
-		p.c.Call("setAttribute", "cx", x)
-		p.c.Call("setAttribute", "cy", y)
+		p.l.
+			SetAttribute("x2", x).
+			SetAttribute("y2", y)
+		p.c.
+			SetAttribute("cx", x).
+			SetAttribute("cy", y)
 	}()
 	d, q := p.node.d.graph.nearestPoint(x, y)
 
@@ -180,10 +186,11 @@ func (p *Pin) drag(e *js.Object) {
 			p.disconnect()
 		}
 
-		p.circ.Call("setAttribute", "fill", errorColour)
-		p.l.Call("setAttribute", "stroke", errorColour)
-		p.c.Call("setAttribute", "stroke", errorColour)
-		p.c.Call("setAttribute", "display", "")
+		p.circ.SetAttribute("fill", errorColour)
+		p.l.SetAttribute("stroke", errorColour)
+		p.c.
+			SetAttribute("stroke", errorColour).
+			Show()
 	}
 
 	// Don't connect P to itself, don't connect if nearest is far away.
@@ -210,15 +217,15 @@ func (p *Pin) drag(e *js.Object) {
 	// Valid snap - ensure the colour is active.
 	p.node.d.clearError()
 	p.ch.setColour(activeColour)
-	p.c.Call("setAttribute", "display", "none")
+	p.c.Hide()
 }
 
 func (p *Pin) drop(e *js.Object) {
 	p.node.d.clearError()
-	p.circ.Call("setAttribute", "fill", normalColour)
-	p.c.Call("setAttribute", "display", "none")
+	p.circ.SetAttribute("fill", normalColour)
+	p.c.Hide()
 	if p.ch == nil {
-		p.l.Call("setAttribute", "display", "none")
+		p.l.Hide()
 		return
 	}
 	p.ch.setColour(normalColour)
@@ -262,12 +269,11 @@ func (p *Pin) makePinElement(n *Node) *jsutil.Element {
 		SetAttribute("stroke-width", lineWidth).
 		SetAttribute("display", "none")
 
-	p.node.d.Call("appendChild", p.l)
-	p.node.d.Call("appendChild", p.c)
+	p.node.d.AddChildren(p.l, p.c)
 
 	// Nametag
 	p.nametag = newTextBox(p.node.d, fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
-	p.node.box.group.Call("appendChild", p.nametag.group)
+	p.node.box.group.AddChildren(p.nametag.group)
 	p.nametag.hide()
 	return p.circ
 }

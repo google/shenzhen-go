@@ -89,15 +89,15 @@ func max(a, b int) int {
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.box = newTextBox(n.d, n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
-	n.box.rect.Call("addEventListener", "mousedown", n.mouseDown)
-	n.box.rect.Call("addEventListener", "mousedown", n.d.selecter(n))
+	n.box.rect.AddEventListener("mousedown", n.mouseDown)
+	n.box.rect.AddEventListener("mousedown", n.d.selecter(n))
 
 	// Pins
 	for _, p := range n.Inputs {
-		n.box.group.Call("appendChild", p.makePinElement(n))
+		n.box.group.AddChildren(p.makePinElement(n))
 	}
 	for _, p := range n.Outputs {
-		n.box.group.Call("appendChild", p.makePinElement(n))
+		n.box.group.AddChildren(p.makePinElement(n))
 	}
 	n.updatePinPositions()
 }
@@ -107,7 +107,7 @@ func (n *Node) mouseDown(e *js.Object) {
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
-	n.d.Call("appendChild", n.box.group)
+	n.d.AddChildren(n.box.group)
 }
 
 func (n *Node) drag(e *js.Object) {
@@ -142,7 +142,7 @@ type focusable interface {
 }
 
 func (n *Node) gainFocus(e *js.Object) {
-	n.box.rect.Call("setAttribute", "style", nodeSelectedRectStyle)
+	n.box.rect.SetAttribute("style", nodeSelectedRectStyle)
 	nodeNameInput.Set("value", n.Node.Name)
 	nodeEnabledInput.Set("checked", n.Node.Enabled)
 	nodeMultiplicityInput.Set("value", n.Node.Multiplicity)
@@ -159,7 +159,7 @@ func (n *Node) gainFocus(e *js.Object) {
 }
 
 func (n *Node) loseFocus(e *js.Object) {
-	n.box.rect.Call("setAttribute", "style", nodeNormalRectStyle)
+	n.box.rect.SetAttribute("style", nodeNormalRectStyle)
 }
 
 func (n *Node) save(e *js.Object) {

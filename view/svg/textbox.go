@@ -63,11 +63,11 @@ func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, h
 }
 
 func (b *textBox) show() {
-	b.group.Call("setAttribute", "display", "")
+	b.group.Show()
 }
 
 func (b *textBox) hide() {
-	b.group.Call("setAttribute", "display", "none")
+	b.group.Hide()
 }
 
 func (b *textBox) moveTo(x, y float64) {
@@ -86,6 +86,6 @@ func (b *textBox) computeWidth() {
 	if w := b.text.Call("getComputedTextLength").Float() + 2*textBoxMargin; b.minWidth < w {
 		b.width = w
 	}
-	b.rect.Call("setAttribute", "width", b.width)
-	b.text.Call("setAttribute", "x", b.width/2)
+	b.rect.SetAttribute("width", b.width)
+	b.text.SetAttribute("x", b.width/2)
 }

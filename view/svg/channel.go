@@ -48,23 +48,21 @@ func newChannel(d *diagram, p, q *Pin) *Channel {
 }
 
 func (c *Channel) makeElements() {
-	c.steiner = jsutil.MakeSVGElement("circle")
-	c.l = jsutil.MakeSVGElement("line")
-	c.c = jsutil.MakeSVGElement("circle")
+	c.steiner = jsutil.MakeSVGElement("circle").
+		SetAttribute("r", pinRadius).
+		AddEventListener("mousedown", c.dragStart)
 
-	c.d.Call("appendChild", c.steiner)
-	c.d.Call("appendChild", c.l)
-	c.d.Call("appendChild", c.c)
+	c.l = jsutil.MakeSVGElement("line").
+		SetAttribute("stroke-width", lineWidth).
+		Hide()
 
-	c.steiner.Call("setAttribute", "r", pinRadius)
-	c.steiner.Call("addEventListener", "mousedown", c.dragStart)
+	c.c = jsutil.MakeSVGElement("circle").
+		SetAttribute("r", pinRadius).
+		SetAttribute("fill", "transparent").
+		SetAttribute("stroke-width", lineWidth).
+		Hide()
 
-	c.l.Call("setAttribute", "stroke-width", lineWidth)
-	c.l.Call("setAttribute", "display", "none")
-	c.c.Call("setAttribute", "r", pinRadius)
-	c.c.Call("setAttribute", "fill", "transparent")
-	c.c.Call("setAttribute", "stroke-width", lineWidth)
-	c.c.Call("setAttribute", "display", "none")
+	c.d.AddChildren(c.steiner, c.l, c.c)
 }
 
 // Pt implements Point.
@@ -79,28 +77,33 @@ func (c *Channel) dragStart(e *js.Object) {
 	// (e.g. all input pins / output pins) then use errorColour, and
 	// delete the whole channel if dropped.
 
-	c.steiner.Call("setAttribute", "display", "")
+	c.steiner.Show()
 	c.setColour(activeColour)
 
 	x, y := c.d.cursorPos(e)
 	c.reposition(ephemeral{x, y})
-	c.l.Call("setAttribute", "x1", x)
-	c.l.Call("setAttribute", "y1", y)
-	c.l.Call("setAttribute", "x2", c.tx)
-	c.l.Call("setAttribute", "y2", c.ty)
-	c.c.Call("setAttribute", "cx", x)
-	c.c.Call("setAttribute", "cy", y)
-	c.c.Call("setAttribute", "display", "")
-	c.l.Call("setAttribute", "display", "")
+	c.l.
+		SetAttribute("x1", x).
+		SetAttribute("y1", y).
+		SetAttribute("x2", c.tx).
+		SetAttribute("y2", c.ty).
+		Show()
+
+	c.c.
+		SetAttribute("cx", x).
+		SetAttribute("cy", y).
+		Show()
 }
 
 func (c *Channel) drag(e *js.Object) {
 	x, y := c.d.cursorPos(e)
-	c.steiner.Call("setAttribute", "display", "")
-	c.l.Call("setAttribute", "x1", x)
-	c.l.Call("setAttribute", "y1", y)
-	c.c.Call("setAttribute", "cx", x)
-	c.c.Call("setAttribute", "cy", y)
+	c.steiner.Show()
+	c.l.
+		SetAttribute("x1", x).
+		SetAttribute("y1", y)
+	c.c.
+		SetAttribute("cx", x).
+		SetAttribute("cy", y)
 	d, q := c.d.graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
@@ -110,14 +113,14 @@ func (c *Channel) drag(e *js.Object) {
 
 	if c.p != nil && (c.p != p || d >= snapQuad) {
 		c.p.disconnect()
-		c.p.circ.Call("setAttribute", "fill", normalColour)
-		c.p.l.Call("setAttribute", "display", "none")
+		c.p.circ.SetAttribute("fill", normalColour)
+		c.p.l.Hide()
 		c.p = nil
 	}
 
 	noSnap := func() {
-		c.c.Call("setAttribute", "display", "")
-		c.l.Call("setAttribute", "display", "")
+		c.c.Show()
+		c.l.Show()
 		c.reposition(ephemeral{x, y})
 	}
 
@@ -145,10 +148,10 @@ func (c *Channel) drag(e *js.Object) {
 	// Let's snap!
 	c.d.clearError()
 	c.p = p
-	p.l.Call("setAttribute", "display", "")
+	p.l.Show()
 	c.setColour(activeColour)
-	c.l.Call("setAttribute", "display", "none")
-	c.c.Call("setAttribute", "display", "none")
+	c.l.Hide()
+	c.c.Hide()
 }
 
 func (c *Channel) drop(e *js.Object) {
@@ -160,10 +163,10 @@ func (c *Channel) drop(e *js.Object) {
 		c.p = nil
 		return
 	}
-	c.c.Call("setAttribute", "display", "none")
-	c.l.Call("setAttribute", "display", "none")
+	c.c.Hide()
+	c.l.Hide()
 	if len(c.Pins) <= 2 {
-		c.steiner.Call("setAttribute", "display", "none")
+		c.steiner.Hide()
 	}
 }
 
@@ -182,10 +185,10 @@ func (c *Channel) reposition(additional Point) {
 	}
 	if np < 2 {
 		// Not actually a channel anymore - hide.
-		c.steiner.Call("setAttribute", "display", "none")
+		c.steiner.Hide()
 		for t := range c.Pins {
-			t.c.Call("setAttribute", "display", "none")
-			t.l.Call("setAttribute", "display", "none")
+			t.c.Hide()
+			t.l.Hide()
 		}
 		return
 	}
@@ -200,27 +203,30 @@ func (c *Channel) reposition(additional Point) {
 	n := float64(np)
 	c.tx /= n
 	c.ty /= n
-	c.steiner.Call("setAttribute", "cx", c.tx)
-	c.steiner.Call("setAttribute", "cy", c.ty)
-	c.l.Call("setAttribute", "x2", c.tx)
-	c.l.Call("setAttribute", "y2", c.ty)
+	c.steiner.
+		SetAttribute("cx", c.tx).
+		SetAttribute("cy", c.ty)
+	c.l.
+		SetAttribute("x2", c.tx).
+		SetAttribute("y2", c.ty)
 	for t := range c.Pins {
-		t.l.Call("setAttribute", "x2", c.tx)
-		t.l.Call("setAttribute", "y2", c.ty)
+		t.l.
+			SetAttribute("x2", c.tx).
+			SetAttribute("y2", c.ty)
 	}
-	disp := ""
 	if np <= 2 {
-		disp = "none"
+		c.steiner.Hide()
+	} else {
+		c.steiner.Show()
 	}
-	c.steiner.Call("setAttribute", "display", disp)
 }
 
 func (c *Channel) setColour(col string) {
-	c.steiner.Call("setAttribute", "fill", col)
-	c.c.Call("setAttribute", "stroke", col)
-	c.l.Call("setAttribute", "stroke", col)
+	c.steiner.SetAttribute("fill", col)
+	c.c.SetAttribute("stroke", col)
+	c.l.SetAttribute("stroke", col)
 	for t := range c.Pins {
-		t.circ.Call("setAttribute", "fill", col)
-		t.l.Call("setAttribute", "stroke", col)
+		t.circ.SetAttribute("fill", col)
+		t.l.SetAttribute("stroke", col)
 	}
 }

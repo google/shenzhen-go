@@ -40,3 +40,15 @@ func (e *Element) AddEventListener(event string, handler func(*js.Object)) *Elem
 	e.Call("addEventListener", event, handler)
 	return e
 }
+
+// Show sets the display attribute to the empty string.
+func (e *Element) Show() *Element {
+	e.Call("setAttribute", "display", "")
+	return e
+}
+
+// Hide sets the display attribute to "none".
+func (e *Element) Hide() *Element {
+	e.Call("setAttribute", "display", "none")
+	return e
+}

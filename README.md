@@ -28,8 +28,10 @@ SHENZHEN GO requires:
 
 ## Installation
 
-This assumes you have set your `$GOPATH` (common choices are `$HOME` and 
-`$HOME/go`, but it's up to you).
+If you are using Go 1.7, you need to have set your `$GOPATH` (common choices are `$HOME` and 
+`$HOME/go`, but it's up to you). 
+[For Go 1.8, the default `$GOPATH` is `$HOME/go`](https://rakyll.org/default-gopath/) so it
+is not necessary to set it (but you can change it to override the default if you want).
 
 To install, open a terminal and run:
 
@@ -54,3 +56,5 @@ This is not an official Google product.
 
 This is an experimental project - expect plenty of rough edges and bugs, and 
 no support.
+
+For discussions, there is [a Slack channel](https://gophers.slack.com/messages/shenzhen-go).

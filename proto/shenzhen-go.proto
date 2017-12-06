@@ -1,0 +1,85 @@
+syntax="proto3";
+
+package api;
+
+message Empty {}
+
+message SaveRequest {
+	string graph = 1;
+}
+
+message SetGraphPropertiesRequest {
+	string graph = 1;
+	string name = 2;
+	string package_path = 3;
+	bool is_command = 4;
+}
+
+message DeleteChannelRequest {
+	string graph = 1;
+	string channel = 2;
+}
+
+message CreateChannelRequest {
+	string graph = 1;
+	string name = 2;
+	string type = 3;
+    bool anon = 4;
+    uint64 cap = 5;
+}
+
+message SetNodePropertiesRequest {
+	string graph = 1;
+	string node = 2;
+    string name = 3;
+    bool enabled = 4;
+    uint32 multiplicity = 5;
+    bool wait = 6;
+    string part_json = 7;
+}
+
+message SetPositionRequest {
+	string graph = 1;
+	string node = 2;
+	int64 x = 3;
+    int64 y = 4;
+}
+
+message DisconnectPinRequest {
+	string graph = 1;
+	string node = 2;
+	string pin = 3;
+}
+
+message ConnectPinRequest {
+	string graph = 1;
+	string node = 2;
+	string pin = 3;
+	string channel = 4;
+}
+
+service ShenzhenGo {
+	// CreateChannel makes a new channel.
+	rpc CreateChannel(CreateChannelRequest) returns (Empty) {}
+
+	// ConnectPin connects a pin to a channel.
+	rpc ConnectPin(ConnectPinRequest) returns (Empty) {}
+
+	// DeleteChannel deletes a channel (and all connections).
+	rpc DeleteChannel(DeleteChannelRequest) returns (Empty) {}
+
+	// DisconnectPin deletes the connection from a pin to a channel.
+	rpc DisconnectPin(DisconnectPinRequest) returns (Empty) {}
+
+	// Save saves the graph to disk.
+	rpc Save(SaveRequest) returns (Empty) {}
+
+	// SetGraphProperties changes metdata such as name and package path.
+	rpc SetGraphProperties(SetGraphPropertiesRequest) returns (Empty) {}
+
+	// SetNodeProperties changes node metadata such as name and multiplicity.
+	rpc SetNodeProperties(SetNodePropertiesRequest) returns (Empty) {}
+
+	// SetPosition changes the node position in the diagram.
+	rpc SetPosition(SetPositionRequest) returns (Empty) {}
+}

@@ -43,7 +43,7 @@ var (
 	nodePropertiesPanel  = jsutil.MustGetElement("node-properties")
 	rhsPanel             = graphPropertiesPanel
 
-	client api.Interface
+	client api.ShenzhenGoClient
 )
 
 func showRHSPanel(p *jsutil.Element) {
@@ -56,7 +56,7 @@ func showRHSPanel(p *jsutil.Element) {
 }
 
 func main() {
-	client = api.NewClient(jsutil.MustGetGlobal("apiURL").String())
+	client = api.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
 
 	d := &diagram{
 		Element: jsutil.MustGetElement("diagram"),

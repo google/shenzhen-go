@@ -25,6 +25,7 @@ import (
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -64,7 +65,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 
 func (g *Graph) save(*js.Object) {
 	go func() { // cannot block in callback
-		if err := client.Save(&api.Request{Graph: graphPath}); err != nil {
+		if _, err := client.Save(context.TODO(), &api.SaveRequest{Graph: graphPath}); err != nil {
 			log.Printf("Couldn't Save: %v", err)
 		}
 	}()
@@ -72,15 +73,13 @@ func (g *Graph) save(*js.Object) {
 
 func (g *Graph) saveProperties(*js.Object) {
 	req := &api.SetGraphPropertiesRequest{
-		Request: api.Request{
-			Graph: graphPath,
-		},
+		Graph:       graphPath,
 		Name:        graphNameElement.Get("value").String(),
 		PackagePath: graphPackagePathElement.Get("value").String(),
 		IsCommand:   graphIsCommandElement.Get("checked").Bool(),
 	}
 	go func() { // cannot block in callback
-		if err := client.SetGraphProperties(req); err != nil {
+		if _, err := client.SetGraphProperties(context.TODO(), req); err != nil {
 			log.Printf("Couldn't SetGraphProperties: %v", err)
 		}
 	}()

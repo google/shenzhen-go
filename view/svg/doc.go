@@ -12,5 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The cansvgvas script is for interacting with a graph in an SVG (via DOM).
+// +build !js
+
+// The svg script is for interacting with a graph in an SVG (via DOM).
 package main
+
+// Make the errors shut up
+func main() {}

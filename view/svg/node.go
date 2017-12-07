@@ -22,6 +22,7 @@ import (
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	"github.com/gopherjs/gopherjs/js"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -120,18 +121,14 @@ func (n *Node) drag(e *js.Object) {
 func (n *Node) drop(e *js.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 	req := &api.SetPositionRequest{
-		NodeRequest: api.NodeRequest{
-			Request: api.Request{
-				Graph: graphPath,
-			},
-			Node: n.Name,
-		},
-		X: int(x),
-		Y: int(y),
+		Graph: graphPath,
+		Node:  n.Name,
+		X:     int64(x),
+		Y:     int64(y),
 	}
 
 	go func() { // cannot block in callback
-		if err := client.SetPosition(req); err != nil {
+		if _, err := client.SetPosition(context.TODO(), req); err != nil {
 			log.Printf("Couldn't SetPosition: %v", err)
 		}
 	}()
@@ -169,20 +166,17 @@ func (n *Node) save(e *js.Object) {
 		return
 	}
 	req := &api.SetNodePropertiesRequest{
-		NodeRequest: api.NodeRequest{
-			Request: api.Request{
-				Graph: graphPath,
-			},
-			Node: n.Node.Name,
-		},
+		Graph:        graphPath,
+		Node:         n.Node.Name,
 		Name:         nodeNameInput.Get("value").String(),
 		Enabled:      nodeEnabledInput.Get("checked").Bool(),
-		Multiplicity: uint(nodeMultiplicityInput.Get("value").Int()),
+		Multiplicity: uint32(nodeMultiplicityInput.Get("value").Int()),
 		Wait:         nodeWaitInput.Get("checked").Bool(),
-		PartJSON:     pj,
+		PartCfg:      pj.Part,
+		PartType:     pj.Type,
 	}
 	go func() {
-		if err := client.SetNodeProperties(req); err != nil {
+		if _, err := client.SetNodeProperties(context.TODO(), req); err != nil {
 			log.Printf("Couldn't update node properties: %v", err)
 			return
 		}
@@ -197,7 +191,7 @@ func (n *Node) save(e *js.Object) {
 			n.updatePinPositions()
 		}
 		n.Node.Enabled = req.Enabled
-		n.Node.Multiplicity = req.Multiplicity
+		n.Node.Multiplicity = uint(req.Multiplicity)
 		n.Node.Wait = req.Wait
 	}()
 }

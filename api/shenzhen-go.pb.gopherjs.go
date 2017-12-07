@@ -460,7 +460,8 @@ type SetNodePropertiesRequest struct {
 	Enabled      bool
 	Multiplicity uint32
 	Wait         bool
-	PartJson     string
+	PartCfg      []byte
+	PartType     string
 }
 
 // GetGraph gets the Graph of the SetNodePropertiesRequest.
@@ -511,12 +512,20 @@ func (m *SetNodePropertiesRequest) GetWait() (x bool) {
 	return m.Wait
 }
 
-// GetPartJson gets the PartJson of the SetNodePropertiesRequest.
-func (m *SetNodePropertiesRequest) GetPartJson() (x string) {
+// GetPartCfg gets the PartCfg of the SetNodePropertiesRequest.
+func (m *SetNodePropertiesRequest) GetPartCfg() (x []byte) {
 	if m == nil {
 		return x
 	}
-	return m.PartJson
+	return m.PartCfg
+}
+
+// GetPartType gets the PartType of the SetNodePropertiesRequest.
+func (m *SetNodePropertiesRequest) GetPartType() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.PartType
 }
 
 // MarshalToWriter marshals SetNodePropertiesRequest to the provided writer.
@@ -549,8 +558,12 @@ func (m *SetNodePropertiesRequest) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteBool(6, m.Wait)
 	}
 
-	if len(m.PartJson) > 0 {
-		writer.WriteString(7, m.PartJson)
+	if len(m.PartCfg) > 0 {
+		writer.WriteBytes(7, m.PartCfg)
+	}
+
+	if len(m.PartType) > 0 {
+		writer.WriteString(8, m.PartType)
 	}
 
 	return
@@ -584,7 +597,9 @@ func (m *SetNodePropertiesRequest) UnmarshalFromReader(reader jspb.Reader) *SetN
 		case 6:
 			m.Wait = reader.ReadBool()
 		case 7:
-			m.PartJson = reader.ReadString()
+			m.PartCfg = reader.ReadBytes()
+		case 8:
+			m.PartType = reader.ReadString()
 		default:
 			reader.SkipField()
 		}

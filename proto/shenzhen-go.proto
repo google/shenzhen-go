@@ -35,7 +35,8 @@ message SetNodePropertiesRequest {
     bool enabled = 4;
     uint32 multiplicity = 5;
     bool wait = 6;
-    string part_json = 7;
+    bytes part_cfg = 7;
+	string part_type = 8;
 }
 
 message SetPositionRequest {

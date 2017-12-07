@@ -26,8 +26,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/controller"
 	"github.com/google/shenzhen-go/view"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"google.golang.org/grpc"
 )
 
 const pingMsg = "Pong!"
@@ -86,8 +89,12 @@ func main() {
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
-	http.Handle("/.api", controller.API)
 	http.Handle("/", controller.DirBrowser)
+
+	gs := grpc.NewServer()
+	api.RegisterShenzhenGoServer(gs, controller.API)
+	ws := grpcweb.WrapServer(gs)
+	http.Handle("/.api", ws)
 
 	// As soon as we're serving, launch "open" which should launch a browser,
 	// or ask the user to do so.

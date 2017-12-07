@@ -63,10 +63,10 @@ func lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
 func (h apiHandler) CreateChannel(ctx context.Context, req *api.CreateChannelRequest) (*api.Empty, error) {
 	g, err := lookupGraph(req.Graph)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	if _, found := g.Channels[req.Name]; found {
-		return nil, api.Statusf(http.StatusBadRequest, "channel %q already exists", req.Name)
+		return &api.Empty{}, api.Statusf(http.StatusBadRequest, "channel %q already exists", req.Name)
 	}
 	// TODO: validate the name isn't silly, the type isn't silly...
 	g.Channels[req.Name] = &model.Channel{
@@ -75,76 +75,76 @@ func (h apiHandler) CreateChannel(ctx context.Context, req *api.CreateChannelReq
 		Anonymous: req.Anon,
 		Capacity:  int(req.Cap),
 	}
-	return nil, nil
+	return &api.Empty{}, nil
 }
 
 func (h apiHandler) ConnectPin(ctx context.Context, req *api.ConnectPinRequest) (*api.Empty, error) {
 	_, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	if _, found := n.Connections[req.Pin]; !found {
-		return nil, api.Statusf(http.StatusNotFound, "no pin %q on node %q", req.Pin, req.Node)
+		return &api.Empty{}, api.Statusf(http.StatusNotFound, "no pin %q on node %q", req.Pin, req.Node)
 	}
 	n.Connections[req.Pin] = req.Channel
-	return nil, nil
+	return &api.Empty{}, nil
 }
 
 func (h apiHandler) DeleteChannel(ctx context.Context, req *api.DeleteChannelRequest) (*api.Empty, error) {
 	g, _, err := lookupChannel(req.Graph, req.Channel)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	delete(g.Channels, req.Channel)
-	return nil, nil
+	return &api.Empty{}, nil
 }
 
 func (h apiHandler) DisconnectPin(ctx context.Context, req *api.DisconnectPinRequest) (*api.Empty, error) {
 	_, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	if _, found := n.Connections[req.Pin]; !found {
-		return nil, api.Statusf(http.StatusNotFound, "no pin %q on node %q", req.Pin, req.Node)
+		return &api.Empty{}, api.Statusf(http.StatusNotFound, "no pin %q on node %q", req.Pin, req.Node)
 	}
 	n.Connections[req.Pin] = "nil"
-	return nil, nil
+	return &api.Empty{}, nil
 }
 
 func (h apiHandler) Save(ctx context.Context, req *api.SaveRequest) (*api.Empty, error) {
 	g, err := lookupGraph(req.Graph)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
-	return nil, SaveJSONFile(g)
+	return &api.Empty{}, SaveJSONFile(g)
 }
 
 func (h apiHandler) SetGraphProperties(ctx context.Context, req *api.SetGraphPropertiesRequest) (*api.Empty, error) {
 	g, err := lookupGraph(req.Graph)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	g.Name = req.Name
 	g.PackagePath = req.PackagePath
 	g.IsCommand = req.IsCommand
-	return nil, nil
+	return &api.Empty{}, nil
 }
 
 func (h apiHandler) SetNodeProperties(ctx context.Context, req *api.SetNodePropertiesRequest) (*api.Empty, error) {
 	g, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	p, err := (&model.PartJSON{
 		Part: req.PartCfg,
 		Type: req.PartType,
 	}).Unmarshal()
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	if n.Name != req.Name {
 		if _, exists := g.Nodes[req.Name]; exists {
-			return nil, fmt.Errorf("node %q already exists", req.Name)
+			return &api.Empty{}, fmt.Errorf("node %q already exists", req.Name)
 		}
 		delete(g.Nodes, n.Name)
 		n.Name = req.Name
@@ -154,14 +154,14 @@ func (h apiHandler) SetNodeProperties(ctx context.Context, req *api.SetNodePrope
 	n.Enabled = req.Enabled
 	n.Wait = req.Wait
 	n.Part = p
-	return nil, nil
+	return &api.Empty{}, nil
 }
 
 func (h apiHandler) SetPosition(ctx context.Context, req *api.SetPositionRequest) (*api.Empty, error) {
 	_, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
-		return nil, err
+		return &api.Empty{}, err
 	}
 	n.X, n.Y = int(req.X), int(req.Y)
-	return nil, nil
+	return &api.Empty{}, nil
 }

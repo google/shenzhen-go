@@ -89,12 +89,13 @@ func main() {
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
-	http.Handle("/", controller.DirBrowser)
-
 	gs := grpc.NewServer()
 	api.RegisterShenzhenGoServer(gs, controller.API)
 	ws := grpcweb.WrapServer(gs)
-	http.Handle("/.api", ws)
+	http.Handle("/.api/", http.StripPrefix("/.api/", ws))
+
+	// Finally, all unknown paths are assumed to be files.
+	http.Handle("/", controller.DirBrowser)
 
 	// As soon as we're serving, launch "open" which should launch a browser,
 	// or ask the user to do so.

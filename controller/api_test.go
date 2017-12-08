@@ -33,24 +33,30 @@ func code(err error) codes.Code {
 }
 
 func TestLookupGraph(t *testing.T) {
+	foo := &model.Graph{Name: "foo"}
+	bar := &model.Graph{Name: "bar"}
 	c := &controller{
 		loadedGraphs: map[string]*model.Graph{
-			"foo": &model.Graph{},
-			"bar": &model.Graph{},
+			"foo": foo,
+			"bar": bar,
 		},
 	}
 	tests := []struct {
 		key  string
+		g    *model.Graph
 		code codes.Code
 	}{
-		{"foo", codes.OK},
-		{"bar", codes.OK},
-		{"baz", codes.NotFound},
+		{"foo", foo, codes.OK},
+		{"bar", bar, codes.OK},
+		{"baz", nil, codes.NotFound},
 	}
 	for _, test := range tests {
-		_, err := c.lookupGraph(test.key)
+		g, err := c.lookupGraph(test.key)
+		if got, want := g, test.g; got != want {
+			t.Errorf("c.lookupGraph(%q) = %v, want %v", test.key, got, want)
+		}
 		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.lookupGraph(%q) = %v; want %v", test.key, got, want)
+			t.Errorf("c.lookupGraph(%q) = %v, want %v", test.key, got, want)
 		}
 	}
 }

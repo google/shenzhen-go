@@ -42,3 +42,12 @@ func (d *Definition) FullType() string {
 
 // Map is a map from pin names to pin definitions.
 type Map map[string]*Definition
+
+// MapFromSlice turns a slice of definitions into a map.
+func MapFromSlice(in []Definition) Map {
+	pins := make(Map, len(in))
+	for i := range in {
+		pins[in[i].Name] = &in[i]
+	}
+	return pins
+}

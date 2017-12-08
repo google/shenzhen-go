@@ -72,7 +72,7 @@ func (c *Code) handlePinsChange(e *js.Object) {
 		// Ignore
 		return
 	}
-	c.pins = p
+	c.pins = pin.MapFromSlice(p)
 }
 
 func (c *Code) handleImportsChange(e *js.Object) {

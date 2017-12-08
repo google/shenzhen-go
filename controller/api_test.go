@@ -172,6 +172,10 @@ func TestCreateChannel(t *testing.T) {
 			t.Errorf("c.CreateChannel(%v) = code %v, want %v", test.req, got, want)
 		}
 	}
+	_, got := foo.Channels["baz"]
+	if want := true; got != want {
+		t.Errorf("foo.Channels[baz] is missing, want present")
+	}
 }
 
 func TestConnectPin(t *testing.T) {
@@ -264,5 +268,8 @@ func TestConnectPin(t *testing.T) {
 		if got, want := code(err), test.code; got != want {
 			t.Errorf("c.ConnectPin(%v) = code %v, want %v", test.req, got, want)
 		}
+	}
+	if got, want := baz.Connections["qux"], "bar"; got != want {
+		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
 	}
 }

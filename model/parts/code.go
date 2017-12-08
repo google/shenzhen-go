@@ -87,11 +87,11 @@ var (
 type Code struct {
 	imports          []string
 	head, body, tail string
-	pins             []pin.Definition
+	pins             pin.Map
 }
 
 // NewCode just makes a new *Code.
-func NewCode(imports []string, head, body, tail string, pins []pin.Definition) *Code {
+func NewCode(imports []string, head, body, tail string, pins pin.Map) *Code {
 	return &Code{
 		imports: imports,
 		head:    head,
@@ -104,7 +104,7 @@ func NewCode(imports []string, head, body, tail string, pins []pin.Definition) *
 type part interface {
 	Imports() []string
 	Impl() (head, body, tail string)
-	Pins() []pin.Definition
+	Pins() pin.Map
 }
 
 // NewCodeFromAny creates a new Code, copying the implementation details
@@ -121,11 +121,11 @@ func NewCodeFromAny(p part) *Code {
 }
 
 type jsonCode struct {
-	Imports []string         `json:"imports"`
-	Head    []string         `json:"head"`
-	Body    []string         `json:"body"`
-	Tail    []string         `json:"tail"`
-	Pins    []pin.Definition `json:"pins"`
+	Imports []string `json:"imports"`
+	Head    []string `json:"head"`
+	Body    []string `json:"body"`
+	Tail    []string `json:"tail"`
+	Pins    pin.Map  `json:"pins"`
 }
 
 // MarshalJSON encodes the Code component as JSON.
@@ -163,16 +163,21 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 }
 
 // Pins returns pins. These are 100% user-defined.
-func (c *Code) Pins() []pin.Definition { return c.pins }
+func (c *Code) Pins() pin.Map { return c.pins }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() interface{} {
+	pins := make(pin.Map, len(c.pins))
+	for k, v := range c.pins {
+		p := *v
+		pins[k] = &p
+	}
 	c2 := &Code{
 		imports: c.imports,
 		head:    c.head,
 		body:    c.body,
 		tail:    c.tail,
-		pins:    append([]pin.Definition{}, c.pins...),
+		pins:    pins,
 	}
 	return c2
 }

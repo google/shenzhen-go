@@ -77,8 +77,16 @@ func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) 
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	if _, found := n.Connections[req.Pin]; !found {
+	_, ch, err := c.lookupChannel(req.Graph, req.Channel)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	pin, found := n.Pins()[req.Pin]
+	if !found {
 		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
+	}
+	if ch.Type != pin.Type {
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "pin %q, channel %q type mismatch [%q != %q]", req.Pin, req.Channel, pin.Type, ch.Type)
 	}
 	n.Connections[req.Pin] = req.Channel
 	return &pb.Empty{}, nil

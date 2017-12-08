@@ -18,6 +18,8 @@ import (
 	"testing"
 
 	"github.com/google/shenzhen-go/model"
+	"github.com/google/shenzhen-go/model/parts"
+	"github.com/google/shenzhen-go/model/pin"
 	pb "github.com/google/shenzhen-go/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -168,6 +170,99 @@ func TestCreateChannel(t *testing.T) {
 		_, err := c.CreateChannel(context.Background(), test.req)
 		if got, want := code(err), test.code; got != want {
 			t.Errorf("c.CreateChannel(%v) = code %v, want %v", test.req, got, want)
+		}
+	}
+}
+
+func TestConnectPin(t *testing.T) {
+	baz := &model.Node{
+		Name: "baz",
+		Part: parts.NewCode(nil, "", "", "", pin.Map{
+			"qux": &pin.Definition{
+				Type: "int",
+			},
+		}),
+		Connections: make(map[string]string),
+	}
+	bar := &model.Channel{Name: "bar", Type: "int"}
+	tuz := &model.Channel{Name: "tuz", Type: "string"}
+	foo := &model.Graph{
+		Name:     "foo",
+		Channels: map[string]*model.Channel{"bar": bar, "tuz": tuz},
+		Nodes:    map[string]*model.Node{"baz": baz},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.ConnectPinRequest
+		code codes.Code
+	}{
+		{
+			// no such graph
+			req: &pb.ConnectPinRequest{
+				Graph:   "nope",
+				Node:    "baz",
+				Channel: "bar",
+				Pin:     "qux",
+			},
+			code: codes.NotFound,
+		},
+		{
+			// no such node
+			req: &pb.ConnectPinRequest{
+				Graph:   "foo",
+				Node:    "barz",
+				Channel: "bar",
+				Pin:     "qux",
+			},
+			code: codes.NotFound,
+		},
+		{
+			// no such channel
+			req: &pb.ConnectPinRequest{
+				Graph:   "foo",
+				Node:    "baz",
+				Channel: "buz",
+				Pin:     "qux",
+			},
+			code: codes.NotFound,
+		},
+		{
+			// No such pin
+			req: &pb.ConnectPinRequest{
+				Graph:   "foo",
+				Node:    "baz",
+				Channel: "bar",
+				Pin:     "wux",
+			},
+			code: codes.NotFound,
+		},
+		{
+			// type mismatch
+			req: &pb.ConnectPinRequest{
+				Graph:   "foo",
+				Node:    "baz",
+				Channel: "tuz",
+				Pin:     "qux",
+			},
+			code: codes.FailedPrecondition,
+		},
+		{
+			// It works
+			req: &pb.ConnectPinRequest{
+				Graph:   "foo",
+				Node:    "baz",
+				Channel: "bar",
+				Pin:     "qux",
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.ConnectPin(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.ConnectPin(%v) = code %v, want %v", test.req, got, want)
 		}
 	}
 }

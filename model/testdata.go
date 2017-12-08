@@ -43,8 +43,8 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
-					{
+				Part: parts.NewCode(nil, "", "", "", pin.Map{
+					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
@@ -76,8 +76,8 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
-					{
+				Part: parts.NewCode(nil, "", "", "", pin.Map{
+					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
@@ -101,8 +101,8 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
-					{
+				Part: parts.NewCode(nil, "", "", "", pin.Map{
+					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
@@ -126,8 +126,8 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", []pin.Definition{
-					{
+				Part: parts.NewCode(nil, "", "", "", pin.Map{
+					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,

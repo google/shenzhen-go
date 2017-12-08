@@ -39,3 +39,6 @@ func (d *Definition) FullType() string {
 	}
 	return c + d.Type
 }
+
+// Map is a map from pin names to pin definitions.
+type Map map[string]*Definition

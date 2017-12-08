@@ -44,8 +44,9 @@ type Part interface {
 
 	// Pins returns any pins - "channel arguments" - to the part.
 	// inputs and outputs map argument names to types (the "<-chan" /
-	// "chan<-" part of the type is implied).
-	Pins() []pin.Definition
+	// "chan<-" part of the type is implied). The map must be keyed
+	// by name.
+	Pins() pin.Map
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string

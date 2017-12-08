@@ -20,38 +20,38 @@
 				"tail": [
 					""
 				],
-				"pins": [
-					{
+				"pins": {
+					"bar": {
 						"name": "bar",
 						"type": "rune",
 						"dir": "in"
 					},
-					{
+					"foo": {
 						"name": "foo",
 						"type": "int",
 						"dir": "in"
 					},
-					{
+					"tuz": {
 						"name": "tuz",
 						"type": "int64",
 						"dir": "in"
 					},
-					{
+					"baz": {
 						"name": "baz",
 						"type": "float64",
 						"dir": "out"
 					},
-					{
+					"quux": {
 						"name": "quux",
 						"type": "string",
 						"dir": "out"
 					},
-					{
+					"qux": {
 						"name": "qux",
 						"type": "int",
 						"dir": "out"
 					}
-				]
+				}
 			},
 			"part_type": "Code",
 			"x": 182,

@@ -98,6 +98,14 @@ func (c *controller) DeleteChannel(ctx context.Context, req *pb.DeleteChannelReq
 		return &pb.Empty{}, err
 	}
 	delete(g.Channels, req.Channel)
+	// Clean up references from pins.
+	for _, n := range g.Nodes {
+		for p, ch := range n.Connections {
+			if ch == req.Channel {
+				n.Connections[p] = "nil"
+			}
+		}
+	}
 	return &pb.Empty{}, nil
 }
 

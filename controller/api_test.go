@@ -273,3 +273,27 @@ func TestConnectPin(t *testing.T) {
 		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
 	}
 }
+
+func TestDeleteChannel(t *testing.T) {
+	// TODO
+}
+
+func TestDisconnectPin(t *testing.T) {
+	// TODO
+}
+
+func TestSave(t *testing.T) {
+	// TODO
+}
+
+func TestSetGraphProperties(t *testing.T) {
+	// TODO
+}
+
+func TestSetNodeProperties(t *testing.T) {
+	// TODO
+}
+
+func TestSetPosition(t *testing.T) {
+	// TODO
+}

@@ -59,7 +59,7 @@ func lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
 	return g, n, nil
 }
 
-func (h apiHandler) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
+func (apiHandler) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
 	g, err := lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -77,7 +77,7 @@ func (h apiHandler) CreateChannel(ctx context.Context, req *pb.CreateChannelRequ
 	return &pb.Empty{}, nil
 }
 
-func (h apiHandler) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
+func (apiHandler) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
 	_, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -89,7 +89,7 @@ func (h apiHandler) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (
 	return &pb.Empty{}, nil
 }
 
-func (h apiHandler) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
+func (apiHandler) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
 	g, _, err := lookupChannel(req.Graph, req.Channel)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -98,7 +98,7 @@ func (h apiHandler) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequ
 	return &pb.Empty{}, nil
 }
 
-func (h apiHandler) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
+func (apiHandler) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
 	_, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -110,7 +110,7 @@ func (h apiHandler) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequ
 	return &pb.Empty{}, nil
 }
 
-func (h apiHandler) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
+func (apiHandler) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
 	g, err := lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -118,7 +118,7 @@ func (h apiHandler) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, e
 	return &pb.Empty{}, SaveJSONFile(g)
 }
 
-func (h apiHandler) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
+func (apiHandler) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
 	g, err := lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -129,7 +129,7 @@ func (h apiHandler) SetGraphProperties(ctx context.Context, req *pb.SetGraphProp
 	return &pb.Empty{}, nil
 }
 
-func (h apiHandler) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
+func (apiHandler) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
 	g, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -156,7 +156,7 @@ func (h apiHandler) SetNodeProperties(ctx context.Context, req *pb.SetNodeProper
 	return &pb.Empty{}, nil
 }
 
-func (h apiHandler) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
+func (apiHandler) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
 	_, n, err := lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err

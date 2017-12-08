@@ -18,6 +18,8 @@ import (
 	"testing"
 
 	"github.com/google/shenzhen-go/model"
+	pb "github.com/google/shenzhen-go/proto"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -123,6 +125,49 @@ func TestLookupChannel(t *testing.T) {
 		}
 		if got, want := code(err), test.code; got != want {
 			t.Errorf("c.lookupChannel(%q, %q) = code %v, want %v", test.gk, test.ck, got, want)
+		}
+	}
+}
+
+func TestCreateChannel(t *testing.T) {
+	bar := &model.Channel{Name: "bar"}
+	foo := &model.Graph{
+		Name:     "foo",
+		Channels: map[string]*model.Channel{"bar": bar},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.CreateChannelRequest
+		code codes.Code
+	}{
+		{
+			req: &pb.CreateChannelRequest{
+				Graph: "nope",
+				Name:  "baz",
+			},
+			code: codes.NotFound,
+		},
+		{
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "baz",
+			},
+			code: codes.OK,
+		},
+		{
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "bar",
+			},
+			code: codes.FailedPrecondition,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.CreateChannel(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.CreateChannel(%v) = code %v, want %v", test.req, got, want)
 		}
 	}
 }

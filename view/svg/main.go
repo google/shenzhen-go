@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/jsutil"
+	pb "github.com/google/shenzhen-go/proto"
 	"github.com/gopherjs/gopherjs/js"
 )
 
@@ -45,7 +45,7 @@ var (
 	nodePropertiesPanel  = jsutil.MustGetElement("node-properties")
 	rhsPanel             = graphPropertiesPanel
 
-	client api.ShenzhenGoClient
+	client pb.ShenzhenGoClient
 )
 
 func showRHSPanel(p *jsutil.Element) {
@@ -58,7 +58,7 @@ func showRHSPanel(p *jsutil.Element) {
 }
 
 func main() {
-	client = api.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
+	client = pb.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
 
 	d := &diagram{
 		Element: jsutil.MustGetElement("diagram"),

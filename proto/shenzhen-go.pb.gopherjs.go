@@ -3,7 +3,7 @@
 // source: shenzhen-go.proto
 
 /*
-	Package api is a generated protocol buffer package.
+	Package proto is a generated protocol buffer package.
 
 	It is generated from these files:
 		shenzhen-go.proto
@@ -19,7 +19,7 @@
 		DisconnectPinRequest
 		ConnectPinRequest
 */
-package api
+package proto
 
 import jspb "github.com/johanbrandhorst/protobuf/jspb"
 
@@ -966,7 +966,7 @@ type shenzhenGoClient struct {
 // NewShenzhenGoClient creates a new gRPC-Web client.
 func NewShenzhenGoClient(hostname string, opts ...grpcweb.DialOption) ShenzhenGoClient {
 	return &shenzhenGoClient{
-		client: grpcweb.NewClient(hostname, "api.ShenzhenGo", opts...),
+		client: grpcweb.NewClient(hostname, "proto.ShenzhenGo", opts...),
 	}
 }
 

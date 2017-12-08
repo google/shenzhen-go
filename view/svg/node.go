@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
+	pb "github.com/google/shenzhen-go/proto"
 	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/net/context"
 )
@@ -122,7 +122,7 @@ func (n *Node) drag(e *js.Object) {
 
 func (n *Node) drop(e *js.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-	req := &api.SetPositionRequest{
+	req := &pb.SetPositionRequest{
 		Graph: graphPath,
 		Node:  n.Name,
 		X:     int64(x),
@@ -167,7 +167,7 @@ func (n *Node) save(e *js.Object) {
 		log.Printf("Couldn't marshal part: %v", err)
 		return
 	}
-	req := &api.SetNodePropertiesRequest{
+	req := &pb.SetNodePropertiesRequest{
 		Graph:        graphPath,
 		Node:         n.Node.Name,
 		Name:         nodeNameInput.Get("value").String(),

@@ -26,8 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/shenzhen-go/api"
 	"github.com/google/shenzhen-go/controller"
+	pb "github.com/google/shenzhen-go/proto"
 	"github.com/google/shenzhen-go/view"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"google.golang.org/grpc"
@@ -90,7 +90,7 @@ func main() {
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
 	gs := grpc.NewServer()
-	api.RegisterShenzhenGoServer(gs, controller.API)
+	pb.RegisterShenzhenGoServer(gs, controller.API)
 	ws := grpcweb.WrapServer(gs)
 	http.Handle("/.api/", http.StripPrefix("/.api/", ws))
 

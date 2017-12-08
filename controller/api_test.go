@@ -275,7 +275,66 @@ func TestConnectPin(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
-	// TODO
+	baz := &model.Node{
+		Name: "baz",
+		Part: parts.NewCode(nil, "", "", "", pin.Map{
+			"qux": &pin.Definition{
+				Type: "int",
+			},
+		}),
+		Connections: map[string]string{
+			"qux": "bar",
+		},
+	}
+	bar := &model.Channel{Name: "bar", Type: "int"}
+	foo := &model.Graph{
+		Name:     "foo",
+		Channels: map[string]*model.Channel{"bar": bar},
+		Nodes:    map[string]*model.Node{"baz": baz},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.DeleteChannelRequest
+		code codes.Code
+	}{
+		{ // No such graph
+			req: &pb.DeleteChannelRequest{
+				Graph:   "nope",
+				Channel: "bar",
+			},
+			code: codes.NotFound,
+		},
+		{ // No such channel
+			req: &pb.DeleteChannelRequest{
+				Graph:   "foo",
+				Channel: "baz",
+			},
+			code: codes.NotFound,
+		},
+		{ // Ok
+			req: &pb.DeleteChannelRequest{
+				Graph:   "foo",
+				Channel: "bar",
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.DeleteChannel(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.DeleteChannel(%v) = code %v, want %v", test.req, got, want)
+		}
+	}
+	// Channel should be gone
+	if _, found := foo.Channels["bar"]; found {
+		t.Error("channel 'bar' still exists in graph")
+	}
+	// Reference from node should be gone
+	if got, want := baz.Connections["qux"], "nil"; got != want {
+		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
+	}
 }
 
 func TestDisconnectPin(t *testing.T) {

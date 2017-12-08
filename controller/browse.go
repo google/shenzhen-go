@@ -25,16 +25,11 @@ import (
 	"github.com/google/shenzhen-go/view"
 )
 
-type dirBrowser struct{}
-
-// DirBrowser serves a way of visually navigating the filesystem.
-var DirBrowser dirBrowser
-
-func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
 	_, reload := r.URL.Query()["reload"]
-	if g, ok := loadedGraphs[r.URL.Path]; ok && !reload {
+	if g, ok := c.loadedGraphs[r.URL.Path]; ok && !reload {
 		Graph(g, w, r)
 		return
 	}
@@ -60,7 +55,7 @@ func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
 			return
 		}
-		loadedGraphs[r.URL.Path] = g
+		c.loadedGraphs[r.URL.Path] = g
 		Graph(g, w, r)
 		return
 	}
@@ -78,7 +73,7 @@ func (dirBrowser) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Guessing a package path: %v", err)
 		}
-		loadedGraphs[path] = model.NewGraph(nfp, path, pkgp)
+		c.loadedGraphs[path] = model.NewGraph(nfp, path, pkgp)
 		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
 		return
 	}

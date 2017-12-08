@@ -22,33 +22,28 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type apiHandler struct{}
-
-// API handles all API requests.
-var API apiHandler
-
-func lookupGraph(graph string) (*model.Graph, error) {
-	g := loadedGraphs[graph]
+func (c *controller) lookupGraph(graph string) (*model.Graph, error) {
+	g := c.loadedGraphs[graph]
 	if g == nil {
 		return nil, status.Errorf(codes.NotFound, "graph not loaded: %q", graph)
 	}
 	return g, nil
 }
 
-func lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
-	g, err := lookupGraph(graph)
+func (c *controller) lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
+	g, err := c.lookupGraph(graph)
 	if err != nil {
 		return nil, nil, err
 	}
-	c := g.Channels[channel]
-	if c == nil {
+	ch := g.Channels[channel]
+	if ch == nil {
 		return nil, nil, status.Errorf(codes.NotFound, "no such channel: %q", channel)
 	}
-	return g, c, nil
+	return g, ch, nil
 }
 
-func lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
-	g, err := lookupGraph(graph)
+func (c *controller) lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
+	g, err := c.lookupGraph(graph)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -59,8 +54,8 @@ func lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
 	return g, n, nil
 }
 
-func (apiHandler) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
-	g, err := lookupGraph(req.Graph)
+func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -77,8 +72,8 @@ func (apiHandler) CreateChannel(ctx context.Context, req *pb.CreateChannelReques
 	return &pb.Empty{}, nil
 }
 
-func (apiHandler) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
-	_, n, err := lookupNode(req.Graph, req.Node)
+func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
+	_, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -89,8 +84,8 @@ func (apiHandler) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*p
 	return &pb.Empty{}, nil
 }
 
-func (apiHandler) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
-	g, _, err := lookupChannel(req.Graph, req.Channel)
+func (c *controller) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
+	g, _, err := c.lookupChannel(req.Graph, req.Channel)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -98,8 +93,8 @@ func (apiHandler) DeleteChannel(ctx context.Context, req *pb.DeleteChannelReques
 	return &pb.Empty{}, nil
 }
 
-func (apiHandler) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
-	_, n, err := lookupNode(req.Graph, req.Node)
+func (c *controller) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
+	_, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -110,16 +105,16 @@ func (apiHandler) DisconnectPin(ctx context.Context, req *pb.DisconnectPinReques
 	return &pb.Empty{}, nil
 }
 
-func (apiHandler) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
-	g, err := lookupGraph(req.Graph)
+func (c *controller) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	return &pb.Empty{}, SaveJSONFile(g)
 }
 
-func (apiHandler) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
-	g, err := lookupGraph(req.Graph)
+func (c *controller) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -129,8 +124,8 @@ func (apiHandler) SetGraphProperties(ctx context.Context, req *pb.SetGraphProper
 	return &pb.Empty{}, nil
 }
 
-func (apiHandler) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
-	g, n, err := lookupNode(req.Graph, req.Node)
+func (c *controller) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
+	g, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -156,8 +151,8 @@ func (apiHandler) SetNodeProperties(ctx context.Context, req *pb.SetNodeProperti
 	return &pb.Empty{}, nil
 }
 
-func (apiHandler) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
-	_, n, err := lookupNode(req.Graph, req.Node)
+func (c *controller) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
+	_, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}

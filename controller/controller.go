@@ -19,4 +19,11 @@ import (
 	"github.com/google/shenzhen-go/model"
 )
 
-var loadedGraphs = make(map[string]*model.Graph)
+// C is the controller singleton.
+var C = &controller{
+	loadedGraphs: make(map[string]*model.Graph),
+}
+
+type controller struct {
+	loadedGraphs map[string]*model.Graph
+}

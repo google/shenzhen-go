@@ -29,18 +29,18 @@ func TestLoadJSON(t *testing.T) {
 		"foo": {
 			"part_type": "Code", 
 			"part": {
-				"pins": [
-					{
+				"pins": {
+					"output": {
 						"name": "output",
 						"type": "int",
 						"dir": "out"
 					},
-					{
+					"nc": {
 						"name": "nc",
 						"type": "int",
 						"dir": "in"
 					}
-				]
+				}
 			},
 			"connections": {
 				"output": "baz",
@@ -50,18 +50,18 @@ func TestLoadJSON(t *testing.T) {
 		"bar": {
 			"part_type": "Code", 
 			"part": {
-				"pins": [
-					{
+				"pins": {
+					"input": {
 						"name": "input",
 						"type": "int",
 						"dir": "in"
 					},
-					{
+					"nc": {
 						"name": "nc",
 						"type": "int",
 						"dir": "out"
 					}
-				]
+				}
 			},
 			"connections": {
 				"input": "baz",
@@ -91,13 +91,13 @@ func TestLoadJSON(t *testing.T) {
 		"foo": {
 			Name:         "foo",
 			Multiplicity: 1,
-			Part: parts.NewCode(nil, "", "", "", []pin.Definition{
-				{
+			Part: parts.NewCode(nil, "", "", "", pin.Map{
+				"output": {
 					Name:      "output",
 					Direction: pin.Output,
 					Type:      "int",
 				},
-				{
+				"nc": {
 					Name:      "nc",
 					Type:      "int",
 					Direction: pin.Input,
@@ -111,13 +111,13 @@ func TestLoadJSON(t *testing.T) {
 		"bar": {
 			Name:         "bar",
 			Multiplicity: 1,
-			Part: parts.NewCode(nil, "", "", "", []pin.Definition{
-				{
+			Part: parts.NewCode(nil, "", "", "", pin.Map{
+				"input": {
 					Name:      "input",
 					Direction: pin.Input,
 					Type:      "int",
 				},
-				{
+				"nc": {
 					Name:      "nc",
 					Type:      "int",
 					Direction: pin.Output,

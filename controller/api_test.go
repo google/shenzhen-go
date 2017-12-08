@@ -60,3 +60,69 @@ func TestLookupGraph(t *testing.T) {
 		}
 	}
 }
+
+func TestLookupNode(t *testing.T) {
+	bar := &model.Node{Name: "bar"}
+	foo := &model.Graph{
+		Name:  "foo",
+		Nodes: map[string]*model.Node{"bar": bar},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		gk, nk string
+		g      *model.Graph
+		n      *model.Node
+		code   codes.Code
+	}{
+		{"foo", "bar", foo, bar, codes.OK},
+		{"foo", "baz", nil, nil, codes.NotFound},
+		{"baz", "bar", nil, nil, codes.NotFound},
+	}
+	for _, test := range tests {
+		g, n, err := c.lookupNode(test.gk, test.nk)
+		if got, want := g, test.g; got != want {
+			t.Errorf("c.lookupNode(%q, %q) = graph %v, want %v", test.gk, test.nk, got, want)
+		}
+		if got, want := n, test.n; got != want {
+			t.Errorf("c.lookupNode(%q, %q) = node %v, want %v", test.gk, test.nk, got, want)
+		}
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.lookupNode(%q, %q) = code %v, want %v", test.gk, test.nk, got, want)
+		}
+	}
+}
+
+func TestLookupChannel(t *testing.T) {
+	bar := &model.Channel{Name: "bar"}
+	foo := &model.Graph{
+		Name:     "foo",
+		Channels: map[string]*model.Channel{"bar": bar},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		gk, ck string
+		g      *model.Graph
+		ch     *model.Channel
+		code   codes.Code
+	}{
+		{"foo", "bar", foo, bar, codes.OK},
+		{"foo", "baz", nil, nil, codes.NotFound},
+		{"baz", "bar", nil, nil, codes.NotFound},
+	}
+	for _, test := range tests {
+		g, ch, err := c.lookupChannel(test.gk, test.ck)
+		if got, want := g, test.g; got != want {
+			t.Errorf("c.lookupChannel(%q, %q) = graph %v, want %v", test.gk, test.ck, got, want)
+		}
+		if got, want := ch, test.ch; got != want {
+			t.Errorf("c.lookupChannel(%q, %q) = node %v, want %v", test.gk, test.ck, got, want)
+		}
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.lookupChannel(%q, %q) = code %v, want %v", test.gk, test.ck, got, want)
+		}
+	}
+}

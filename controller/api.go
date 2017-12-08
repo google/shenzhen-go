@@ -25,7 +25,7 @@ import (
 func (c *controller) lookupGraph(graph string) (*model.Graph, error) {
 	g := c.loadedGraphs[graph]
 	if g == nil {
-		return nil, status.Errorf(codes.NotFound, "graph not loaded: %q", graph)
+		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", graph)
 	}
 	return g, nil
 }
@@ -37,7 +37,7 @@ func (c *controller) lookupChannel(graph, channel string) (*model.Graph, *model.
 	}
 	ch := g.Channels[channel]
 	if ch == nil {
-		return nil, nil, status.Errorf(codes.NotFound, "no such channel: %q", channel)
+		return nil, nil, status.Errorf(codes.NotFound, "no such channel %q", channel)
 	}
 	return g, ch, nil
 }
@@ -49,7 +49,7 @@ func (c *controller) lookupNode(graph, node string) (*model.Graph, *model.Node, 
 	}
 	n := g.Nodes[node]
 	if n == nil {
-		return nil, nil, status.Errorf(codes.NotFound, "no such node: %q", node)
+		return nil, nil, status.Errorf(codes.NotFound, "no such node %q", node)
 	}
 	return g, n, nil
 }

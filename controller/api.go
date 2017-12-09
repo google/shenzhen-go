@@ -150,7 +150,7 @@ func (c *controller) SetNodeProperties(ctx context.Context, req *pb.SetNodePrope
 		Type: req.PartType,
 	}).Unmarshal()
 	if err != nil {
-		return &pb.Empty{}, err
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "part unmarshal: %v", err)
 	}
 	if n.Name != req.Name {
 		if _, exists := g.Nodes[req.Name]; exists {

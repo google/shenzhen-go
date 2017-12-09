@@ -412,11 +412,118 @@ func TestSave(t *testing.T) {
 }
 
 func TestSetGraphProperties(t *testing.T) {
-	// TODO
+	foo := &model.Graph{Name: "foo"}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{
+			"foo": foo,
+		},
+	}
+	tests := []struct {
+		req  *pb.SetGraphPropertiesRequest
+		code codes.Code
+	}{
+		{
+			req: &pb.SetGraphPropertiesRequest{
+				Graph: "oof",
+			},
+			code: codes.NotFound,
+		},
+		{
+			req: &pb.SetGraphPropertiesRequest{
+				Graph:       "foo",
+				Name:        "name",
+				PackagePath: "package/path",
+				IsCommand:   true,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.SetGraphProperties(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.SetGraphProperties(%v) = code %v, want %v", test.req, got, want)
+		}
+	}
+	if got, want := foo.Name, "name"; got != want {
+		t.Errorf("foo.Name = %q, want %q", got, want)
+	}
+	if got, want := foo.PackagePath, "package/path"; got != want {
+		t.Errorf("foo.PackagePath = %q, want %q", got, want)
+	}
+	if got, want := foo.IsCommand, true; got != want {
+		t.Errorf("foo.IsCommand = %t, want %t", got, want)
+	}
 }
 
 func TestSetNodeProperties(t *testing.T) {
-	// TODO
+	bar := &model.Node{Name: "bar"}
+	baz := &model.Node{Name: "baz"}
+	foo := &model.Graph{
+		Name: "foo",
+		Nodes: map[string]*model.Node{
+			"bar": bar,
+			"baz": baz,
+		},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.SetNodePropertiesRequest
+		code codes.Code
+	}{
+		{ // no such graph
+			req: &pb.SetNodePropertiesRequest{
+				Graph: "nope",
+				Node:  "bar",
+			},
+			code: codes.NotFound,
+		},
+		{ // no such node
+			req: &pb.SetNodePropertiesRequest{
+				Graph: "foo",
+				Node:  "bak",
+			},
+			code: codes.NotFound,
+		},
+		{ // can't unmarshal
+			req: &pb.SetNodePropertiesRequest{
+				Graph:    "foo",
+				Node:     "bar",
+				PartType: "Not a part key",
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // rename to existing name
+			req: &pb.SetNodePropertiesRequest{
+				Graph:    "foo",
+				Node:     "bar",
+				Name:     "baz",
+				PartCfg:  []byte("{}"),
+				PartType: "Code",
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // Ok
+			req: &pb.SetNodePropertiesRequest{
+				Graph:        "foo",
+				Node:         "bar",
+				Name:         "bax",
+				PartCfg:      []byte("{}"),
+				PartType:     "Code",
+				Multiplicity: 1,
+				Enabled:      true,
+				Wait:         true,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.SetNodeProperties(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.SetNodeProperties(%v) = code %v, want %v", test.req, got, want)
+		}
+	}
 }
 
 func TestSetPosition(t *testing.T) {

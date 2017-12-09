@@ -338,7 +338,73 @@ func TestDeleteChannel(t *testing.T) {
 }
 
 func TestDisconnectPin(t *testing.T) {
-	// TODO
+	baz := &model.Node{
+		Name: "baz",
+		Part: parts.NewCode(nil, "", "", "", pin.Map{
+			"qux": &pin.Definition{
+				Type: "int",
+			},
+		}),
+		Connections: map[string]string{
+			"qux": "bar",
+		},
+	}
+	bar := &model.Channel{Name: "bar", Type: "int"}
+	foo := &model.Graph{
+		Name:     "foo",
+		Channels: map[string]*model.Channel{"bar": bar},
+		Nodes:    map[string]*model.Node{"baz": baz},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.DisconnectPinRequest
+		code codes.Code
+	}{
+		{ // No such graph
+			req: &pb.DisconnectPinRequest{
+				Graph: "nope",
+				Node:  "baz",
+				Pin:   "qux",
+			},
+			code: codes.NotFound,
+		},
+		{ // No such node
+			req: &pb.DisconnectPinRequest{
+				Graph: "foo",
+				Node:  "bar",
+				Pin:   "qux",
+			},
+			code: codes.NotFound,
+		},
+		{ // No such pin
+			req: &pb.DisconnectPinRequest{
+				Graph: "foo",
+				Node:  "baz",
+				Pin:   "tuz",
+			},
+			code: codes.NotFound,
+		},
+		{ // Ok
+			req: &pb.DisconnectPinRequest{
+				Graph: "foo",
+				Node:  "baz",
+				Pin:   "qux",
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.DisconnectPin(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.DisconnectPin(%v) = code %v, want %v", test.req, got, want)
+		}
+	}
+	// Reference from node should be gone
+	if got, want := baz.Connections["qux"], "nil"; got != want {
+		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
+	}
 }
 
 func TestSave(t *testing.T) {

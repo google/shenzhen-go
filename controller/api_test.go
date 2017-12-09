@@ -524,6 +524,28 @@ func TestSetNodeProperties(t *testing.T) {
 			t.Errorf("c.SetNodeProperties(%v) = code %v, want %v", test.req, got, want)
 		}
 	}
+	if _, found := foo.Nodes["bar"]; found {
+		t.Error("foo.Nodes[bar] is found, want not found")
+	}
+	bax := bar
+	if got, want := foo.Nodes["bax"], bax; got != want {
+		t.Errorf("foo.Nodes[bax] = %v, want %v", got, want)
+	}
+	if got, want := bax.Name, "bax"; got != want {
+		t.Errorf("bax.Name = %q, want %q", got, want)
+	}
+	if got, want := bax.Multiplicity, uint(1); got != want {
+		t.Errorf("bax.Multiplicity = %v, want %v", got, want)
+	}
+	if got, want := bax.Enabled, true; got != want {
+		t.Errorf("bax.Enabled = %t, want %t", got, want)
+	}
+	if got, want := bax.Wait, true; got != want {
+		t.Errorf("bax.Wait = %t, want %t", got, want)
+	}
+	if got, want := bax.Part.TypeKey(), "Code"; got != want {
+		t.Errorf("bax.Part.TypeKey() = %q, want %q", got, want)
+	}
 }
 
 func TestSetPosition(t *testing.T) {

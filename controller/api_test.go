@@ -549,5 +549,52 @@ func TestSetNodeProperties(t *testing.T) {
 }
 
 func TestSetPosition(t *testing.T) {
-	// TODO
+	bar := &model.Node{Name: "bar"}
+	foo := &model.Graph{
+		Name:  "foo",
+		Nodes: map[string]*model.Node{"bar": bar},
+	}
+	c := &controller{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.SetPositionRequest
+		code codes.Code
+	}{
+		{
+			req: &pb.SetPositionRequest{
+				Graph: "nope",
+				Node:  "bar",
+			},
+			code: codes.NotFound,
+		},
+		{
+			req: &pb.SetPositionRequest{
+				Graph: "foo",
+				Node:  "baz",
+			},
+			code: codes.NotFound,
+		},
+		{
+			req: &pb.SetPositionRequest{
+				Graph: "foo",
+				Node:  "bar",
+				X:     42,
+				Y:     17,
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.SetPosition(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.SetPosition(%v) = code %v, want %v", test.req, got, want)
+		}
+	}
+	if got, want := bar.X, 42; got != want {
+		t.Errorf("bar.X = %d, want %d", got, want)
+	}
+	if got, want := bar.Y, 17; got != want {
+		t.Errorf("bar.Y = %d, want %d", got, want)
+	}
 }

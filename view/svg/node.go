@@ -130,7 +130,7 @@ func (n *Node) drop(e *js.Object) {
 	}
 
 	go func() { // cannot block in callback
-		if _, err := client.SetPosition(context.TODO(), req); err != nil {
+		if _, err := client.SetPosition(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetPosition: %v", err)
 		}
 	}()
@@ -178,7 +178,7 @@ func (n *Node) save(e *js.Object) {
 		PartType:     pj.Type,
 	}
 	go func() {
-		if _, err := client.SetNodeProperties(context.TODO(), req); err != nil {
+		if _, err := client.SetNodeProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't update node properties: %v", err)
 			return
 		}

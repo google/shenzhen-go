@@ -67,7 +67,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 
 func (g *Graph) save(*js.Object) {
 	go func() { // cannot block in callback
-		if _, err := client.Save(context.TODO(), &pb.SaveRequest{Graph: graphPath}); err != nil {
+		if _, err := client.Save(context.Background(), &pb.SaveRequest{Graph: graphPath}); err != nil {
 			log.Printf("Couldn't Save: %v", err)
 		}
 	}()
@@ -81,7 +81,7 @@ func (g *Graph) saveProperties(*js.Object) {
 		IsCommand:   graphIsCommandElement.Get("checked").Bool(),
 	}
 	go func() { // cannot block in callback
-		if _, err := client.SetGraphProperties(context.TODO(), req); err != nil {
+		if _, err := client.SetGraphProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetGraphProperties: %v", err)
 		}
 	}()

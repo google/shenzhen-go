@@ -3,10 +3,7 @@
 	"package_path": "github.com/google/shenzhen-go/examples/demo",
 	"is_command": true,
 	"nodes": {
-		"Demo node": {
-			"enabled": true,
-			"wait": true,
-			"multiplicity": 1,
+		"Node 1": {
 			"part": {
 				"imports": [
 					"\"fmt\""
@@ -26,20 +23,15 @@
 						"type": "rune",
 						"dir": "in"
 					},
-					"foo": {
-						"name": "foo",
-						"type": "int",
-						"dir": "in"
-					},
-					"tuz": {
-						"name": "tuz",
-						"type": "int64",
-						"dir": "in"
-					},
 					"baz": {
 						"name": "baz",
 						"type": "float64",
 						"dir": "out"
+					},
+					"foo": {
+						"name": "foo",
+						"type": "int",
+						"dir": "in"
 					},
 					"quux": {
 						"name": "quux",
@@ -50,16 +42,86 @@
 						"name": "qux",
 						"type": "int",
 						"dir": "out"
+					},
+					"tuz": {
+						"name": "tuz",
+						"type": "int64",
+						"dir": "in"
 					}
 				}
 			},
 			"part_type": "Code",
-			"x": 182,
-			"y": 170,
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 208,
+			"y": 76,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
 				"foo": "nil",
+				"quux": "nil",
+				"qux": "anonymous_channel_0",
+				"tuz": "nil"
+			}
+		},
+		"Node 2": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"fmt.Println(\"blah\")"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"bar": {
+						"name": "bar",
+						"type": "rune",
+						"dir": "in"
+					},
+					"baz": {
+						"name": "baz",
+						"type": "float64",
+						"dir": "out"
+					},
+					"foo": {
+						"name": "foo",
+						"type": "int",
+						"dir": "in"
+					},
+					"quux": {
+						"name": "quux",
+						"type": "string",
+						"dir": "out"
+					},
+					"qux": {
+						"name": "qux",
+						"type": "int",
+						"dir": "out"
+					},
+					"tuz": {
+						"name": "tuz",
+						"type": "int64",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 200,
+			"y": 225,
+			"connections": {
+				"bar": "nil",
+				"baz": "nil",
+				"foo": "anonymous_channel_0",
 				"quux": "nil",
 				"qux": "nil",
 				"tuz": "nil"

@@ -262,14 +262,14 @@ func (p *Pin) makePinElement(n *Node) *jsutil.Element {
 	// Line
 	p.l = jsutil.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
-		SetAttribute("display", "none")
+		Hide()
 
 	// Another circ
 	p.c = jsutil.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).
-		SetAttribute("display", "none")
+		Hide()
 
 	p.node.d.AddChildren(p.l, p.c)
 

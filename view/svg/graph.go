@@ -139,5 +139,14 @@ func loadGraph(d *diagram, gj string) (*Graph, error) {
 		graph.Nodes[n.Name] = m
 		m.makeElements()
 	}
+	// Show existing connections
+	for c := range graph.Channels {
+		c.reposition(nil)
+		c.commit()
+		for p := range c.Pins {
+			p.l.SetAttribute("stroke", normalColour)
+			p.l.Show()
+		}
+	}
 	return graph, nil
 }

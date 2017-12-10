@@ -41,9 +41,9 @@ func (e *Element) AddEventListener(event string, handler func(*js.Object)) *Elem
 	return e
 }
 
-// Show sets the display attribute to the empty string.
+// Show removes the display attribute.
 func (e *Element) Show() *Element {
-	e.Call("setAttribute", "display", "")
+	e.Call("removeAttribute", "display")
 	return e
 }
 

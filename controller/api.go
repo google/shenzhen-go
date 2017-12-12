@@ -93,31 +93,31 @@ func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) 
 }
 
 func (c *controller) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
-	g, _, err := c.lookupChannel(req.Graph, req.Channel)
+	g, ch, err := c.lookupChannel(req.Graph, req.Channel)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	delete(g.Channels, req.Channel)
-	// Clean up references from pins.
-	for _, n := range g.Nodes {
-		for p, ch := range n.Connections {
-			if ch == req.Channel {
-				n.Connections[p] = "nil"
-			}
-		}
-	}
+	g.DeleteChannel(ch)
 	return &pb.Empty{}, nil
 }
 
 func (c *controller) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
-	_, n, err := c.lookupNode(req.Graph, req.Node)
+	g, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	if _, found := n.Connections[req.Pin]; !found {
+	cn, found := n.Connections[req.Pin]
+	if !found {
 		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
 	}
 	n.Connections[req.Pin] = "nil"
+	// Clean up channel if unneccessary while we're at it.
+	if ch := g.Channels[cn]; ch != nil {
+		delete(ch.Pins, model.NodePin{Node: req.Node, Pin: req.Pin})
+		if len(ch.Pins) < 2 {
+			g.DeleteChannel(ch)
+		}
+	}
 	return &pb.Empty{}, nil
 }
 

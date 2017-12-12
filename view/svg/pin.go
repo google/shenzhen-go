@@ -19,9 +19,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/shenzhen-go/jsutil"
+	pb "github.com/google/shenzhen-go/proto"
 	"github.com/gopherjs/gopherjs/js"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -105,6 +108,15 @@ func (p *Pin) disconnect() {
 	if p.ch == nil {
 		return
 	}
+	go func() { // can't block in handler
+		if _, err := client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
+			Graph: graphPath,
+			Node:  p.node.Name,
+			Pin:   p.Name,
+		}); err != nil {
+			log.Printf("Couldn't DisconnectPin: %v", err)
+		}
+	}()
 	delete(p.ch.Pins, p)
 	p.ch.setColour(normalColour)
 	p.ch.reposition(nil)

@@ -54,11 +54,21 @@ func LoadJSON(r io.Reader, filePath, urlPath string) (*Graph, error) {
 	if err := dec.Decode(g); err != nil {
 		return nil, err
 	}
-	for k, n := range g.Nodes {
-		n.Name = k
-	}
+	// Each node and channel should cache it's own name.
 	for k, c := range g.Channels {
 		c.Name = k
+		c.Pins = make(map[NodePin]struct{})
+	}
+	for k, n := range g.Nodes {
+		n.Name = k
+		// Scan connections to cache them in channels.
+		for p, co := range n.Connections {
+			ch := g.Channels[co]
+			if ch == nil {
+				continue
+			}
+			ch.Pins[NodePin{Node: n.Name, Pin: p}] = struct{}{}
+		}
 	}
 	return g, nil
 }
@@ -84,4 +94,12 @@ func (g *Graph) AllImports() []string {
 		}
 	}
 	return m.Slice()
+}
+
+// DeleteChannel cleans up any connections and then deletes a channel.
+func (g *Graph) DeleteChannel(ch *Channel) {
+	for np := range ch.Pins {
+		g.Nodes[np.Node].Connections[np.Pin] = "nil"
+	}
+	delete(g.Channels, ch.Name)
 }

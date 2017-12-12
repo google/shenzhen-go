@@ -286,7 +286,13 @@ func TestDeleteChannel(t *testing.T) {
 			"qux": "bar",
 		},
 	}
-	bar := &model.Channel{Name: "bar", Type: "int"}
+	bar := &model.Channel{
+		Name: "bar",
+		Type: "int",
+		Pins: map[model.NodePin]struct{}{
+			{Node: "baz", Pin: "qux"}: struct{}{},
+		},
+	}
 	foo := &model.Graph{
 		Name:     "foo",
 		Channels: map[string]*model.Channel{"bar": bar},
@@ -349,7 +355,13 @@ func TestDisconnectPin(t *testing.T) {
 			"qux": "bar",
 		},
 	}
-	bar := &model.Channel{Name: "bar", Type: "int"}
+	bar := &model.Channel{
+		Name: "bar",
+		Type: "int",
+		Pins: map[model.NodePin]struct{}{
+			{Node: "baz", Pin: "qux"}: struct{}{},
+		},
+	}
 	foo := &model.Graph{
 		Name:     "foo",
 		Channels: map[string]*model.Channel{"bar": bar},
@@ -404,6 +416,10 @@ func TestDisconnectPin(t *testing.T) {
 	// Reference from node should be gone
 	if got, want := baz.Connections["qux"], "nil"; got != want {
 		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
+	}
+	// Channel should be gone
+	if _, found := foo.Channels["bar"]; found {
+		t.Error("channel 'bar' still exists in graph")
 	}
 }
 

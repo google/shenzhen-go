@@ -17,15 +17,20 @@
 package main
 
 import (
+	"log"
+
 	"github.com/google/shenzhen-go/jsutil"
+	"github.com/google/shenzhen-go/model"
+	pb "github.com/google/shenzhen-go/proto"
 	"github.com/gopherjs/gopherjs/js"
+	"golang.org/x/net/context"
 )
 
 // Channel is the view's model of a channel.
 type Channel struct {
-	Type string
-	Cap  int
+	*model.Channel
 
+	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]struct{}
 
 	d       *diagram        // I'm in this diagram
@@ -37,8 +42,44 @@ type Channel struct {
 }
 
 func newChannel(d *diagram, p, q *Pin) *Channel {
+	c := &model.Channel{
+		Name:      "TODO_newchannel",
+		Type:      p.Type,
+		Capacity:  0,
+		Anonymous: true,
+	}
+	go func() {
+		if _, err := client.CreateChannel(context.Background(), &pb.CreateChannelRequest{
+			Graph: graphPath,
+			Name:  c.Name,
+			Type:  c.Type,
+			Cap:   uint64(c.Capacity),
+			Anon:  c.Anonymous,
+		}); err != nil {
+			log.Printf("Couldn't CreateChannel: %v", err)
+			return
+		}
+		if _, err := client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
+			Graph:   graphPath,
+			Node:    p.node.Name,
+			Pin:     p.Name,
+			Channel: c.Name,
+		}); err != nil {
+			log.Printf("Couldn't ConnectPin: %v", err)
+			return
+		}
+		if _, err := client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
+			Graph:   graphPath,
+			Node:    q.node.Name,
+			Pin:     q.Name,
+			Channel: c.Name,
+		}); err != nil {
+			log.Printf("Couldn't ConnectPin: %v", err)
+			return
+		}
+	}()
 	ch := &Channel{
-		Type: p.Type,
+		Channel: c,
 		Pins: map[*Pin]struct{}{
 			p: struct{}{},
 			q: struct{}{},

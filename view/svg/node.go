@@ -70,7 +70,6 @@ func init() {
 type Node struct {
 	*model.Node
 
-	Name            string
 	Inputs, Outputs []*Pin
 	X, Y            float64
 

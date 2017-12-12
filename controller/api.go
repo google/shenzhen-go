@@ -68,6 +68,7 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 		Type:      req.Type,
 		Anonymous: req.Anon,
 		Capacity:  int(req.Cap),
+		Pins:      make(map[model.NodePin]struct{}),
 	}
 	return &pb.Empty{}, nil
 }
@@ -89,6 +90,7 @@ func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) 
 		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "pin %q, channel %q type mismatch [%q != %q]", req.Pin, req.Channel, pin.Type, ch.Type)
 	}
 	n.Connections[req.Pin] = req.Channel
+	ch.Pins[model.NodePin{Node: req.Node, Pin: req.Pin}] = struct{}{}
 	return &pb.Empty{}, nil
 }
 

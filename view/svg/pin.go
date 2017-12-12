@@ -97,6 +97,16 @@ func (p *Pin) connectTo(q Point) error {
 		}
 
 		// Attach to the existing channel
+		go func() { // cannot block while handling
+			if _, err := client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
+				Graph:   graphPath,
+				Node:    p.node.Name,
+				Pin:     p.Name,
+				Channel: q.Channel.Name,
+			}); err != nil {
+				log.Printf("Couldn't ConnectPin: %v", err)
+			}
+		}()
 		p.ch = q
 		q.Pins[p] = struct{}{}
 		q.reposition(nil)

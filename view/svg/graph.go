@@ -98,10 +98,9 @@ func loadGraph(d *diagram, gj string) (*Graph, error) {
 	graph.Channels = make(map[*Channel]struct{})
 	for k, c := range g.Channels {
 		ch := &Channel{
-			Type: c.Type,
-			Cap:  c.Capacity,
-			Pins: make(map[*Pin]struct{}),
-			d:    d,
+			Channel: c,
+			Pins:    make(map[*Pin]struct{}),
+			d:       d,
 		}
 		chans[k] = ch
 		graph.Channels[ch] = struct{}{}
@@ -112,7 +111,6 @@ func loadGraph(d *diagram, gj string) (*Graph, error) {
 	for _, n := range g.Nodes {
 		m := &Node{
 			Node: n,
-			Name: n.Name,
 			X:    float64(n.X),
 			Y:    float64(n.Y),
 			d:    d,

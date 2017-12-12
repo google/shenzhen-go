@@ -290,7 +290,7 @@ func TestDeleteChannel(t *testing.T) {
 		Name: "bar",
 		Type: "int",
 		Pins: map[model.NodePin]struct{}{
-			{Node: "baz", Pin: "qux"}: struct{}{},
+			{Node: "baz", Pin: "qux"}: {},
 		},
 	}
 	foo := &model.Graph{
@@ -359,7 +359,7 @@ func TestDisconnectPin(t *testing.T) {
 		Name: "bar",
 		Type: "int",
 		Pins: map[model.NodePin]struct{}{
-			{Node: "baz", Pin: "qux"}: struct{}{},
+			{Node: "baz", Pin: "qux"}: {},
 		},
 	}
 	foo := &model.Graph{

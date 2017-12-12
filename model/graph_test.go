@@ -136,6 +136,10 @@ func TestLoadJSON(t *testing.T) {
 		"baz": {
 			Name: "baz",
 			Type: "int",
+			Pins: map[NodePin]struct{}{
+				{Node: "foo", Pin: "output"}: {},
+				{Node: "bar", Pin: "input"}:  {},
+			},
 		},
 	}
 	if got, want := got.Channels, wantChans; !reflect.DeepEqual(got, want) {

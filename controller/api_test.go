@@ -188,8 +188,16 @@ func TestConnectPin(t *testing.T) {
 		}),
 		Connections: make(map[string]string),
 	}
-	bar := &model.Channel{Name: "bar", Type: "int"}
-	tuz := &model.Channel{Name: "tuz", Type: "string"}
+	bar := &model.Channel{
+		Name: "bar",
+		Type: "int",
+		Pins: make(map[model.NodePin]struct{}),
+	}
+	tuz := &model.Channel{
+		Name: "tuz",
+		Type: "string",
+		Pins: make(map[model.NodePin]struct{}),
+	}
 	foo := &model.Graph{
 		Name:     "foo",
 		Channels: map[string]*model.Channel{"bar": bar, "tuz": tuz},

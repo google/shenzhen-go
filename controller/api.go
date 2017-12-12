@@ -59,6 +59,10 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	// TODO: better validation
+	if req.Name == "nil" {
+		return &pb.Empty{}, status.Errorf(codes.InvalidArgument, "channels may not be named %q", req.Name)
+	}
 	if _, found := g.Channels[req.Name]; found {
 		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "channel %q already exists", req.Name)
 	}

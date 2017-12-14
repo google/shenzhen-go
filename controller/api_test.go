@@ -133,15 +133,21 @@ func TestLookupChannel(t *testing.T) {
 
 func TestCreateChannel(t *testing.T) {
 	bar := &model.Channel{Name: "bar"}
-	node1 := &model.Node{Name: "node1", Connections: map[string]string{
-		"pin1": "nil",
-	}}
-	node2 := &model.Node{Name: "node2", Connections: map[string]string{
-		"pin2": "nil",
-	}}
+	node1 := &model.Node{
+		Name: "node1",
+		Connections: map[string]string{
+			"pin1": "nil",
+		}}
+	node2 := &model.Node{
+		Name: "node2",
+		Connections: map[string]string{
+			"pin2": "nil",
+		}}
 	foo := &model.Graph{
-		Name:     "foo",
-		Channels: map[string]*model.Channel{"bar": bar},
+		Name: "foo",
+		Channels: map[string]*model.Channel{
+			"bar": bar,
+		},
 		Nodes: map[string]*model.Node{
 			"node1": node1,
 			"node2": node2,
@@ -165,18 +171,7 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // no such channel
-			req: &pb.CreateChannelRequest{
-				Graph: "foo",
-				Name:  "baz",
-				Node1: "node1",
-				Pin1:  "pin1",
-				Node2: "node2",
-				Pin2:  "pin2",
-			},
-			code: codes.OK,
-		},
-		{ // chanel already exists
+		{ // channel already exists
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "bar",
@@ -190,7 +185,7 @@ func TestCreateChannel(t *testing.T) {
 		{ // node1 doesn't exist
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
-				Name:  "bar",
+				Name:  "baz",
 				Node1: "nope",
 				Pin1:  "pin1",
 				Node2: "node2",
@@ -201,7 +196,7 @@ func TestCreateChannel(t *testing.T) {
 		{ // node2 doesn't exist
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
-				Name:  "bar",
+				Name:  "baz",
 				Node1: "node1",
 				Pin1:  "pin1",
 				Node2: "noope",
@@ -212,7 +207,7 @@ func TestCreateChannel(t *testing.T) {
 		{ // pin1 doesn't exist
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
-				Name:  "bar",
+				Name:  "baz",
 				Node1: "node1",
 				Pin1:  "pine",
 				Node2: "node2",
@@ -223,7 +218,7 @@ func TestCreateChannel(t *testing.T) {
 		{ // pin2 doesn't exist
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
-				Name:  "bar",
+				Name:  "baz",
 				Node1: "node1",
 				Pin1:  "pin1",
 				Node2: "node2",
@@ -234,33 +229,44 @@ func TestCreateChannel(t *testing.T) {
 		{ // ok
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
-				Name:  "bar",
-				Anon:  true,
+				Name:  "baz",
 				Type:  "int",
-				Cap:   0,
 				Node1: "node1",
 				Pin1:  "pin1",
 				Node2: "node2",
 				Pin2:  "pin2",
 			},
-			code: codes.FailedPrecondition,
+			code: codes.OK,
 		},
 	}
 	for _, test := range tests {
 		_, err := c.CreateChannel(context.Background(), test.req)
 		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.CreateChannel(%v) = code %v, want %v", test.req, got, want)
+			t.Errorf("c.CreateChannel(%v) = error %v, want %v", test.req, err, want)
 		}
-	}
-	_, got := foo.Channels["baz"]
-	if want := true; got != want {
-		t.Errorf("foo.Channels[baz] is missing, want present")
-	}
-	if got, want := node1.Connections["pin1"], "baz"; got != want {
-		t.Errorf("node1.Connections[pin1] = %q, want %q", got, want)
-	}
-	if got, want := node2.Connections["pin2"], "baz"; got != want {
-		t.Errorf("node2.Connections[pin2] = %q, want %q", got, want)
+		if err != nil {
+			_, got := foo.Channels["baz"]
+			if want := false; got != want {
+				t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] is present, want missing", test.req)
+			}
+			if got, want := node1.Connections["pin1"], "nil"; got != want {
+				t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
+			}
+			if got, want := node2.Connections["pin2"], "nil"; got != want {
+				t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
+			}
+			continue
+		}
+		_, got := foo.Channels["baz"]
+		if want := true; got != want {
+			t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] is missing, want present", test.req)
+		}
+		if got, want := node1.Connections["pin1"], "baz"; got != want {
+			t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
+		}
+		if got, want := node2.Connections["pin2"], "baz"; got != want {
+			t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
+		}
 	}
 }
 

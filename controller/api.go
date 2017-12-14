@@ -68,10 +68,10 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 		return &pb.Empty{}, err
 	}
 	if co := n1.Connections[req.Pin1]; co != "nil" {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node1, req.Pin1)
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node1, req.Pin1, co)
 	}
 	if co := n2.Connections[req.Pin2]; co != "nil" {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node1, req.Pin1)
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node2, req.Pin2, co)
 	}
 	// TODO: better validation
 	if req.Name == "nil" {

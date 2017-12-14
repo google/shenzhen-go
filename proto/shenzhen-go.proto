@@ -26,6 +26,11 @@ message CreateChannelRequest {
 	string type = 3;
     bool anon = 4;
     uint64 cap = 5;
+	// Also connect two pins together, to reduce chatter (1 Create RPC instead of [Create, Connect, Connect])
+	string node1 = 6;
+	string pin1 = 7;
+	string node2 = 8;
+	string pin2 = 9;
 }
 
 message SetNodePropertiesRequest {

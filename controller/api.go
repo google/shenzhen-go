@@ -59,6 +59,20 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	_, n1, err := c.lookupNode(req.Graph, req.Node1)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	_, n2, err := c.lookupNode(req.Graph, req.Node2)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	if co := n1.Connections[req.Pin1]; co != "nil" {
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node1, req.Pin1)
+	}
+	if co := n2.Connections[req.Pin2]; co != "nil" {
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node1, req.Pin1)
+	}
 	// TODO: better validation
 	if req.Name == "nil" {
 		return &pb.Empty{}, status.Errorf(codes.InvalidArgument, "channels may not be named %q", req.Name)
@@ -72,8 +86,13 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 		Type:      req.Type,
 		Anonymous: req.Anon,
 		Capacity:  int(req.Cap),
-		Pins:      make(map[model.NodePin]struct{}),
+		Pins: map[model.NodePin]struct{}{
+			{Node: req.Node1, Pin: req.Pin1}: {},
+			{Node: req.Node2, Pin: req.Pin2}: {},
+		},
 	}
+	n1.Connections[req.Pin1] = req.Name
+	n2.Connections[req.Pin2] = req.Name
 	return &pb.Empty{}, nil
 }
 

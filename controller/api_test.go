@@ -133,9 +133,19 @@ func TestLookupChannel(t *testing.T) {
 
 func TestCreateChannel(t *testing.T) {
 	bar := &model.Channel{Name: "bar"}
+	node1 := &model.Node{Name: "node1", Connections: map[string]string{
+		"pin1": "nil",
+	}}
+	node2 := &model.Node{Name: "node2", Connections: map[string]string{
+		"pin2": "nil",
+	}}
 	foo := &model.Graph{
 		Name:     "foo",
 		Channels: map[string]*model.Channel{"bar": bar},
+		Nodes: map[string]*model.Node{
+			"node1": node1,
+			"node2": node2,
+		},
 	}
 	c := &controller{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
@@ -144,24 +154,94 @@ func TestCreateChannel(t *testing.T) {
 		req  *pb.CreateChannelRequest
 		code codes.Code
 	}{
-		{
+		{ // no such graph
 			req: &pb.CreateChannelRequest{
 				Graph: "nope",
 				Name:  "baz",
+				Node1: "node1",
+				Pin1:  "pin1",
+				Node2: "node2",
+				Pin2:  "pin2",
 			},
 			code: codes.NotFound,
 		},
-		{
+		{ // no such channel
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
+				Node1: "node1",
+				Pin1:  "pin1",
+				Node2: "node2",
+				Pin2:  "pin2",
 			},
 			code: codes.OK,
 		},
-		{
+		{ // chanel already exists
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "bar",
+				Node1: "node1",
+				Pin1:  "pin1",
+				Node2: "node2",
+				Pin2:  "pin2",
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // node1 doesn't exist
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "bar",
+				Node1: "nope",
+				Pin1:  "pin1",
+				Node2: "node2",
+				Pin2:  "pin2",
+			},
+			code: codes.NotFound,
+		},
+		{ // node2 doesn't exist
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "bar",
+				Node1: "node1",
+				Pin1:  "pin1",
+				Node2: "noope",
+				Pin2:  "pin2",
+			},
+			code: codes.NotFound,
+		},
+		{ // pin1 doesn't exist
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "bar",
+				Node1: "node1",
+				Pin1:  "pine",
+				Node2: "node2",
+				Pin2:  "pin2",
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // pin2 doesn't exist
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "bar",
+				Node1: "node1",
+				Pin1:  "pin1",
+				Node2: "node2",
+				Pin2:  "pine",
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // ok
+			req: &pb.CreateChannelRequest{
+				Graph: "foo",
+				Name:  "bar",
+				Anon:  true,
+				Type:  "int",
+				Cap:   0,
+				Node1: "node1",
+				Pin1:  "pin1",
+				Node2: "node2",
+				Pin2:  "pin2",
 			},
 			code: codes.FailedPrecondition,
 		},
@@ -175,6 +255,12 @@ func TestCreateChannel(t *testing.T) {
 	_, got := foo.Channels["baz"]
 	if want := true; got != want {
 		t.Errorf("foo.Channels[baz] is missing, want present")
+	}
+	if got, want := node1.Connections["pin1"], "baz"; got != want {
+		t.Errorf("node1.Connections[pin1] = %q, want %q", got, want)
+	}
+	if got, want := node2.Connections["pin2"], "baz"; got != want {
+		t.Errorf("node2.Connections[pin2] = %q, want %q", got, want)
 	}
 }
 

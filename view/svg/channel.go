@@ -76,27 +76,12 @@ func newChannel(d *diagram, p, q *Pin) *Channel {
 			Type:  c.Type,
 			Cap:   uint64(c.Capacity),
 			Anon:  c.Anonymous,
+			Node1: p.node.Name,
+			Pin1:  p.Name,
+			Node2: q.node.Name,
+			Pin2:  q.Name,
 		}); err != nil {
 			log.Printf("Couldn't CreateChannel: %v", err)
-			return
-		}
-		if _, err := client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
-			Graph:   graphPath,
-			Node:    p.node.Name,
-			Pin:     p.Name,
-			Channel: c.Name,
-		}); err != nil {
-			log.Printf("Couldn't ConnectPin: %v", err)
-			return
-		}
-		if _, err := client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
-			Graph:   graphPath,
-			Node:    q.node.Name,
-			Pin:     q.Name,
-			Channel: c.Name,
-		}); err != nil {
-			log.Printf("Couldn't ConnectPin: %v", err)
-			return
 		}
 	}()
 	ch := &Channel{

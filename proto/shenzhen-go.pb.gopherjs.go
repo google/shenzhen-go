@@ -336,6 +336,11 @@ type CreateChannelRequest struct {
 	Type  string
 	Anon  bool
 	Cap   uint64
+	// Also connect two pins together, to reduce chatter (1 Create RPC instead of [Create, Connect, Connect])
+	Node1 string
+	Pin1  string
+	Node2 string
+	Pin2  string
 }
 
 // GetGraph gets the Graph of the CreateChannelRequest.
@@ -378,6 +383,38 @@ func (m *CreateChannelRequest) GetCap() (x uint64) {
 	return m.Cap
 }
 
+// GetNode1 gets the Node1 of the CreateChannelRequest.
+func (m *CreateChannelRequest) GetNode1() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Node1
+}
+
+// GetPin1 gets the Pin1 of the CreateChannelRequest.
+func (m *CreateChannelRequest) GetPin1() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Pin1
+}
+
+// GetNode2 gets the Node2 of the CreateChannelRequest.
+func (m *CreateChannelRequest) GetNode2() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Node2
+}
+
+// GetPin2 gets the Pin2 of the CreateChannelRequest.
+func (m *CreateChannelRequest) GetPin2() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Pin2
+}
+
 // MarshalToWriter marshals CreateChannelRequest to the provided writer.
 func (m *CreateChannelRequest) MarshalToWriter(writer jspb.Writer) {
 	if m == nil {
@@ -402,6 +439,22 @@ func (m *CreateChannelRequest) MarshalToWriter(writer jspb.Writer) {
 
 	if m.Cap != 0 {
 		writer.WriteUint64(5, m.Cap)
+	}
+
+	if len(m.Node1) > 0 {
+		writer.WriteString(6, m.Node1)
+	}
+
+	if len(m.Pin1) > 0 {
+		writer.WriteString(7, m.Pin1)
+	}
+
+	if len(m.Node2) > 0 {
+		writer.WriteString(8, m.Node2)
+	}
+
+	if len(m.Pin2) > 0 {
+		writer.WriteString(9, m.Pin2)
 	}
 
 	return
@@ -432,6 +485,14 @@ func (m *CreateChannelRequest) UnmarshalFromReader(reader jspb.Reader) *CreateCh
 			m.Anon = reader.ReadBool()
 		case 5:
 			m.Cap = reader.ReadUint64()
+		case 6:
+			m.Node1 = reader.ReadString()
+		case 7:
+			m.Pin1 = reader.ReadString()
+		case 8:
+			m.Node2 = reader.ReadString()
+		case 9:
+			m.Pin2 = reader.ReadString()
 		default:
 			reader.SkipField()
 		}

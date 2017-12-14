@@ -244,27 +244,18 @@ func TestCreateChannel(t *testing.T) {
 		if got, want := code(err), test.code; got != want {
 			t.Errorf("c.CreateChannel(%v) = error %v, want %v", test.req, err, want)
 		}
+		wantBaz, wantCon := true, "baz"
 		if err != nil {
-			_, got := foo.Channels["baz"]
-			if want := false; got != want {
-				t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] is present, want missing", test.req)
-			}
-			if got, want := node1.Connections["pin1"], "nil"; got != want {
-				t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
-			}
-			if got, want := node2.Connections["pin2"], "nil"; got != want {
-				t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
-			}
-			continue
+			wantBaz, wantCon = false, "nil"
 		}
 		_, got := foo.Channels["baz"]
-		if want := true; got != want {
-			t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] is missing, want present", test.req)
+		if want := wantBaz; got != want {
+			t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] = _, %t, want %t", test.req, got, want)
 		}
-		if got, want := node1.Connections["pin1"], "baz"; got != want {
+		if got, want := node1.Connections["pin1"], wantCon; got != want {
 			t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
 		}
-		if got, want := node2.Connections["pin2"], "baz"; got != want {
+		if got, want := node2.Connections["pin2"], wantCon; got != want {
 			t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
 		}
 	}

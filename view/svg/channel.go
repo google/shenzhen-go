@@ -18,6 +18,9 @@ package main
 
 import (
 	"log"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
@@ -25,6 +28,10 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/net/context"
 )
+
+const anonChannelNamePrefix = "anonymousChannel"
+
+var anonChannelNameRE = regexp.MustCompile(`^anonymousChannel\d+$`)
 
 // Channel is the view's model of a channel.
 type Channel struct {
@@ -43,11 +50,25 @@ type Channel struct {
 
 func newChannel(d *diagram, p, q *Pin) *Channel {
 	c := &model.Channel{
-		Name:      "TODO_newchannel",
 		Type:      p.Type,
 		Capacity:  0,
 		Anonymous: true,
 	}
+	// Pick a unique name
+	max := -1
+	for ec := range d.graph.Channels {
+		if anonChannelNameRE.MatchString(ec.Name) {
+			n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
+			if err != nil {
+				log.Printf("Couldn't convert digits into an int: %v", err)
+				return nil
+			}
+			if n > max {
+				max = n
+			}
+		}
+	}
+	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
 	go func() {
 		if _, err := client.CreateChannel(context.Background(), &pb.CreateChannelRequest{
 			Graph: graphPath,

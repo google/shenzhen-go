@@ -59,9 +59,9 @@
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
-				"foo": "nil",
+				"foo": "anonymousChannel1",
 				"quux": "nil",
-				"qux": "anonymous_channel_0",
+				"qux": "anonymousChannel0",
 				"tuz": "nil"
 			}
 		},
@@ -121,15 +121,20 @@
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
-				"foo": "anonymous_channel_0",
+				"foo": "anonymousChannel0",
 				"quux": "nil",
-				"qux": "nil",
+				"qux": "anonymousChannel1",
 				"tuz": "nil"
 			}
 		}
 	},
 	"channels": {
-		"anonymous_channel_0": {
+		"anonymousChannel0": {
+			"anonymous": true,
+			"type": "int",
+			"cap": 0
+		},
+		"anonymousChannel1": {
 			"anonymous": true,
 			"type": "int",
 			"cap": 0

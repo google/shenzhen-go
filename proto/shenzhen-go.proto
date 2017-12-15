@@ -4,20 +4,15 @@ package proto;
 
 message Empty {}
 
-message SaveRequest {
-	string graph = 1;
-}
-
-message SetGraphPropertiesRequest {
-	string graph = 1;
-	string name = 2;
-	string package_path = 3;
-	bool is_command = 4;
-}
-
-message DeleteChannelRequest {
-	string graph = 1;
-	string channel = 2;
+message NodeConfig {
+	string name = 1;
+    bool enabled = 2;
+    uint32 multiplicity = 3;
+    bool wait = 4;
+    bytes part_cfg = 5;
+	string part_type = 6;
+	int64 x = 7;
+    int64 y = 8;
 }
 
 message CreateChannelRequest {
@@ -33,28 +28,9 @@ message CreateChannelRequest {
 	string pin2 = 9;
 }
 
-message SetNodePropertiesRequest {
+message CreateNodeRequest {
 	string graph = 1;
-	string node = 2;
-    string name = 3;
-    bool enabled = 4;
-    uint32 multiplicity = 5;
-    bool wait = 6;
-    bytes part_cfg = 7;
-	string part_type = 8;
-}
-
-message SetPositionRequest {
-	string graph = 1;
-	string node = 2;
-	int64 x = 3;
-    int64 y = 4;
-}
-
-message DisconnectPinRequest {
-	string graph = 1;
-	string node = 2;
-	string pin = 3;
+	NodeConfig props = 2;
 }
 
 message ConnectPinRequest {
@@ -64,9 +40,52 @@ message ConnectPinRequest {
 	string channel = 4;
 }
 
+message DeleteChannelRequest {
+	string graph = 1;
+	string channel = 2;
+}
+
+message DeleteNodeRequest {
+	string graph = 1;
+	string node = 2;
+}
+
+message DisconnectPinRequest {
+	string graph = 1;
+	string node = 2;
+	string pin = 3;
+}
+
+message SaveRequest {
+	string graph = 1;
+}
+
+message SetGraphPropertiesRequest {
+	string graph = 1;
+	string name = 2;
+	string package_path = 3;
+	bool is_command = 4;
+}
+
+message SetNodePropertiesRequest {
+	string graph = 1;
+	string node = 2;
+	NodeConfig props = 3;
+}
+
+message SetPositionRequest {
+	string graph = 1;
+	string node = 2;
+	int64 x = 3;
+    int64 y = 4;
+}
+
 service ShenzhenGo {
 	// CreateChannel makes a new channel.
 	rpc CreateChannel(CreateChannelRequest) returns (Empty) {}
+
+	// CreateNode makes a new node.
+	rpc CreateNode(CreateNodeRequest) returns (Empty) {}
 
 	// ConnectPin connects a pin to a channel.
 	rpc ConnectPin(ConnectPinRequest) returns (Empty) {}
@@ -74,6 +93,9 @@ service ShenzhenGo {
 	// DeleteChannel deletes a channel (and all connections).
 	rpc DeleteChannel(DeleteChannelRequest) returns (Empty) {}
 
+	// DeleteNode deletes a node (and all connections).
+	rpc DeleteNode(DeleteNodeRequest) returns (Empty) {}
+		
 	// DisconnectPin deletes the connection from a pin to a channel.
 	rpc DisconnectPin(DisconnectPinRequest) returns (Empty) {}
 

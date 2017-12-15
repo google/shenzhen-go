@@ -166,15 +166,20 @@ func (n *Node) save(e *js.Object) {
 		log.Printf("Couldn't marshal part: %v", err)
 		return
 	}
-	req := &pb.SetNodePropertiesRequest{
-		Graph:        graphPath,
-		Node:         n.Node.Name,
+	props := &pb.NodeConfig{
 		Name:         nodeNameInput.Get("value").String(),
 		Enabled:      nodeEnabledInput.Get("checked").Bool(),
 		Multiplicity: uint32(nodeMultiplicityInput.Get("value").Int()),
 		Wait:         nodeWaitInput.Get("checked").Bool(),
 		PartCfg:      pj.Part,
 		PartType:     pj.Type,
+		X:            int64(n.X),
+		Y:            int64(n.Y),
+	}
+	req := &pb.SetNodePropertiesRequest{
+		Graph: graphPath,
+		Node:  n.Node.Name,
+		Props: props,
 	}
 	go func() {
 		if _, err := client.SetNodeProperties(context.Background(), req); err != nil {
@@ -182,18 +187,18 @@ func (n *Node) save(e *js.Object) {
 			return
 		}
 		// Update local copy, since these were read at save time.
-		if n.Name != req.Name {
+		if n.Name != props.Name {
 			delete(n.d.graph.Nodes, n.Name)
-			n.d.graph.Nodes[req.Name] = n
-			n.Name = req.Name // TODO: simplify view-model
-			n.Node.Name = req.Name
+			n.d.graph.Nodes[props.Name] = n
+			n.Name = props.Name // TODO: simplify view-model
+			n.Node.Name = props.Name
 
-			n.box.setText(req.Name)
+			n.box.setText(props.Name)
 			n.updatePinPositions()
 		}
-		n.Node.Enabled = req.Enabled
-		n.Node.Multiplicity = uint(req.Multiplicity)
-		n.Node.Wait = req.Wait
+		n.Node.Enabled = props.Enabled
+		n.Node.Multiplicity = uint(props.Multiplicity)
+		n.Node.Wait = props.Wait
 	}()
 }
 

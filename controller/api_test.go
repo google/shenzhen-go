@@ -583,6 +583,7 @@ func TestSetNodeProperties(t *testing.T) {
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "nope",
 				Node:  "bar",
+				Props: &pb.NodeConfig{},
 			},
 			code: codes.NotFound,
 		},
@@ -590,37 +591,44 @@ func TestSetNodeProperties(t *testing.T) {
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "foo",
 				Node:  "bak",
+				Props: &pb.NodeConfig{},
 			},
 			code: codes.NotFound,
 		},
 		{ // can't unmarshal
 			req: &pb.SetNodePropertiesRequest{
-				Graph:    "foo",
-				Node:     "bar",
-				PartType: "Not a part key",
+				Graph: "foo",
+				Node:  "bar",
+				Props: &pb.NodeConfig{
+					PartType: "Not a part key",
+				},
 			},
 			code: codes.FailedPrecondition,
 		},
 		{ // rename to existing name
 			req: &pb.SetNodePropertiesRequest{
-				Graph:    "foo",
-				Node:     "bar",
-				Name:     "baz",
-				PartCfg:  []byte("{}"),
-				PartType: "Code",
+				Graph: "foo",
+				Node:  "bar",
+				Props: &pb.NodeConfig{
+					Name:     "baz",
+					PartCfg:  []byte("{}"),
+					PartType: "Code",
+				},
 			},
 			code: codes.FailedPrecondition,
 		},
 		{ // Ok
 			req: &pb.SetNodePropertiesRequest{
-				Graph:        "foo",
-				Node:         "bar",
-				Name:         "bax",
-				PartCfg:      []byte("{}"),
-				PartType:     "Code",
-				Multiplicity: 1,
-				Enabled:      true,
-				Wait:         true,
+				Graph: "foo",
+				Node:  "bar",
+				Props: &pb.NodeConfig{
+					Name:         "bax",
+					PartCfg:      []byte("{}"),
+					PartType:     "Code",
+					Multiplicity: 1,
+					Enabled:      true,
+					Wait:         true,
+				},
 			},
 			code: codes.OK,
 		},

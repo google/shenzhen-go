@@ -96,6 +96,10 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 	return &pb.Empty{}, nil
 }
 
+func (c *controller) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Empty, error) {
+	return &pb.Empty{}, status.Error(codes.Unimplemented, "TODO(josh): implement")
+}
+
 func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
 	_, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
@@ -124,6 +128,10 @@ func (c *controller) DeleteChannel(ctx context.Context, req *pb.DeleteChannelReq
 	}
 	g.DeleteChannel(ch)
 	return &pb.Empty{}, nil
+}
+
+func (c *controller) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
+	return &pb.Empty{}, status.Error(codes.Unimplemented, "TODO(josh): implement")
 }
 
 func (c *controller) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
@@ -171,24 +179,25 @@ func (c *controller) SetNodeProperties(ctx context.Context, req *pb.SetNodePrope
 		return &pb.Empty{}, err
 	}
 	p, err := (&model.PartJSON{
-		Part: req.PartCfg,
-		Type: req.PartType,
+		Part: req.Props.PartCfg,
+		Type: req.Props.PartType,
 	}).Unmarshal()
 	if err != nil {
 		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "part unmarshal: %v", err)
 	}
-	if n.Name != req.Name {
-		if _, exists := g.Nodes[req.Name]; exists {
-			return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q already exists", req.Name)
+	if n.Name != req.Props.Name {
+		if _, exists := g.Nodes[req.Props.Name]; exists {
+			return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q already exists", req.Props.Name)
 		}
 		delete(g.Nodes, n.Name)
-		n.Name = req.Name
+		n.Name = req.Props.Name
 		g.Nodes[n.Name] = n
 	}
-	n.Multiplicity = uint(req.Multiplicity)
-	n.Enabled = req.Enabled
-	n.Wait = req.Wait
+	n.Multiplicity = uint(req.Props.Multiplicity)
+	n.Enabled = req.Props.Enabled
+	n.Wait = req.Props.Wait
 	n.Part = p
+	n.X, n.Y = int(req.Props.X), int(req.Props.Y)
 	return &pb.Empty{}, nil
 }
 

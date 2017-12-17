@@ -261,6 +261,90 @@ func TestCreateChannel(t *testing.T) {
 	}
 }
 
+func TestCreateNode(t *testing.T) {
+	baz := &model.Node{Name: "baz"}
+	foo := &model.Graph{
+		Name: "foo",
+		Nodes: map[string]*model.Node{
+			"baz": baz,
+		},
+	}
+	c := &server{
+		loadedGraphs: map[string]*model.Graph{"foo": foo},
+	}
+	tests := []struct {
+		req  *pb.CreateNodeRequest
+		code codes.Code
+	}{
+		{ // no such graph
+			req: &pb.CreateNodeRequest{
+				Graph: "nope",
+				Props: &pb.NodeConfig{},
+			},
+			code: codes.NotFound,
+		},
+		{ // can't unmarshal
+			req: &pb.CreateNodeRequest{
+				Graph: "foo",
+				Props: &pb.NodeConfig{
+					PartType: "Not a part key",
+				},
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // existing name
+			req: &pb.CreateNodeRequest{
+				Graph: "foo",
+				Props: &pb.NodeConfig{
+					Name:     "baz",
+					PartCfg:  []byte("{}"),
+					PartType: "Code",
+				},
+			},
+			code: codes.FailedPrecondition,
+		},
+		{ // Ok
+			req: &pb.CreateNodeRequest{
+				Graph: "foo",
+				Props: &pb.NodeConfig{
+					Name:         "bax",
+					PartCfg:      []byte("{}"),
+					PartType:     "Code",
+					Multiplicity: 1,
+					Enabled:      true,
+					Wait:         true,
+				},
+			},
+			code: codes.OK,
+		},
+	}
+	for _, test := range tests {
+		_, err := c.CreateNode(context.Background(), test.req)
+		if got, want := code(err), test.code; got != want {
+			t.Errorf("c.CreateNode(%v) = error %v, want %v", test.req, err, want)
+		}
+	}
+	bax := foo.Nodes["bax"]
+	if bax == nil {
+		t.Error("foo.Nodes[bax] = nil, want bax")
+	}
+	if got, want := bax.Name, "bax"; got != want {
+		t.Errorf("bax.Name = %q, want %q", got, want)
+	}
+	if got, want := bax.Multiplicity, uint(1); got != want {
+		t.Errorf("bax.Multiplicity = %v, want %v", got, want)
+	}
+	if got, want := bax.Enabled, true; got != want {
+		t.Errorf("bax.Enabled = %t, want %t", got, want)
+	}
+	if got, want := bax.Wait, true; got != want {
+		t.Errorf("bax.Wait = %t, want %t", got, want)
+	}
+	if got, want := bax.Part.TypeKey(), "Code"; got != want {
+		t.Errorf("bax.Part.TypeKey() = %q, want %q", got, want)
+	}
+}
+
 func TestConnectPin(t *testing.T) {
 	baz := &model.Node{
 		Name: "baz",

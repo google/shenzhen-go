@@ -97,7 +97,35 @@ func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest
 }
 
 func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, status.Error(codes.Unimplemented, "TODO(josh): implement")
+	g, err := c.lookupGraph(req.Graph)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	if _, found := g.Nodes[req.Props.Name]; found {
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q already exists", req.Props.Name)
+	}
+	p, err := (&model.PartJSON{
+		Part: req.Props.PartCfg,
+		Type: req.Props.PartType,
+	}).Unmarshal()
+	if err != nil {
+		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "part unmarshal: %v", err)
+	}
+	n := &model.Node{
+		Name:         req.Props.Name,
+		Multiplicity: uint(req.Props.Multiplicity),
+		Enabled:      req.Props.Enabled,
+		Wait:         req.Props.Wait,
+		Part:         p,
+		X:            int(req.Props.X),
+		Y:            int(req.Props.Y),
+		Connections:  make(map[string]string),
+	}
+	for _, d := range p.Pins() {
+		n.Connections[d.Name] = "nil"
+	}
+	g.Nodes[req.Props.Name] = n
+	return &pb.Empty{}, nil
 }
 
 func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {

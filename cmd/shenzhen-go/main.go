@@ -28,7 +28,7 @@ import (
 
 	pb "github.com/google/shenzhen-go/proto"
 	"github.com/google/shenzhen-go/server"
-	"github.com/google/shenzhen-go/view"
+	"github.com/google/shenzhen-go/server/view"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"google.golang.org/grpc"
 )

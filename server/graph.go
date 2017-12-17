@@ -28,7 +28,7 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/model"
-	"github.com/google/shenzhen-go/view"
+	"github.com/google/shenzhen-go/server/view"
 )
 
 // GuessPackagePath attempts to find a sensible package path.

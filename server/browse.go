@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/google/shenzhen-go/model"
-	"github.com/google/shenzhen-go/view"
+	"github.com/google/shenzhen-go/server/view"
 )
 
 func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -124,7 +124,7 @@ const graphEditorTemplateSrc = `<html>
 			</div>
 		</div>
 	</div>
-	<script src="/.static/svg.js"></script>
+	<script src="/.static/client.js"></script>
 </body>
 </html>`
 

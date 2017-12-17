@@ -59,7 +59,7 @@
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
-				"foo": "anonymousChannel1",
+				"foo": "nil",
 				"quux": "nil",
 				"qux": "anonymousChannel0",
 				"tuz": "nil"
@@ -123,18 +123,13 @@
 				"baz": "nil",
 				"foo": "anonymousChannel0",
 				"quux": "nil",
-				"qux": "anonymousChannel1",
+				"qux": "nil",
 				"tuz": "nil"
 			}
 		}
 	},
 	"channels": {
 		"anonymousChannel0": {
-			"anonymous": true,
-			"type": "int",
-			"cap": 0
-		},
-		"anonymousChannel1": {
 			"anonymous": true,
 			"type": "int",
 			"cap": 0

@@ -10,8 +10,8 @@ protoc -I./proto shenzhen-go.proto --go_out=plugins=grpc:./proto --gopherjs_out=
 echo -e "//+build js\n$(cat ./proto/shenzhen-go.pb.gopherjs.go)" > ./proto/shenzhen-go.pb.gopherjs.go
 echo -e "//+build \x21js\n$(cat ./proto/shenzhen-go.pb.go)" > ./proto/shenzhen-go.pb.go
 
-# UI JS generation
-pushd ./view/svg
+# Client JS generation
+pushd ./client
 go generate
 popd
 

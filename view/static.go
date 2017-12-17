@@ -263,10 +263,10 @@ fieldset#pathtemplate {
 
 var (
 	staticMap = map[string][]byte{
-		"fonts.css":  []byte(fontsCSS),
-		"main.css":   []byte(mainCSS),
-		"svg.js":     svgResources["svg.js"],
-		"svg.js.map": svgResources["svg.js.map"],
+		"fonts.css":     []byte(fontsCSS),
+		"main.css":      []byte(mainCSS),
+		"client.js":     clientResources["client.js"],
+		"client.js.map": clientResources["client.js.map"],
 
 		"fonts/GoMedium-Italic.ttf":   gomediumitalic.TTF,
 		"fonts/Go-Italic.ttf":         goitalic.TTF,

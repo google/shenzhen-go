@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package server
 
 import (
 	"github.com/google/shenzhen-go/model"
@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (c *controller) lookupGraph(graph string) (*model.Graph, error) {
+func (c *server) lookupGraph(graph string) (*model.Graph, error) {
 	g := c.loadedGraphs[graph]
 	if g == nil {
 		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", graph)
@@ -30,7 +30,7 @@ func (c *controller) lookupGraph(graph string) (*model.Graph, error) {
 	return g, nil
 }
 
-func (c *controller) lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
+func (c *server) lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
 	g, err := c.lookupGraph(graph)
 	if err != nil {
 		return nil, nil, err
@@ -42,7 +42,7 @@ func (c *controller) lookupChannel(graph, channel string) (*model.Graph, *model.
 	return g, ch, nil
 }
 
-func (c *controller) lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
+func (c *server) lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
 	g, err := c.lookupGraph(graph)
 	if err != nil {
 		return nil, nil, err
@@ -54,7 +54,7 @@ func (c *controller) lookupNode(graph, node string) (*model.Graph, *model.Node, 
 	return g, n, nil
 }
 
-func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
+func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -96,11 +96,11 @@ func (c *controller) CreateChannel(ctx context.Context, req *pb.CreateChannelReq
 	return &pb.Empty{}, nil
 }
 
-func (c *controller) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Empty, error) {
+func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Empty, error) {
 	return &pb.Empty{}, status.Error(codes.Unimplemented, "TODO(josh): implement")
 }
 
-func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
+func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
 	_, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -121,7 +121,7 @@ func (c *controller) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) 
 	return &pb.Empty{}, nil
 }
 
-func (c *controller) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
+func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
 	g, ch, err := c.lookupChannel(req.Graph, req.Channel)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -130,11 +130,11 @@ func (c *controller) DeleteChannel(ctx context.Context, req *pb.DeleteChannelReq
 	return &pb.Empty{}, nil
 }
 
-func (c *controller) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
+func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
 	return &pb.Empty{}, status.Error(codes.Unimplemented, "TODO(josh): implement")
 }
 
-func (c *controller) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
+func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
 	g, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -154,7 +154,7 @@ func (c *controller) DisconnectPin(ctx context.Context, req *pb.DisconnectPinReq
 	return &pb.Empty{}, nil
 }
 
-func (c *controller) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
+func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -162,7 +162,7 @@ func (c *controller) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, 
 	return &pb.Empty{}, SaveJSONFile(g)
 }
 
-func (c *controller) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
+func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -173,7 +173,7 @@ func (c *controller) SetGraphProperties(ctx context.Context, req *pb.SetGraphPro
 	return &pb.Empty{}, nil
 }
 
-func (c *controller) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
+func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
 	g, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -201,7 +201,7 @@ func (c *controller) SetNodeProperties(ctx context.Context, req *pb.SetNodePrope
 	return &pb.Empty{}, nil
 }
 
-func (c *controller) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
+func (c *server) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
 	_, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err

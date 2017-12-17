@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package server
 
 import (
 	"testing"
@@ -39,7 +39,7 @@ func code(err error) codes.Code {
 func TestLookupGraph(t *testing.T) {
 	foo := &model.Graph{Name: "foo"}
 	bar := &model.Graph{Name: "bar"}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{
 			"foo": foo,
 			"bar": bar,
@@ -71,7 +71,7 @@ func TestLookupNode(t *testing.T) {
 		Name:  "foo",
 		Nodes: map[string]*model.Node{"bar": bar},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -104,7 +104,7 @@ func TestLookupChannel(t *testing.T) {
 		Name:     "foo",
 		Channels: map[string]*model.Channel{"bar": bar},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -153,7 +153,7 @@ func TestCreateChannel(t *testing.T) {
 			"node2": node2,
 		},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -286,7 +286,7 @@ func TestConnectPin(t *testing.T) {
 		Channels: map[string]*model.Channel{"bar": bar, "tuz": tuz},
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -389,7 +389,7 @@ func TestDeleteChannel(t *testing.T) {
 		Channels: map[string]*model.Channel{"bar": bar},
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -458,7 +458,7 @@ func TestDisconnectPin(t *testing.T) {
 		Channels: map[string]*model.Channel{"bar": bar},
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -520,7 +520,7 @@ func TestSave(t *testing.T) {
 
 func TestSetGraphProperties(t *testing.T) {
 	foo := &model.Graph{Name: "foo"}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{
 			"foo": foo,
 		},
@@ -572,7 +572,7 @@ func TestSetNodeProperties(t *testing.T) {
 			"baz": baz,
 		},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {
@@ -669,7 +669,7 @@ func TestSetPosition(t *testing.T) {
 		Name:  "foo",
 		Nodes: map[string]*model.Node{"bar": bar},
 	}
-	c := &controller{
+	c := &server{
 		loadedGraphs: map[string]*model.Graph{"foo": foo},
 	}
 	tests := []struct {

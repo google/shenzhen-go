@@ -26,8 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/shenzhen-go/controller"
 	pb "github.com/google/shenzhen-go/proto"
+	"github.com/google/shenzhen-go/server"
 	"github.com/google/shenzhen-go/view"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"google.golang.org/grpc"
@@ -90,12 +90,12 @@ func main() {
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 
 	gs := grpc.NewServer()
-	pb.RegisterShenzhenGoServer(gs, controller.C)
+	pb.RegisterShenzhenGoServer(gs, server.S)
 	ws := grpcweb.WrapServer(gs)
 	http.Handle("/.api/", http.StripPrefix("/.api/", ws))
 
 	// Finally, all unknown paths are assumed to be files.
-	http.Handle("/", controller.C)
+	http.Handle("/", server.S)
 
 	// As soon as we're serving, launch "open" which should launch a browser,
 	// or ask the user to do so.

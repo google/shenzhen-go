@@ -1,4 +1,4 @@
-// Copyright 2016 Google Inc.
+// Copyright 2017 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+// Package server serves the user interface and API, and manages the data model.
+package server
 
-import (
-	"testing"
+import "github.com/google/shenzhen-go/model"
 
-	"github.com/google/shenzhen-go/model"
-)
+// S is the server singleton.
+var S = &server{
+	loadedGraphs: make(map[string]*model.Graph),
+}
 
-type nopWriter struct{}
-
-func (nopWriter) Write(r []byte) (int, error) { return len(r), nil }
-
-func TestGoTemplate(t *testing.T) {
-	// Smoke-testing the template.
-	for name, g := range model.TestGraphs {
-		if err := goTemplate.Execute(nopWriter{}, g); err != nil {
-			t.Errorf("goTemplate.Execute(%v) = %v, want nil error", name, err)
-		}
-	}
+type server struct {
+	loadedGraphs map[string]*model.Graph
 }

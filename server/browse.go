@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package server
 
 import (
 	"log"
@@ -25,7 +25,7 @@ import (
 	"github.com/google/shenzhen-go/view"
 )
 
-func (c *controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
 	_, reload := r.URL.Query()["reload"]

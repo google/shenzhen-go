@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -48,11 +49,17 @@ func main() {
 	fmt.Fprintf(w, "var %s = map[string][]byte{\n", *vn)
 
 	for _, ifs := range flag.Args() {
-		i, err := ioutil.ReadFile(ifs)
+		ms, err := filepath.Glob(ifs)
 		if err != nil {
-			log.Fatalf("Cannot read input file: %v", err)
+			log.Fatalf("Input pattern invalid: %v", err)
 		}
-		fmt.Fprintf(w, "\t%q: []byte(%q),\n", ifs, string(i))
+		for _, m := range ms {
+			i, err := ioutil.ReadFile(m)
+			if err != nil {
+				log.Fatalf("Cannot read input file: %v", err)
+			}
+			fmt.Fprintf(w, "\t%q: []byte(%q),\n", m, string(i))
+		}
 	}
 	fmt.Fprintln(w, "}")
 

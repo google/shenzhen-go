@@ -78,7 +78,7 @@ func (g *Graph) createNode(partType string) {
 			Props: &pb.NodeConfig{
 				Name:         n.Name,
 				Wait:         n.Wait,
-				Multiplicity: n.Multiplicity,
+				Multiplicity: uint32(n.Multiplicity),
 				PartType:     partType,
 				PartCfg:      pm.Part,
 			},

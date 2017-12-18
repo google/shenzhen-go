@@ -14,6 +14,6 @@
 
 package view
 
-//go:generate go run ../../scripts/embed.go -p view -v cssResources -o static-css.go css/*.css
-//go:generate go run ../../scripts/embed.go -p view -v imageResources -o static-images.go images/*
+//go:generate go run ../../scripts/embed.go -p view -v cssResources      -o static-css.go       css/*.css
+//go:generate go run ../../scripts/embed.go -p view -v imageResources    -o static-images.go    images/*
 //go:generate go run ../../scripts/embed.go -p view -v templateResources -o static-templates.go templates/*.html

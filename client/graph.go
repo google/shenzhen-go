@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/google/shenzhen-go/jsutil"
@@ -40,6 +41,56 @@ var (
 type Graph struct {
 	Nodes    map[string]*Node
 	Channels map[*Channel]struct{}
+}
+
+func (g *Graph) createNode(partType string) {
+	go func() {
+		// Invent a reasonable unique name.
+		name := partType
+		i := 2
+		for {
+			if _, found := g.Nodes[name]; !found {
+				break
+			}
+			name = partType + " " + strconv.Itoa(i)
+			i++
+		}
+		pt := model.PartTypes[partType].New()
+		pm, err := model.MarshalPart(pt)
+		if err != nil {
+			log.Printf("Couldn't marshal (brand new!) part: %v", err)
+			return
+		}
+
+		n := &Node{
+			Node: &model.Node{
+				Name:         name,
+				Wait:         true,
+				Multiplicity: 1,
+				Part:         pt,
+			},
+			X: 150,
+			Y: 150,
+		}
+
+		_, err = theClient.CreateNode(context.Background(), &pb.CreateNodeRequest{
+			Graph: graphPath,
+			Props: &pb.NodeConfig{
+				Name:         n.Name,
+				Wait:         n.Wait,
+				Multiplicity: n.Multiplicity,
+				PartType:     partType,
+				PartCfg:      pm.Part,
+			},
+		})
+		if err != nil {
+			log.Printf("Couldn't CreateNode: %v", err)
+			return
+		}
+
+		n.makeElements()
+		g.Nodes[name] = n
+	}()
 }
 
 func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {

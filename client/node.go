@@ -56,7 +56,7 @@ type partEditor struct {
 func init() {
 	for n, t := range model.PartTypes {
 		jsutil.MustGetElement("node-new-link:"+n).
-			AddEventListener("click", func(*js.Object) { createNode(n) })
+			AddEventListener("click", func(*js.Object) { theGraph.createNode(n) })
 		p := make(map[string]*jsutil.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
@@ -80,10 +80,6 @@ type Node struct {
 	relX, relY float64 // relative client offset for moving around
 
 	subpanel *jsutil.Element // temporarily remember last subpanel for each node
-}
-
-func createNode(partType string) {
-
 }
 
 func max(a, b int) int {

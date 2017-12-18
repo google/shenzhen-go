@@ -35,9 +35,7 @@ import (
 
 const pingMsg = "Pong!"
 
-var (
-	uiAddr = flag.String("ui_addr", "localhost:8088", "Address to bind UI server to")
-)
+var uiAddr = flag.String("ui_addr", "localhost:8088", "Address to bind UI server to")
 
 func open(args ...string) error {
 	switch runtime.GOOS {

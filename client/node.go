@@ -55,6 +55,8 @@ type partEditor struct {
 
 func init() {
 	for n, t := range model.PartTypes {
+		jsutil.MustGetElement("node-new-link:"+n).
+			AddEventListener("click", func(*js.Object) { createNode(n) })
 		p := make(map[string]*jsutil.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
@@ -73,12 +75,15 @@ type Node struct {
 	Inputs, Outputs []*Pin
 	X, Y            float64
 
-	d   *diagram
 	box *textBox
 
 	relX, relY float64 // relative client offset for moving around
 
 	subpanel *jsutil.Element // temporarily remember last subpanel for each node
+}
+
+func createNode(partType string) {
+
 }
 
 func max(a, b int) int {
@@ -90,9 +95,9 @@ func max(a, b int) int {
 
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = newTextBox(n.d, n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
+	n.box = newTextBox(n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
 	n.box.rect.AddEventListener("mousedown", n.mouseDown)
-	n.box.rect.AddEventListener("mousedown", n.d.selecter(n))
+	n.box.rect.AddEventListener("mousedown", theDiagram.selecter(n))
 
 	// Pins
 	for _, p := range n.Inputs {
@@ -105,11 +110,11 @@ func (n *Node) makeElements() {
 }
 
 func (n *Node) mouseDown(e *js.Object) {
-	n.d.dragItem = n
+	theDiagram.dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
-	n.d.AddChildren(n.box.group)
+	theDiagram.AddChildren(n.box.group)
 }
 
 func (n *Node) drag(e *js.Object) {
@@ -129,7 +134,7 @@ func (n *Node) drop(e *js.Object) {
 	}
 
 	go func() { // cannot block in callback
-		if _, err := client.SetPosition(context.Background(), req); err != nil {
+		if _, err := theClient.SetPosition(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetPosition: %v", err)
 		}
 	}()
@@ -182,14 +187,14 @@ func (n *Node) save(e *js.Object) {
 		Props: props,
 	}
 	go func() {
-		if _, err := client.SetNodeProperties(context.Background(), req); err != nil {
+		if _, err := theClient.SetNodeProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't update node properties: %v", err)
 			return
 		}
 		// Update local copy, since these were read at save time.
 		if n.Name != props.Name {
-			delete(n.d.graph.Nodes, n.Name)
-			n.d.graph.Nodes[props.Name] = n
+			delete(theGraph.Nodes, n.Name)
+			theGraph.Nodes[props.Name] = n
 			n.Name = props.Name // TODO: simplify view-model
 			n.Node.Name = props.Name
 

@@ -72,10 +72,10 @@ func (p *Pin) connectTo(q Point) error {
 		}
 
 		// Create a new channel to connect to
-		ch := newChannel(p.node.d, p, q)
+		ch := newChannel(p, q)
 		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
-		p.node.d.graph.Channels[ch] = struct{}{}
+		theGraph.Channels[ch] = struct{}{}
 		q.l.Show()
 
 	case *Channel:
@@ -98,7 +98,7 @@ func (p *Pin) connectTo(q Point) error {
 
 		// Attach to the existing channel
 		go func() { // cannot block while handling
-			if _, err := client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
+			if _, err := theClient.ConnectPin(context.Background(), &pb.ConnectPinRequest{
 				Graph:   graphPath,
 				Node:    p.node.Name,
 				Pin:     p.Name,
@@ -119,7 +119,7 @@ func (p *Pin) disconnect() {
 		return
 	}
 	go func() { // can't block in handler
-		if _, err := client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
+		if _, err := theClient.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
 			Graph: graphPath,
 			Node:  p.node.Name,
 			Pin:   p.Name,
@@ -135,7 +135,7 @@ func (p *Pin) disconnect() {
 		for q := range p.ch.Pins {
 			q.ch = nil
 		}
-		delete(p.node.d.graph.Channels, p.ch)
+		delete(theGraph.Channels, p.ch)
 	}
 	p.ch = nil
 }
@@ -175,11 +175,11 @@ func (p *Pin) dragStart(e *js.Object) {
 			return
 		}
 	}
-	p.node.d.dragItem = p
+	theDiagram.dragItem = p
 
 	p.circ.SetAttribute("fill", errorColour)
 
-	x, y := p.node.d.cursorPos(e)
+	x, y := theDiagram.cursorPos(e)
 	p.l.
 		SetAttribute("x2", x).
 		SetAttribute("y2", y).
@@ -193,7 +193,7 @@ func (p *Pin) dragStart(e *js.Object) {
 }
 
 func (p *Pin) drag(e *js.Object) {
-	x, y := p.node.d.cursorPos(e)
+	x, y := theDiagram.cursorPos(e)
 	defer func() {
 		p.l.
 			SetAttribute("x2", x).
@@ -202,7 +202,7 @@ func (p *Pin) drag(e *js.Object) {
 			SetAttribute("cx", x).
 			SetAttribute("cy", y)
 	}()
-	d, q := p.node.d.graph.nearestPoint(x, y)
+	d, q := theGraph.nearestPoint(x, y)
 
 	noSnap := func() {
 		if p.ch != nil {
@@ -219,13 +219,13 @@ func (p *Pin) drag(e *js.Object) {
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
-		p.node.d.clearError()
+		theDiagram.clearError()
 		noSnap()
 		return
 	}
 
 	if err := p.connectTo(q); err != nil {
-		p.node.d.setError("Can't connect: "+err.Error(), x, y)
+		theDiagram.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		return
 	}
@@ -239,13 +239,13 @@ func (p *Pin) drag(e *js.Object) {
 	}
 
 	// Valid snap - ensure the colour is active.
-	p.node.d.clearError()
+	theDiagram.clearError()
 	p.ch.setColour(activeColour)
 	p.c.Hide()
 }
 
 func (p *Pin) drop(e *js.Object) {
-	p.node.d.clearError()
+	theDiagram.clearError()
 	p.circ.SetAttribute("fill", normalColour)
 	p.c.Hide()
 	if p.ch == nil {
@@ -293,10 +293,10 @@ func (p *Pin) makePinElement(n *Node) *jsutil.Element {
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	p.node.d.AddChildren(p.l, p.c)
+	theDiagram.AddChildren(p.l, p.c)
 
 	// Nametag
-	p.nametag = newTextBox(p.node.d, fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.nametag = newTextBox(fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
 	p.node.box.group.AddChildren(p.nametag.group)
 	p.nametag.hide()
 	return p.circ

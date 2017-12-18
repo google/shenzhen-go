@@ -27,7 +27,6 @@ type diagram struct {
 	dragItem     draggable  // nil if nothing is being dragged
 	selectedItem selectable // nil if nothing is selected
 	errLabel     *textBox
-	graph        *Graph
 }
 
 func (d *diagram) cursorPos(e *js.Object) (x, y float64) {

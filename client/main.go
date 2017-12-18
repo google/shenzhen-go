@@ -45,7 +45,9 @@ var (
 	nodePropertiesPanel  = jsutil.MustGetElement("node-properties")
 	rhsPanel             = graphPropertiesPanel
 
-	client pb.ShenzhenGoClient
+	theClient  pb.ShenzhenGoClient
+	theDiagram *diagram
+	theGraph   *Graph
 )
 
 func showRHSPanel(p *jsutil.Element) {
@@ -58,24 +60,24 @@ func showRHSPanel(p *jsutil.Element) {
 }
 
 func main() {
-	client = pb.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
+	theClient = pb.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
 
-	d := &diagram{
+	theDiagram := &diagram{
 		Element: jsutil.MustGetElement("diagram"),
 	}
-	d.errLabel = newTextBox(d, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
-	d.errLabel.hide()
+	theDiagram.errLabel = newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32)
+	theDiagram.errLabel.hide()
 
-	g, err := loadGraph(d, jsutil.MustGetGlobal("GraphJSON").String())
+	g, err := loadGraph(jsutil.MustGetGlobal("GraphJSON").String())
 	if err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}
-	d.graph = g
+	theGraph = g
 
-	d.
-		AddEventListener("mousedown", d.mouseDown).
-		AddEventListener("mousemove", d.mouseMove).
-		AddEventListener("mouseup", d.mouseUp)
+	theDiagram.
+		AddEventListener("mousedown", theDiagram.mouseDown).
+		AddEventListener("mousemove", theDiagram.mouseMove).
+		AddEventListener("mouseup", theDiagram.mouseUp)
 
 	jsutil.MustGetElement("graph-save").
 		AddEventListener("click", g.save)
@@ -83,10 +85,10 @@ func main() {
 		AddEventListener("click", g.saveProperties)
 
 	jsutil.MustGetElement("node-save-link").
-		AddEventListener("click", d.saveSelected)
+		AddEventListener("click", theDiagram.saveSelected)
 	jsutil.MustGetElement("node-metadata-link").
 		AddEventListener("click", func(*js.Object) {
-			d.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
+			theDiagram.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
 		})
 
 	for n, e := range nodePartEditors {
@@ -95,7 +97,7 @@ func main() {
 			jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).
 				AddEventListener("click",
 					func(*js.Object) {
-						d.selectedItem.(*Node).showSubPanel(p)
+						theDiagram.selectedItem.(*Node).showSubPanel(p)
 					})
 		}
 	}

@@ -67,7 +67,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 
 func (g *Graph) save(*js.Object) {
 	go func() { // cannot block in callback
-		if _, err := client.Save(context.Background(), &pb.SaveRequest{Graph: graphPath}); err != nil {
+		if _, err := theClient.Save(context.Background(), &pb.SaveRequest{Graph: graphPath}); err != nil {
 			log.Printf("Couldn't Save: %v", err)
 		}
 	}()
@@ -81,13 +81,13 @@ func (g *Graph) saveProperties(*js.Object) {
 		IsCommand:   graphIsCommandElement.Get("checked").Bool(),
 	}
 	go func() { // cannot block in callback
-		if _, err := client.SetGraphProperties(context.Background(), req); err != nil {
+		if _, err := theClient.SetGraphProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetGraphProperties: %v", err)
 		}
 	}()
 }
 
-func loadGraph(d *diagram, gj string) (*Graph, error) {
+func loadGraph(gj string) (*Graph, error) {
 	g, err := model.LoadJSON(strings.NewReader(gj), "", "")
 	if err != nil {
 		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
@@ -100,7 +100,6 @@ func loadGraph(d *diagram, gj string) (*Graph, error) {
 		ch := &Channel{
 			Channel: c,
 			Pins:    make(map[*Pin]struct{}),
-			d:       d,
 		}
 		chans[k] = ch
 		graph.Channels[ch] = struct{}{}
@@ -113,7 +112,6 @@ func loadGraph(d *diagram, gj string) (*Graph, error) {
 			Node: n,
 			X:    float64(n.X),
 			Y:    float64(n.Y),
-			d:    d,
 		}
 		pd := n.Pins()
 		for _, p := range pd {

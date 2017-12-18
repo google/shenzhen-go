@@ -28,14 +28,12 @@ const (
 )
 
 type textBox struct {
-	d                           *diagram
 	group, rect, text, textNode *jsutil.Element
 	width, minWidth             float64
 }
 
-func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
+func newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		d:        d,
 		group:    jsutil.MakeSVGElement("g"),
 		rect:     jsutil.MakeSVGElement("rect"),
 		text:     jsutil.MakeSVGElement("text"),
@@ -43,7 +41,7 @@ func newTextBox(d *diagram, text, textStyle, rectStyle string, x, y, minWidth, h
 		minWidth: minWidth,
 	}
 
-	d.AddChildren(
+	theDiagram.AddChildren(
 		b.group.
 			SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y)).
 			AddChildren(

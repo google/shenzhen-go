@@ -40,7 +40,6 @@ type Channel struct {
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]struct{}
 
-	d       *diagram        // I'm in this diagram
 	steiner *jsutil.Element // symbol representing the channel itself, not used if channel is simple
 	x, y    float64         // centre of steiner point, for snapping
 	tx, ty  float64         // temporary centre of steiner point, for display
@@ -48,7 +47,7 @@ type Channel struct {
 	p       *Pin            // considering attaching to this pin
 }
 
-func newChannel(d *diagram, p, q *Pin) *Channel {
+func newChannel(p, q *Pin) *Channel {
 	c := &model.Channel{
 		Type:      p.Type,
 		Capacity:  0,
@@ -56,7 +55,7 @@ func newChannel(d *diagram, p, q *Pin) *Channel {
 	}
 	// Pick a unique name
 	max := -1
-	for ec := range d.graph.Channels {
+	for ec := range theGraph.Channels {
 		if anonChannelNameRE.MatchString(ec.Name) {
 			n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
 			if err != nil {
@@ -70,7 +69,7 @@ func newChannel(d *diagram, p, q *Pin) *Channel {
 	}
 	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
 	go func() {
-		if _, err := client.CreateChannel(context.Background(), &pb.CreateChannelRequest{
+		if _, err := theClient.CreateChannel(context.Background(), &pb.CreateChannelRequest{
 			Graph: graphPath,
 			Name:  c.Name,
 			Type:  c.Type,
@@ -90,7 +89,6 @@ func newChannel(d *diagram, p, q *Pin) *Channel {
 			p: struct{}{},
 			q: struct{}{},
 		},
-		d: d,
 	}
 	ch.makeElements()
 	return ch
@@ -111,7 +109,7 @@ func (c *Channel) makeElements() {
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	c.d.AddChildren(c.steiner, c.l, c.c)
+	theDiagram.AddChildren(c.steiner, c.l, c.c)
 }
 
 // Pt implements Point.
@@ -120,7 +118,7 @@ func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 
 func (c *Channel) dragStart(e *js.Object) {
-	c.d.dragItem = c
+	theDiagram.dragItem = c
 
 	// TODO: make it so that if the current configuration is invalid
 	// (e.g. all input pins / output pins) then use errorColour, and
@@ -129,7 +127,7 @@ func (c *Channel) dragStart(e *js.Object) {
 	c.steiner.Show()
 	c.setColour(activeColour)
 
-	x, y := c.d.cursorPos(e)
+	x, y := theDiagram.cursorPos(e)
 	c.reposition(ephemeral{x, y})
 	c.l.
 		SetAttribute("x1", x).
@@ -145,7 +143,7 @@ func (c *Channel) dragStart(e *js.Object) {
 }
 
 func (c *Channel) drag(e *js.Object) {
-	x, y := c.d.cursorPos(e)
+	x, y := theDiagram.cursorPos(e)
 	c.steiner.Show()
 	c.l.
 		SetAttribute("x1", x).
@@ -153,7 +151,7 @@ func (c *Channel) drag(e *js.Object) {
 	c.c.
 		SetAttribute("cx", x).
 		SetAttribute("cy", y)
-	d, q := c.d.graph.nearestPoint(x, y)
+	d, q := theGraph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
 	if p != nil && p == c.p && d < snapQuad {
@@ -174,28 +172,28 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
-		c.d.clearError()
+		theDiagram.clearError()
 		noSnap()
 		c.setColour(activeColour)
 		return
 	}
 
 	if p == nil || p.ch != nil {
-		c.d.setError("Can't connect different channels together (use another goroutine)", x, y)
+		theDiagram.setError("Can't connect different channels together (use another goroutine)", x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	if err := p.connectTo(c); err != nil {
-		c.d.setError("Can't connect: "+err.Error(), x, y)
+		theDiagram.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	// Let's snap!
-	c.d.clearError()
+	theDiagram.clearError()
 	c.p = p
 	p.l.Show()
 	c.setColour(activeColour)
@@ -204,7 +202,7 @@ func (c *Channel) drag(e *js.Object) {
 }
 
 func (c *Channel) drop(e *js.Object) {
-	c.d.clearError()
+	theDiagram.clearError()
 	c.reposition(nil)
 	c.commit()
 	c.setColour(normalColour)

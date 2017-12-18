@@ -65,6 +65,7 @@ func (g *Graph) createNode(partType string) {
 		n := &Node{
 			Node: &model.Node{
 				Name:         name,
+				Enabled:      true,
 				Wait:         true,
 				Multiplicity: 1,
 				Part:         pt,
@@ -77,6 +78,7 @@ func (g *Graph) createNode(partType string) {
 			Graph: graphPath,
 			Props: &pb.NodeConfig{
 				Name:         n.Name,
+				Enabled:      n.Enabled,
 				Wait:         n.Wait,
 				Multiplicity: uint32(n.Multiplicity),
 				PartType:     partType,

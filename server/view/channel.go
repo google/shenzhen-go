@@ -23,66 +23,8 @@ import (
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.
-const channelEditorTemplateSrc = `<head>
-	<title>Channel</title>
-	<link type="text/css" rel="stylesheet" href="/.static/fonts.css">
-	<link type="text/css" rel="stylesheet" href="/.static/main.css">
-</head>
-<body>
-	<h1>Channel</h1>
-	{{if not .New}}
-	<a href="?channel={{.Index}}&clone">Clone</a> | 
-	<a href="?channel={{.Index}}&delete">Delete</a>
-	{{end}}
-	<form method="post">
-		<input type="hidden" name="New" value="{{.New}}>
-		<div class="formfield">
-			<label for="Type">Type</label>
-			<input type="text" name="Type" required value="{{.Type}}">
-		</div>
-		<div class="formfield">
-			<label for="Cap">Capacity</label>
-			<input type="number" name="Cap" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="{{.Cap}}">
-		</div>
-		<table>
-			<thead>
-				<tr>
-					<th>Connection</th>
-					<th></th>
-				</tr>
-			</thead>
-			{{range $conn := .Connections -}}
-			<tr>
-				<td>
-					<select>
-					{{range $node := $.Graph.Nodes }}
-					{{range $arg, $type := $node.InputArgs}}
-					{{if eq $type $.Channel.Type}}
-					{{$val := printf "%s.%s" $node $arg}}
-						<option value="{{$val}}" {{if eq $val $conn.String}}selected{{end}}>{{$val}}</option>
-					{{end -}}
-					{{end -}}
-					{{range $arg, $type := $node.OutputArgs}}
-					{{if eq $type $.Channel.Type}}
-					{{$val := printf "%s.%s" $node $arg}}
-						<option value="{{$val}}" {{if eq $val $conn.String}}selected{{end}}>{{$val}}</option>
-					{{end -}}
-					{{end -}}
-					{{end -}}
-					</select>
-				</td>
-				<td><a href="javascript:void(0)" onclick="removeconn('{{$conn}}}')">Remove connection</td></tr>
-			{{end}}
-		</table>
-		<div class="formfield hcentre">
-			<input type="submit" value="Save">
-			<input type="button" value="Return" onclick="window.location.href='?'">
-		</div>
-	</form>
-</body>`
-
 var (
-	channelEditorTemplate = template.Must(template.New("channelEditor").Parse(channelEditorTemplateSrc))
+	channelEditorTemplate = template.Must(template.New("channelEditor").Parse(string(templateResources["templates/channel.html"])))
 
 	identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 )

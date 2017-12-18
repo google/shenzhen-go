@@ -21,7 +21,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
-type diagram struct {
+type Diagram struct {
 	*jsutil.Element // the SVG element
 
 	dragItem     draggable  // nil if nothing is being dragged
@@ -29,14 +29,14 @@ type diagram struct {
 	errLabel     *textBox
 }
 
-func (d *diagram) cursorPos(e *js.Object) (x, y float64) {
+func (d *Diagram) cursorPos(e *js.Object) (x, y float64) {
 	bcr := d.Call("getBoundingClientRect")
 	x = e.Get("clientX").Float() - bcr.Get("left").Float()
 	y = e.Get("clientY").Float() - bcr.Get("top").Float()
 	return
 }
 
-func (d *diagram) mouseDown(e *js.Object) {
+func (d *Diagram) mouseDown(e *js.Object) {
 	if d.selectedItem == nil {
 		return
 	}
@@ -45,7 +45,7 @@ func (d *diagram) mouseDown(e *js.Object) {
 	e.Call("stopPropagation")
 }
 
-func (d *diagram) mouseMove(e *js.Object) {
+func (d *Diagram) mouseMove(e *js.Object) {
 	if d.dragItem == nil {
 		return
 	}
@@ -53,7 +53,7 @@ func (d *diagram) mouseMove(e *js.Object) {
 	e.Call("stopPropagation")
 }
 
-func (d *diagram) mouseUp(e *js.Object) {
+func (d *Diagram) mouseUp(e *js.Object) {
 	if d.dragItem == nil {
 		return
 	}
@@ -64,7 +64,7 @@ func (d *diagram) mouseUp(e *js.Object) {
 }
 
 // selecter makes an onclick handler for a selectable.
-func (d *diagram) selecter(s selectable) func(*js.Object) {
+func (d *Diagram) selecter(s selectable) func(*js.Object) {
 	return func(e *js.Object) {
 		if d.selectedItem != nil {
 			d.selectedItem.loseFocus(e)
@@ -75,14 +75,14 @@ func (d *diagram) selecter(s selectable) func(*js.Object) {
 	}
 }
 
-func (d *diagram) saveSelected(e *js.Object) {
+func (d *Diagram) saveSelected(e *js.Object) {
 	if d.selectedItem == nil {
 		return
 	}
 	d.selectedItem.save(e)
 }
 
-func (d *diagram) setError(err string, x, y float64) {
+func (d *Diagram) setError(err string, x, y float64) {
 	if err == "" {
 		d.clearError()
 		return
@@ -93,7 +93,7 @@ func (d *diagram) setError(err string, x, y float64) {
 	d.errLabel.show()
 }
 
-func (d *diagram) clearError() {
+func (d *Diagram) clearError() {
 	d.errLabel.hide()
 }
 

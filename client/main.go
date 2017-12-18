@@ -46,7 +46,7 @@ var (
 	rhsPanel             = graphPropertiesPanel
 
 	theClient  pb.ShenzhenGoClient
-	theDiagram *diagram
+	theDiagram *Diagram
 	theGraph   *Graph
 )
 
@@ -62,9 +62,7 @@ func showRHSPanel(p *jsutil.Element) {
 func main() {
 	theClient = pb.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
 
-	theDiagram = &diagram{
-		Element: jsutil.MustGetElement("diagram"),
-	}
+	theDiagram = &Diagram{Element: jsutil.MustGetElement("diagram")}
 	theDiagram.errLabel = newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	theDiagram.errLabel.hide()
 

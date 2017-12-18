@@ -62,7 +62,7 @@ func showRHSPanel(p *jsutil.Element) {
 func main() {
 	theClient = pb.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
 
-	theDiagram := &diagram{
+	theDiagram = &diagram{
 		Element: jsutil.MustGetElement("diagram"),
 	}
 	theDiagram.errLabel = newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32)

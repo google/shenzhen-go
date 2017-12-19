@@ -159,7 +159,27 @@ func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest
 }
 
 func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, status.Error(codes.Unimplemented, "TODO(josh): implement")
+	g, n, err := c.lookupNode(req.Graph, req.Node)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	delete(g.Nodes, req.Node)
+	// Also clean up channel connections...
+	for p, cn := range n.Connections {
+		if cn == "nil" {
+			continue
+		}
+		n.Connections[p] = "nil"
+		ch := g.Channels[cn]
+		if ch == nil {
+			continue
+		}
+		delete(ch.Pins, model.NodePin{Node: req.Node, Pin: p})
+		if len(ch.Pins) < 2 {
+			g.DeleteChannel(ch)
+		}
+	}
+	return &pb.Empty{}, nil
 }
 
 func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {

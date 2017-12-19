@@ -82,6 +82,13 @@ func (d *Diagram) saveSelected(e *js.Object) {
 	d.selectedItem.save(e)
 }
 
+func (d *Diagram) deleteSelected(e *js.Object) {
+	if d.selectedItem == nil {
+		return
+	}
+	d.selectedItem.delete(e)
+}
+
 func (d *Diagram) setError(err string, x, y float64) {
 	if err == "" {
 		d.clearError()
@@ -114,5 +121,6 @@ type draggable interface {
 type selectable interface {
 	gainFocus(*js.Object)
 	loseFocus(*js.Object)
+	delete(*js.Object)
 	save(*js.Object)
 }

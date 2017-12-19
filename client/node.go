@@ -203,6 +203,10 @@ func (n *Node) save(e *js.Object) {
 	}()
 }
 
+func (n *Node) delete(*js.Object) {
+	log.Print("TODO(josh): implement Node.delete")
+}
+
 func (n *Node) updatePinPositions() {
 	// Pins have to be aware of both their global and local coordinates,
 	// so the nearest one can be found, and channels can be drawn correctly.

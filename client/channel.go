@@ -218,11 +218,19 @@ func (c *Channel) drop(e *js.Object) {
 }
 
 func (c *Channel) gainFocus(e *js.Object) {
-	// TODO
+	log.Print("TODO(josh): implement Channel.gainFocus")
 }
 
 func (c *Channel) loseFocus(e *js.Object) {
-	// TODO
+	log.Print("TODO(josh): implement Channel.loseFocus")
+}
+
+func (c *Channel) save(e *js.Object) {
+	log.Print("TODO(josh): implement Channel.save")
+}
+
+func (c *Channel) delete(e *js.Object) {
+	log.Print("TODO(josh): implement Channel.delete")
 }
 
 func (c *Channel) reposition(additional Point) {

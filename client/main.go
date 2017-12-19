@@ -84,6 +84,9 @@ func main() {
 
 	jsutil.MustGetElement("node-save-link").
 		AddEventListener("click", theDiagram.saveSelected)
+	jsutil.MustGetElement("node-delete-link").
+		AddEventListener("click", theDiagram.deleteSelected)
+
 	jsutil.MustGetElement("node-metadata-link").
 		AddEventListener("click", func(*js.Object) {
 			theDiagram.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)

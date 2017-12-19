@@ -204,7 +204,27 @@ func (n *Node) save(e *js.Object) {
 }
 
 func (n *Node) delete(*js.Object) {
-	log.Print("TODO(josh): implement Node.delete")
+	go func() {
+		req := &pb.DeleteNodeRequest{
+			Graph: graphPath,
+			Node:  n.Node.Name,
+		}
+		if _, err := theClient.DeleteNode(context.Background(), req); err != nil {
+			log.Printf("Couldn't DeleteNode: %v", err)
+			return
+		}
+		delete(theGraph.Nodes, n.Name)
+		theDiagram.Call("removeChild", n.box.group)
+		for c := range theGraph.Channels {
+			for _, ip := range n.Inputs {
+				delete(c.Pins, ip)
+			}
+			for _, op := range n.Outputs {
+				delete(c.Pins, op)
+			}
+		}
+		// TODO: finish deletion procedure
+	}()
 }
 
 func (n *Node) updatePinPositions() {

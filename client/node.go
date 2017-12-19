@@ -162,27 +162,27 @@ func (n *Node) loseFocus(e *js.Object) {
 }
 
 func (n *Node) save(e *js.Object) {
-	pj, err := model.MarshalPart(n.Part)
-	if err != nil {
-		log.Printf("Couldn't marshal part: %v", err)
-		return
-	}
-	props := &pb.NodeConfig{
-		Name:         nodeNameInput.Get("value").String(),
-		Enabled:      nodeEnabledInput.Get("checked").Bool(),
-		Multiplicity: uint32(nodeMultiplicityInput.Get("value").Int()),
-		Wait:         nodeWaitInput.Get("checked").Bool(),
-		PartCfg:      pj.Part,
-		PartType:     pj.Type,
-		X:            int64(n.X),
-		Y:            int64(n.Y),
-	}
-	req := &pb.SetNodePropertiesRequest{
-		Graph: graphPath,
-		Node:  n.Node.Name,
-		Props: props,
-	}
 	go func() {
+		pj, err := model.MarshalPart(n.Part)
+		if err != nil {
+			log.Printf("Couldn't marshal part: %v", err)
+			return
+		}
+		props := &pb.NodeConfig{
+			Name:         nodeNameInput.Get("value").String(),
+			Enabled:      nodeEnabledInput.Get("checked").Bool(),
+			Multiplicity: uint32(nodeMultiplicityInput.Get("value").Int()),
+			Wait:         nodeWaitInput.Get("checked").Bool(),
+			PartCfg:      pj.Part,
+			PartType:     pj.Type,
+			X:            int64(n.X),
+			Y:            int64(n.Y),
+		}
+		req := &pb.SetNodePropertiesRequest{
+			Graph: graphPath,
+			Node:  n.Node.Name,
+			Props: props,
+		}
 		if _, err := theClient.SetNodeProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't update node properties: %v", err)
 			return

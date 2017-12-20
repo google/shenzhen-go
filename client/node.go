@@ -204,27 +204,27 @@ func (n *Node) save(e *js.Object) {
 }
 
 func (n *Node) delete(*js.Object) {
-	go func() {
-		req := &pb.DeleteNodeRequest{
-			Graph: graphPath,
-			Node:  n.Node.Name,
-		}
-		if _, err := theClient.DeleteNode(context.Background(), req); err != nil {
-			log.Printf("Couldn't DeleteNode: %v", err)
-			return
-		}
-		delete(theGraph.Nodes, n.Name)
-		theDiagram.Call("removeChild", n.box.group)
-		for c := range theGraph.Channels {
-			for _, ip := range n.Inputs {
-				delete(c.Pins, ip)
-			}
-			for _, op := range n.Outputs {
-				delete(c.Pins, op)
-			}
-		}
-		// TODO: finish deletion procedure
-	}()
+	go n.reallyDelete() // don't block handler
+}
+
+func (n *Node) reallyDelete() {
+	// Chatty, but cleans everything up.
+	for _, ip := range n.Inputs {
+		ip.reallyDisconnect()
+	}
+	for _, op := range n.Outputs {
+		op.reallyDisconnect()
+	}
+	req := &pb.DeleteNodeRequest{
+		Graph: graphPath,
+		Node:  n.Node.Name,
+	}
+	if _, err := theClient.DeleteNode(context.Background(), req); err != nil {
+		log.Printf("Couldn't DeleteNode: %v", err)
+		return
+	}
+	delete(theGraph.Nodes, n.Name)
+	theDiagram.RemoveChildren(n.box.group)
 }
 
 func (n *Node) updatePinPositions() {

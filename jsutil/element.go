@@ -35,6 +35,14 @@ func (e *Element) AddChildren(children ...*Element) *Element {
 	return e
 }
 
+// RemoveChildren calls the JS method removeChild for each element, returning e for chaining.
+func (e *Element) RemoveChildren(children ...*Element) *Element {
+	for _, c := range children {
+		e.Call("removeChild", c)
+	}
+	return e
+}
+
 // AddEventListener calls the JS method addEventListener, returning e for chaining.
 func (e *Element) AddEventListener(event string, handler func(*js.Object)) *Element {
 	e.Call("addEventListener", event, handler)

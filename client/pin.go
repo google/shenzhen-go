@@ -105,28 +105,32 @@ func (p *Pin) connectTo(q Point) error {
 				Channel: q.Channel.Name,
 			}); err != nil {
 				log.Printf("Couldn't ConnectPin: %v", err)
+				return
 			}
+			p.ch = q
+			q.Pins[p] = struct{}{}
+			q.reposition(nil)
 		}()
-		p.ch = q
-		q.Pins[p] = struct{}{}
-		q.reposition(nil)
 	}
 	return nil
 }
 
 func (p *Pin) disconnect() {
+	go p.reallyDisconnect() // don't block handler
+}
+
+func (p *Pin) reallyDisconnect() {
 	if p.ch == nil {
 		return
 	}
-	go func() { // can't block in handler
-		if _, err := theClient.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
-			Graph: graphPath,
-			Node:  p.node.Name,
-			Pin:   p.Name,
-		}); err != nil {
-			log.Printf("Couldn't DisconnectPin: %v", err)
-		}
-	}()
+	if _, err := theClient.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
+		Graph: graphPath,
+		Node:  p.node.Name,
+		Pin:   p.Name,
+	}); err != nil {
+		log.Printf("Couldn't DisconnectPin: %v", err)
+		return
+	}
 	delete(p.ch.Pins, p)
 	p.ch.setColour(normalColour)
 	p.ch.reposition(nil)

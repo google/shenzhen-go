@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/google/shenzhen-go/model"
@@ -96,6 +97,10 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Path:  filepath.Join(r.URL.Path, fi.Name()),
 		})
 	}
+
+	sort.Slice(e, func(i, j int) bool {
+		return e[i].Name < e[j].Name
+	})
 
 	view.Browse(w, base, e)
 }

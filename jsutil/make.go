@@ -18,6 +18,6 @@ const svgNamespaceURI = "http://www.w3.org/2000/svg"
 
 // MakeSVGElement creates an element in the global document,
 // belonging to the the SVG NS (http://www.w3.org/2000/svg).
-func MakeSVGElement(n string) *Element {
-	return &Element{Document.Call("createElementNS", svgNamespaceURI, n)}
+func MakeSVGElement(n string) Element {
+	return Wrap(Document.Call("createElementNS", svgNamespaceURI, n))
 }

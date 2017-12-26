@@ -40,11 +40,11 @@ type Channel struct {
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]struct{}
 
-	steiner *jsutil.Element // symbol representing the channel itself, not used if channel is simple
-	x, y    float64         // centre of steiner point, for snapping
-	tx, ty  float64         // temporary centre of steiner point, for display
-	l, c    *jsutil.Element // for dragging to more pins
-	p       *Pin            // considering attaching to this pin
+	steiner jsutil.Element // symbol representing the channel itself, not used if channel is simple
+	x, y    float64        // centre of steiner point, for snapping
+	tx, ty  float64        // temporary centre of steiner point, for display
+	l, c    jsutil.Element // for dragging to more pins
+	p       *Pin           // considering attaching to this pin
 }
 
 func newChannel(p, q *Pin) *Channel {

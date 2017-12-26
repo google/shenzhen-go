@@ -28,7 +28,7 @@ const (
 )
 
 type textBox struct {
-	group, rect, text, textNode *jsutil.Element
+	group, rect, text, textNode jsutil.Element
 	width, minWidth             float64
 }
 
@@ -37,7 +37,7 @@ func newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float6
 		group:    jsutil.MakeSVGElement("g"),
 		rect:     jsutil.MakeSVGElement("rect"),
 		text:     jsutil.MakeSVGElement("text"),
-		textNode: &jsutil.Element{Object: jsutil.MustGetGlobal("document").Call("createTextNode", text)},
+		textNode: jsutil.Wrap(jsutil.MustGetGlobal("document").Call("createTextNode", text)),
 		minWidth: minWidth,
 	}
 

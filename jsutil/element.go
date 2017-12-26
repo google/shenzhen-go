@@ -16,19 +16,35 @@ package jsutil
 
 import "github.com/gopherjs/gopherjs/js"
 
-// Element represents a DOM element. It embeds *js.Object.
-type Element struct {
+// Element represents a DOM element. 
+type Element interface {
+	Get(string) *js.Object
+	Set(string, interface{})
+	Call(string, ...interface{}) *js.Object
+
+	SetAttribute(string, interface{}) Element
+	AddChildren(...Element) Element
+	RemoveChildren(...Element) Element
+	AddEventListener(string, func(*js.Object)) Element
+	Show() Element
+	Hide() Element
+}
+
+type element struct {
 	*js.Object
 }
 
+// Wrap turns a *js.Object into an Element.
+func Wrap(o *js.Object) Element { return &element{o} }
+
 // SetAttribute calls the JS setAttribute method, returning e for chaining.
-func (e *Element) SetAttribute(attr string, value interface{}) *Element {
+func (e *element) SetAttribute(attr string, value interface{}) Element {
 	e.Call("setAttribute", attr, value)
 	return e
 }
 
 // AddChildren calls the JS method appendChild for each element, returning e for chaining.
-func (e *Element) AddChildren(children ...*Element) *Element {
+func (e *element) AddChildren(children ...Element) Element {
 	for _, c := range children {
 		e.Call("appendChild", c)
 	}
@@ -36,7 +52,7 @@ func (e *Element) AddChildren(children ...*Element) *Element {
 }
 
 // RemoveChildren calls the JS method removeChild for each element, returning e for chaining.
-func (e *Element) RemoveChildren(children ...*Element) *Element {
+func (e *element) RemoveChildren(children ...Element) Element {
 	for _, c := range children {
 		e.Call("removeChild", c)
 	}
@@ -44,19 +60,19 @@ func (e *Element) RemoveChildren(children ...*Element) *Element {
 }
 
 // AddEventListener calls the JS method addEventListener, returning e for chaining.
-func (e *Element) AddEventListener(event string, handler func(*js.Object)) *Element {
+func (e *element) AddEventListener(event string, handler func(*js.Object)) Element {
 	e.Call("addEventListener", event, handler)
 	return e
 }
 
 // Show removes the display attribute.
-func (e *Element) Show() *Element {
+func (e *element) Show() Element {
 	e.Call("removeAttribute", "display")
 	return e
 }
 
 // Hide sets the display attribute to "none".
-func (e *Element) Hide() *Element {
+func (e *element) Hide() Element {
 	e.Call("setAttribute", "display", "none")
 	return e
 }

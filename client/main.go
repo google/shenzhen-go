@@ -50,7 +50,7 @@ var (
 	theGraph   *Graph
 )
 
-func showRHSPanel(p *jsutil.Element) {
+func showRHSPanel(p jsutil.Element) {
 	if p == rhsPanel {
 		return
 	}

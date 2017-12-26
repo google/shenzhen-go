@@ -43,10 +43,10 @@ type Pin struct {
 
 	nametag *textBox // Hello, my name is ...
 
-	l    *jsutil.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
+	l    jsutil.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
 	x, y float64         // computed, not relative to node
-	circ *jsutil.Element // my main representation
-	c    *jsutil.Element // circle, when dragging from a pin
+	circ jsutil.Element // my main representation
+	c    jsutil.Element // circle, when dragging from a pin
 }
 
 func (p *Pin) connectTo(q Point) error {
@@ -275,7 +275,7 @@ func (p *Pin) mouseLeave(*js.Object) {
 	p.nametag.hide()
 }
 
-func (p *Pin) makePinElement(n *Node) *jsutil.Element {
+func (p *Pin) makePinElement(n *Node) jsutil.Element {
 	p.node = n
 
 	p.circ = jsutil.MakeSVGElement("circle").

@@ -21,7 +21,7 @@ import (
 )
 
 // Document is the global document element.
-var Document = &Element{MustGetGlobal("document")}
+var Document = Wrap(MustGetGlobal("document"))
 
 // MustGetGlobal wraps js.Global.Get, and exits if the element doesn't exist.
 func MustGetGlobal(id string) *js.Object {
@@ -33,10 +33,10 @@ func MustGetGlobal(id string) *js.Object {
 }
 
 // MustGetElement wraps document.getElementById, and exits if the element doesn't exist.
-func MustGetElement(id string) *Element {
+func MustGetElement(id string) Element {
 	e := Document.Call("getElementById", id)
 	if e == nil {
 		log.Fatalf("Couldn't get element %q", id)
 	}
-	return &Element{e}
+	return Wrap(e)
 }

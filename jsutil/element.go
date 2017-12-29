@@ -27,6 +27,9 @@ type Object interface {
 type Element interface {
 	Object
 
+	// ID returns the element ID.
+	ID() string
+
 	// SetAttribute calls the JS setAttribute method, returning the element for chaining.
 	SetAttribute(string, interface{}) Element
 
@@ -53,8 +56,17 @@ type element struct {
 	*js.Object
 }
 
-// Wrap turns a *js.Object into an Element.
-func Wrap(o *js.Object) Element { return &element{o} }
+// Wrap turns a *js.Object into an Element, or returns nil if o is nil.
+func Wrap(o *js.Object) Element {
+	if o == nil {
+		return nil
+	}
+	return &element{o}
+}
+
+func (e *element) ID() string {
+	return e.Get("id").String()
+}
 
 func (e *element) SetAttribute(attr string, value interface{}) Element {
 	e.Call("setAttribute", attr, value)

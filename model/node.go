@@ -28,7 +28,7 @@ type Node struct {
 	Enabled      bool
 	Multiplicity uint
 	Wait         bool
-	X, Y         int
+	X, Y         float64
 	Connections  map[string]string // Pin name -> channel name
 }
 
@@ -96,8 +96,8 @@ type jsonNode struct {
 	Enabled      bool              `json:"enabled"`
 	Wait         bool              `json:"wait"`
 	Multiplicity uint              `json:"multiplicity,omitempty"`
-	X            int               `json:"x"`
-	Y            int               `json:"y"`
+	X            float64           `json:"x"`
+	Y            float64           `json:"y"`
 	Connections  map[string]string `json:"connections"`
 }
 

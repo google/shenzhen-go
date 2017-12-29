@@ -73,7 +73,6 @@ type Node struct {
 	*model.Node
 
 	Inputs, Outputs []*Pin
-	X, Y            float64
 
 	box *textBox
 
@@ -127,8 +126,8 @@ func (n *Node) drop(e *js.Object) {
 		req := &pb.SetPositionRequest{
 			Graph: graphPath,
 			Node:  n.Name,
-			X:     int64(x),
-			Y:     int64(y),
+			X:     x,
+			Y:     y,
 		}
 		if _, err := theClient.SetPosition(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetPosition: %v", err)
@@ -175,8 +174,8 @@ func (n *Node) save(e *js.Object) {
 			Wait:         nodeWaitInput.Get("checked").Bool(),
 			PartCfg:      pj.Part,
 			PartType:     pj.Type,
-			X:            int64(n.X),
-			Y:            int64(n.Y),
+			X:            n.X,
+			Y:            n.Y,
 		}
 		req := &pb.SetNodePropertiesRequest{
 			Graph: graphPath,

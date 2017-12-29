@@ -173,14 +173,13 @@ func (c *Code) Clone() interface{} {
 		p := *v
 		pins[k] = &p
 	}
-	c2 := &Code{
+	return &Code{
 		imports: c.imports,
 		head:    c.head,
 		body:    c.body,
 		tail:    c.tail,
 		pins:    pins,
 	}
-	return c2
 }
 
 // Impl returns the implementation of the goroutine.

@@ -91,8 +91,8 @@ type NodeConfig struct {
 	Wait         bool
 	PartCfg      []byte
 	PartType     string
-	X            int64
-	Y            int64
+	X            float64
+	Y            float64
 }
 
 // GetName gets the Name of the NodeConfig.
@@ -144,7 +144,7 @@ func (m *NodeConfig) GetPartType() (x string) {
 }
 
 // GetX gets the X of the NodeConfig.
-func (m *NodeConfig) GetX() (x int64) {
+func (m *NodeConfig) GetX() (x float64) {
 	if m == nil {
 		return x
 	}
@@ -152,7 +152,7 @@ func (m *NodeConfig) GetX() (x int64) {
 }
 
 // GetY gets the Y of the NodeConfig.
-func (m *NodeConfig) GetY() (x int64) {
+func (m *NodeConfig) GetY() (x float64) {
 	if m == nil {
 		return x
 	}
@@ -190,11 +190,11 @@ func (m *NodeConfig) MarshalToWriter(writer jspb.Writer) {
 	}
 
 	if m.X != 0 {
-		writer.WriteInt64(7, m.X)
+		writer.WriteFloat64(7, m.X)
 	}
 
 	if m.Y != 0 {
-		writer.WriteInt64(8, m.Y)
+		writer.WriteFloat64(8, m.Y)
 	}
 
 	return
@@ -228,9 +228,9 @@ func (m *NodeConfig) UnmarshalFromReader(reader jspb.Reader) *NodeConfig {
 		case 6:
 			m.PartType = reader.ReadString()
 		case 7:
-			m.X = reader.ReadInt64()
+			m.X = reader.ReadFloat64()
 		case 8:
-			m.Y = reader.ReadInt64()
+			m.Y = reader.ReadFloat64()
 		default:
 			reader.SkipField()
 		}
@@ -1146,8 +1146,8 @@ func (m *SetNodePropertiesRequest) Unmarshal(rawBytes []byte) (*SetNodePropertie
 type SetPositionRequest struct {
 	Graph string
 	Node  string
-	X     int64
-	Y     int64
+	X     float64
+	Y     float64
 }
 
 // GetGraph gets the Graph of the SetPositionRequest.
@@ -1167,7 +1167,7 @@ func (m *SetPositionRequest) GetNode() (x string) {
 }
 
 // GetX gets the X of the SetPositionRequest.
-func (m *SetPositionRequest) GetX() (x int64) {
+func (m *SetPositionRequest) GetX() (x float64) {
 	if m == nil {
 		return x
 	}
@@ -1175,7 +1175,7 @@ func (m *SetPositionRequest) GetX() (x int64) {
 }
 
 // GetY gets the Y of the SetPositionRequest.
-func (m *SetPositionRequest) GetY() (x int64) {
+func (m *SetPositionRequest) GetY() (x float64) {
 	if m == nil {
 		return x
 	}
@@ -1197,11 +1197,11 @@ func (m *SetPositionRequest) MarshalToWriter(writer jspb.Writer) {
 	}
 
 	if m.X != 0 {
-		writer.WriteInt64(3, m.X)
+		writer.WriteFloat64(3, m.X)
 	}
 
 	if m.Y != 0 {
-		writer.WriteInt64(4, m.Y)
+		writer.WriteFloat64(4, m.Y)
 	}
 
 	return
@@ -1227,9 +1227,9 @@ func (m *SetPositionRequest) UnmarshalFromReader(reader jspb.Reader) *SetPositio
 		case 2:
 			m.Node = reader.ReadString()
 		case 3:
-			m.X = reader.ReadInt64()
+			m.X = reader.ReadFloat64()
 		case 4:
-			m.Y = reader.ReadInt64()
+			m.Y = reader.ReadFloat64()
 		default:
 			reader.SkipField()
 		}

@@ -867,10 +867,10 @@ func TestSetPosition(t *testing.T) {
 			t.Errorf("c.SetPosition(%v) = code %v, want %v", test.req, got, want)
 		}
 	}
-	if got, want := bar.X, 42; got != want {
-		t.Errorf("bar.X = %d, want %d", got, want)
+	if got, want := bar.X, 42.; got != want {
+		t.Errorf("bar.X = %f, want %f", got, want)
 	}
-	if got, want := bar.Y, 17; got != want {
-		t.Errorf("bar.Y = %d, want %d", got, want)
+	if got, want := bar.Y, 17.; got != want {
+		t.Errorf("bar.Y = %f, want %f", got, want)
 	}
 }

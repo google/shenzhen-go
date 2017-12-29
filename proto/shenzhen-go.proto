@@ -11,8 +11,8 @@ message NodeConfig {
     bool wait = 4;
     bytes part_cfg = 5;
 	string part_type = 6;
-	int64 x = 7;
-    int64 y = 8;
+	double x = 7;
+    double y = 8;
 }
 
 message CreateChannelRequest {
@@ -76,8 +76,8 @@ message SetNodePropertiesRequest {
 message SetPositionRequest {
 	string graph = 1;
 	string node = 2;
-	int64 x = 3;
-    int64 y = 4;
+	double x = 3;
+    double y = 4;
 }
 
 service ShenzhenGo {

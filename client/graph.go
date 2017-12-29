@@ -69,9 +69,9 @@ func (g *Graph) createNode(partType string) {
 				Wait:         true,
 				Multiplicity: 1,
 				Part:         pt,
+				X:            150,
+				Y:            150,
 			},
-			X: 150,
-			Y: 150,
 		}
 
 		_, err = theClient.CreateNode(context.Background(), &pb.CreateNodeRequest{
@@ -163,8 +163,6 @@ func loadGraph(gj string) (*Graph, error) {
 	for _, n := range g.Nodes {
 		m := &Node{
 			Node: n,
-			X:    float64(n.X),
-			Y:    float64(n.Y),
 		}
 		pd := n.Pins()
 		for _, p := range pd {

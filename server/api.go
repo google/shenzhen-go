@@ -117,8 +117,8 @@ func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb
 		Enabled:      req.Props.Enabled,
 		Wait:         req.Props.Wait,
 		Part:         p,
-		X:            int(req.Props.X),
-		Y:            int(req.Props.Y),
+		X:            req.Props.X,
+		Y:            req.Props.Y,
 		Connections:  make(map[string]string),
 	}
 	for _, d := range p.Pins() {
@@ -245,7 +245,7 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 	n.Enabled = req.Props.Enabled
 	n.Wait = req.Props.Wait
 	n.Part = p
-	n.X, n.Y = int(req.Props.X), int(req.Props.Y)
+	n.X, n.Y = req.Props.X, req.Props.Y
 	return &pb.Empty{}, nil
 }
 
@@ -254,6 +254,6 @@ func (c *server) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	n.X, n.Y = int(req.X), int(req.Y)
+	n.X, n.Y = req.X, req.Y
 	return &pb.Empty{}, nil
 }

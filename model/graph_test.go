@@ -31,12 +31,10 @@ func TestLoadJSON(t *testing.T) {
 			"part": {
 				"pins": {
 					"output": {
-						"name": "output",
 						"type": "int",
 						"dir": "out"
 					},
 					"nc": {
-						"name": "nc",
 						"type": "int",
 						"dir": "in"
 					}
@@ -52,12 +50,10 @@ func TestLoadJSON(t *testing.T) {
 			"part": {
 				"pins": {
 					"input": {
-						"name": "input",
 						"type": "int",
 						"dir": "in"
 					},
 					"nc": {
-						"name": "nc",
 						"type": "int",
 						"dir": "out"
 					}

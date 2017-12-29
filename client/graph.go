@@ -127,13 +127,13 @@ func (g *Graph) save(*js.Object) {
 }
 
 func (g *Graph) saveProperties(*js.Object) {
-	req := &pb.SetGraphPropertiesRequest{
-		Graph:       graphPath,
-		Name:        graphNameElement.Get("value").String(),
-		PackagePath: graphPackagePathElement.Get("value").String(),
-		IsCommand:   graphIsCommandElement.Get("checked").Bool(),
-	}
 	go func() { // cannot block in callback
+		req := &pb.SetGraphPropertiesRequest{
+			Graph:       graphPath,
+			Name:        graphNameElement.Get("value").String(),
+			PackagePath: graphPackagePathElement.Get("value").String(),
+			IsCommand:   graphIsCommandElement.Get("checked").Bool(),
+		}
 		if _, err := theClient.SetGraphProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetGraphProperties: %v", err)
 		}

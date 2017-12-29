@@ -19,32 +19,26 @@
 				],
 				"pins": {
 					"bar": {
-						"name": "bar",
 						"type": "rune",
 						"dir": "in"
 					},
 					"baz": {
-						"name": "baz",
 						"type": "float64",
 						"dir": "out"
 					},
 					"foo": {
-						"name": "foo",
 						"type": "int",
 						"dir": "in"
 					},
 					"quux": {
-						"name": "quux",
 						"type": "string",
 						"dir": "out"
 					},
 					"qux": {
-						"name": "qux",
 						"type": "int",
 						"dir": "out"
 					},
 					"tuz": {
-						"name": "tuz",
 						"type": "int64",
 						"dir": "in"
 					}
@@ -81,32 +75,26 @@
 				],
 				"pins": {
 					"bar": {
-						"name": "bar",
 						"type": "rune",
 						"dir": "in"
 					},
 					"baz": {
-						"name": "baz",
 						"type": "float64",
 						"dir": "out"
 					},
 					"foo": {
-						"name": "foo",
 						"type": "int",
 						"dir": "in"
 					},
 					"quux": {
-						"name": "quux",
 						"type": "string",
 						"dir": "out"
 					},
 					"qux": {
-						"name": "qux",
 						"type": "int",
 						"dir": "out"
 					},
 					"tuz": {
-						"name": "tuz",
 						"type": "int64",
 						"dir": "in"
 					}

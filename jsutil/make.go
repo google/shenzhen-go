@@ -16,6 +16,11 @@ package jsutil
 
 const svgNamespaceURI = "http://www.w3.org/2000/svg"
 
+// MakeTextNode creates a text node element in the global document.
+func MakeTextNode(text string) Element {
+	return Wrap(Document.Call("createTextNode", text))
+}
+
 // MakeSVGElement creates an element in the global document,
 // belonging to the the SVG NS (http://www.w3.org/2000/svg).
 func MakeSVGElement(n string) Element {

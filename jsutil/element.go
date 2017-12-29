@@ -16,12 +16,16 @@ package jsutil
 
 import "github.com/gopherjs/gopherjs/js"
 
-// Element represents a DOM element. 
-type Element interface {
+// Object is some stuff JS objects can do.
+type Object interface {
 	Get(string) *js.Object
 	Set(string, interface{})
 	Call(string, ...interface{}) *js.Object
+}
 
+// Element represents a DOM element.
+type Element interface {
+	Object
 	SetAttribute(string, interface{}) Element
 	AddChildren(...Element) Element
 	RemoveChildren(...Element) Element

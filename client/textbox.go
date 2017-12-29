@@ -37,7 +37,7 @@ func newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float6
 		group:    jsutil.MakeSVGElement("g"),
 		rect:     jsutil.MakeSVGElement("rect"),
 		text:     jsutil.MakeSVGElement("text"),
-		textNode: jsutil.Wrap(jsutil.MustGetGlobal("document").Call("createTextNode", text)),
+		textNode: jsutil.MakeTextNode(text),
 		minWidth: minWidth,
 	}
 

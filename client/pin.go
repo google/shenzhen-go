@@ -75,7 +75,7 @@ func (p *Pin) connectTo(q Point) error {
 		ch := newChannel(p, q)
 		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
-		theGraph.Channels[ch] = struct{}{}
+		theGraph.Channels[ch.Name] = ch
 		q.l.Show()
 
 	case *Channel:
@@ -139,7 +139,7 @@ func (p *Pin) reallyDisconnect() {
 		for q := range p.ch.Pins {
 			q.ch = nil
 		}
-		delete(theGraph.Channels, p.ch)
+		delete(theGraph.Channels, p.ch.Name)
 	}
 	p.ch = nil
 }

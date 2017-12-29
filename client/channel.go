@@ -55,7 +55,7 @@ func newChannel(p, q *Pin) *Channel {
 	}
 	// Pick a unique name
 	max := -1
-	for ec := range theGraph.Channels {
+	for _, ec := range theGraph.Channels {
 		if anonChannelNameRE.MatchString(ec.Name) {
 			n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
 			if err != nil {
@@ -69,7 +69,7 @@ func newChannel(p, q *Pin) *Channel {
 	}
 	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
 	go func() {
-		if _, err := theClient.CreateChannel(context.Background(), &pb.CreateChannelRequest{
+		req := &pb.CreateChannelRequest{
 			Graph: graphPath,
 			Name:  c.Name,
 			Type:  c.Type,
@@ -79,7 +79,8 @@ func newChannel(p, q *Pin) *Channel {
 			Pin1:  p.Name,
 			Node2: q.node.Name,
 			Pin2:  q.Name,
-		}); err != nil {
+		}
+		if _, err := theClient.CreateChannel(context.Background(), req); err != nil {
 			log.Printf("Couldn't CreateChannel: %v", err)
 		}
 	}()

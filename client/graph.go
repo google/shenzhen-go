@@ -37,10 +37,11 @@ var (
 	graphIsCommandElement   = jsutil.MustGetElement("graph-prop-is-command")
 )
 
-// Graph is the view's model of a graph.
+// Graph is the view-model of a graph.
 type Graph struct {
+	*model.Graph
 	Nodes    map[string]*Node
-	Channels map[*Channel]struct{}
+	Channels map[string]*Channel
 }
 
 func (g *Graph) createNode(partType string) {
@@ -112,7 +113,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 			test(p)
 		}
 	}
-	for c := range g.Channels {
+	for _, c := range g.Channels {
 		test(c)
 	}
 	return quad, pt
@@ -140,26 +141,30 @@ func (g *Graph) saveProperties(*js.Object) {
 	}()
 }
 
+func (g *Graph) refresh() {
+	// TODO
+}
+
 func loadGraph(gj string) (*Graph, error) {
 	g, err := model.LoadJSON(strings.NewReader(gj), "", "")
 	if err != nil {
 		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
 	}
 
-	graph := new(Graph)
-	chans := make(map[string]*Channel)
-	graph.Channels = make(map[*Channel]struct{})
+	graph := &Graph{
+		Graph:    g,
+		Channels: make(map[string]*Channel, len(g.Channels)),
+		Nodes:    make(map[string]*Node, len(g.Nodes)),
+	}
 	for k, c := range g.Channels {
 		ch := &Channel{
 			Channel: c,
 			Pins:    make(map[*Pin]struct{}),
 		}
-		chans[k] = ch
-		graph.Channels[ch] = struct{}{}
+		graph.Channels[k] = ch
 		ch.makeElements()
 	}
 
-	graph.Nodes = make(map[string]*Node, len(g.Nodes))
 	for _, n := range g.Nodes {
 		m := &Node{
 			Node: n,
@@ -177,7 +182,7 @@ func loadGraph(gj string) (*Graph, error) {
 				m.Outputs = append(m.Outputs, q)
 			}
 			if b := n.Connections[p.Name]; b != "" {
-				if c := chans[b]; c != nil {
+				if c := graph.Channels[b]; c != nil {
 					q.ch = c
 					c.Pins[q] = struct{}{}
 				}
@@ -187,7 +192,7 @@ func loadGraph(gj string) (*Graph, error) {
 		m.makeElements()
 	}
 	// Show existing connections
-	for c := range graph.Channels {
+	for _, c := range graph.Channels {
 		c.reposition(nil)
 		c.commit()
 		for p := range c.Pins {

@@ -16,7 +16,11 @@ package jsutil
 
 import "github.com/gopherjs/gopherjs/js"
 
-const svgNamespaceURI = "http://www.w3.org/2000/svg"
+// Well-known Namespace URIs.
+const (
+	SVGNamespaceURI   = "http://www.w3.org/2000/svg"
+	XHTMLNamespaceURI = "http://www.w3.org/1999/xhtml"
+)
 
 // Document describes some things the JS document global can do.
 type Document interface {
@@ -49,5 +53,5 @@ func (d *document) MakeTextNode(text string) Element {
 }
 
 func (d *document) MakeSVGElement(n string) Element {
-	return Wrap(d.Call("createElementNS", svgNamespaceURI, n))
+	return Wrap(d.Call("createElementNS", SVGNamespaceURI, n))
 }

@@ -20,7 +20,7 @@ import (
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/model/parts"
 	"github.com/google/shenzhen-go/model/pin"
-	pb "github.com/google/shenzhen-go/proto"
+	pb "github.com/google/shenzhen-go/proto/go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -16,10 +16,21 @@ package jsutil
 
 import "github.com/gopherjs/gopherjs/js"
 
+// MethodFunc is what a typical JS method looks like.
+type MethodFunc func(...interface{}) *js.Object
+
 // FakeObject implements a fake *js.Object.
 type FakeObject struct {
 	Properties map[string]*js.Object
-	Methods    map[string]func(...interface{}) *js.Object
+	Methods    map[string]MethodFunc
+}
+
+// MakeFakeObject makes a FakeObject.
+func MakeFakeObject() *FakeObject {
+	return &FakeObject{
+		Properties: make(map[string]*js.Object),
+		Methods:    make(map[string]MethodFunc),
+	}
 }
 
 // Get gets a property value.
@@ -45,6 +56,17 @@ type FakeElement struct {
 	Attributes     map[string]interface{}
 	Children       []*FakeElement
 	EventListeners map[string][]func(*js.Object)
+}
+
+// MakeFakeElement makes a fake element.
+func MakeFakeElement(class, nsuri string) *FakeElement {
+	return &FakeElement{
+		FakeObject:     *MakeFakeObject(),
+		Class:          class,
+		NamespaceURI:   nsuri,
+		Attributes:     make(map[string]interface{}),
+		EventListeners: make(map[string][]func(*js.Object)),
+	}
 }
 
 // ID returns e.Get("id").String() (so set the embedded FakeObject's property).
@@ -115,6 +137,13 @@ type FakeDocument struct {
 	FakeElement
 }
 
+// MakeFakeDocument makes a fake document.
+func MakeFakeDocument() *FakeDocument {
+	return &FakeDocument{
+		FakeElement: *MakeFakeElement("document", XHTMLNamespaceURI),
+	}
+}
+
 // ElementByID searches the fake document for a matching element.
 func (d *FakeDocument) ElementByID(id string) Element {
 	stack := []*FakeElement{&d.FakeElement}
@@ -130,16 +159,12 @@ func (d *FakeDocument) ElementByID(id string) Element {
 
 // MakeTextNode makes something that looks like a text node.
 func (d *FakeDocument) MakeTextNode(text string) Element {
-	return &FakeElement{
-		FakeObject: FakeObject{
-			Properties: map[string]*js.Object{
-				"wholeText": js.MakeWrapper(text),
-			},
-		},
-	}
+	e := MakeFakeElement("text", "")
+	e.Set("wholeText", text)
+	return e
 }
 
 // MakeSVGElement makes an SVG element
 func (d *FakeDocument) MakeSVGElement(class string) Element {
-	return &FakeElement{Class: class, NamespaceURI: svgNamespaceURI}
+	return MakeFakeElement(class, SVGNamespaceURI)
 }

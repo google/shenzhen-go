@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build js
-
 package main
 
 import (
@@ -21,7 +19,7 @@ import (
 	"log"
 
 	"github.com/google/shenzhen-go/jsutil"
-	pb "github.com/google/shenzhen-go/proto"
+	pb "github.com/google/shenzhen-go/proto/js"
 	"github.com/gopherjs/gopherjs/js"
 )
 

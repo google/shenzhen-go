@@ -12,12 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !js
-
 // The client script is for interacting with a graph in an SVG (via DOM).
 // The browser gets it from the server (served "statically") and it makes
 // gRPC-Web API calls into the server.
 package main
-
-// Make the errors shut up
-func main() {}

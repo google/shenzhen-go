@@ -14,8 +14,26 @@
 
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/shenzhen-go/jsutil"
+	"github.com/google/shenzhen-go/model"
+)
 
 func TestGraphRefresh(t *testing.T) {
-	// TODO
+	theDocument = jsutil.MakeFakeDocument()
+	theDiagram = &Diagram{Element: jsutil.MakeFakeElement("svg", jsutil.SVGNamespaceURI)}
+	g := &Graph{
+		Graph: &model.Graph{},
+	}
+	g.refresh()
+
+	if g.Channels == nil {
+		t.Error("g.Channels = nil, want non-nil map")
+	}
+	if g.Nodes == nil {
+		t.Error("g.Nodes = nil, want non-nil map")
+	}
+	// TODO: inspect more state
 }

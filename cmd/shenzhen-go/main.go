@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/google/shenzhen-go/proto"
+	pb "github.com/google/shenzhen-go/proto/go"
 	"github.com/google/shenzhen-go/server"
 	"github.com/google/shenzhen-go/server/view"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"

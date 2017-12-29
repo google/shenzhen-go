@@ -34,10 +34,10 @@ type textBox struct {
 
 func newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		group:    jsutil.MakeSVGElement("g"),
-		rect:     jsutil.MakeSVGElement("rect"),
-		text:     jsutil.MakeSVGElement("text"),
-		textNode: jsutil.MakeTextNode(text),
+		group:    theDocument.MakeSVGElement("g"),
+		rect:     theDocument.MakeSVGElement("rect"),
+		text:     theDocument.MakeSVGElement("text"),
+		textNode: theDocument.MakeTextNode(text),
 		minWidth: minWidth,
 	}
 

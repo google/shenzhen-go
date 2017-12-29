@@ -96,15 +96,15 @@ func newChannel(p, q *Pin) *Channel {
 }
 
 func (c *Channel) makeElements() {
-	c.steiner = jsutil.MakeSVGElement("circle").
+	c.steiner = theDocument.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.dragStart)
 
-	c.l = jsutil.MakeSVGElement("line").
+	c.l = theDocument.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	c.c = jsutil.MakeSVGElement("circle").
+	c.c = theDocument.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).

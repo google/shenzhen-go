@@ -37,13 +37,13 @@ const (
 )
 
 var (
-	nodeMetadataSubpanel = jsutil.MustGetElement("node-metadata-panel")
+	nodeMetadataSubpanel = theDocument.ElementByID("node-metadata-panel")
 	nodeCurrentSubpanel  = nodeMetadataSubpanel
 
-	nodeNameInput         = jsutil.MustGetElement("node-name")
-	nodeEnabledInput      = jsutil.MustGetElement("node-enabled")
-	nodeMultiplicityInput = jsutil.MustGetElement("node-multiplicity")
-	nodeWaitInput         = jsutil.MustGetElement("node-wait")
+	nodeNameInput         = theDocument.ElementByID("node-name")
+	nodeEnabledInput      = theDocument.ElementByID("node-enabled")
+	nodeMultiplicityInput = theDocument.ElementByID("node-multiplicity")
+	nodeWaitInput         = theDocument.ElementByID("node-wait")
 
 	nodePartEditors = make(map[string]*partEditor, len(model.PartTypes))
 )
@@ -55,14 +55,14 @@ type partEditor struct {
 
 func init() {
 	for n, t := range model.PartTypes {
-		jsutil.MustGetElement("node-new-link:"+n).
+		theDocument.ElementByID("node-new-link:"+n).
 			AddEventListener("click", func(*js.Object) { theGraph.createNode(n) })
 		p := make(map[string]jsutil.Element, len(t.Panels))
 		for _, d := range t.Panels {
-			p[d.Name] = jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
+			p[d.Name] = theDocument.ElementByID(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
 		}
 		nodePartEditors[n] = &partEditor{
-			Links:  jsutil.MustGetElement(fmt.Sprintf("node-%s-links", n)),
+			Links:  theDocument.ElementByID(fmt.Sprintf("node-%s-links", n)),
 			Panels: p,
 		}
 	}

@@ -22,7 +22,6 @@ import (
 	"math"
 	"strings"
 
-	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -34,7 +33,7 @@ const (
 )
 
 var (
-	ace = jsutil.MustGetGlobal("ace")
+	ace = js.Global.Get("ace")
 
 	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *js.Object
 

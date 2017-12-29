@@ -64,9 +64,13 @@ func (e *FakeElement) RemoveAttribute(attr string) Element {
 	return e
 }
 
-// AddChildren adds child elements.
+// AddChildren adds child elements (*FakeElement only).
 func (e *FakeElement) AddChildren(children ...Element) Element {
-	e.Children = append(e.Children, children...)
+	for _, c := range children {
+		if d, ok := c.(*FakeElement); ok {
+			e.Children = append(e.Children, d)
+		}
+	}
 	return e
 }
 

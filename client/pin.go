@@ -278,7 +278,7 @@ func (p *Pin) mouseLeave(*js.Object) {
 func (p *Pin) makeElements(n *Node) jsutil.Element {
 	p.node = n
 
-	p.circ = jsutil.MakeSVGElement("circle").
+	p.circ = theDocument.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", normalColour).
 		AddEventListener("mousedown", p.dragStart).
@@ -286,12 +286,12 @@ func (p *Pin) makeElements(n *Node) jsutil.Element {
 		AddEventListener("mouseleave", p.mouseLeave)
 
 	// Line
-	p.l = jsutil.MakeSVGElement("line").
+	p.l = theDocument.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
 	// Another circ
-	p.c = jsutil.MakeSVGElement("circle").
+	p.c = theDocument.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).

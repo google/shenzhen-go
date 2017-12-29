@@ -23,7 +23,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/model/pin"
 	pb "github.com/google/shenzhen-go/proto"
@@ -32,9 +31,9 @@ import (
 )
 
 var (
-	graphNameElement        = jsutil.MustGetElement("graph-prop-name")
-	graphPackagePathElement = jsutil.MustGetElement("graph-prop-package-path")
-	graphIsCommandElement   = jsutil.MustGetElement("graph-prop-is-command")
+	graphNameElement        = theDocument.ElementByID("graph-prop-name")
+	graphPackagePathElement = theDocument.ElementByID("graph-prop-package-path")
+	graphIsCommandElement   = theDocument.ElementByID("graph-prop-is-command")
 )
 
 // Graph is the view-model of a graph.

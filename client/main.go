@@ -39,15 +39,17 @@ const (
 )
 
 var (
-	graphPath = jsutil.MustGetGlobal("graphPath").String()
+	graphPath = js.Global.Get("graphPath").String()
+	apiURL    = js.Global.Get("apiURL").String()
 
-	graphPropertiesPanel = jsutil.MustGetElement("graph-properties")
-	nodePropertiesPanel  = jsutil.MustGetElement("node-properties")
+	theClient   pb.ShenzhenGoClient
+	theDocument = jsutil.CurrentDocument() // overridden in tests
+	theDiagram  *Diagram
+	theGraph    *Graph
+
+	graphPropertiesPanel = theDocument.ElementByID("graph-properties")
+	nodePropertiesPanel  = theDocument.ElementByID("node-properties")
 	rhsPanel             = graphPropertiesPanel
-
-	theClient  pb.ShenzhenGoClient
-	theDiagram *Diagram
-	theGraph   *Graph
 )
 
 func showRHSPanel(p jsutil.Element) {
@@ -60,13 +62,13 @@ func showRHSPanel(p jsutil.Element) {
 }
 
 func main() {
-	theClient = pb.NewShenzhenGoClient(jsutil.MustGetGlobal("apiURL").String())
+	theClient = pb.NewShenzhenGoClient(apiURL)
 
-	theDiagram = &Diagram{Element: jsutil.MustGetElement("diagram")}
+	theDiagram = &Diagram{Element: theDocument.ElementByID("diagram")}
 	theDiagram.errLabel = newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	theDiagram.errLabel.hide()
 
-	g, err := loadGraph(jsutil.MustGetGlobal("GraphJSON").String())
+	g, err := loadGraph(js.Global.Get("GraphJSON").String())
 	if err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}
@@ -77,17 +79,17 @@ func main() {
 		AddEventListener("mousemove", theDiagram.mouseMove).
 		AddEventListener("mouseup", theDiagram.mouseUp)
 
-	jsutil.MustGetElement("graph-save").
+	theDocument.ElementByID("graph-save").
 		AddEventListener("click", g.save)
-	jsutil.MustGetElement("graph-properties-save").
+	theDocument.ElementByID("graph-properties-save").
 		AddEventListener("click", g.saveProperties)
 
-	jsutil.MustGetElement("node-save-link").
+	theDocument.ElementByID("node-save-link").
 		AddEventListener("click", theDiagram.saveSelected)
-	jsutil.MustGetElement("node-delete-link").
+	theDocument.ElementByID("node-delete-link").
 		AddEventListener("click", theDiagram.deleteSelected)
 
-	jsutil.MustGetElement("node-metadata-link").
+	theDocument.ElementByID("node-metadata-link").
 		AddEventListener("click", func(*js.Object) {
 			theDiagram.selectedItem.(*Node).showSubPanel(nodeMetadataSubpanel)
 		})
@@ -95,7 +97,7 @@ func main() {
 	for n, e := range nodePartEditors {
 		for m, p := range e.Panels {
 			p := p
-			jsutil.MustGetElement(fmt.Sprintf("node-%s-%s-link", n, m)).
+			theDocument.ElementByID(fmt.Sprintf("node-%s-%s-link", n, m)).
 				AddEventListener("click",
 					func(*js.Object) {
 						theDiagram.selectedItem.(*Node).showSubPanel(p)

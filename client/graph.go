@@ -106,10 +106,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 		}
 	}
 	for _, n := range g.Nodes {
-		for _, p := range n.Inputs {
-			test(p)
-		}
-		for _, p := range n.Outputs {
+		for _, p := range n.AllPins {
 			test(p)
 		}
 	}
@@ -141,31 +138,59 @@ func (g *Graph) saveProperties(*js.Object) {
 	}()
 }
 
+// refresh ensures the view model matches the model.
 func (g *Graph) refresh() {
-	// TODO
-}
-
-func loadGraph(gj string) (*Graph, error) {
-	g, err := model.LoadJSON(strings.NewReader(gj), "", "")
-	if err != nil {
-		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
+	// Ensure data structures are set up
+	if g.Channels == nil {
+		g.Channels = make(map[string]*Channel, len(g.Graph.Channels))
+	}
+	if g.Nodes == nil {
+		g.Nodes = make(map[string]*Node, len(g.Graph.Nodes))
 	}
 
-	graph := &Graph{
-		Graph:    g,
-		Channels: make(map[string]*Channel, len(g.Channels)),
-		Nodes:    make(map[string]*Node, len(g.Nodes)),
+	// Remove any channels that no longer exist.
+	for k := range g.Channels {
+		if _, found := g.Graph.Channels[k]; found {
+			continue
+		}
+		// Remove this channel.
+		// TODO: c.removeElements()
+		delete(g.Channels, k)
 	}
-	for k, c := range g.Channels {
+
+	// Add any channels that didn't exist but now do.
+	// Refresh any existing channels.
+	for k, c := range g.Graph.Channels {
+		if _, found := g.Channels[k]; found {
+			// TODO: ch.refresh()
+			continue
+		}
+		// Add the channel.
 		ch := &Channel{
 			Channel: c,
 			Pins:    make(map[*Pin]struct{}),
 		}
-		graph.Channels[k] = ch
+		g.Channels[k] = ch
 		ch.makeElements()
 	}
 
-	for _, n := range g.Nodes {
+	// Remove any nodes that no longer exist.
+	for k := range g.Nodes {
+		if _, found := g.Graph.Nodes[k]; found {
+			continue
+		}
+		// Remove this channel.
+		// TODO: n.removeElements()
+		delete(g.Nodes, k)
+	}
+
+	// Add any nodes that didn't exist but now do.
+	// Refresh existing nodes.
+	for k, n := range g.Graph.Nodes {
+		if _, found := g.Nodes[k]; found {
+			// TODO: m.refresh()
+			continue
+		}
 		m := &Node{
 			Node: n,
 		}
@@ -182,17 +207,22 @@ func loadGraph(gj string) (*Graph, error) {
 				m.Outputs = append(m.Outputs, q)
 			}
 			if b := n.Connections[p.Name]; b != "" {
-				if c := graph.Channels[b]; c != nil {
+				if c := g.Channels[b]; c != nil {
 					q.ch = c
 					c.Pins[q] = struct{}{}
 				}
 			}
 		}
-		graph.Nodes[n.Name] = m
+		// Consolidate slices (not that it really matters)
+		m.AllPins = append(m.Inputs, m.Outputs...)
+		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
+
+		g.Nodes[n.Name] = m
 		m.makeElements()
 	}
-	// Show existing connections
-	for _, c := range graph.Channels {
+
+	// Refresh existing connections
+	for _, c := range g.Channels {
 		c.reposition(nil)
 		c.commit()
 		for p := range c.Pins {
@@ -200,5 +230,15 @@ func loadGraph(gj string) (*Graph, error) {
 			p.l.Show()
 		}
 	}
+}
+
+func loadGraph(gj string) (*Graph, error) {
+	g, err := model.LoadJSON(strings.NewReader(gj), "", "")
+	if err != nil {
+		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
+	}
+
+	graph := &Graph{Graph: g}
+	graph.refresh()
 	return graph, nil
 }

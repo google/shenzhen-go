@@ -72,7 +72,7 @@ func init() {
 type Node struct {
 	*model.Node
 
-	Inputs, Outputs []*Pin
+	Inputs, Outputs, AllPins []*Pin
 
 	box *textBox
 
@@ -96,10 +96,7 @@ func (n *Node) makeElements() {
 		AddEventListener("mousedown", theDiagram.selecter(n))
 
 	// Pins
-	for _, p := range n.Inputs {
-		n.box.group.AddChildren(p.makeElements(n))
-	}
-	for _, p := range n.Outputs {
+	for _, p := range n.AllPins {
 		n.box.group.AddChildren(p.makeElements(n))
 	}
 	n.updatePinPositions()
@@ -208,13 +205,9 @@ func (n *Node) delete(*js.Object) {
 
 func (n *Node) reallyDelete() {
 	// Chatty, but cleans everything up.
-	for _, ip := range n.Inputs {
-		ip.reallyDisconnect()
-		ip.l.Hide()
-	}
-	for _, op := range n.Outputs {
-		op.reallyDisconnect()
-		op.l.Hide()
+	for _, p := range n.AllPins {
+		p.reallyDisconnect()
+		p.l.Hide()
 	}
 	req := &pb.DeleteNodeRequest{
 		Graph: graphPath,
@@ -226,11 +219,8 @@ func (n *Node) reallyDelete() {
 	}
 	delete(theGraph.Nodes, n.Name)
 	theDiagram.RemoveChildren(n.box.group)
-	for _, ip := range n.Inputs {
-		ip.unmakeElements()
-	}
-	for _, op := range n.Outputs {
-		op.unmakeElements()
+	for _, p := range n.AllPins {
+		p.unmakeElements()
 	}
 }
 

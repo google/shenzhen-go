@@ -87,8 +87,8 @@ func newChannel(p, q *Pin) *Channel {
 	ch := &Channel{
 		Channel: c,
 		Pins: map[*Pin]struct{}{
-			p: struct{}{},
-			q: struct{}{},
+			p: {},
+			q: {},
 		},
 	}
 	ch.makeElements()

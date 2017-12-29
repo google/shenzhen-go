@@ -26,11 +26,26 @@ type Object interface {
 // Element represents a DOM element.
 type Element interface {
 	Object
+
+	// SetAttribute calls the JS setAttribute method, returning the element for chaining.
 	SetAttribute(string, interface{}) Element
+
+	// RemoveAttribute calls the JS removeAttribute method, returning the element for chaining.
+	RemoveAttribute(string) Element
+
+	// AddChildren calls the JS method appendChild for each element, returning the element for chaining.
 	AddChildren(...Element) Element
+
+	// RemoveChildren calls the JS method removeChild for each element, returning the element for chaining.
 	RemoveChildren(...Element) Element
+
+	// AddEventListener calls the JS method addEventListener, returning the element for chaining.
 	AddEventListener(string, func(*js.Object)) Element
+
+	// Show removes the display attribute, returning the element for chaining.
 	Show() Element
+
+	// Hide sets the display attribute to "none", returning the element for chaining.
 	Hide() Element
 }
 
@@ -41,13 +56,16 @@ type element struct {
 // Wrap turns a *js.Object into an Element.
 func Wrap(o *js.Object) Element { return &element{o} }
 
-// SetAttribute calls the JS setAttribute method, returning e for chaining.
 func (e *element) SetAttribute(attr string, value interface{}) Element {
 	e.Call("setAttribute", attr, value)
 	return e
 }
 
-// AddChildren calls the JS method appendChild for each element, returning e for chaining.
+func (e *element) RemoveAttribute(attr string) Element {
+	e.Call("removeAttribute", attr)
+	return e
+}
+
 func (e *element) AddChildren(children ...Element) Element {
 	for _, c := range children {
 		e.Call("appendChild", c)
@@ -55,7 +73,6 @@ func (e *element) AddChildren(children ...Element) Element {
 	return e
 }
 
-// RemoveChildren calls the JS method removeChild for each element, returning e for chaining.
 func (e *element) RemoveChildren(children ...Element) Element {
 	for _, c := range children {
 		e.Call("removeChild", c)
@@ -63,19 +80,16 @@ func (e *element) RemoveChildren(children ...Element) Element {
 	return e
 }
 
-// AddEventListener calls the JS method addEventListener, returning e for chaining.
 func (e *element) AddEventListener(event string, handler func(*js.Object)) Element {
 	e.Call("addEventListener", event, handler)
 	return e
 }
 
-// Show removes the display attribute.
 func (e *element) Show() Element {
 	e.Call("removeAttribute", "display")
 	return e
 }
 
-// Hide sets the display attribute to "none".
 func (e *element) Hide() Element {
 	e.Call("setAttribute", "display", "none")
 	return e

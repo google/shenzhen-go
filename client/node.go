@@ -92,15 +92,16 @@ func max(a, b int) int {
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.box = newTextBox(n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
-	n.box.rect.AddEventListener("mousedown", n.mouseDown)
-	n.box.rect.AddEventListener("mousedown", theDiagram.selecter(n))
+	n.box.rect.
+		AddEventListener("mousedown", n.mouseDown).
+		AddEventListener("mousedown", theDiagram.selecter(n))
 
 	// Pins
 	for _, p := range n.Inputs {
-		n.box.group.AddChildren(p.makePinElement(n))
+		n.box.group.AddChildren(p.makeElements(n))
 	}
 	for _, p := range n.Outputs {
-		n.box.group.AddChildren(p.makePinElement(n))
+		n.box.group.AddChildren(p.makeElements(n))
 	}
 	n.updatePinPositions()
 }
@@ -121,15 +122,14 @@ func (n *Node) drag(e *js.Object) {
 }
 
 func (n *Node) drop(e *js.Object) {
-	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-	req := &pb.SetPositionRequest{
-		Graph: graphPath,
-		Node:  n.Name,
-		X:     int64(x),
-		Y:     int64(y),
-	}
-
 	go func() { // cannot block in callback
+		x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
+		req := &pb.SetPositionRequest{
+			Graph: graphPath,
+			Node:  n.Name,
+			X:     int64(x),
+			Y:     int64(y),
+		}
 		if _, err := theClient.SetPosition(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetPosition: %v", err)
 		}
@@ -211,9 +211,11 @@ func (n *Node) reallyDelete() {
 	// Chatty, but cleans everything up.
 	for _, ip := range n.Inputs {
 		ip.reallyDisconnect()
+		ip.l.Hide()
 	}
 	for _, op := range n.Outputs {
 		op.reallyDisconnect()
+		op.l.Hide()
 	}
 	req := &pb.DeleteNodeRequest{
 		Graph: graphPath,
@@ -225,6 +227,12 @@ func (n *Node) reallyDelete() {
 	}
 	delete(theGraph.Nodes, n.Name)
 	theDiagram.RemoveChildren(n.box.group)
+	for _, ip := range n.Inputs {
+		ip.unmakeElements()
+	}
+	for _, op := range n.Outputs {
+		op.unmakeElements()
+	}
 }
 
 func (n *Node) updatePinPositions() {

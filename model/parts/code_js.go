@@ -67,12 +67,13 @@ func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) *js.Object
 }
 
 func (c *Code) handlePinsChange(e *js.Object) {
-	var p []pin.Definition
+	var p pin.Map
 	if err := json.Unmarshal([]byte(codePinsSession.Call("getValue").String()), &p); err != nil {
 		// Ignore
 		return
 	}
-	c.pins = pin.MapFromSlice(p)
+	p.FillNames()
+	c.pins = p
 }
 
 func (c *Code) handleImportsChange(e *js.Object) {

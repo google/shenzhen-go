@@ -159,9 +159,7 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 	}
 	c.imports = mp.Imports
 	c.pins = mp.Pins
-	for n, p := range c.pins {
-		p.Name = n
-	}
+	c.pins.FillNames()
 	return nil
 }
 

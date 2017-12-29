@@ -39,13 +39,13 @@ type Pin struct {
 
 	input bool     // am I an input?
 	node  *Node    // owner.
-	ch    *Channel // attached to this channel
+	ch    *Channel // attached to this channel, is often nil
 
 	nametag *textBox // Hello, my name is ...
 
-	l    jsutil.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
-	x, y float64         // computed, not relative to node
 	circ jsutil.Element // my main representation
+	l    jsutil.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
+	x, y float64        // computed, not relative to node
 	c    jsutil.Element // circle, when dragging from a pin
 }
 
@@ -275,7 +275,7 @@ func (p *Pin) mouseLeave(*js.Object) {
 	p.nametag.hide()
 }
 
-func (p *Pin) makePinElement(n *Node) jsutil.Element {
+func (p *Pin) makeElements(n *Node) jsutil.Element {
 	p.node = n
 
 	p.circ = jsutil.MakeSVGElement("circle").
@@ -304,4 +304,9 @@ func (p *Pin) makePinElement(n *Node) jsutil.Element {
 	p.node.box.group.AddChildren(p.nametag.group)
 	p.nametag.hide()
 	return p.circ
+}
+
+func (p *Pin) unmakeElements() {
+	theDiagram.RemoveChildren(p.l, p.c)
+	p.node.box.group.RemoveChildren(p.nametag.group)
 }

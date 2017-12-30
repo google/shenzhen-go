@@ -72,6 +72,7 @@ func (g *Graph) createNode(partType string) {
 		}
 
 		n := &Node{
+			View: g.View,
 			Node: &model.Node{
 				Name:         name,
 				Enabled:      true,
@@ -179,6 +180,7 @@ func (g *Graph) refresh() {
 		}
 		// Add the channel.
 		ch := &Channel{
+			View:    g.View,
 			Channel: c,
 			Pins:    make(map[*Pin]struct{}),
 		}
@@ -204,6 +206,7 @@ func (g *Graph) refresh() {
 			continue
 		}
 		m := &Node{
+			View: g.View,
 			Node: n,
 		}
 		pd := n.Pins()

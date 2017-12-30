@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package view
 
 import (
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/gopherjs/gopherjs/js"
 )
 
+// Diagram wraps the top SVG element and holds references to
+// important parts of it.
 type Diagram struct {
 	jsutil.Element // the SVG element
+	View           *View
 
 	dragItem     draggable  // nil if nothing is being dragged
 	selectedItem selectable // nil if nothing is selected
@@ -39,7 +42,7 @@ func (d *Diagram) mouseDown(e *js.Object) {
 		return
 	}
 	d.selectedItem.loseFocus(e)
-	showRHSPanel(graphPropertiesPanel)
+	d.View.ShowRHSPanel(d.View.GraphPropertiesPanel)
 	e.Call("stopPropagation")
 }
 

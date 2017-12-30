@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package view
 
 import (
 	"log"
@@ -34,6 +34,7 @@ var anonChannelNameRE = regexp.MustCompile(`^anonymousChannel\d+$`)
 // Channel is the view's model of a channel.
 type Channel struct {
 	*model.Channel
+	View *View
 
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]struct{}
@@ -45,7 +46,7 @@ type Channel struct {
 	p       *Pin           // considering attaching to this pin
 }
 
-func newChannel(p, q *Pin) *Channel {
+func (v *View) newChannel(p, q *Pin) *Channel {
 	c := &model.Channel{
 		Type:      p.Type,
 		Capacity:  0,
@@ -53,7 +54,7 @@ func newChannel(p, q *Pin) *Channel {
 	}
 	// Pick a unique name
 	max := -1
-	for _, ec := range theGraph.Channels {
+	for _, ec := range v.Graph.Channels {
 		if anonChannelNameRE.MatchString(ec.Name) {
 			n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
 			if err != nil {
@@ -68,7 +69,7 @@ func newChannel(p, q *Pin) *Channel {
 	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
 	go func() {
 		req := &pb.CreateChannelRequest{
-			Graph: graphPath,
+			Graph: v.Graph.FilePath,
 			Name:  c.Name,
 			Type:  c.Type,
 			Cap:   uint64(c.Capacity),
@@ -78,12 +79,13 @@ func newChannel(p, q *Pin) *Channel {
 			Node2: q.node.Name,
 			Pin2:  q.Name,
 		}
-		if _, err := theClient.CreateChannel(context.Background(), req); err != nil {
+		if _, err := v.Client.CreateChannel(context.Background(), req); err != nil {
 			log.Printf("Couldn't CreateChannel: %v", err)
 		}
 	}()
 	ch := &Channel{
 		Channel: c,
+		View:    v,
 		Pins: map[*Pin]struct{}{
 			p: {},
 			q: {},
@@ -94,21 +96,26 @@ func newChannel(p, q *Pin) *Channel {
 }
 
 func (c *Channel) makeElements() {
-	c.steiner = theDocument.MakeSVGElement("circle").
+	c.steiner = c.View.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.dragStart)
 
-	c.l = theDocument.MakeSVGElement("line").
+	c.l = c.View.Document.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	c.c = theDocument.MakeSVGElement("circle").
+	c.c = c.View.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	theDiagram.AddChildren(c.steiner, c.l, c.c)
+	c.View.Diagram.AddChildren(c.steiner, c.l, c.c)
+}
+
+func (c *Channel) unmakeElements() {
+	c.View.Diagram.RemoveChildren(c.steiner, c.l, c.c)
+	c.steiner, c.l, c.c = nil, nil, nil
 }
 
 // Pt implements Point.
@@ -117,7 +124,7 @@ func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 
 func (c *Channel) dragStart(e *js.Object) {
-	theDiagram.dragItem = c
+	c.View.Diagram.dragItem = c
 
 	// TODO: make it so that if the current configuration is invalid
 	// (e.g. all input pins / output pins) then use errorColour, and
@@ -126,7 +133,7 @@ func (c *Channel) dragStart(e *js.Object) {
 	c.steiner.Show()
 	c.setColour(activeColour)
 
-	x, y := theDiagram.cursorPos(e)
+	x, y := c.View.Diagram.cursorPos(e)
 	c.reposition(ephemeral{x, y})
 	c.l.
 		SetAttribute("x1", x).
@@ -142,7 +149,7 @@ func (c *Channel) dragStart(e *js.Object) {
 }
 
 func (c *Channel) drag(e *js.Object) {
-	x, y := theDiagram.cursorPos(e)
+	x, y := c.View.Diagram.cursorPos(e)
 	c.steiner.Show()
 	c.l.
 		SetAttribute("x1", x).
@@ -150,7 +157,7 @@ func (c *Channel) drag(e *js.Object) {
 	c.c.
 		SetAttribute("cx", x).
 		SetAttribute("cy", y)
-	d, q := theGraph.nearestPoint(x, y)
+	d, q := c.View.Graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
 	if p != nil && p == c.p && d < snapQuad {
@@ -171,28 +178,28 @@ func (c *Channel) drag(e *js.Object) {
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
-		theDiagram.clearError()
+		c.View.Diagram.clearError()
 		noSnap()
 		c.setColour(activeColour)
 		return
 	}
 
 	if p == nil || p.ch != nil {
-		theDiagram.setError("Can't connect different channels together (use another goroutine)", x, y)
+		c.View.Diagram.setError("Can't connect different channels together (use another goroutine)", x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	if err := p.connectTo(c); err != nil {
-		theDiagram.setError("Can't connect: "+err.Error(), x, y)
+		c.View.Diagram.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		c.setColour(errorColour)
 		return
 	}
 
 	// Let's snap!
-	theDiagram.clearError()
+	c.View.Diagram.clearError()
 	c.p = p
 	p.l.Show()
 	c.setColour(activeColour)
@@ -201,7 +208,7 @@ func (c *Channel) drag(e *js.Object) {
 }
 
 func (c *Channel) drop(e *js.Object) {
-	theDiagram.clearError()
+	c.View.Diagram.clearError()
 	c.reposition(nil)
 	c.commit()
 	c.setColour(normalColour)

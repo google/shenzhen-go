@@ -15,7 +15,6 @@
 package view
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/google/shenzhen-go/jsutil"
@@ -34,41 +33,11 @@ const (
 	nodeTextOffset        = 5
 )
 
-var (
-	nodeMetadataSubpanel = theDocument.ElementByID("node-metadata-panel")
-	nodeCurrentSubpanel  = nodeMetadataSubpanel
-
-	nodeNameInput         = theDocument.ElementByID("node-name")
-	nodeEnabledInput      = theDocument.ElementByID("node-enabled")
-	nodeMultiplicityInput = theDocument.ElementByID("node-multiplicity")
-	nodeWaitInput         = theDocument.ElementByID("node-wait")
-
-	nodePartEditors = make(map[string]*partEditor, len(model.PartTypes))
-)
-
-type partEditor struct {
-	Links  jsutil.Element
-	Panels map[string]jsutil.Element
-}
-
-func init() {
-	for n, t := range model.PartTypes {
-		theDocument.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(*js.Object) { theGraph.createNode(n) })
-		p := make(map[string]jsutil.Element, len(t.Panels))
-		for _, d := range t.Panels {
-			p[d.Name] = theDocument.ElementByID(fmt.Sprintf("node-%s-%s-panel", n, d.Name))
-		}
-		nodePartEditors[n] = &partEditor{
-			Links:  theDocument.ElementByID(fmt.Sprintf("node-%s-links", n)),
-			Panels: p,
-		}
-	}
-}
-
 // Node is the view's model of a node.
 type Node struct {
 	*model.Node
+
+	View *View
 
 	Inputs, Outputs, AllPins []*Pin
 
@@ -88,10 +57,10 @@ func max(a, b int) int {
 
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = newTextBox(n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
+	n.box = newTextBox(n.View, n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
 	n.box.rect.
 		AddEventListener("mousedown", n.mouseDown).
-		AddEventListener("mousedown", theDiagram.selecter(n))
+		AddEventListener("mousedown", n.View.Diagram.selecter(n))
 
 	// Pins
 	for _, p := range n.AllPins {
@@ -101,11 +70,11 @@ func (n *Node) makeElements() {
 }
 
 func (n *Node) mouseDown(e *js.Object) {
-	theDiagram.dragItem = n
+	n.View.Diagram.dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
-	theDiagram.AddChildren(n.box.group)
+	n.View.Diagram.AddChildren(n.box.group)
 }
 
 func (n *Node) drag(e *js.Object) {
@@ -119,12 +88,12 @@ func (n *Node) drop(e *js.Object) {
 	go func() { // cannot block in callback
 		x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 		req := &pb.SetPositionRequest{
-			Graph: graphPath,
+			Graph: n.View.Graph.FilePath,
 			Node:  n.Name,
 			X:     x,
 			Y:     y,
 		}
-		if _, err := theClient.SetPosition(context.Background(), req); err != nil {
+		if _, err := n.View.Client.SetPosition(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetPosition: %v", err)
 		}
 	}()
@@ -136,14 +105,14 @@ type focusable interface {
 
 func (n *Node) gainFocus(e *js.Object) {
 	n.box.rect.SetAttribute("style", nodeSelectedRectStyle)
-	nodeNameInput.Set("value", n.Node.Name)
-	nodeEnabledInput.Set("checked", n.Node.Enabled)
-	nodeMultiplicityInput.Set("value", n.Node.Multiplicity)
-	nodeWaitInput.Set("checked", n.Node.Wait)
-	showRHSPanel(nodePropertiesPanel)
-	nodePartEditors[n.Node.Part.TypeKey()].Links.Get("style").Set("display", "inline")
+	n.View.nodeNameInput.Set("value", n.Node.Name)
+	n.View.nodeEnabledInput.Set("checked", n.Node.Enabled)
+	n.View.nodeMultiplicityInput.Set("value", n.Node.Multiplicity)
+	n.View.nodeWaitInput.Set("checked", n.Node.Wait)
+	n.View.ShowRHSPanel(n.View.NodePropertiesPanel)
+	n.View.nodePartEditors[n.Node.Part.TypeKey()].Links.Get("style").Set("display", "inline")
 	if n.subpanel == nil {
-		n.subpanel = nodeMetadataSubpanel
+		n.subpanel = n.View.nodeMetadataSubpanel
 	}
 	n.showSubPanel(n.subpanel)
 	if f := n.Node.Part.(focusable); f != nil {
@@ -163,28 +132,28 @@ func (n *Node) save(e *js.Object) {
 			return
 		}
 		props := &pb.NodeConfig{
-			Name:         nodeNameInput.Get("value").String(),
-			Enabled:      nodeEnabledInput.Get("checked").Bool(),
-			Multiplicity: uint32(nodeMultiplicityInput.Get("value").Int()),
-			Wait:         nodeWaitInput.Get("checked").Bool(),
+			Name:         n.View.nodeNameInput.Get("value").String(),
+			Enabled:      n.View.nodeEnabledInput.Get("checked").Bool(),
+			Multiplicity: uint32(n.View.nodeMultiplicityInput.Get("value").Int()),
+			Wait:         n.View.nodeWaitInput.Get("checked").Bool(),
 			PartCfg:      pj.Part,
 			PartType:     pj.Type,
 			X:            n.X,
 			Y:            n.Y,
 		}
 		req := &pb.SetNodePropertiesRequest{
-			Graph: graphPath,
+			Graph: n.View.Graph.FilePath,
 			Node:  n.Node.Name,
 			Props: props,
 		}
-		if _, err := theClient.SetNodeProperties(context.Background(), req); err != nil {
+		if _, err := n.View.Client.SetNodeProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't update node properties: %v", err)
 			return
 		}
 		// Update local copy, since these were read at save time.
 		if n.Name != props.Name {
-			delete(theGraph.Nodes, n.Name)
-			theGraph.Nodes[props.Name] = n
+			delete(n.View.Graph.Nodes, n.Name)
+			n.View.Graph.Nodes[props.Name] = n
 			n.Name = props.Name // TODO: simplify view-model
 			n.Node.Name = props.Name
 
@@ -208,15 +177,15 @@ func (n *Node) reallyDelete() {
 		p.l.Hide()
 	}
 	req := &pb.DeleteNodeRequest{
-		Graph: graphPath,
+		Graph: n.View.Graph.FilePath,
 		Node:  n.Node.Name,
 	}
-	if _, err := theClient.DeleteNode(context.Background(), req); err != nil {
+	if _, err := n.View.Client.DeleteNode(context.Background(), req); err != nil {
 		log.Printf("Couldn't DeleteNode: %v", err)
 		return
 	}
-	delete(theGraph.Nodes, n.Name)
-	theDiagram.RemoveChildren(n.box.group)
+	delete(n.View.Graph.Nodes, n.Name)
+	n.View.Diagram.RemoveChildren(n.box.group)
 	for _, p := range n.AllPins {
 		p.unmakeElements()
 	}
@@ -238,10 +207,10 @@ func (n *Node) updatePinPositions() {
 
 func (n *Node) showSubPanel(p jsutil.Element) {
 	n.subpanel = p
-	if nodeCurrentSubpanel == p {
+	if n.View.nodeCurrentSubpanel == p {
 		return
 	}
-	nodeCurrentSubpanel.Get("style").Set("display", "none")
-	nodeCurrentSubpanel = p
-	nodeCurrentSubpanel.Get("style").Set("display", nil)
+	n.View.nodeCurrentSubpanel.Get("style").Set("display", "none")
+	n.View.nodeCurrentSubpanel = p
+	n.View.nodeCurrentSubpanel.Get("style").Set("display", nil)
 }

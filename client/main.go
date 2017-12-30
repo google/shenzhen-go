@@ -36,6 +36,8 @@ func main() {
 	doc := jsutil.CurrentDocument()
 	client := pb.NewShenzhenGoClient(apiURL)
 	initial := js.Global.Get("GraphJSON").String()
+	if err := view.Setup(doc, client, initial); err != nil {
+		log.Fatalf("Couldn't load graph: %v", err)
+	}
 
-	v := view.Setup(doc, client, initial)
 }

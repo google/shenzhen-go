@@ -28,17 +28,28 @@ import (
 	"golang.org/x/net/context"
 )
 
-var (
-	graphNameElement        = theDocument.ElementByID("graph-prop-name")
-	graphPackagePathElement = theDocument.ElementByID("graph-prop-package-path")
-	graphIsCommandElement   = theDocument.ElementByID("graph-prop-is-command")
-)
-
 // Graph is the view-model of a graph.
 type Graph struct {
+	View *View
+
 	*model.Graph
 	Nodes    map[string]*Node
 	Channels map[string]*Channel
+}
+
+func loadGraph(v *View, graphJSON string) (*Graph, error) {
+	g, err := model.LoadJSON(strings.NewReader(graphJSON), "", "")
+	if err != nil {
+		return nil, fmt.Errorf("decoding graph JSON: %v", err)
+	}
+
+	graph := &Graph{View: v, Graph: g}
+	graph.refresh()
+	return graph, nil
+}
+
+func (g *Graph) setupGraph() {
+
 }
 
 func (g *Graph) createNode(partType string) {
@@ -72,8 +83,8 @@ func (g *Graph) createNode(partType string) {
 			},
 		}
 
-		_, err = theClient.CreateNode(context.Background(), &pb.CreateNodeRequest{
-			Graph: graphPath,
+		_, err = g.View.Client.CreateNode(context.Background(), &pb.CreateNodeRequest{
+			Graph: g.FilePath,
 			Props: &pb.NodeConfig{
 				Name:         n.Name,
 				Enabled:      n.Enabled,
@@ -115,7 +126,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 
 func (g *Graph) save(*js.Object) {
 	go func() { // cannot block in callback
-		if _, err := theClient.Save(context.Background(), &pb.SaveRequest{Graph: graphPath}); err != nil {
+		if _, err := g.View.Client.Save(context.Background(), &pb.SaveRequest{Graph: g.FilePath}); err != nil {
 			log.Printf("Couldn't Save: %v", err)
 		}
 	}()
@@ -124,14 +135,18 @@ func (g *Graph) save(*js.Object) {
 func (g *Graph) saveProperties(*js.Object) {
 	go func() { // cannot block in callback
 		req := &pb.SetGraphPropertiesRequest{
-			Graph:       graphPath,
-			Name:        graphNameElement.Get("value").String(),
-			PackagePath: graphPackagePathElement.Get("value").String(),
-			IsCommand:   graphIsCommandElement.Get("checked").Bool(),
+			Graph:       g.FilePath,
+			Name:        g.View.graphNameElement.Get("value").String(),
+			PackagePath: g.View.graphPackagePathElement.Get("value").String(),
+			IsCommand:   g.View.graphIsCommandElement.Get("checked").Bool(),
 		}
-		if _, err := theClient.SetGraphProperties(context.Background(), req); err != nil {
+		if _, err := g.View.Client.SetGraphProperties(context.Background(), req); err != nil {
 			log.Printf("Couldn't SetGraphProperties: %v", err)
 		}
+		// And commit locally
+		g.Name = req.Name
+		g.PackagePath = req.PackagePath
+		g.IsCommand = req.IsCommand
 	}()
 }
 
@@ -227,15 +242,4 @@ func (g *Graph) refresh() {
 			p.l.Show()
 		}
 	}
-}
-
-func loadGraph(gj string) (*Graph, error) {
-	g, err := model.LoadJSON(strings.NewReader(gj), "", "")
-	if err != nil {
-		return nil, fmt.Errorf("decoding GraphJSON: %v", err)
-	}
-
-	graph := &Graph{Graph: g}
-	graph.refresh()
-	return graph, nil
 }

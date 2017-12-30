@@ -26,20 +26,22 @@ const (
 )
 
 type textBox struct {
+	view                        *View
 	group, rect, text, textNode jsutil.Element
 	width, minWidth             float64
 }
 
-func newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
+func newTextBox(view *View, text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		group:    theDocument.MakeSVGElement("g"),
-		rect:     theDocument.MakeSVGElement("rect"),
-		text:     theDocument.MakeSVGElement("text"),
-		textNode: theDocument.MakeTextNode(text),
+		view:     view,
+		group:    view.Document.MakeSVGElement("g"),
+		rect:     view.Document.MakeSVGElement("rect"),
+		text:     view.Document.MakeSVGElement("text"),
+		textNode: view.Document.MakeTextNode(text),
 		minWidth: minWidth,
 	}
 
-	theDiagram.AddChildren(
+	view.Diagram.AddChildren(
 		b.group.
 			SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y)).
 			AddChildren(

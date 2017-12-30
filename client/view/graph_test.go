@@ -22,17 +22,20 @@ import (
 )
 
 func TestGraphRefresh(t *testing.T) {
-	theDocument = jsutil.MakeFakeDocument()
-	theDiagram = &Diagram{Element: jsutil.MakeFakeElement("svg", jsutil.SVGNamespaceURI)}
-	g := &Graph{
-		Graph: &model.Graph{},
+	doc := jsutil.MakeFakeDocument()
+	v := &View{
+		Document: doc,
+		Diagram:  &Diagram{Element: doc.MakeSVGElement("svg")},
+		Graph: &Graph{
+			Graph: &model.Graph{},
+		},
 	}
-	g.refresh()
+	v.Graph.refresh()
 
-	if g.Channels == nil {
+	if v.Graph.Channels == nil {
 		t.Error("g.Channels = nil, want non-nil map")
 	}
-	if g.Nodes == nil {
+	if v.Graph.Nodes == nil {
 		t.Error("g.Nodes = nil, want non-nil map")
 	}
 	// TODO: inspect more state

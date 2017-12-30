@@ -18,7 +18,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/google/shenzhen-go/client/view"
@@ -39,5 +38,4 @@ func main() {
 	if err := view.Setup(doc, client, initial); err != nil {
 		log.Fatalf("Couldn't load graph: %v", err)
 	}
-
 }

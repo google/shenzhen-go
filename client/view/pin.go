@@ -21,7 +21,6 @@ import (
 
 	"github.com/google/shenzhen-go/jsutil"
 	pb "github.com/google/shenzhen-go/proto/js"
-	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/net/context"
 )
 
@@ -163,7 +162,7 @@ func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
 func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
 
-func (p *Pin) dragStart(e *js.Object) {
+func (p *Pin) dragStart(e jsutil.Object) {
 	// If the pin is attached to something, detach and drag from that instead.
 	if ch := p.ch; ch != nil {
 		p.disconnect()
@@ -194,7 +193,7 @@ func (p *Pin) dragStart(e *js.Object) {
 		Show()
 }
 
-func (p *Pin) drag(e *js.Object) {
+func (p *Pin) drag(e jsutil.Object) {
 	x, y := p.node.View.Diagram.cursorPos(e)
 	defer func() {
 		p.l.
@@ -246,7 +245,7 @@ func (p *Pin) drag(e *js.Object) {
 	p.c.Hide()
 }
 
-func (p *Pin) drop(e *js.Object) {
+func (p *Pin) drop(e jsutil.Object) {
 	p.node.View.Diagram.clearError()
 	p.circ.SetAttribute("fill", normalColour)
 	p.c.Hide()
@@ -258,7 +257,7 @@ func (p *Pin) drop(e *js.Object) {
 	p.ch.commit()
 }
 
-func (p *Pin) mouseEnter(*js.Object) {
+func (p *Pin) mouseEnter(jsutil.Object) {
 	x, y := p.x-p.node.X, p.y-p.node.Y
 	if p.input {
 		y -= 38
@@ -269,7 +268,7 @@ func (p *Pin) mouseEnter(*js.Object) {
 	p.nametag.show()
 }
 
-func (p *Pin) mouseLeave(*js.Object) {
+func (p *Pin) mouseLeave(jsutil.Object) {
 	p.nametag.hide()
 }
 

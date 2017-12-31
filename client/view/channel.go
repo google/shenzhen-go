@@ -23,7 +23,6 @@ import (
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	pb "github.com/google/shenzhen-go/proto/js"
-	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/net/context"
 )
 
@@ -123,7 +122,7 @@ func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 
 func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
 
-func (c *Channel) dragStart(e *js.Object) {
+func (c *Channel) dragStart(e jsutil.Object) {
 	c.View.Diagram.dragItem = c
 
 	// TODO: make it so that if the current configuration is invalid
@@ -148,7 +147,7 @@ func (c *Channel) dragStart(e *js.Object) {
 		Show()
 }
 
-func (c *Channel) drag(e *js.Object) {
+func (c *Channel) drag(e jsutil.Object) {
 	x, y := c.View.Diagram.cursorPos(e)
 	c.steiner.Show()
 	c.l.
@@ -207,7 +206,7 @@ func (c *Channel) drag(e *js.Object) {
 	c.c.Hide()
 }
 
-func (c *Channel) drop(e *js.Object) {
+func (c *Channel) drop(e jsutil.Object) {
 	c.View.Diagram.clearError()
 	c.reposition(nil)
 	c.commit()
@@ -223,19 +222,19 @@ func (c *Channel) drop(e *js.Object) {
 	}
 }
 
-func (c *Channel) gainFocus(e *js.Object) {
+func (c *Channel) gainFocus(e jsutil.Object) {
 	log.Print("TODO(josh): implement Channel.gainFocus")
 }
 
-func (c *Channel) loseFocus(e *js.Object) {
+func (c *Channel) loseFocus(e jsutil.Object) {
 	log.Print("TODO(josh): implement Channel.loseFocus")
 }
 
-func (c *Channel) save(e *js.Object) {
+func (c *Channel) save(e jsutil.Object) {
 	log.Print("TODO(josh): implement Channel.save")
 }
 
-func (c *Channel) delete(e *js.Object) {
+func (c *Channel) delete(e jsutil.Object) {
 	log.Print("TODO(josh): implement Channel.delete")
 }
 

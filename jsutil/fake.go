@@ -14,38 +14,119 @@
 
 package jsutil
 
-import "github.com/gopherjs/gopherjs/js"
+import (
+	"math/rand"
+	"reflect"
+)
 
-// MethodFunc is what a typical JS method looks like.
-type MethodFunc func(...interface{}) *js.Object
+// MethodFunc is what a typical method looks like... sort of.
+type MethodFunc func(...interface{}) interface{}
 
-// FakeObject implements a fake *js.Object.
+// FakeObject implements a fake Object that sort of works like *js.Object.
 type FakeObject struct {
-	Properties map[string]*js.Object
+	Value      interface{}
+	Properties map[string]interface{}
 	Methods    map[string]MethodFunc
 }
 
 // MakeFakeObject makes a FakeObject.
-func MakeFakeObject() *FakeObject {
+func MakeFakeObject(value interface{}) *FakeObject {
 	return &FakeObject{
-		Properties: make(map[string]*js.Object),
+		Value:      value,
+		Properties: make(map[string]interface{}),
 		Methods:    make(map[string]MethodFunc),
 	}
 }
 
-// Get gets a property value.
-func (o *FakeObject) Get(key string) *js.Object {
-	return o.Properties[key]
+// Get gets a "property value". In the case of fakes, this is a pointer that gets used as
+// a key in ObjectsToValues.
+func (o *FakeObject) Get(key string) Object {
+	return MakeFakeObject(o.Properties[key])
 }
 
 // Set sets a property value.
 func (o *FakeObject) Set(key string, value interface{}) {
-	o.Properties[key] = js.MakeWrapper(value)
+	o.Properties[key] = value
 }
 
-// Call calls a method.
-func (o *FakeObject) Call(method string, args ...interface{}) *js.Object {
-	return o.Methods[method](args...)
+// Delete deletes the property with the given key.
+func (o *FakeObject) Delete(key string) {
+	delete(o.Properties, key)
+}
+
+// Length returns the length of o.Value.
+func (o *FakeObject) Length() int {
+	return reflect.ValueOf(o.Value).Len()
+}
+
+// Index returns the element at index i of o.Value.
+func (o *FakeObject) Index(i int) Object {
+	return MakeFakeObject(reflect.ValueOf(o.Value).Index(i).Interface())
+}
+
+// SetIndex sets the value at index i of o.Value to value.
+func (o *FakeObject) SetIndex(i int, value interface{}) {
+	reflect.ValueOf(o.Value).Index(i).Set(reflect.ValueOf(value))
+}
+
+// Call calls a method. In the case of fakes, this returns a pointer that gets used as
+// a key in ObjectsToValues.
+func (o *FakeObject) Call(method string, args ...interface{}) Object {
+	return MakeFakeObject(o.Methods[method](args...))
+}
+
+// Invoke calls the function in o.Value.
+func (o *FakeObject) Invoke(args ...interface{}) Object {
+	a2 := make([]reflect.Value, len(args))
+	for i, a := range args {
+		a2[i] = reflect.ValueOf(a)
+	}
+	return MakeFakeObject(reflect.ValueOf(o.Value).CallSlice(a2))
+}
+
+// New calls the function in o.Value.
+func (o *FakeObject) New(args ...interface{}) Object {
+	return o.Invoke(args)
+}
+
+// Bool returns o.Value asserted as a bool.
+func (o *FakeObject) Bool() bool {
+	return o.Value.(bool)
+}
+
+// String returns o.Value asserted as a string.
+func (o *FakeObject) String() string {
+	return o.Value.(string)
+}
+
+// Int returns o.Value asserted as an int.
+func (o *FakeObject) Int() int {
+	return o.Value.(int)
+}
+
+// Int64 returns o.Value asserted as an int64.
+func (o *FakeObject) Int64() int64 {
+	return o.Value.(int64)
+}
+
+// Uint64 returns o.Value asserted as a uint64.
+func (o *FakeObject) Uint64() uint64 {
+	return o.Value.(uint64)
+}
+
+// Float returns o.Value asserted as a float64.
+func (o *FakeObject) Float() float64 {
+	return o.Value.(float64)
+}
+
+// Interface returns o.Value.
+func (o *FakeObject) Interface() interface{} {
+	return o.Value
+}
+
+// Unsafe returns o.Value asserted as a uintptr.
+func (o *FakeObject) Unsafe() uintptr {
+	return o.Value.(uintptr)
 }
 
 // FakeElement implements a virtual DOM element.
@@ -55,17 +136,17 @@ type FakeElement struct {
 	NamespaceURI   string
 	Attributes     map[string]interface{}
 	Children       []*FakeElement
-	EventListeners map[string][]func(*js.Object)
+	EventListeners map[string][]func(Object)
 }
 
 // MakeFakeElement makes a fake element.
 func MakeFakeElement(class, nsuri string) *FakeElement {
 	return &FakeElement{
-		FakeObject:     *MakeFakeObject(),
+		FakeObject:     *MakeFakeObject(nil),
 		Class:          class,
 		NamespaceURI:   nsuri,
 		Attributes:     make(map[string]interface{}),
-		EventListeners: make(map[string][]func(*js.Object)),
+		EventListeners: make(map[string][]func(Object)),
 	}
 }
 
@@ -117,7 +198,7 @@ outer:
 }
 
 // AddEventListener adds an event listener.
-func (e *FakeElement) AddEventListener(event string, handler func(*js.Object)) Element {
+func (e *FakeElement) AddEventListener(event string, handler func(Object)) Element {
 	e.EventListeners[event] = append(e.EventListeners[event], handler)
 	return e
 }
@@ -166,5 +247,9 @@ func (d *FakeDocument) MakeTextNode(text string) Element {
 
 // MakeSVGElement makes an SVG element
 func (d *FakeDocument) MakeSVGElement(class string) Element {
-	return MakeFakeElement(class, SVGNamespaceURI)
+	e := MakeFakeElement(class, SVGNamespaceURI)
+	e.Methods["getComputedTextLength"] = func(...interface{}) interface{} {
+		return rand.Float64() * 200
+	}
+	return e
 }

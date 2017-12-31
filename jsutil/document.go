@@ -41,17 +41,17 @@ func CurrentDocument() Document {
 	if d == nil {
 		return nil
 	}
-	return &document{Element: Wrap(d)}
+	return document{Element: WrapElement(WrapObject(d))}
 }
 
-func (d *document) ElementByID(id string) Element {
-	return Wrap(d.Call("getElementById", id))
+func (d document) ElementByID(id string) Element {
+	return WrapElement(d.Call("getElementById", id))
 }
 
-func (d *document) MakeTextNode(text string) Element {
-	return Wrap(d.Call("createTextNode", text))
+func (d document) MakeTextNode(text string) Element {
+	return WrapElement(d.Call("createTextNode", text))
 }
 
-func (d *document) MakeSVGElement(n string) Element {
-	return Wrap(d.Call("createElementNS", SVGNamespaceURI, n))
+func (d document) MakeSVGElement(n string) Element {
+	return WrapElement(d.Call("createElementNS", SVGNamespaceURI, n))
 }

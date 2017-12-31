@@ -19,7 +19,6 @@ import (
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	pb "github.com/google/shenzhen-go/proto/js"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 const (
@@ -68,7 +67,7 @@ type View struct {
 }
 
 // Setup connects to elements in the DOM.
-func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, initialJSON string) error {
+func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSON string) error {
 	v := &View{
 		Client:   client,
 		Document: doc,
@@ -97,10 +96,11 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, initialJSON string) 
 	v.Diagram.errLabel = newTextBox(v, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
 	v.Diagram.errLabel.hide()
 
-	g, err := loadGraph(v, initialJSON)
+	g, err := loadGraph(v, filepath, initialJSON)
 	if err != nil {
 		return err
 	}
+	v.Graph = g
 
 	v.Diagram.
 		AddEventListener("mousedown", v.Diagram.mouseDown).
@@ -118,13 +118,13 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, initialJSON string) 
 		AddEventListener("click", v.Diagram.deleteSelected)
 
 	doc.ElementByID("node-metadata-link").
-		AddEventListener("click", func(*js.Object) {
+		AddEventListener("click", func(jsutil.Object) {
 			v.Diagram.selectedItem.(*Node).showSubPanel(v.nodeMetadataSubpanel)
 		})
 
 	for n, t := range model.PartTypes {
 		doc.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(*js.Object) { v.Graph.createNode(n) })
+			AddEventListener("click", func(jsutil.Object) { v.Graph.createNode(n) })
 		p := make(map[string]jsutil.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
@@ -139,7 +139,7 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, initialJSON string) 
 			p := p
 			doc.ElementByID("node-"+n+"-"+m+"-link").
 				AddEventListener("click",
-					func(*js.Object) {
+					func(jsutil.Object) {
 						v.Diagram.selectedItem.(*Node).showSubPanel(p)
 					})
 		}

@@ -20,7 +20,6 @@ import (
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	pb "github.com/google/shenzhen-go/proto/js"
-	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/net/context"
 )
 
@@ -69,7 +68,7 @@ func (n *Node) makeElements() {
 	n.updatePinPositions()
 }
 
-func (n *Node) mouseDown(e *js.Object) {
+func (n *Node) mouseDown(e jsutil.Object) {
 	n.View.Diagram.dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
@@ -77,14 +76,14 @@ func (n *Node) mouseDown(e *js.Object) {
 	n.View.Diagram.AddChildren(n.box.group)
 }
 
-func (n *Node) drag(e *js.Object) {
+func (n *Node) drag(e jsutil.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 	n.box.moveTo(x, y)
 	n.X, n.Y = x, y
 	n.updatePinPositions()
 }
 
-func (n *Node) drop(e *js.Object) {
+func (n *Node) drop(e jsutil.Object) {
 	go func() { // cannot block in callback
 		x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 		req := &pb.SetPositionRequest{
@@ -100,10 +99,10 @@ func (n *Node) drop(e *js.Object) {
 }
 
 type focusable interface {
-	GainFocus(*js.Object)
+	GainFocus(jsutil.Object)
 }
 
-func (n *Node) gainFocus(e *js.Object) {
+func (n *Node) gainFocus(e jsutil.Object) {
 	n.box.rect.SetAttribute("style", nodeSelectedRectStyle)
 	n.View.nodeNameInput.Set("value", n.Node.Name)
 	n.View.nodeEnabledInput.Set("checked", n.Node.Enabled)
@@ -120,11 +119,11 @@ func (n *Node) gainFocus(e *js.Object) {
 	}
 }
 
-func (n *Node) loseFocus(e *js.Object) {
+func (n *Node) loseFocus(e jsutil.Object) {
 	n.box.rect.SetAttribute("style", nodeNormalRectStyle)
 }
 
-func (n *Node) save(e *js.Object) {
+func (n *Node) save(e jsutil.Object) {
 	go func() {
 		pj, err := model.MarshalPart(n.Part)
 		if err != nil {
@@ -166,7 +165,7 @@ func (n *Node) save(e *js.Object) {
 	}()
 }
 
-func (n *Node) delete(*js.Object) {
+func (n *Node) delete(jsutil.Object) {
 	go n.reallyDelete() // don't block handler
 }
 

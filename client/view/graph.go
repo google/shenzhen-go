@@ -21,10 +21,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	"github.com/google/shenzhen-go/model/pin"
 	pb "github.com/google/shenzhen-go/proto/js"
-	"github.com/gopherjs/gopherjs/js"
 	"golang.org/x/net/context"
 )
 
@@ -37,19 +37,16 @@ type Graph struct {
 	Channels map[string]*Channel
 }
 
-func loadGraph(v *View, graphJSON string) (*Graph, error) {
+func loadGraph(v *View, filepath, graphJSON string) (*Graph, error) {
 	g, err := model.LoadJSON(strings.NewReader(graphJSON), "", "")
 	if err != nil {
 		return nil, fmt.Errorf("decoding graph JSON: %v", err)
 	}
+	g.FilePath = filepath
 
 	graph := &Graph{View: v, Graph: g}
 	graph.refresh()
 	return graph, nil
-}
-
-func (g *Graph) setupGraph() {
-
 }
 
 func (g *Graph) createNode(partType string) {
@@ -125,7 +122,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 	return quad, pt
 }
 
-func (g *Graph) save(*js.Object) {
+func (g *Graph) save(jsutil.Object) {
 	go func() { // cannot block in callback
 		if _, err := g.View.Client.Save(context.Background(), &pb.SaveRequest{Graph: g.FilePath}); err != nil {
 			log.Printf("Couldn't Save: %v", err)
@@ -133,7 +130,7 @@ func (g *Graph) save(*js.Object) {
 	}()
 }
 
-func (g *Graph) saveProperties(*js.Object) {
+func (g *Graph) saveProperties(jsutil.Object) {
 	go func() { // cannot block in callback
 		req := &pb.SetGraphPropertiesRequest{
 			Graph:       g.FilePath,

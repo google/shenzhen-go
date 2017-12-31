@@ -19,17 +19,37 @@ import (
 
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
+	"github.com/google/shenzhen-go/model/parts"
+	"github.com/google/shenzhen-go/model/pin"
 )
 
 func TestGraphRefresh(t *testing.T) {
 	doc := jsutil.MakeFakeDocument()
 	v := &View{
 		Document: doc,
-		Diagram:  &Diagram{Element: doc.MakeSVGElement("svg")},
+		Diagram: &Diagram{
+			Element: doc.MakeSVGElement("svg"),
+		},
 		Graph: &Graph{
-			Graph: &model.Graph{},
+			Graph: &model.Graph{
+				Nodes: map[string]*model.Node{
+					"Node 1": {
+						Name:         "Node 1",
+						Multiplicity: 1,
+						Part: parts.NewCode(nil, "", "", "", pin.Map{
+							"output": {
+								Name:      "output",
+								Direction: pin.Output,
+								Type:      "int",
+							},
+						}),
+					},
+				},
+			},
 		},
 	}
+	v.Diagram.View = v
+	v.Graph.View = v
 	v.Graph.refresh()
 
 	if v.Graph.Channels == nil {

@@ -16,7 +16,6 @@ package view
 
 import (
 	"github.com/google/shenzhen-go/jsutil"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 // Diagram wraps the top SVG element and holds references to
@@ -30,14 +29,14 @@ type Diagram struct {
 	errLabel     *textBox
 }
 
-func (d *Diagram) cursorPos(e *js.Object) (x, y float64) {
+func (d *Diagram) cursorPos(e jsutil.Object) (x, y float64) {
 	bcr := d.Call("getBoundingClientRect")
 	x = e.Get("clientX").Float() - bcr.Get("left").Float()
 	y = e.Get("clientY").Float() - bcr.Get("top").Float()
 	return
 }
 
-func (d *Diagram) mouseDown(e *js.Object) {
+func (d *Diagram) mouseDown(e jsutil.Object) {
 	if d.selectedItem == nil {
 		return
 	}
@@ -46,7 +45,7 @@ func (d *Diagram) mouseDown(e *js.Object) {
 	e.Call("stopPropagation")
 }
 
-func (d *Diagram) mouseMove(e *js.Object) {
+func (d *Diagram) mouseMove(e jsutil.Object) {
 	if d.dragItem == nil {
 		return
 	}
@@ -54,7 +53,7 @@ func (d *Diagram) mouseMove(e *js.Object) {
 	e.Call("stopPropagation")
 }
 
-func (d *Diagram) mouseUp(e *js.Object) {
+func (d *Diagram) mouseUp(e jsutil.Object) {
 	if d.dragItem == nil {
 		return
 	}
@@ -65,8 +64,8 @@ func (d *Diagram) mouseUp(e *js.Object) {
 }
 
 // selecter makes an onclick handler for a selectable.
-func (d *Diagram) selecter(s selectable) func(*js.Object) {
-	return func(e *js.Object) {
+func (d *Diagram) selecter(s selectable) func(jsutil.Object) {
+	return func(e jsutil.Object) {
 		if d.selectedItem != nil {
 			d.selectedItem.loseFocus(e)
 		}
@@ -76,14 +75,14 @@ func (d *Diagram) selecter(s selectable) func(*js.Object) {
 	}
 }
 
-func (d *Diagram) saveSelected(e *js.Object) {
+func (d *Diagram) saveSelected(e jsutil.Object) {
 	if d.selectedItem == nil {
 		return
 	}
 	d.selectedItem.save(e)
 }
 
-func (d *Diagram) deleteSelected(e *js.Object) {
+func (d *Diagram) deleteSelected(e jsutil.Object) {
 	if d.selectedItem == nil {
 		return
 	}
@@ -115,13 +114,13 @@ type ephemeral struct{ x, y float64 }
 func (e ephemeral) Pt() (x, y float64) { return e.x, e.y }
 
 type draggable interface {
-	drag(*js.Object)
-	drop(*js.Object)
+	drag(jsutil.Object)
+	drop(jsutil.Object)
 }
 
 type selectable interface {
-	gainFocus(*js.Object)
-	loseFocus(*js.Object)
-	delete(*js.Object)
-	save(*js.Object)
+	gainFocus(jsutil.Object)
+	loseFocus(jsutil.Object)
+	delete(jsutil.Object)
+	save(jsutil.Object)
 }

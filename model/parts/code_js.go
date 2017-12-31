@@ -22,6 +22,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model/pin"
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -33,9 +34,9 @@ const (
 )
 
 var (
-	ace = js.Global.Get("ace")
+	ace = jsutil.WrapObject(js.Global.Get("ace"))
 
-	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *js.Object
+	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession jsutil.Object
 
 	focused *Code
 )
@@ -49,7 +50,7 @@ func init() {
 	codeTailSession = aceEdit("code-tail", aceGoMode, aceChromeTheme, (*Code).handleTailChange)
 }
 
-func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) *js.Object {
+func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) jsutil.Object {
 	r := ace.Call("edit", id)
 	if r == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
@@ -65,7 +66,7 @@ func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) *js.Object
 	return s
 }
 
-func (c *Code) handlePinsChange(e *js.Object) {
+func (c *Code) handlePinsChange(*js.Object) {
 	var p pin.Map
 	if err := json.Unmarshal([]byte(codePinsSession.Call("getValue").String()), &p); err != nil {
 		// Ignore
@@ -75,15 +76,15 @@ func (c *Code) handlePinsChange(e *js.Object) {
 	c.pins = p
 }
 
-func (c *Code) handleImportsChange(e *js.Object) {
+func (c *Code) handleImportsChange(*js.Object) {
 	c.imports = strings.Split(codeImportsSession.Call("getValue").String(), "\n")
 }
 
-func (c *Code) handleHeadChange(e *js.Object) { c.head = codeHeadSession.Call("getValue").String() }
-func (c *Code) handleBodyChange(e *js.Object) { c.body = codeBodySession.Call("getValue").String() }
-func (c *Code) handleTailChange(e *js.Object) { c.tail = codeTailSession.Call("getValue").String() }
+func (c *Code) handleHeadChange(*js.Object) { c.head = codeHeadSession.Call("getValue").String() }
+func (c *Code) handleBodyChange(*js.Object) { c.body = codeBodySession.Call("getValue").String() }
+func (c *Code) handleTailChange(*js.Object) { c.tail = codeTailSession.Call("getValue").String() }
 
-func (c *Code) GainFocus(*js.Object) {
+func (c *Code) GainFocus(jsutil.Object) {
 	focused = c
 	p, err := json.MarshalIndent(c.pins, "", "\t")
 	if err != nil {

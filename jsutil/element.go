@@ -16,13 +16,6 @@ package jsutil
 
 import "github.com/gopherjs/gopherjs/js"
 
-// Object is some stuff JS objects can do.
-type Object interface {
-	Get(string) *js.Object
-	Set(string, interface{})
-	Call(string, ...interface{}) *js.Object
-}
-
 // Element represents a DOM element.
 type Element interface {
 	Object
@@ -43,7 +36,7 @@ type Element interface {
 	RemoveChildren(...Element) Element
 
 	// AddEventListener calls the JS method addEventListener, returning the element for chaining.
-	AddEventListener(string, func(*js.Object)) Element
+	AddEventListener(string, func(Object)) Element
 
 	// Show removes the display attribute, returning the element for chaining.
 	Show() Element
@@ -53,56 +46,56 @@ type Element interface {
 }
 
 type element struct {
-	*js.Object
+	Object
 }
 
-// Wrap turns a *js.Object into an Element, or returns nil if o is nil.
-func Wrap(o *js.Object) Element {
+// WrapElement turns a Object into an Element, or returns nil if o is nil.
+func WrapElement(o Object) Element {
 	if o == nil {
 		return nil
 	}
-	return &element{o}
+	return element{Object: o}
 }
 
-func (e *element) ID() string {
+func (e element) ID() string {
 	return e.Get("id").String()
 }
 
-func (e *element) SetAttribute(attr string, value interface{}) Element {
+func (e element) SetAttribute(attr string, value interface{}) Element {
 	e.Call("setAttribute", attr, value)
 	return e
 }
 
-func (e *element) RemoveAttribute(attr string) Element {
+func (e element) RemoveAttribute(attr string) Element {
 	e.Call("removeAttribute", attr)
 	return e
 }
 
-func (e *element) AddChildren(children ...Element) Element {
+func (e element) AddChildren(children ...Element) Element {
 	for _, c := range children {
 		e.Call("appendChild", c)
 	}
 	return e
 }
 
-func (e *element) RemoveChildren(children ...Element) Element {
+func (e element) RemoveChildren(children ...Element) Element {
 	for _, c := range children {
 		e.Call("removeChild", c)
 	}
 	return e
 }
 
-func (e *element) AddEventListener(event string, handler func(*js.Object)) Element {
-	e.Call("addEventListener", event, handler)
+func (e element) AddEventListener(event string, handler func(Object)) Element {
+	e.Call("addEventListener", event, func(o *js.Object) { handler(WrapObject(o)) })
 	return e
 }
 
-func (e *element) Show() Element {
+func (e element) Show() Element {
 	e.Call("removeAttribute", "display")
 	return e
 }
 
-func (e *element) Hide() Element {
+func (e element) Hide() Element {
 	e.Call("setAttribute", "display", "none")
 	return e
 }

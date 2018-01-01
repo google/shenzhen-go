@@ -23,33 +23,41 @@ import (
 	"github.com/google/shenzhen-go/model/pin"
 )
 
-func TestGraphRefresh(t *testing.T) {
+func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := jsutil.MakeFakeDocument()
-	v := &View{
-		Document: doc,
-		Diagram: &Diagram{
-			Element: doc.MakeSVGElement("svg"),
-		},
-		Graph: &Graph{
-			Graph: &model.Graph{
-				Nodes: map[string]*model.Node{
-					"Node 1": {
-						Name:         "Node 1",
-						Multiplicity: 1,
-						Part: parts.NewCode(nil, "", "", "", pin.Map{
-							"output": {
-								Name:      "output",
-								Direction: pin.Output,
-								Type:      "int",
-							},
-						}),
-					},
+	v := &View{Document: doc}
+	v.Diagram = &Diagram{
+		View:    v,
+		Element: doc.MakeSVGElement("svg"),
+	}
+	v.Graph = &Graph{
+		View: v,
+		Graph: &model.Graph{
+			Nodes: map[string]*model.Node{
+				"Node 1": {
+					Name:         "Node 1",
+					Multiplicity: 1,
+					Part: parts.NewCode(nil, "", "", "", pin.Map{
+						"input": {
+							Name:      "input",
+							Direction: pin.Input,
+							Type:      "int",
+						},
+						"output": {
+							Name:      "output",
+							Direction: pin.Output,
+							Type:      "int",
+						},
+						"output 2": {
+							Name:      "output 2",
+							Direction: pin.Output,
+							Type:      "int",
+						},
+					}),
 				},
 			},
 		},
 	}
-	v.Diagram.View = v
-	v.Graph.View = v
 	v.Graph.refresh()
 
 	if v.Graph.Channels == nil {
@@ -58,5 +66,17 @@ func TestGraphRefresh(t *testing.T) {
 	if v.Graph.Nodes == nil {
 		t.Error("g.Nodes = nil, want non-nil map")
 	}
-	// TODO: inspect more state
+	if got, want := len(v.Graph.Nodes["Node 1"].Inputs), 1; got != want {
+		t.Errorf("len(Nodes[Node 1].Inputs) = %d, want %d", got, want)
+	}
+	if got, want := len(v.Graph.Nodes["Node 1"].Outputs), 2; got != want {
+		t.Errorf("len(Nodes[Node 1].Outputs) = %d, want %d", got, want)
+	}
+	if got, want := len(v.Graph.Nodes["Node 1"].AllPins), 3; got != want {
+		t.Errorf("len(Nodes[Node 1].AllPins) = %d, want %d", got, want)
+	}
+
+	if got, want := v.Graph.Nodes["Node 1"].box.textNode.Get("wholeText").String(), "Node 1"; got != want {
+		t.Errorf("Node 1 text = %q, want %q", got, want)
+	}
 }

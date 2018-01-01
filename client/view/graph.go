@@ -15,7 +15,6 @@
 package view
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -40,7 +39,7 @@ type Graph struct {
 func loadGraph(v *View, filepath, graphJSON string) (*Graph, error) {
 	g, err := model.LoadJSON(strings.NewReader(graphJSON), "", "")
 	if err != nil {
-		return nil, fmt.Errorf("decoding graph JSON: %v", err)
+		return nil, err
 	}
 	g.FilePath = filepath
 

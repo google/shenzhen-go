@@ -39,12 +39,13 @@ type partEditor struct {
 	Panels map[string]jsutil.Element
 }
 
-// View caches the top-level objects for managing the UI
+// View caches the top-level objects for managing the UI.
 type View struct {
-	Document jsutil.Document     // Global document object
-	Client   pb.ShenzhenGoClient // gRPC-Web client
-	Diagram  *Diagram            // The LHS panel
-	Graph    *Graph              // SVG elements in the LHS panel
+	jsutil.Document // Global document object
+	*Diagram        // The LHS panel
+	*Graph          // SVG elements in the LHS panel
+
+	Client pb.ShenzhenGoClient
 
 	// RHS panels
 	CurrentRHSPanel      jsutil.Element
@@ -72,10 +73,6 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 		Client:   client,
 		Document: doc,
 
-		Diagram: &Diagram{
-			Element: doc.ElementByID("diagram"),
-		},
-
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),
 		CurrentRHSPanel:      doc.ElementByID("graph-properties"),
@@ -93,8 +90,11 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
 	}
 
-	v.Diagram.errLabel = newTextBox(v, "", errTextStyle, errRectStyle, 0, 0, 0, 32)
-	v.Diagram.errLabel.hide()
+	v.Diagram = &Diagram{
+		View:     v,
+		Element:  doc.ElementByID("diagram"),
+		errLabel: newTextBox(v, "", errTextStyle, errRectStyle, 0, 0, 0, 32).hide(),
+	}
 
 	g, err := loadGraph(v, filepath, initialJSON)
 	if err != nil {

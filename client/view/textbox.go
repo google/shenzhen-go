@@ -26,14 +26,14 @@ const (
 )
 
 type textBox struct {
-	view                        *View
+	*View
 	group, rect, text, textNode jsutil.Element
 	width, minWidth             float64
 }
 
 func newTextBox(view *View, text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		view:     view,
+		View:     view,
 		group:    view.Document.MakeSVGElement("g"),
 		rect:     view.Document.MakeSVGElement("rect"),
 		text:     view.Document.MakeSVGElement("text"),
@@ -62,12 +62,14 @@ func newTextBox(view *View, text, textStyle, rectStyle string, x, y, minWidth, h
 	return b
 }
 
-func (b *textBox) show() {
+func (b *textBox) show() *textBox {
 	b.group.Show()
+	return b
 }
 
-func (b *textBox) hide() {
+func (b *textBox) hide() *textBox {
 	b.group.Hide()
+	return b
 }
 
 func (b *textBox) moveTo(x, y float64) {

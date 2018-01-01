@@ -29,7 +29,7 @@ import (
 
 // Graph is the view-model of a graph.
 type Graph struct {
-	View *View
+	*View
 
 	*model.Graph
 	Nodes    map[string]*Node

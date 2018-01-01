@@ -22,7 +22,7 @@ import (
 // important parts of it.
 type Diagram struct {
 	jsutil.Element // the SVG element
-	View           *View
+	*View
 
 	dragItem     draggable  // nil if nothing is being dragged
 	selectedItem selectable // nil if nothing is selected

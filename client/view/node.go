@@ -35,8 +35,7 @@ const (
 // Node is the view's model of a node.
 type Node struct {
 	*model.Node
-
-	View *View
+	*View
 
 	Inputs, Outputs, AllPins []*Pin
 

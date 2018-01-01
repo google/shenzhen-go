@@ -33,7 +33,7 @@ var anonChannelNameRE = regexp.MustCompile(`^anonymousChannel\d+$`)
 // Channel is the view's model of a channel.
 type Channel struct {
 	*model.Channel
-	View *View
+	*View
 
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]struct{}

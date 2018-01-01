@@ -36,11 +36,10 @@ type Graph struct {
 }
 
 func (v *View) loadGraph(filepath, graphJSON string) error {
-	g, err := model.LoadJSON(strings.NewReader(graphJSON), "", "")
+	g, err := model.LoadJSON(strings.NewReader(graphJSON), filepath, "")
 	if err != nil {
 		return err
 	}
-	g.FilePath = filepath
 
 	v.Graph = &Graph{View: v, Graph: g}
 	v.Graph.refresh()

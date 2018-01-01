@@ -18,8 +18,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/google/shenzhen-go/client/view"
 	"github.com/google/shenzhen-go/jsutil"
 	pb "github.com/google/shenzhen-go/proto/js"
@@ -36,6 +34,6 @@ func main() {
 	client := pb.NewShenzhenGoClient(apiURL)
 	initial := js.Global.Get("GraphJSON").String()
 	if err := view.Setup(doc, client, graphPath, initial); err != nil {
-		log.Fatalf("Couldn't load graph: %v", err)
+		panic(err)
 	}
 }

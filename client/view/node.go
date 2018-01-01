@@ -15,8 +15,6 @@
 package view
 
 import (
-	"log"
-
 	"github.com/google/shenzhen-go/jsutil"
 	"github.com/google/shenzhen-go/model"
 	pb "github.com/google/shenzhen-go/proto/js"
@@ -93,7 +91,7 @@ func (n *Node) drop(e jsutil.Object) {
 			Y:     y,
 		}
 		if _, err := n.View.Client.SetPosition(context.Background(), req); err != nil {
-			log.Printf("Couldn't SetPosition: %v", err)
+			n.View.Diagram.setError("Couldn't set the position: "+err.Error(), x, y)
 		}
 	}()
 }
@@ -109,7 +107,7 @@ func (n *Node) gainFocus(e jsutil.Object) {
 	n.View.nodeMultiplicityInput.Set("value", n.Node.Multiplicity)
 	n.View.nodeWaitInput.Set("checked", n.Node.Wait)
 	n.View.ShowRHSPanel(n.View.NodePropertiesPanel)
-	n.View.nodePartEditors[n.Node.Part.TypeKey()].Links.Get("style").Set("display", "inline")
+	n.View.nodePartEditors[n.Node.Part.TypeKey()].Links.Show()
 	if n.subpanel == nil {
 		n.subpanel = n.View.nodeMetadataSubpanel
 	}
@@ -127,7 +125,7 @@ func (n *Node) save(e jsutil.Object) {
 	go func() {
 		pj, err := model.MarshalPart(n.Part)
 		if err != nil {
-			log.Printf("Couldn't marshal part: %v", err)
+			n.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
 			return
 		}
 		props := &pb.NodeConfig{
@@ -146,7 +144,7 @@ func (n *Node) save(e jsutil.Object) {
 			Props: props,
 		}
 		if _, err := n.View.Client.SetNodeProperties(context.Background(), req); err != nil {
-			log.Printf("Couldn't update node properties: %v", err)
+			n.View.Diagram.setError("Couldn't update node properties: "+err.Error(), 0, 0)
 			return
 		}
 		// Update local copy, since these were read at save time.
@@ -180,7 +178,7 @@ func (n *Node) reallyDelete() {
 		Node:  n.Node.Name,
 	}
 	if _, err := n.View.Client.DeleteNode(context.Background(), req); err != nil {
-		log.Printf("Couldn't DeleteNode: %v", err)
+		n.View.Diagram.setError("Couldn't delete: "+err.Error(), 0, 0)
 		return
 	}
 	delete(n.View.Graph.Nodes, n.Name)

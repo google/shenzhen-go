@@ -189,6 +189,11 @@ func (e *FakeElement) Hide() Element {
 	return e.SetAttribute("display", "none")
 }
 
+// Display sets the display attribute to whatever.
+func (e *FakeElement) Display(style string) Element {
+	return e.SetAttribute("display", style)
+}
+
 // FakeDocument implements a fake Document.
 type FakeDocument struct {
 	FakeElement

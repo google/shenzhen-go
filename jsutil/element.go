@@ -38,11 +38,14 @@ type Element interface {
 	// AddEventListener calls the JS method addEventListener, returning the element for chaining.
 	AddEventListener(string, func(Object)) Element
 
-	// Show sets the display attribute of the style to "initial", returning the element for chaining.
+	// Show sets the display attribute of the style to "", returning the element for chaining.
 	Show() Element
 
 	// Hide sets the display attribute of the style to "none", returning the element for chaining.
 	Hide() Element
+
+	// Display sets the display attribute of the style to the given value, returning the element for chaining.
+	Display(string) Element
 }
 
 type element struct {
@@ -90,12 +93,10 @@ func (e element) AddEventListener(event string, handler func(Object)) Element {
 	return e
 }
 
-func (e element) Show() Element {
-	e.Get("style").Set("display", "initial")
-	return e
-}
+func (e element) Show() Element { return e.Display("") }
+func (e element) Hide() Element { return e.Display("none") }
 
-func (e element) Hide() Element {
-	e.Get("style").Set("display", "none")
+func (e element) Display(style string) Element {
+	e.Get("style").Set("display", style)
 	return e
 }

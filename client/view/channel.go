@@ -38,6 +38,8 @@ type Channel struct {
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]struct{}
 
+	created bool // create operation sent to server?
+
 	steiner jsutil.Element // symbol representing the channel itself, not used if channel is simple
 	x, y    float64        // centre of steiner point, for snapping
 	tx, ty  float64        // temporary centre of steiner point, for display
@@ -134,7 +136,12 @@ func (c *Channel) unmakeElements() {
 // Pt implements Point.
 func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
 
-func (c *Channel) commit() { c.x, c.y = c.tx, c.ty }
+func (c *Channel) commit() {
+	c.x, c.y = c.tx, c.ty
+	if !c.created {
+		go c.reallyCreate()
+	}
+}
 
 func (c *Channel) dragStart(e jsutil.Object) {
 	c.View.Diagram.dragItem = c

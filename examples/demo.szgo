@@ -53,7 +53,7 @@
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
-				"foo": "anonymousChannel0",
+				"foo": "nil",
 				"quux": "nil",
 				"qux": "anonymousChannel0",
 				"tuz": "nil"
@@ -104,14 +104,14 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 123,
-			"y": 277,
+			"x": 129,
+			"y": 235,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
 				"foo": "anonymousChannel0",
 				"quux": "nil",
-				"qux": "anonymousChannel0",
+				"qux": "nil",
 				"tuz": "nil"
 			}
 		}

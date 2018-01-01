@@ -179,6 +179,7 @@ func (g *Graph) refresh() {
 			View:    g.View,
 			Channel: c,
 			Pins:    make(map[*Pin]struct{}),
+			created: true,
 		}
 		g.Channels[k] = ch
 		ch.makeElements()

@@ -259,8 +259,9 @@ func (p *Pin) drop(e jsutil.Object) {
 		go p.reallyDisconnect()
 		return
 	}
-	go p.ch.reallyCreate()
-	go p.reallyConnect()
+	if p.ch.created {
+		go p.reallyConnect()
+	}
 	p.ch.setColour(normalColour)
 	p.ch.commit()
 }

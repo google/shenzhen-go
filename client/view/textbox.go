@@ -71,22 +71,25 @@ func (b *textBox) hide() *textBox {
 	return b
 }
 
-func (b *textBox) moveTo(x, y float64) {
+func (b *textBox) moveTo(x, y float64) *textBox {
 	tf := b.Get("transform").Get("baseVal").Call("getItem", 0).Get("matrix")
 	tf.Set("e", x)
 	tf.Set("f", y)
+	return b
 }
 
-func (b *textBox) setText(text string) {
+func (b *textBox) setText(text string) *textBox {
 	b.textNode.Set("nodeValue", text)
 	b.computeWidth()
+	return b
 }
 
-func (b *textBox) computeWidth() {
+func (b *textBox) computeWidth() *textBox {
 	b.width = b.minWidth
 	if w := b.text.Call("getComputedTextLength").Float() + 2*textBoxMargin; b.minWidth < w {
 		b.width = w
 	}
 	b.rect.SetAttribute("width", b.width)
 	b.text.SetAttribute("x", b.width/2)
+	return b
 }

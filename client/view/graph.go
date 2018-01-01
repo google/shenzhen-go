@@ -15,7 +15,6 @@
 package view
 
 import (
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -63,7 +62,7 @@ func (g *Graph) createNode(partType string) {
 		pt := model.PartTypes[partType].New()
 		pm, err := model.MarshalPart(pt)
 		if err != nil {
-			log.Printf("Couldn't marshal (brand new!) part: %v", err)
+			g.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
 			return
 		}
 
@@ -92,9 +91,10 @@ func (g *Graph) createNode(partType string) {
 			},
 		})
 		if err != nil {
-			log.Printf("Couldn't CreateNode: %v", err)
+			g.View.Diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
 			return
 		}
+		g.View.Diagram.clearError()
 
 		n.makeElements()
 		g.Nodes[name] = n
@@ -124,7 +124,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 func (g *Graph) save(jsutil.Object) {
 	go func() { // cannot block in callback
 		if _, err := g.View.Client.Save(context.Background(), &pb.SaveRequest{Graph: g.FilePath}); err != nil {
-			log.Printf("Couldn't Save: %v", err)
+			g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
 		}
 	}()
 }
@@ -138,7 +138,8 @@ func (g *Graph) saveProperties(jsutil.Object) {
 			IsCommand:   g.View.graphIsCommandElement.Get("checked").Bool(),
 		}
 		if _, err := g.View.Client.SetGraphProperties(context.Background(), req); err != nil {
-			log.Printf("Couldn't SetGraphProperties: %v", err)
+			g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
+			return
 		}
 		// And commit locally
 		g.Name = req.Name

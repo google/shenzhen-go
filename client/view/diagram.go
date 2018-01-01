@@ -94,10 +94,7 @@ func (d *Diagram) setError(err string, x, y float64) {
 		d.clearError()
 		return
 	}
-	d.AddChildren(d.errLabel) // Bring to front
-	d.errLabel.moveTo(x+4, y-36)
-	d.errLabel.setText(err)
-	d.errLabel.show()
+	d.AddChildren(d.errLabel.moveTo(x, y).setText(err).show()) // Re-add = Bring to front
 }
 
 func (d *Diagram) clearError() {

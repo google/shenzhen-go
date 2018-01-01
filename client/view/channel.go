@@ -45,7 +45,7 @@ type Channel struct {
 	p       *Pin           // considering attaching to this pin
 }
 
-func (v *View) newChannel(p, q *Pin) *Channel {
+func (v *View) createChannel(p, q *Pin) *Channel {
 	c := &model.Channel{
 		Type:      p.Type,
 		Capacity:  0,
@@ -57,8 +57,8 @@ func (v *View) newChannel(p, q *Pin) *Channel {
 		if anonChannelNameRE.MatchString(ec.Name) {
 			n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
 			if err != nil {
-				log.Printf("Couldn't convert digits into an int: %v", err)
-				return nil
+				// The string just matched \d+ but can't be converted to an int?...
+				panic(err)
 			}
 			if n > max {
 				max = n
@@ -66,22 +66,6 @@ func (v *View) newChannel(p, q *Pin) *Channel {
 		}
 	}
 	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
-	go func() {
-		req := &pb.CreateChannelRequest{
-			Graph: v.Graph.FilePath,
-			Name:  c.Name,
-			Type:  c.Type,
-			Cap:   uint64(c.Capacity),
-			Anon:  c.Anonymous,
-			Node1: p.node.Name,
-			Pin1:  p.Name,
-			Node2: q.node.Name,
-			Pin2:  q.Name,
-		}
-		if _, err := v.Client.CreateChannel(context.Background(), req); err != nil {
-			log.Printf("Couldn't CreateChannel: %v", err)
-		}
-	}()
 	ch := &Channel{
 		Channel: c,
 		View:    v,
@@ -92,6 +76,35 @@ func (v *View) newChannel(p, q *Pin) *Channel {
 	}
 	ch.makeElements()
 	return ch
+}
+
+func (c *Channel) reallyCreate() {
+	// Hacky extraction of first two channels
+	var p, q *Pin
+	for x := range c.Pins {
+		if p == nil {
+			p = x
+			continue
+		}
+		if q == nil {
+			q = x
+			break
+		}
+	}
+	req := &pb.CreateChannelRequest{
+		Graph: c.View.Graph.FilePath,
+		Name:  c.Name,
+		Type:  c.Type,
+		Cap:   uint64(c.Capacity),
+		Anon:  c.Anonymous,
+		Node1: p.node.Name,
+		Pin1:  p.Name,
+		Node2: q.node.Name,
+		Pin2:  q.Name,
+	}
+	if _, err := c.View.Client.CreateChannel(context.Background(), req); err != nil {
+		c.View.Diagram.setError("Couldn't create a channel: "+err.Error(), 0, 0)
+	}
 }
 
 func (c *Channel) makeElements() {
@@ -190,7 +203,7 @@ func (c *Channel) drag(e jsutil.Object) {
 		return
 	}
 
-	if err := p.connectTo(c); err != nil {
+	if err := p.checkConnectionTo(c); err != nil {
 		c.View.Diagram.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		c.setColour(errorColour)

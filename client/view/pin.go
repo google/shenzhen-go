@@ -16,8 +16,6 @@ package view
 
 import (
 	"errors"
-	"fmt"
-	"log"
 
 	"github.com/google/shenzhen-go/jsutil"
 	pb "github.com/google/shenzhen-go/proto/js"
@@ -46,17 +44,15 @@ type Pin struct {
 	c    jsutil.Element // circle, when dragging from a pin
 }
 
-func (p *Pin) connectTo(q Point) error {
+// Save time by checking whether a potential connection can succeeds.
+func (p *Pin) checkConnectionTo(q Point) error {
 	switch q := q.(type) {
 	case *Pin:
-		if p.ch != nil && p.ch != q.ch {
-			p.disconnect()
-		}
 		if q.Type != p.Type {
-			return fmt.Errorf("mismatching types [%s != %s]", p.Type, q.Type)
+			return errors.New("mismatching types [" + p.Type + " != " + q.Type + "]")
 		}
 		if q.ch != nil {
-			return p.connectTo(q.ch)
+			return p.checkConnectionTo(q.ch)
 		}
 
 		// Prevent mistakes by ensuring that there is at least one input
@@ -68,19 +64,9 @@ func (p *Pin) connectTo(q Point) error {
 			return errors.New("both pins are on the same goroutine")
 		}
 
-		// Create a new channel to connect to
-		ch := p.node.View.newChannel(p, q)
-		ch.reposition(nil)
-		p.ch, q.ch = ch, ch
-		p.node.View.Graph.Channels[ch.Name] = ch
-		q.l.Show()
-
 	case *Channel:
-		if p.ch != nil && p.ch != q {
-			p.disconnect()
-		}
 		if q.Type != p.Type {
-			return fmt.Errorf("mismatching types [%s != %s]", p.Type, q.Type)
+			return errors.New("mismatching types [" + p.Type + " != " + q.Type + "]")
 		}
 		same := true
 		for r := range q.Pins {
@@ -92,40 +78,54 @@ func (p *Pin) connectTo(q Point) error {
 		if same {
 			return errors.New("must connect at least one input and one output")
 		}
-
-		// Attach to the existing channel
-		go func() { // cannot block while handling
-			if _, err := p.node.View.Client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
-				Graph:   p.node.View.Graph.FilePath,
-				Node:    p.node.Name,
-				Pin:     p.Name,
-				Channel: q.Channel.Name,
-			}); err != nil {
-				log.Printf("Couldn't ConnectPin: %v", err)
-				return
-			}
-			p.ch = q
-			q.Pins[p] = struct{}{}
-			q.reposition(nil)
-		}()
 	}
 	return nil
 }
 
-func (p *Pin) disconnect() {
-	go p.reallyDisconnect() // don't block handler
+func (p *Pin) connectTo(q Point) {
+	switch q := q.(type) {
+	case *Pin:
+		if p.ch != nil && p.ch != q.ch {
+			p.disconnect()
+		}
+		if q.ch != nil {
+			p.connectTo(q.ch)
+			return
+		}
+
+		// Create a new channel to connect to
+		ch := p.node.View.createChannel(p, q)
+		ch.reposition(nil)
+		p.ch, q.ch = ch, ch
+		p.node.View.Graph.Channels[ch.Name] = ch
+		q.l.Show()
+
+	case *Channel:
+		if p.ch != nil && p.ch != q {
+			p.disconnect()
+		}
+
+		p.ch = q
+		q.Pins[p] = struct{}{}
+		q.reposition(nil)
+	}
+	return
 }
 
-func (p *Pin) reallyDisconnect() {
-	if p.ch == nil {
-		return
-	}
-	if _, err := p.node.View.Client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
-		Graph: p.node.View.Graph.FilePath,
-		Node:  p.node.Name,
-		Pin:   p.Name,
+func (p *Pin) reallyConnect() {
+	// Attach to the existing channel
+	if _, err := p.node.View.Client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
+		Graph:   p.node.View.Graph.FilePath,
+		Node:    p.node.Name,
+		Pin:     p.Name,
+		Channel: p.ch.Channel.Name,
 	}); err != nil {
-		log.Printf("Couldn't DisconnectPin: %v", err)
+		p.node.View.Diagram.setError("Couldn't connect: "+err.Error(), 0, 0)
+	}
+}
+
+func (p *Pin) disconnect() {
+	if p.ch == nil {
 		return
 	}
 	delete(p.ch.Pins, p)
@@ -139,6 +139,16 @@ func (p *Pin) reallyDisconnect() {
 		delete(p.node.View.Graph.Channels, p.ch.Name)
 	}
 	p.ch = nil
+}
+
+func (p *Pin) reallyDisconnect() {
+	if _, err := p.node.View.Client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
+		Graph: p.node.View.Graph.FilePath,
+		Node:  p.node.Name,
+		Pin:   p.Name,
+	}); err != nil {
+		p.node.View.Diagram.setError("Couldn't disconnect: "+err.Error(), 0, 0)
+	}
 }
 
 func (p *Pin) setPos(rx, ry float64) {
@@ -181,13 +191,11 @@ func (p *Pin) dragStart(e jsutil.Object) {
 	p.circ.SetAttribute("fill", errorColour)
 
 	x, y := p.node.View.Diagram.cursorPos(e)
-	p.l.
-		SetAttribute("x2", x).
+	p.l.SetAttribute("x2", x).
 		SetAttribute("y2", y).
 		SetAttribute("stroke", errorColour).
 		Show()
-	p.c.
-		SetAttribute("cx", x).
+	p.c.SetAttribute("cx", x).
 		SetAttribute("cy", y).
 		SetAttribute("stroke", errorColour).
 		Show()
@@ -196,12 +204,8 @@ func (p *Pin) dragStart(e jsutil.Object) {
 func (p *Pin) drag(e jsutil.Object) {
 	x, y := p.node.View.Diagram.cursorPos(e)
 	defer func() {
-		p.l.
-			SetAttribute("x2", x).
-			SetAttribute("y2", y)
-		p.c.
-			SetAttribute("cx", x).
-			SetAttribute("cy", y)
+		p.l.SetAttribute("x2", x).SetAttribute("y2", y)
+		p.c.SetAttribute("cx", x).SetAttribute("cy", y)
 	}()
 	d, q := p.node.View.Graph.nearestPoint(x, y)
 
@@ -213,9 +217,7 @@ func (p *Pin) drag(e jsutil.Object) {
 
 		p.circ.SetAttribute("fill", errorColour)
 		p.l.SetAttribute("stroke", errorColour)
-		p.c.
-			SetAttribute("stroke", errorColour).
-			Show()
+		p.c.SetAttribute("stroke", errorColour).Show()
 	}
 
 	// Don't connect P to itself, don't connect if nearest is far away.
@@ -225,11 +227,14 @@ func (p *Pin) drag(e jsutil.Object) {
 		return
 	}
 
-	if err := p.connectTo(q); err != nil {
+	if err := p.checkConnectionTo(q); err != nil {
 		p.node.View.Diagram.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		return
 	}
+
+	// Make the connection.
+	p.connectTo(q)
 
 	// Snap to q.ch, or q if q is a channel. Visual.
 	switch q := q.(type) {
@@ -251,8 +256,11 @@ func (p *Pin) drop(e jsutil.Object) {
 	p.c.Hide()
 	if p.ch == nil {
 		p.l.Hide()
+		go p.reallyDisconnect()
 		return
 	}
+	go p.ch.reallyCreate()
+	go p.reallyConnect()
 	p.ch.setColour(normalColour)
 	p.ch.commit()
 }

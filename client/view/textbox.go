@@ -26,54 +26,53 @@ const (
 )
 
 type textBox struct {
-	*View
-	group, rect, text, textNode jsutil.Element
-	width, minWidth             float64
+	jsutil.Element // group
+
+	View                 *View
+	rect, text, textNode jsutil.Element
+	width, minWidth      float64
 }
 
-func newTextBox(view *View, text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
+func (v *View) newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		View:     view,
-		group:    view.Document.MakeSVGElement("g"),
-		rect:     view.Document.MakeSVGElement("rect"),
-		text:     view.Document.MakeSVGElement("text"),
-		textNode: view.Document.MakeTextNode(text),
+		Element: v.Document.MakeSVGElement("g"),
+
+		View:     v,
+		rect:     v.Document.MakeSVGElement("rect"),
+		text:     v.Document.MakeSVGElement("text"),
+		textNode: v.Document.MakeTextNode(text),
 		minWidth: minWidth,
 	}
 
-	view.Diagram.AddChildren(
-		b.group.
-			SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y)).
-			AddChildren(
-				b.rect.
-					SetAttribute("height", height).
-					SetAttribute("style", rectStyle),
-				b.text.
-					SetAttribute("y", height/2+nodeTextOffset).
-					SetAttribute("text-anchor", "middle").
-					SetAttribute("unselectable", "on").
-					SetAttribute("style", textStyle).
-					AddChildren(
-						b.textNode,
-					),
-			),
-	)
+	b.
+		SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y)).
+		AddChildren(
+			b.rect.
+				SetAttribute("height", height).
+				SetAttribute("style", rectStyle),
+			b.text.
+				SetAttribute("y", height/2+nodeTextOffset).
+				SetAttribute("text-anchor", "middle").
+				SetAttribute("unselectable", "on").
+				SetAttribute("style", textStyle).
+				AddChildren(b.textNode),
+		)
 	b.computeWidth()
 	return b
 }
 
 func (b *textBox) show() *textBox {
-	b.group.Show()
+	b.Show()
 	return b
 }
 
 func (b *textBox) hide() *textBox {
-	b.group.Hide()
+	b.Hide()
 	return b
 }
 
 func (b *textBox) moveTo(x, y float64) {
-	tf := b.group.Get("transform").Get("baseVal").Call("getItem", 0).Get("matrix")
+	tf := b.Get("transform").Get("baseVal").Call("getItem", 0).Get("matrix")
 	tf.Set("e", x)
 	tf.Set("f", y)
 }

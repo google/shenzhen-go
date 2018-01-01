@@ -36,16 +36,16 @@ type Graph struct {
 	Channels map[string]*Channel
 }
 
-func loadGraph(v *View, filepath, graphJSON string) (*Graph, error) {
+func (v *View) loadGraph(filepath, graphJSON string) error {
 	g, err := model.LoadJSON(strings.NewReader(graphJSON), "", "")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	g.FilePath = filepath
 
-	graph := &Graph{View: v, Graph: g}
-	graph.refresh()
-	return graph, nil
+	v.Graph = &Graph{View: v, Graph: g}
+	v.Graph.refresh()
+	return nil
 }
 
 func (g *Graph) createNode(partType string) {

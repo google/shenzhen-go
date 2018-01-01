@@ -38,10 +38,10 @@ type Element interface {
 	// AddEventListener calls the JS method addEventListener, returning the element for chaining.
 	AddEventListener(string, func(Object)) Element
 
-	// Show removes the display attribute, returning the element for chaining.
+	// Show sets the display attribute of the style to "initial", returning the element for chaining.
 	Show() Element
 
-	// Hide sets the display attribute to "none", returning the element for chaining.
+	// Hide sets the display attribute of the style to "none", returning the element for chaining.
 	Hide() Element
 }
 
@@ -91,11 +91,11 @@ func (e element) AddEventListener(event string, handler func(Object)) Element {
 }
 
 func (e element) Show() Element {
-	e.Call("removeAttribute", "display")
+	e.Get("style").Set("display", "initial")
 	return e
 }
 
 func (e element) Hide() Element {
-	e.Call("setAttribute", "display", "none")
+	e.Get("style").Set("display", "none")
 	return e
 }

@@ -26,7 +26,7 @@ const (
 	normalColour = "#000"
 	errorColour  = "#f06"
 
-	errRectStyle = "fill: #fee; fill-opacity: 0.5; stroke: #533; stroke-width:1"
+	errRectStyle = "fill: #fee; stroke: #533; stroke-width:1"
 	errTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 
 	pinRadius = 5
@@ -70,8 +70,8 @@ type View struct {
 // Setup connects to elements in the DOM.
 func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSON string) error {
 	v := &View{
-		Client:   client,
 		Document: doc,
+		Client:   client,
 
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),
@@ -93,14 +93,13 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 	v.Diagram = &Diagram{
 		View:     v,
 		Element:  doc.ElementByID("diagram"),
-		errLabel: newTextBox(v, "", errTextStyle, errRectStyle, 0, 0, 0, 32).hide(),
+		errLabel: v.newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32).hide(),
 	}
+	v.Diagram.AddChildren(v.errLabel)
 
-	g, err := loadGraph(v, filepath, initialJSON)
-	if err != nil {
+	if err := v.loadGraph(filepath, initialJSON); err != nil {
 		return err
 	}
-	v.Graph = g
 
 	v.Diagram.
 		AddEventListener("mousedown", v.Diagram.mouseDown).
@@ -108,9 +107,9 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 		AddEventListener("mouseup", v.Diagram.mouseUp)
 
 	doc.ElementByID("graph-save").
-		AddEventListener("click", g.save)
+		AddEventListener("click", v.Graph.save)
 	doc.ElementByID("graph-properties-save").
-		AddEventListener("click", g.saveProperties)
+		AddEventListener("click", v.Graph.saveProperties)
 
 	doc.ElementByID("node-save-link").
 		AddEventListener("click", v.Diagram.saveSelected)
@@ -153,7 +152,6 @@ func (v *View) ShowRHSPanel(p jsutil.Element) {
 	if p == v.CurrentRHSPanel {
 		return
 	}
-	v.CurrentRHSPanel.Get("style").Set("display", "none")
-	v.CurrentRHSPanel = p
-	v.CurrentRHSPanel.Get("style").Set("display", nil)
+	v.CurrentRHSPanel.Hide()
+	v.CurrentRHSPanel = p.Show()
 }

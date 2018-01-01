@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	nametagRectStyle = "fill: #efe; fill-opacity: 0.7; stroke: #353; stroke-width:1"
+	nametagRectStyle = "fill: #efe; stroke: #353; stroke-width:1"
 	nametagTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 )
 
@@ -160,7 +160,7 @@ func (p *Pin) setPos(rx, ry float64) {
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
 func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
-func (p *Pin) String() string { return fmt.Sprintf("%s.%s", p.node.Name, p.Name) }
+func (p *Pin) String() string { return p.node.Name + "." + p.Name }
 
 func (p *Pin) dragStart(e jsutil.Object) {
 	// If the pin is attached to something, detach and drag from that instead.
@@ -274,10 +274,7 @@ func (p *Pin) mouseLeave(jsutil.Object) {
 
 func (p *Pin) makeElements(n *Node) jsutil.Element {
 	p.node = n
-
-	doc := n.View.Document
-
-	p.circ = doc.MakeSVGElement("circle").
+	p.circ = n.View.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", normalColour).
 		AddEventListener("mousedown", p.dragStart).
@@ -285,12 +282,12 @@ func (p *Pin) makeElements(n *Node) jsutil.Element {
 		AddEventListener("mouseleave", p.mouseLeave)
 
 	// Line
-	p.l = doc.MakeSVGElement("line").
+	p.l = n.View.Document.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
 	// Another circ
-	p.c = doc.MakeSVGElement("circle").
+	p.c = n.View.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).
@@ -299,13 +296,14 @@ func (p *Pin) makeElements(n *Node) jsutil.Element {
 	n.View.Diagram.AddChildren(p.l, p.c)
 
 	// Nametag
-	p.nametag = newTextBox(p.node.View, fmt.Sprintf("%s (%s)", p.Name, p.Type), nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
-	p.node.box.group.AddChildren(p.nametag.group)
+	p.nametag = p.node.View.newTextBox(p.Name+" ("+p.Type+")", nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.node.box.AddChildren(p.nametag)
+	p.nametag.computeWidth()
 	p.nametag.hide()
 	return p.circ
 }
 
 func (p *Pin) unmakeElements() {
 	p.node.View.Diagram.RemoveChildren(p.l, p.c)
-	p.node.box.group.RemoveChildren(p.nametag.group)
+	p.node.box.RemoveChildren(p.nametag)
 }

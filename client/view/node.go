@@ -55,14 +55,15 @@ func max(a, b int) int {
 
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = newTextBox(n.View, n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
+	n.box = n.View.newTextBox(n.Name, nodeTextStyle, nodeNormalRectStyle, n.X, n.Y, float64(minWidth), nodeHeight)
+	n.View.Diagram.AddChildren(n.box)
 	n.box.rect.
 		AddEventListener("mousedown", n.mouseDown).
 		AddEventListener("mousedown", n.View.Diagram.selecter(n))
 
 	// Pins
 	for _, p := range n.AllPins {
-		n.box.group.AddChildren(p.makeElements(n))
+		n.box.AddChildren(p.makeElements(n))
 	}
 	n.updatePinPositions()
 }
@@ -72,7 +73,7 @@ func (n *Node) mouseDown(e jsutil.Object) {
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
 	// Bring to front
-	n.View.Diagram.AddChildren(n.box.group)
+	n.View.Diagram.AddChildren(n.box)
 }
 
 func (n *Node) drag(e jsutil.Object) {
@@ -183,7 +184,7 @@ func (n *Node) reallyDelete() {
 		return
 	}
 	delete(n.View.Graph.Nodes, n.Name)
-	n.View.Diagram.RemoveChildren(n.box.group)
+	n.View.Diagram.RemoveChildren(n.box)
 	for _, p := range n.AllPins {
 		p.unmakeElements()
 	}
@@ -208,7 +209,6 @@ func (n *Node) showSubPanel(p jsutil.Element) {
 	if n.View.nodeCurrentSubpanel == p {
 		return
 	}
-	n.View.nodeCurrentSubpanel.Get("style").Set("display", "none")
-	n.View.nodeCurrentSubpanel = p
-	n.View.nodeCurrentSubpanel.Get("style").Set("display", nil)
+	n.View.nodeCurrentSubpanel.Hide()
+	n.View.nodeCurrentSubpanel = p.Show()
 }

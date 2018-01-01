@@ -54,15 +54,16 @@ func (v *View) createChannel(p, q *Pin) *Channel {
 	// Pick a unique name
 	max := -1
 	for _, ec := range v.Graph.Channels {
-		if anonChannelNameRE.MatchString(ec.Name) {
-			n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
-			if err != nil {
-				// The string just matched \d+ but can't be converted to an int?...
-				panic(err)
-			}
-			if n > max {
-				max = n
-			}
+		if !anonChannelNameRE.MatchString(ec.Name) {
+			continue
+		}
+		n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
+		if err != nil {
+			// The string just matched \d+ but can't be converted to an int?...
+			panic(err)
+		}
+		if n > max {
+			max = n
 		}
 	}
 	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)

@@ -45,19 +45,13 @@ func (o *FakeObject) Get(key string) Object {
 }
 
 // Set sets a property value.
-func (o *FakeObject) Set(key string, value interface{}) {
-	o.Properties[key] = value
-}
+func (o *FakeObject) Set(key string, value interface{}) { o.Properties[key] = value }
 
 // Delete deletes the property with the given key.
-func (o *FakeObject) Delete(key string) {
-	delete(o.Properties, key)
-}
+func (o *FakeObject) Delete(key string) { delete(o.Properties, key) }
 
 // Length returns the length of o.Value.
-func (o *FakeObject) Length() int {
-	return reflect.ValueOf(o.Value).Len()
-}
+func (o *FakeObject) Length() int { return reflect.ValueOf(o.Value).Len() }
 
 // Index returns the element at index i of o.Value.
 func (o *FakeObject) Index(i int) Object {
@@ -85,49 +79,31 @@ func (o *FakeObject) Invoke(args ...interface{}) Object {
 }
 
 // New calls the function in o.Value.
-func (o *FakeObject) New(args ...interface{}) Object {
-	return o.Invoke(args)
-}
+func (o *FakeObject) New(args ...interface{}) Object { return o.Invoke(args) }
 
 // Bool returns o.Value asserted as a bool.
-func (o *FakeObject) Bool() bool {
-	return o.Value.(bool)
-}
+func (o *FakeObject) Bool() bool { return o.Value.(bool) }
 
 // String returns o.Value asserted as a string.
-func (o *FakeObject) String() string {
-	return o.Value.(string)
-}
+func (o *FakeObject) String() string { return o.Value.(string) }
 
 // Int returns o.Value asserted as an int.
-func (o *FakeObject) Int() int {
-	return o.Value.(int)
-}
+func (o *FakeObject) Int() int { return o.Value.(int) }
 
 // Int64 returns o.Value asserted as an int64.
-func (o *FakeObject) Int64() int64 {
-	return o.Value.(int64)
-}
+func (o *FakeObject) Int64() int64 { return o.Value.(int64) }
 
 // Uint64 returns o.Value asserted as a uint64.
-func (o *FakeObject) Uint64() uint64 {
-	return o.Value.(uint64)
-}
+func (o *FakeObject) Uint64() uint64 { return o.Value.(uint64) }
 
 // Float returns o.Value asserted as a float64.
-func (o *FakeObject) Float() float64 {
-	return o.Value.(float64)
-}
+func (o *FakeObject) Float() float64 { return o.Value.(float64) }
 
 // Interface returns o.Value.
-func (o *FakeObject) Interface() interface{} {
-	return o.Value
-}
+func (o *FakeObject) Interface() interface{} { return o.Value }
 
 // Unsafe returns o.Value asserted as a uintptr.
-func (o *FakeObject) Unsafe() uintptr {
-	return o.Value.(uintptr)
-}
+func (o *FakeObject) Unsafe() uintptr { return o.Value.(uintptr) }
 
 // FakeElement implements a virtual DOM element.
 type FakeElement struct {
@@ -150,7 +126,7 @@ func MakeFakeElement(class, nsuri string) *FakeElement {
 	}
 }
 
-// ID returns e.Get("id").String() (so set the embedded FakeObject's property).
+// ID returns e.Get("id").String() (so, set the embedded FakeObject's id property).
 func (e *FakeElement) ID() string {
 	return e.Get("id").String()
 }
@@ -248,8 +224,11 @@ func (d *FakeDocument) MakeTextNode(text string) Element {
 // MakeSVGElement makes an SVG element
 func (d *FakeDocument) MakeSVGElement(class string) Element {
 	e := MakeFakeElement(class, SVGNamespaceURI)
-	e.Methods["getComputedTextLength"] = func(...interface{}) interface{} {
-		return rand.Float64() * 200
+	switch class {
+	case "text":
+		e.Methods["getComputedTextLength"] = func(...interface{}) interface{} {
+			return rand.Float64() * 200
+		}
 	}
 	return e
 }

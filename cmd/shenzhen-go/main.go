@@ -21,9 +21,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 	"time"
 
 	pb "github.com/google/shenzhen-go/proto/go"
@@ -37,17 +37,17 @@ const pingMsg = "Pong!"
 
 var uiAddr = flag.String("ui_addr", "localhost:8088", "Address to bind UI server to")
 
-func open(args ...string) error {
+func open(url string) error {
 	switch runtime.GOOS {
 	case "darwin":
-		return exec.Command("open", args...).Run()
+		return exec.Command("open", url).Run()
 	case "linux":
 		// TODO: Just guessing, fix later.
-		return exec.Command("xdg-open", args...).Run()
+		return exec.Command("xdg-open", url).Run()
 	case "windows":
-		return exec.Command("start", args...).Run()
+		return exec.Command("cmd.exe", "/C", "start", url).Run()
 	default:
-		fmt.Printf("Ready to open %s\n", strings.Join(args, " "))
+		fmt.Printf("Ready to open %s\n", url)
 		return nil
 	}
 }
@@ -70,6 +70,7 @@ func openWhenUp(addr string) {
 			continue
 		}
 		if err := open(base); err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't automatically open: %v\n", err)
 			fmt.Printf("Ready to open %s\n", base)
 		}
 		t.Stop()

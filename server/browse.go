@@ -31,7 +31,9 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	_, reload := r.URL.Query()["reload"]
 	if g, ok := c.loadedGraphs[r.URL.Path]; ok && !reload {
-		Graph(g, w, r)
+		g.Lock()
+		defer g.Unlock()
+		Graph(g.Graph, w, r)
 		return
 	}
 
@@ -56,7 +58,7 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
 			return
 		}
-		c.loadedGraphs[r.URL.Path] = g
+		c.loadedGraphs[r.URL.Path] = &serveGraph{Graph: g}
 		Graph(g, w, r)
 		return
 	}
@@ -74,7 +76,7 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Guessing a package path: %v", err)
 		}
-		c.loadedGraphs[path] = model.NewGraph(nfp, path, pkgp)
+		c.loadedGraphs[path] = &serveGraph{Graph: model.NewGraph(nfp, path, pkgp)}
 		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
 		return
 	}

@@ -15,13 +15,22 @@
 // Package server serves the user interface and API, and manages the data model.
 package server
 
-import "github.com/google/shenzhen-go/model"
+import (
+	"sync"
+
+	"github.com/google/shenzhen-go/model"
+)
 
 // S is the server singleton.
 var S = &server{
-	loadedGraphs: make(map[string]*model.Graph),
+	loadedGraphs: make(map[string]*serveGraph),
+}
+
+type serveGraph struct {
+	*model.Graph
+	sync.Mutex
 }
 
 type server struct {
-	loadedGraphs map[string]*model.Graph
+	loadedGraphs map[string]*serveGraph
 }

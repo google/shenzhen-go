@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (c *server) lookupGraph(graph string) (*model.Graph, error) {
+func (c *server) lookupGraph(graph string) (*serveGraph, error) {
 	g := c.loadedGraphs[graph]
 	if g == nil {
 		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", graph)
@@ -30,7 +30,7 @@ func (c *server) lookupGraph(graph string) (*model.Graph, error) {
 	return g, nil
 }
 
-func (c *server) lookupChannel(graph, channel string) (*model.Graph, *model.Channel, error) {
+func (c *server) lookupChannel(graph, channel string) (*serveGraph, *model.Channel, error) {
 	g, err := c.lookupGraph(graph)
 	if err != nil {
 		return nil, nil, err
@@ -42,7 +42,7 @@ func (c *server) lookupChannel(graph, channel string) (*model.Graph, *model.Chan
 	return g, ch, nil
 }
 
-func (c *server) lookupNode(graph, node string) (*model.Graph, *model.Node, error) {
+func (c *server) lookupNode(graph, node string) (*serveGraph, *model.Node, error) {
 	g, err := c.lookupGraph(graph)
 	if err != nil {
 		return nil, nil, err
@@ -59,6 +59,9 @@ func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
+
 	_, n1, err := c.lookupNode(req.Graph, req.Node1)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -101,6 +104,9 @@ func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
+
 	if _, found := g.Nodes[req.Props.Name]; found {
 		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q already exists", req.Props.Name)
 	}
@@ -129,10 +135,13 @@ func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb
 }
 
 func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
-	_, n, err := c.lookupNode(req.Graph, req.Node)
+	g, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
+
 	_, ch, err := c.lookupChannel(req.Graph, req.Channel)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -154,6 +163,8 @@ func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
 	g.DeleteChannel(ch)
 	return &pb.Empty{}, nil
 }
@@ -163,6 +174,8 @@ func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
 	delete(g.Nodes, req.Node)
 	// Also clean up channel connections...
 	for p, cn := range n.Connections {
@@ -187,6 +200,8 @@ func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
 	cn, found := n.Connections[req.Pin]
 	if !found {
 		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
@@ -207,7 +222,9 @@ func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, erro
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	return &pb.Empty{}, SaveJSONFile(g)
+	g.Lock()
+	defer g.Unlock()
+	return &pb.Empty{}, SaveJSONFile(g.Graph)
 }
 
 func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
@@ -226,6 +243,8 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
 	p, err := (&model.PartJSON{
 		Part: req.Props.PartCfg,
 		Type: req.Props.PartType,
@@ -250,10 +269,12 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 }
 
 func (c *server) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
-	_, n, err := c.lookupNode(req.Graph, req.Node)
+	g, n, err := c.lookupNode(req.Graph, req.Node)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+	g.Lock()
+	defer g.Unlock()
 	n.X, n.Y = req.X, req.Y
 	return &pb.Empty{}, nil
 }

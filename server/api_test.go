@@ -40,9 +40,9 @@ func TestLookupGraph(t *testing.T) {
 	foo := &model.Graph{Name: "foo"}
 	bar := &model.Graph{Name: "bar"}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{
-			"foo": foo,
-			"bar": bar,
+		loadedGraphs: map[string]*serveGraph{
+			"foo": {Graph: foo},
+			"bar": {Graph: bar},
 		},
 	}
 	tests := []struct {
@@ -55,13 +55,18 @@ func TestLookupGraph(t *testing.T) {
 		{"baz", nil, codes.NotFound},
 	}
 	for _, test := range tests {
-		g, err := c.lookupGraph(test.key)
-		if got, want := g, test.g; got != want {
-			t.Errorf("c.lookupGraph(%q) = %v, want %v", test.key, got, want)
-		}
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.lookupGraph(%q) = %v, want %v", test.key, got, want)
-		}
+		t.Run(test.key, func(t *testing.T) {
+			g, err := c.lookupGraph(test.key)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.lookupGraph(%q) = %v, want %v", test.key, got, want)
+			}
+			if g == nil {
+				return
+			}
+			if got, want := g.Graph, test.g; got != want {
+				t.Errorf("c.lookupGraph(%q) = %v, want %v", test.key, got, want)
+			}
+		})
 	}
 }
 
@@ -72,7 +77,7 @@ func TestLookupNode(t *testing.T) {
 		Nodes: map[string]*model.Node{"bar": bar},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		gk, nk string
@@ -85,16 +90,21 @@ func TestLookupNode(t *testing.T) {
 		{"baz", "bar", nil, nil, codes.NotFound},
 	}
 	for _, test := range tests {
-		g, n, err := c.lookupNode(test.gk, test.nk)
-		if got, want := g, test.g; got != want {
-			t.Errorf("c.lookupNode(%q, %q) = graph %v, want %v", test.gk, test.nk, got, want)
-		}
-		if got, want := n, test.n; got != want {
-			t.Errorf("c.lookupNode(%q, %q) = node %v, want %v", test.gk, test.nk, got, want)
-		}
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.lookupNode(%q, %q) = code %v, want %v", test.gk, test.nk, got, want)
-		}
+		t.Run(test.gk+"."+test.nk, func(t *testing.T) {
+			g, n, err := c.lookupNode(test.gk, test.nk)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.lookupNode(%q, %q) = code %v, want %v", test.gk, test.nk, got, want)
+			}
+			if g == nil {
+				return
+			}
+			if got, want := g.Graph, test.g; got != want {
+				t.Errorf("c.lookupNode(%q, %q) = graph %v, want %v", test.gk, test.nk, got, want)
+			}
+			if got, want := n, test.n; got != want {
+				t.Errorf("c.lookupNode(%q, %q) = node %v, want %v", test.gk, test.nk, got, want)
+			}
+		})
 	}
 }
 
@@ -105,7 +115,7 @@ func TestLookupChannel(t *testing.T) {
 		Channels: map[string]*model.Channel{"bar": bar},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		gk, ck string
@@ -118,16 +128,21 @@ func TestLookupChannel(t *testing.T) {
 		{"baz", "bar", nil, nil, codes.NotFound},
 	}
 	for _, test := range tests {
-		g, ch, err := c.lookupChannel(test.gk, test.ck)
-		if got, want := g, test.g; got != want {
-			t.Errorf("c.lookupChannel(%q, %q) = graph %v, want %v", test.gk, test.ck, got, want)
-		}
-		if got, want := ch, test.ch; got != want {
-			t.Errorf("c.lookupChannel(%q, %q) = node %v, want %v", test.gk, test.ck, got, want)
-		}
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.lookupChannel(%q, %q) = code %v, want %v", test.gk, test.ck, got, want)
-		}
+		t.Run(test.gk+"."+test.ck, func(t *testing.T) {
+			g, ch, err := c.lookupChannel(test.gk, test.ck)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.lookupChannel(%q, %q) = code %v, want %v", test.gk, test.ck, got, want)
+			}
+			if g == nil {
+				return
+			}
+			if got, want := g.Graph, test.g; got != want {
+				t.Errorf("c.lookupChannel(%q, %q) = graph %v, want %v", test.gk, test.ck, got, want)
+			}
+			if got, want := ch, test.ch; got != want {
+				t.Errorf("c.lookupChannel(%q, %q) = node %v, want %v", test.gk, test.ck, got, want)
+			}
+		})
 	}
 }
 
@@ -154,7 +169,7 @@ func TestCreateChannel(t *testing.T) {
 		},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.CreateChannelRequest
@@ -270,7 +285,7 @@ func TestCreateNode(t *testing.T) {
 		},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.CreateNodeRequest
@@ -371,7 +386,7 @@ func TestConnectPin(t *testing.T) {
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.ConnectPinRequest
@@ -474,7 +489,7 @@ func TestDeleteChannel(t *testing.T) {
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.DeleteChannelRequest
@@ -543,7 +558,7 @@ func TestDeleteNode(t *testing.T) {
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.DeleteNodeRequest
@@ -620,7 +635,7 @@ func TestDisconnectPin(t *testing.T) {
 		Nodes:    map[string]*model.Node{"baz": baz},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.DisconnectPinRequest
@@ -682,8 +697,8 @@ func TestSave(t *testing.T) {
 func TestSetGraphProperties(t *testing.T) {
 	foo := &model.Graph{Name: "foo"}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{
-			"foo": foo,
+		loadedGraphs: map[string]*serveGraph{
+			"foo": {Graph: foo},
 		},
 	}
 	tests := []struct {
@@ -734,7 +749,7 @@ func TestSetNodeProperties(t *testing.T) {
 		},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.SetNodePropertiesRequest
@@ -831,7 +846,7 @@ func TestSetPosition(t *testing.T) {
 		Nodes: map[string]*model.Node{"bar": bar},
 	}
 	c := &server{
-		loadedGraphs: map[string]*model.Graph{"foo": foo},
+		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
 		req  *pb.SetPositionRequest

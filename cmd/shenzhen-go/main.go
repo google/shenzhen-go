@@ -42,7 +42,7 @@ func open(url string) error {
 	case "darwin":
 		return exec.Command("open", url).Run()
 	case "linux":
-		// TODO: Just guessing, fix later.
+		// Seems to work on Linux Mint. YMMV.
 		return exec.Command("xdg-open", url).Run()
 	case "windows":
 		return exec.Command("cmd.exe", "/C", "start", url).Run()

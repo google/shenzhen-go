@@ -107,7 +107,9 @@ func (c *Channel) reallyCreate() {
 	}
 	if _, err := c.View.Client.CreateChannel(context.Background(), req); err != nil {
 		c.View.Diagram.setError("Couldn't create a channel: "+err.Error(), 0, 0)
+		return
 	}
+	c.created = true
 }
 
 func (c *Channel) makeElements() {

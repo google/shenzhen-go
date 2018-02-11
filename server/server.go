@@ -18,6 +18,9 @@ package server
 import (
 	"sync"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/google/shenzhen-go/model"
 )
 
@@ -31,6 +34,30 @@ type serveGraph struct {
 	sync.Mutex
 }
 
+func (g *serveGraph) lookupChannel(channel string) (*model.Channel, error) {
+	ch := g.Channels[channel]
+	if ch == nil {
+		return nil, status.Errorf(codes.NotFound, "no such channel %q", channel)
+	}
+	return ch, nil
+}
+
+func (g *serveGraph) lookupNode(node string) (*model.Node, error) {
+	n := g.Nodes[node]
+	if n == nil {
+		return nil, status.Errorf(codes.NotFound, "no such node %q", node)
+	}
+	return n, nil
+}
+
 type server struct {
 	loadedGraphs map[string]*serveGraph
+}
+
+func (c *server) lookupGraph(graph string) (*serveGraph, error) {
+	g := c.loadedGraphs[graph]
+	if g == nil {
+		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", graph)
+	}
+	return g, nil
 }

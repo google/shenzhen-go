@@ -15,44 +15,13 @@
 package server
 
 import (
-	"github.com/google/shenzhen-go/model"
-	pb "github.com/google/shenzhen-go/proto/go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/google/shenzhen-go/model"
+	pb "github.com/google/shenzhen-go/proto/go"
 )
-
-func (c *server) lookupGraph(graph string) (*serveGraph, error) {
-	g := c.loadedGraphs[graph]
-	if g == nil {
-		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", graph)
-	}
-	return g, nil
-}
-
-func (c *server) lookupChannel(graph, channel string) (*serveGraph, *model.Channel, error) {
-	g, err := c.lookupGraph(graph)
-	if err != nil {
-		return nil, nil, err
-	}
-	ch := g.Channels[channel]
-	if ch == nil {
-		return nil, nil, status.Errorf(codes.NotFound, "no such channel %q", channel)
-	}
-	return g, ch, nil
-}
-
-func (c *server) lookupNode(graph, node string) (*serveGraph, *model.Node, error) {
-	g, err := c.lookupGraph(graph)
-	if err != nil {
-		return nil, nil, err
-	}
-	n := g.Nodes[node]
-	if n == nil {
-		return nil, nil, status.Errorf(codes.NotFound, "no such node %q", node)
-	}
-	return g, n, nil
-}
 
 func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
 	g, err := c.lookupGraph(req.Graph)
@@ -62,11 +31,11 @@ func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest
 	g.Lock()
 	defer g.Unlock()
 
-	_, n1, err := c.lookupNode(req.Graph, req.Node1)
+	n1, err := g.lookupNode(req.Node1)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	_, n2, err := c.lookupNode(req.Graph, req.Node2)
+	n2, err := g.lookupNode(req.Node2)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -135,14 +104,18 @@ func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb
 }
 
 func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
-	g, n, err := c.lookupNode(req.Graph, req.Node)
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
 
-	_, ch, err := c.lookupChannel(req.Graph, req.Channel)
+	n, err := g.lookupNode(req.Node)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	ch, err := g.lookupChannel(req.Channel)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
@@ -159,23 +132,31 @@ func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb
 }
 
 func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
-	g, ch, err := c.lookupChannel(req.Graph, req.Channel)
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
+	ch, err := g.lookupChannel(req.Channel)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
 	g.DeleteChannel(ch)
 	return &pb.Empty{}, nil
 }
 
 func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
-	g, n, err := c.lookupNode(req.Graph, req.Node)
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
+	n, err := g.lookupNode(req.Node)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
 	delete(g.Nodes, req.Node)
 	// Also clean up channel connections...
 	for p, cn := range n.Connections {
@@ -196,12 +177,16 @@ func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb
 }
 
 func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
-	g, n, err := c.lookupNode(req.Graph, req.Node)
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
+	n, err := g.lookupNode(req.Node)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
 	cn, found := n.Connections[req.Pin]
 	if !found {
 		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
@@ -239,12 +224,16 @@ func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropert
 }
 
 func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
-	g, n, err := c.lookupNode(req.Graph, req.Node)
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
+	n, err := g.lookupNode(req.Node)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
 	p, err := (&model.PartJSON{
 		Part: req.Props.PartCfg,
 		Type: req.Props.PartType,
@@ -269,12 +258,16 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 }
 
 func (c *server) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
-	g, n, err := c.lookupNode(req.Graph, req.Node)
+	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
+	n, err := g.lookupNode(req.Node)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
 	n.X, n.Y = req.X, req.Y
 	return &pb.Empty{}, nil
 }

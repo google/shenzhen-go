@@ -122,46 +122,48 @@ func (n *Node) loseFocus(e jsutil.Object) {
 }
 
 func (n *Node) save(e jsutil.Object) {
-	go func() {
-		pj, err := model.MarshalPart(n.Part)
-		if err != nil {
-			n.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
-			return
-		}
-		props := &pb.NodeConfig{
-			Name:         n.View.nodeNameInput.Get("value").String(),
-			Enabled:      n.View.nodeEnabledInput.Get("checked").Bool(),
-			Multiplicity: uint32(n.View.nodeMultiplicityInput.Get("value").Int()),
-			Wait:         n.View.nodeWaitInput.Get("checked").Bool(),
-			PartCfg:      pj.Part,
-			PartType:     pj.Type,
-			X:            n.X,
-			Y:            n.Y,
-		}
-		req := &pb.SetNodePropertiesRequest{
-			Graph: n.View.Graph.FilePath,
-			Node:  n.Node.Name,
-			Props: props,
-		}
-		if _, err := n.View.Client.SetNodeProperties(context.Background(), req); err != nil {
-			n.View.Diagram.setError("Couldn't update node properties: "+err.Error(), 0, 0)
-			return
-		}
-		// Update local copy, since these were read at save time.
-		// TODO: check whether the available pins have changed.
-		if n.Name != props.Name {
-			delete(n.View.Graph.Nodes, n.Name)
-			n.View.Graph.Nodes[props.Name] = n
-			n.Name = props.Name // TODO: simplify view-model
-			n.Node.Name = props.Name
+	go n.reallySave(e)
+}
 
-			n.box.setText(props.Name)
-			n.updatePinPositions()
-		}
-		n.Node.Enabled = props.Enabled
-		n.Node.Multiplicity = uint(props.Multiplicity)
-		n.Node.Wait = props.Wait
-	}()
+func (n *Node) reallySave(e jsutil.Object) {
+	pj, err := model.MarshalPart(n.Part)
+	if err != nil {
+		n.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
+		return
+	}
+	props := &pb.NodeConfig{
+		Name:         n.View.nodeNameInput.Get("value").String(),
+		Enabled:      n.View.nodeEnabledInput.Get("checked").Bool(),
+		Multiplicity: uint32(n.View.nodeMultiplicityInput.Get("value").Int()),
+		Wait:         n.View.nodeWaitInput.Get("checked").Bool(),
+		PartCfg:      pj.Part,
+		PartType:     pj.Type,
+		X:            n.X,
+		Y:            n.Y,
+	}
+	req := &pb.SetNodePropertiesRequest{
+		Graph: n.View.Graph.FilePath,
+		Node:  n.Node.Name,
+		Props: props,
+	}
+	if _, err := n.View.Client.SetNodeProperties(context.Background(), req); err != nil {
+		n.View.Diagram.setError("Couldn't update node properties: "+err.Error(), 0, 0)
+		return
+	}
+	// Update local copy, since these were read at save time.
+	// TODO: check whether the available pins have changed.
+	if n.Name != props.Name {
+		delete(n.View.Graph.Nodes, n.Name)
+		n.View.Graph.Nodes[props.Name] = n
+		n.Name = props.Name // TODO: simplify view-model
+		n.Node.Name = props.Name
+
+		n.box.setText(props.Name)
+		n.updatePinPositions()
+	}
+	n.Node.Enabled = props.Enabled
+	n.Node.Multiplicity = uint(props.Multiplicity)
+	n.Node.Wait = props.Wait
 }
 
 func (n *Node) delete(jsutil.Object) {

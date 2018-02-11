@@ -148,6 +148,7 @@ func (n *Node) save(e jsutil.Object) {
 			return
 		}
 		// Update local copy, since these were read at save time.
+		// TODO: check whether the available pins have changed.
 		if n.Name != props.Name {
 			delete(n.View.Graph.Nodes, n.Name)
 			n.View.Graph.Nodes[props.Name] = n

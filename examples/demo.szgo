@@ -12,7 +12,7 @@
 					""
 				],
 				"body": [
-					"fmt.Println(\"blah\")"
+					"fmt.Println(\"Node 1\")"
 				],
 				"tail": [
 					""
@@ -48,8 +48,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 140,
-			"y": 101,
+			"x": 189,
+			"y": 104,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
@@ -68,7 +68,7 @@
 					""
 				],
 				"body": [
-					"fmt.Println(\"blah\")"
+					"fmt.Println(\"Node 2\")"
 				],
 				"tail": [
 					""
@@ -104,8 +104,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 129,
-			"y": 235,
+			"x": 197,
+			"y": 290,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",

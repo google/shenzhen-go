@@ -30,10 +30,8 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
 	_, reload := r.URL.Query()["reload"]
-	if g, ok := c.loadedGraphs[r.URL.Path]; ok && !reload {
-		g.Lock()
-		defer g.Unlock()
-		Graph(g.Graph, w, r)
+	if g, err := c.lookupGraph(r.URL.Path); err == nil && !reload {
+		renderGraph(g, w, r)
 		return
 	}
 
@@ -58,8 +56,13 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
 			return
 		}
-		c.loadedGraphs[r.URL.Path] = &serveGraph{Graph: g}
-		Graph(g, w, r)
+		sg, err := c.createGraph(r.URL.Path, g)
+		if err != nil {
+			log.Printf("Graph already created in server: %v", err)
+			http.ServeContent(w, r, f.Name(), fi.ModTime(), f)
+			return
+		}
+		renderGraph(sg, w, r)
 		return
 	}
 
@@ -76,8 +79,10 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Guessing a package path: %v", err)
 		}
-		c.loadedGraphs[path] = &serveGraph{Graph: model.NewGraph(nfp, path, pkgp)}
-		http.Redirect(w, r, path+"?props", http.StatusSeeOther)
+		if _, err := c.createGraph(path, model.NewGraph(nfp, path, pkgp)); err != nil {
+			log.Printf("Graph already created in server: %v", err)
+		}
+		http.Redirect(w, r, path, http.StatusSeeOther)
 		return
 	}
 

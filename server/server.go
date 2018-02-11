@@ -29,6 +29,32 @@ var S = &server{
 	loadedGraphs: make(map[string]*serveGraph),
 }
 
+type server struct {
+	loadedGraphs map[string]*serveGraph
+	sync.Mutex
+}
+
+func (c *server) lookupGraph(key string) (*serveGraph, error) {
+	c.Lock()
+	defer c.Unlock()
+	g := c.loadedGraphs[key]
+	if g == nil {
+		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", key)
+	}
+	return g, nil
+}
+
+func (c *server) createGraph(key string, graph *model.Graph) (*serveGraph, error) {
+	c.Lock()
+	defer c.Unlock()
+	if c.loadedGraphs[key] != nil {
+		return nil, status.Errorf(codes.NotFound, "graph %q already created", key)
+	}
+	sg := &serveGraph{Graph: graph}
+	c.loadedGraphs[key] = sg
+	return sg, nil
+}
+
 type serveGraph struct {
 	*model.Graph
 	sync.Mutex
@@ -48,16 +74,4 @@ func (g *serveGraph) lookupNode(node string) (*model.Node, error) {
 		return nil, status.Errorf(codes.NotFound, "no such node %q", node)
 	}
 	return n, nil
-}
-
-type server struct {
-	loadedGraphs map[string]*serveGraph
-}
-
-func (c *server) lookupGraph(graph string) (*serveGraph, error) {
-	g := c.loadedGraphs[graph]
-	if g == nil {
-		return nil, status.Errorf(codes.NotFound, "graph %q not loaded", graph)
-	}
-	return g, nil
 }

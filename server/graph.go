@@ -200,9 +200,12 @@ func Run(g *model.Graph, stdout, stderr io.Writer) error {
 }
 
 // Graph handles displaying/editing a graph.
-func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
+func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s graph: %s", r.Method, r.URL)
 	q := r.URL.Query()
+
+	g.Lock()
+	defer g.Unlock()
 
 	if _, t := q["up"]; t {
 		d := filepath.Dir(g.FilePath)
@@ -210,19 +213,19 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, t := q["go"]; t {
-		outputGoSrc(g, w)
+		outputGoSrc(g.Graph, w)
 		return
 	}
 	if _, t := q["rawgo"]; t {
-		outputRawGoSrc(g, w)
+		outputRawGoSrc(g.Graph, w)
 		return
 	}
 	if _, t := q["json"]; t {
-		outputJSON(g, w)
+		outputJSON(g.Graph, w)
 		return
 	}
 	if _, t := q["build"]; t {
-		if err := Build(g); err != nil {
+		if err := Build(g.Graph); err != nil {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building:\n%v", err)
@@ -234,7 +237,7 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, t := q["install"]; t {
-		if err := Install(g); err != nil {
+		if err := Install(g.Graph); err != nil {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error installing:\n%v", err)
@@ -247,22 +250,22 @@ func Graph(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 	}
 	if _, t := q["run"]; t {
 		w.Header().Set("Content-Type", "text/plain")
-		if err := Run(g, w, w); err != nil {
+		if err := Run(g.Graph, w, w); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building or running:\n%v", err)
 		}
 		return
 	}
 	if n := q.Get("channel"); n != "" {
-		handleChannelRequest(g, n, w, r)
+		handleChannelRequest(g.Graph, n, w, r)
 		return
 	}
 	switch r.Method {
 	case "POST":
-		handlePropsPost(g, w, r)
-		view.Graph(w, g)
+		handlePropsPost(g.Graph, w, r)
+		view.Graph(w, g.Graph)
 	case "GET":
-		view.Graph(w, g)
+		view.Graph(w, g.Graph)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Unsupported verb %q", r.Method)

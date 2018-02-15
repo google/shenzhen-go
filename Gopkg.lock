@@ -15,12 +15,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/gopherjs/gopherjs"
-  packages = ["js"]
-  revision = "3926a9f66452f7a8c8d9c0e4e3074383f9aff5cd"
-
-[[projects]]
-  branch = "master"
   name = "github.com/gopherjs/websocket"
   packages = ["websocketjs"]
   revision = "87ee47603f137e7f8419765b3621b3c36e715a08"
@@ -140,6 +134,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a2a608be1097443d6abd03ae477838d71af3ef45bdc2a6d7092c0852b7c9529e"
+  inputs-digest = "afcaeee5a06950f1931ceb8b5504bee3f38ab4838dd6bd996e5182df3787ccfa"
   solver-name = "gps-cdcl"
   solver-version = 1

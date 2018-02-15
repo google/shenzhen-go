@@ -24,12 +24,13 @@
 #   go-tests = true
 #   unused-packages = true
 
+ignored = ["github.com/gopherjs/gopherjs/js"]
 
 [[constraint]]
   name = "github.com/golang/protobuf"
   version = "1.0.0"
 
-[[constraint]]
+[[override]]
   branch = "master"
   name = "github.com/gopherjs/gopherjs"
 

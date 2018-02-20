@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
-go test -race github.com/google/shenzhen-go/client/view \
-  github.com/google/shenzhen-go/model \
-  github.com/google/shenzhen-go/server \
-  github.com/google/shenzhen-go/server/view \
-  github.com/google/shenzhen-go/source 
+go test github.com/google/shenzhen-go/dev/client/view \
+  github.com/google/shenzhen-go/dev/model \
+  github.com/google/shenzhen-go/dev/server \
+  github.com/google/shenzhen-go/dev/server/view \
+  github.com/google/shenzhen-go/dev/source 
 exit 0

@@ -18,7 +18,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/google/shenzhen-go/source"
+	"github.com/google/shenzhen-go/v0/source"
 )
 
 // This is a template for constructing new types of parts.

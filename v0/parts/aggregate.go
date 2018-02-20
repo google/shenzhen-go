@@ -21,7 +21,7 @@ import (
 	"net/http"
 	text "text/template"
 
-	"github.com/google/shenzhen-go/source"
+	"github.com/google/shenzhen-go/v0/source"
 )
 
 const (

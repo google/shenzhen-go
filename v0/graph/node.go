@@ -20,8 +20,8 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/google/shenzhen-go/parts"
-	"github.com/google/shenzhen-go/source"
+	"github.com/google/shenzhen-go/v0/parts"
+	"github.com/google/shenzhen-go/v0/source"
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be

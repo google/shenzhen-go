@@ -23,7 +23,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/google/shenzhen-go/graph"
+	"github.com/google/shenzhen-go/v0/graph"
 )
 
 // TODO: Replace these cobbled-together UIs with Polymer or something.

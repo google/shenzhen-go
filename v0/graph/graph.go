@@ -28,7 +28,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/shenzhen-go/source"
+	"github.com/google/shenzhen-go/v0/source"
 )
 
 // Channel models a channel. It can be marshalled and unmarshalled to JSON sensibly.

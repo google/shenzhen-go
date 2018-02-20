@@ -18,9 +18,15 @@ Read more at https://google.github.io/shenzhen-go.
 
 ![Example Graph](example_graph2.png)
 
+## Versions
+
+There are currently TWO versions of Shenzhen Go. The original Graphviz-based
+prototype is "v0", and mostly works. The second version, "v1", is not ready yet,
+so for now it lives in the "dev" directory.
+
 ## Dependencies
 
-SHENZHEN GO requires:
+Shenzhen Go (v0) requires:
 
 *   [Go 1.7+](https://golang.org/)
 *   [Graphviz](http://graphviz.org/)
@@ -35,7 +41,7 @@ is not necessary to set it (but you can change it to override the default if you
 
 To install, open a terminal and run:
 
-    go get -u github.com/google/shenzhen-go/cmd/shenzhen-go
+    go get -u github.com/google/shenzhen-go/v0/cmd/shenzhen-go
 
 This should create the `shenzhen-go` binary in your `$GOPATH/bin` directory.
 Run it:

@@ -22,9 +22,10 @@ import (
 	"math"
 	"strings"
 
+	"github.com/gopherjs/gopherjs/js"
+
 	"github.com/google/shenzhen-go/dev/jsutil"
 	"github.com/google/shenzhen-go/dev/model/pin"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 const (

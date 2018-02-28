@@ -26,11 +26,12 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"google.golang.org/grpc"
+
 	pb "github.com/google/shenzhen-go/dev/proto/go"
 	"github.com/google/shenzhen-go/dev/server"
 	"github.com/google/shenzhen-go/dev/server/view"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
-	"google.golang.org/grpc"
 )
 
 const pingMsg = "Pong!"

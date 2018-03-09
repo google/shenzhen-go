@@ -158,12 +158,12 @@ func (g *Graph) refresh() {
 	}
 
 	// Remove any channels that no longer exist.
-	for k := range g.Channels {
+	for k, c := range g.Channels {
 		if _, found := g.Graph.Channels[k]; found {
 			continue
 		}
 		// Remove this channel.
-		// TODO: c.removeElements()
+		c.unmakeElements()
 		delete(g.Channels, k)
 	}
 
@@ -186,12 +186,12 @@ func (g *Graph) refresh() {
 	}
 
 	// Remove any nodes that no longer exist.
-	for k := range g.Nodes {
+	for k, n := range g.Nodes {
 		if _, found := g.Graph.Nodes[k]; found {
 			continue
 		}
 		// Remove this channel.
-		// TODO: n.removeElements()
+		n.unmakeElements()
 		delete(g.Nodes, k)
 	}
 

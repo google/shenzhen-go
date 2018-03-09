@@ -314,5 +314,5 @@ func (p *Pin) makeElements(n *Node) jsutil.Element {
 
 func (p *Pin) unmakeElements() {
 	p.node.View.Diagram.RemoveChildren(p.l, p.c)
-	p.node.box.RemoveChildren(p.nametag)
+	p.nametag.unmakeElements()
 }

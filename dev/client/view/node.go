@@ -66,6 +66,11 @@ func (n *Node) makeElements() {
 	n.updatePinPositions()
 }
 
+func (n *Node) unmakeElements() {
+	n.box.unmakeElements()
+	n.box = nil
+}
+
 func (n *Node) mouseDown(e jsutil.Object) {
 	n.View.Diagram.dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y

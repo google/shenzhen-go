@@ -94,6 +94,6 @@ func (b *textBox) computeWidth() *textBox {
 	return b
 }
 
-func (b *textBox) removeElements() {
+func (b *textBox) unmakeElements() {
 	b.Parent().RemoveChildren(b.Element)
 }

@@ -46,6 +46,9 @@ type Element interface {
 
 	// Display sets the display attribute of the style to the given value, returning the element for chaining.
 	Display(string) Element
+
+	// Parent returns the parent element.
+	Parent() Element
 }
 
 type element struct {
@@ -99,4 +102,8 @@ func (e element) Hide() Element { return e.Display("none") }
 func (e element) Display(style string) Element {
 	e.Get("style").Set("display", style)
 	return e
+}
+
+func (e element) Parent() Element {
+	return WrapElement(e.Get("parentElement"))
 }

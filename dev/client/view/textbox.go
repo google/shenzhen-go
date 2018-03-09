@@ -93,3 +93,7 @@ func (b *textBox) computeWidth() *textBox {
 	b.text.SetAttribute("x", b.width/2)
 	return b
 }
+
+func (b *textBox) removeElements() {
+	b.Parent().RemoveChildren(b.Element)
+}

@@ -113,6 +113,7 @@ type FakeElement struct {
 	Attributes     map[string]interface{}
 	Children       []*FakeElement
 	EventListeners map[string][]func(Object)
+	parent         *FakeElement
 }
 
 // MakeFakeElement makes a fake element.
@@ -148,6 +149,7 @@ func (e *FakeElement) AddChildren(children ...Element) Element {
 	for _, c := range children {
 		if d, ok := c.(*FakeElement); ok {
 			e.Children = append(e.Children, d)
+			d.parent = e
 		}
 	}
 	return e
@@ -164,6 +166,7 @@ outer:
 	for _, c := range e.Children {
 		for _, x := range children {
 			if c == x {
+				c.parent = nil
 				continue outer
 			}
 		}
@@ -194,6 +197,11 @@ func (e *FakeElement) Display(style string) Element {
 	return e.SetAttribute("display", style)
 }
 
+// Parent returns the parent element.
+func (e *FakeElement) Parent() Element {
+	return e.parent
+}
+
 // FakeDocument implements a fake Document.
 type FakeDocument struct {
 	FakeElement
@@ -201,20 +209,24 @@ type FakeDocument struct {
 
 // MakeFakeDocument makes a fake document.
 func MakeFakeDocument() *FakeDocument {
-	return &FakeDocument{
+	d := &FakeDocument{
 		FakeElement: *MakeFakeElement("document", XHTMLNamespaceURI),
 	}
+	d.AddChildren(&FakeElement{
+		Class: "body",
+	})
+	return d
 }
 
 // ElementByID searches the fake document for a matching element.
 func (d *FakeDocument) ElementByID(id string) Element {
-	stack := []*FakeElement{&d.FakeElement}
-	for len(stack) > 0 {
-		e := stack[0]
+	q := []*FakeElement{&d.FakeElement}
+	for len(q) > 0 {
+		e := q[0]
 		if e.ID() == id {
 			return e
 		}
-		stack = append(stack[1:], e.Children...)
+		q = append(q[1:], e.Children...)
 	}
 	return nil
 }

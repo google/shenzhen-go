@@ -9,7 +9,7 @@ TODO(josh): Validate on a fresh machine
 3.  Install C++ protobuf compiler
 4.  Install various commands:  
     1.  go get -u -v github.com/golang/dep/cmd/dep
-    2.  go get -u -v github.com/golang/protobuf
+    2.  go get -u -v github.com/golang/protobuf/protoc-gen-go
     3.  go get -u -v github.com/gopherjs/gopherjs
     4.  go get -u -v github.com/johanbrandhorst/protobuf/protoc-gen-gopherjs
 5.  go get -u -v github.com/google/shenzhen-go/...

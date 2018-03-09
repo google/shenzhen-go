@@ -15,8 +15,6 @@
 // The proto package exists to generate the proto stubs.
 package main
 
-//go:generate rm ./go/shenzhen-go.pb.go
-//go:generate rm ./js/shenzhen-go.pb.gopherjs.go
 //go:generate protoc -I. shenzhen-go.proto --go_out=plugins=grpc:./go --gopherjs_out=plugins=grpc:./js
 
 func main() {}

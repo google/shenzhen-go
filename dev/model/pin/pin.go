@@ -24,7 +24,7 @@ const (
 	Output Direction = "out"
 )
 
-// Definition describes the main properties of a pin
+// Definition describes the main properties of a pin.
 type Definition struct {
 	Name      string    `json:"-"`
 	Type      string    `json:"type"`

@@ -15,10 +15,10 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 
-	"encoding/json"
 	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )

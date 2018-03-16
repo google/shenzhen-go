@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The proto package exists to generate the proto stubs.
-package main
+// Package proto exists to generate the proto stubs.
+package proto
 
 //go:generate protoc -I. shenzhen-go.proto --go_out=plugins=grpc:./go --gopherjs_out=plugins=grpc:./js
-
-func main() {}

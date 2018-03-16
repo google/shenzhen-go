@@ -32,25 +32,30 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-var (
-	staticMap = map[string][]byte{
-		"fonts.css":     cssResources["css/fonts.css"],
-		"main.css":      cssResources["css/main.css"],
-		"client.js":     clientResources["client.js"],
-		"client.js.map": clientResources["client.js.map"],
+var staticMap = map[string][]byte{
+	"fonts/GoMedium-Italic.ttf":   gomediumitalic.TTF,
+	"fonts/Go-Italic.ttf":         goitalic.TTF,
+	"fonts/Go-Bold.ttf":           gobold.TTF,
+	"fonts/GoMedium.ttf":          gomedium.TTF,
+	"fonts/Go-BoldItalic.ttf":     gobolditalic.TTF,
+	"fonts/GoRegular.ttf":         goregular.TTF,
+	"fonts/GoMono-Bold.ttf":       gomonobold.TTF,
+	"fonts/GoMono.ttf":            gomono.TTF,
+	"fonts/GoMono-Italic.ttf":     gomonoitalic.TTF,
+	"fonts/GoMono-BoldItalic.ttf": gomonobolditalic.TTF,
+}
 
-		"fonts/GoMedium-Italic.ttf":   gomediumitalic.TTF,
-		"fonts/Go-Italic.ttf":         goitalic.TTF,
-		"fonts/Go-Bold.ttf":           gobold.TTF,
-		"fonts/GoMedium.ttf":          gomedium.TTF,
-		"fonts/Go-BoldItalic.ttf":     gobolditalic.TTF,
-		"fonts/GoRegular.ttf":         goregular.TTF,
-		"fonts/GoMono-Bold.ttf":       gomonobold.TTF,
-		"fonts/GoMono.ttf":            gomono.TTF,
-		"fonts/GoMono-Italic.ttf":     gomonoitalic.TTF,
-		"fonts/GoMono-BoldItalic.ttf": gomonobolditalic.TTF,
+func load(m map[string][]byte) {
+	for k, v := range m {
+		staticMap[k] = v
 	}
-)
+}
+
+func init() {
+	load(clientResources)
+	load(cssResources)
+	load(jsResources)
+}
 
 type staticHandler struct{}
 

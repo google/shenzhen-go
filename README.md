@@ -64,3 +64,7 @@ This is an experimental project - expect plenty of rough edges and bugs, and
 no support.
 
 For discussions, there is [a Google Group](https://groups.google.com/forum/#!forum/szgo) and [a Slack channel](https://gophers.slack.com/messages/shenzhen-go).
+
+## Acknowledgements
+
+The dev version embeds the [Ace](https://ace.c9.io/) code editor.

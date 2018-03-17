@@ -128,6 +128,7 @@ func (p *Pin) disconnect() {
 	if p.ch == nil {
 		return
 	}
+	go p.reallyDisconnect()
 	delete(p.ch.Pins, p)
 	p.ch.setColour(normalColour)
 	p.ch.reposition(nil)

@@ -15,6 +15,8 @@
 package view
 
 import (
+	"log"
+
 	"github.com/google/shenzhen-go/dev/jsutil"
 )
 
@@ -95,6 +97,7 @@ func (d *Diagram) setError(err string, x, y float64) {
 		return
 	}
 	d.AddChildren(d.errLabel.moveTo(x, y).setText(err).show()) // Re-add = Bring to front
+	log.Print(err)
 }
 
 func (d *Diagram) clearError() {

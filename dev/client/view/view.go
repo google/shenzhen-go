@@ -16,7 +16,7 @@
 package view
 
 import (
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
@@ -35,40 +35,40 @@ const (
 )
 
 type partEditor struct {
-	Links  jsutil.Element
-	Panels map[string]jsutil.Element
+	Links  dom.Element
+	Panels map[string]dom.Element
 }
 
 // View caches the top-level objects for managing the UI.
 type View struct {
-	jsutil.Document // Global document object
-	*Diagram        // The LHS panel
-	*Graph          // SVG elements in the LHS panel
+	dom.Document // Global document object
+	*Diagram     // The LHS panel
+	*Graph       // SVG elements in the LHS panel
 
 	Client pb.ShenzhenGoClient
 
 	// RHS panels
-	CurrentRHSPanel      jsutil.Element
-	GraphPropertiesPanel jsutil.Element
-	NodePropertiesPanel  jsutil.Element
+	CurrentRHSPanel      dom.Element
+	GraphPropertiesPanel dom.Element
+	NodePropertiesPanel  dom.Element
 
 	// Graph properties panel inputs
-	graphNameElement        jsutil.Element
-	graphPackagePathElement jsutil.Element
-	graphIsCommandElement   jsutil.Element
+	graphNameElement        dom.Element
+	graphPackagePathElement dom.Element
+	graphIsCommandElement   dom.Element
 
 	// Node properties subpanels and inputs
-	nodeMetadataSubpanel  jsutil.Element
-	nodeCurrentSubpanel   jsutil.Element
-	nodeNameInput         jsutil.Element
-	nodeEnabledInput      jsutil.Element
-	nodeMultiplicityInput jsutil.Element
-	nodeWaitInput         jsutil.Element
+	nodeMetadataSubpanel  dom.Element
+	nodeCurrentSubpanel   dom.Element
+	nodeNameInput         dom.Element
+	nodeEnabledInput      dom.Element
+	nodeMultiplicityInput dom.Element
+	nodeWaitInput         dom.Element
 	nodePartEditors       map[string]*partEditor
 }
 
 // Setup connects to elements in the DOM.
-func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSON string) error {
+func Setup(doc dom.Document, client pb.ShenzhenGoClient, filepath, initialJSON string) error {
 	v := &View{
 		Document: doc,
 		Client:   client,
@@ -117,14 +117,14 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 		AddEventListener("click", v.Diagram.deleteSelected)
 
 	doc.ElementByID("node-metadata-link").
-		AddEventListener("click", func(jsutil.Object) {
+		AddEventListener("click", func(dom.Object) {
 			v.Diagram.selectedItem.(*Node).showSubPanel(v.nodeMetadataSubpanel)
 		})
 
 	for n, t := range model.PartTypes {
 		doc.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(jsutil.Object) { v.Graph.createNode(n) })
-		p := make(map[string]jsutil.Element, len(t.Panels))
+			AddEventListener("click", func(dom.Object) { v.Graph.createNode(n) })
+		p := make(map[string]dom.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
 		}
@@ -138,7 +138,7 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 			p := p
 			doc.ElementByID("node-"+n+"-"+m+"-link").
 				AddEventListener("click",
-					func(jsutil.Object) {
+					func(dom.Object) {
 						v.Diagram.selectedItem.(*Node).showSubPanel(p)
 					})
 		}
@@ -148,7 +148,7 @@ func Setup(doc jsutil.Document, client pb.ShenzhenGoClient, filepath, initialJSO
 }
 
 // ShowRHSPanel hides any existing panel and shows the given element as the panel.
-func (v *View) ShowRHSPanel(p jsutil.Element) {
+func (v *View) ShowRHSPanel(p dom.Element) {
 	if p == v.CurrentRHSPanel {
 		return
 	}

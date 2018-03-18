@@ -17,7 +17,7 @@ package view
 import (
 	"fmt"
 
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 )
 
 const (
@@ -26,10 +26,10 @@ const (
 )
 
 type textBox struct {
-	jsutil.Element // group
+	dom.Element // group
 
 	View                 *View
-	rect, text, textNode jsutil.Element
+	rect, text, textNode dom.Element
 	width, minWidth      float64
 }
 

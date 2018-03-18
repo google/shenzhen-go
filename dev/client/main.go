@@ -21,7 +21,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 
 	"github.com/google/shenzhen-go/dev/client/view"
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
@@ -31,7 +31,7 @@ var (
 )
 
 func main() {
-	doc := jsutil.CurrentDocument()
+	doc := dom.CurrentDocument()
 	client := pb.NewShenzhenGoClient(apiURL)
 	initial := js.Global.Get("GraphJSON").String()
 	if err := view.Setup(doc, client, graphPath, initial); err != nil {

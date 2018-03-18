@@ -24,7 +24,7 @@ import (
 
 	"github.com/gopherjs/gopherjs/js"
 
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
@@ -35,9 +35,9 @@ const (
 )
 
 var (
-	ace = jsutil.WrapObject(js.Global.Get("ace"))
+	ace = dom.WrapObject(js.Global.Get("ace"))
 
-	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession jsutil.Object
+	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession dom.Object
 
 	focused *Code
 )
@@ -51,7 +51,7 @@ func init() {
 	codeTailSession = aceEdit("code-tail", aceGoMode, aceChromeTheme, (*Code).handleTailChange)
 }
 
-func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) jsutil.Object {
+func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) dom.Object {
 	r := ace.Call("edit", id)
 	if r == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
@@ -85,7 +85,7 @@ func (c *Code) handleHeadChange(*js.Object) { c.head = codeHeadSession.Call("get
 func (c *Code) handleBodyChange(*js.Object) { c.body = codeBodySession.Call("getValue").String() }
 func (c *Code) handleTailChange(*js.Object) { c.tail = codeTailSession.Call("getValue").String() }
 
-func (c *Code) GainFocus(jsutil.Object) {
+func (c *Code) GainFocus(dom.Object) {
 	focused = c
 	p, err := json.MarshalIndent(c.pins, "", "\t")
 	if err != nil {

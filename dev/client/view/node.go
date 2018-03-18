@@ -15,7 +15,7 @@
 package view
 
 import (
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 	"golang.org/x/net/context"
@@ -41,7 +41,7 @@ type Node struct {
 
 	relX, relY float64 // relative client offset for moving around
 
-	subpanel jsutil.Element // temporarily remember last subpanel for each node
+	subpanel dom.Element // temporarily remember last subpanel for each node
 }
 
 func max(a, b int) int {
@@ -71,7 +71,7 @@ func (n *Node) unmakeElements() {
 	n.box = nil
 }
 
-func (n *Node) mouseDown(e jsutil.Object) {
+func (n *Node) mouseDown(e dom.Object) {
 	n.View.Diagram.dragItem = n
 	n.relX, n.relY = e.Get("clientX").Float()-n.X, e.Get("clientY").Float()-n.Y
 
@@ -79,14 +79,14 @@ func (n *Node) mouseDown(e jsutil.Object) {
 	n.View.Diagram.AddChildren(n.box)
 }
 
-func (n *Node) drag(e jsutil.Object) {
+func (n *Node) drag(e dom.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 	n.box.moveTo(x, y)
 	n.X, n.Y = x, y
 	n.updatePinPositions()
 }
 
-func (n *Node) drop(e jsutil.Object) {
+func (n *Node) drop(e dom.Object) {
 	go func() { // cannot block in callback
 		x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 		req := &pb.SetPositionRequest{
@@ -102,10 +102,10 @@ func (n *Node) drop(e jsutil.Object) {
 }
 
 type focusable interface {
-	GainFocus(jsutil.Object)
+	GainFocus(dom.Object)
 }
 
-func (n *Node) gainFocus(e jsutil.Object) {
+func (n *Node) gainFocus(e dom.Object) {
 	n.box.rect.SetAttribute("style", nodeSelectedRectStyle)
 	n.View.nodeNameInput.Set("value", n.Node.Name)
 	n.View.nodeEnabledInput.Set("checked", n.Node.Enabled)
@@ -122,15 +122,15 @@ func (n *Node) gainFocus(e jsutil.Object) {
 	}
 }
 
-func (n *Node) loseFocus(e jsutil.Object) {
+func (n *Node) loseFocus(e dom.Object) {
 	n.box.rect.SetAttribute("style", nodeNormalRectStyle)
 }
 
-func (n *Node) save(e jsutil.Object) {
+func (n *Node) save(e dom.Object) {
 	go n.reallySave(e)
 }
 
-func (n *Node) reallySave(e jsutil.Object) {
+func (n *Node) reallySave(e dom.Object) {
 	pj, err := model.MarshalPart(n.Part)
 	if err != nil {
 		n.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
@@ -171,7 +171,7 @@ func (n *Node) reallySave(e jsutil.Object) {
 	n.Node.Wait = props.Wait
 }
 
-func (n *Node) delete(jsutil.Object) {
+func (n *Node) delete(dom.Object) {
 	go n.reallyDelete() // don't block handler
 }
 
@@ -210,7 +210,7 @@ func (n *Node) updatePinPositions() {
 	}
 }
 
-func (n *Node) showSubPanel(p jsutil.Element) {
+func (n *Node) showSubPanel(p dom.Element) {
 	n.subpanel = p
 	if n.View.nodeCurrentSubpanel == p {
 		return

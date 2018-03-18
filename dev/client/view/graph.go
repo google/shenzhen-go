@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
@@ -120,7 +120,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 	return quad, pt
 }
 
-func (g *Graph) save(jsutil.Object) {
+func (g *Graph) save(dom.Object) {
 	go func() { // cannot block in callback
 		if _, err := g.View.Client.Save(context.Background(), &pb.SaveRequest{Graph: g.FilePath}); err != nil {
 			g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
@@ -128,7 +128,7 @@ func (g *Graph) save(jsutil.Object) {
 	}()
 }
 
-func (g *Graph) saveProperties(jsutil.Object) {
+func (g *Graph) saveProperties(dom.Object) {
 	go func() { // cannot block in callback
 		req := &pb.SetGraphPropertiesRequest{
 			Graph:       g.FilePath,

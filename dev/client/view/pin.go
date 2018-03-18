@@ -17,7 +17,7 @@ package view
 import (
 	"errors"
 
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 	"golang.org/x/net/context"
 )
@@ -38,10 +38,10 @@ type Pin struct {
 
 	nametag *textBox // Hello, my name is ...
 
-	circ jsutil.Element // my main representation
-	l    jsutil.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
-	x, y float64        // computed, not relative to node
-	c    jsutil.Element // circle, when dragging from a pin
+	circ dom.Element // my main representation
+	l    dom.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
+	x, y float64     // computed, not relative to node
+	c    dom.Element // circle, when dragging from a pin
 }
 
 // Save time by checking whether a potential connection can succeeds.
@@ -173,7 +173,7 @@ func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
 func (p *Pin) String() string { return p.node.Name + "." + p.Name }
 
-func (p *Pin) dragStart(e jsutil.Object) {
+func (p *Pin) dragStart(e dom.Object) {
 	// If the pin is attached to something, detach and drag from that instead.
 	if ch := p.ch; ch != nil {
 		p.disconnect()
@@ -202,7 +202,7 @@ func (p *Pin) dragStart(e jsutil.Object) {
 		Show()
 }
 
-func (p *Pin) drag(e jsutil.Object) {
+func (p *Pin) drag(e dom.Object) {
 	x, y := p.node.View.Diagram.cursorPos(e)
 	defer func() {
 		p.l.SetAttribute("x2", x).SetAttribute("y2", y)
@@ -251,7 +251,7 @@ func (p *Pin) drag(e jsutil.Object) {
 	p.c.Hide()
 }
 
-func (p *Pin) drop(e jsutil.Object) {
+func (p *Pin) drop(e dom.Object) {
 	p.node.View.Diagram.clearError()
 	p.circ.SetAttribute("fill", normalColour)
 	p.c.Hide()
@@ -267,7 +267,7 @@ func (p *Pin) drop(e jsutil.Object) {
 	p.ch.commit()
 }
 
-func (p *Pin) mouseEnter(jsutil.Object) {
+func (p *Pin) mouseEnter(dom.Object) {
 	x, y := p.x-p.node.X, p.y-p.node.Y
 	if p.input {
 		y -= 38
@@ -278,11 +278,11 @@ func (p *Pin) mouseEnter(jsutil.Object) {
 	p.nametag.show()
 }
 
-func (p *Pin) mouseLeave(jsutil.Object) {
+func (p *Pin) mouseLeave(dom.Object) {
 	p.nametag.hide()
 }
 
-func (p *Pin) makeElements(n *Node) jsutil.Element {
+func (p *Pin) makeElements(n *Node) dom.Element {
 	p.node = n
 	p.circ = n.View.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).

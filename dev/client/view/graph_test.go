@@ -17,14 +17,14 @@ package view
 import (
 	"testing"
 
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
-	doc := jsutil.MakeFakeDocument()
+	doc := dom.MakeFakeDocument()
 	v := &View{Document: doc}
 	v.Diagram = &Diagram{
 		View:    v,

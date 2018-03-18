@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/shenzhen-go/dev/jsutil"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 	"golang.org/x/net/context"
@@ -40,11 +40,11 @@ type Channel struct {
 
 	created bool // create operation sent to server?
 
-	steiner jsutil.Element // symbol representing the channel itself, not used if channel is simple
-	x, y    float64        // centre of steiner point, for snapping
-	tx, ty  float64        // temporary centre of steiner point, for display
-	l, c    jsutil.Element // for dragging to more pins
-	p       *Pin           // considering attaching to this pin
+	steiner dom.Element // symbol representing the channel itself, not used if channel is simple
+	x, y    float64     // centre of steiner point, for snapping
+	tx, ty  float64     // temporary centre of steiner point, for display
+	l, c    dom.Element // for dragging to more pins
+	p       *Pin        // considering attaching to this pin
 }
 
 func (v *View) createChannel(p, q *Pin) *Channel {
@@ -145,7 +145,7 @@ func (c *Channel) commit() {
 	}
 }
 
-func (c *Channel) dragStart(e jsutil.Object) {
+func (c *Channel) dragStart(e dom.Object) {
 	c.View.Diagram.dragItem = c
 
 	// TODO: make it so that if the current configuration is invalid
@@ -170,7 +170,7 @@ func (c *Channel) dragStart(e jsutil.Object) {
 		Show()
 }
 
-func (c *Channel) drag(e jsutil.Object) {
+func (c *Channel) drag(e dom.Object) {
 	x, y := c.View.Diagram.cursorPos(e)
 	c.steiner.Show()
 	c.l.
@@ -229,7 +229,7 @@ func (c *Channel) drag(e jsutil.Object) {
 	c.c.Hide()
 }
 
-func (c *Channel) drop(e jsutil.Object) {
+func (c *Channel) drop(e dom.Object) {
 	c.View.Diagram.clearError()
 	c.reposition(nil)
 	c.commit()
@@ -245,19 +245,19 @@ func (c *Channel) drop(e jsutil.Object) {
 	}
 }
 
-func (c *Channel) gainFocus(e jsutil.Object) {
+func (c *Channel) gainFocus(e dom.Object) {
 	log.Print("TODO(josh): implement Channel.gainFocus")
 }
 
-func (c *Channel) loseFocus(e jsutil.Object) {
+func (c *Channel) loseFocus(e dom.Object) {
 	log.Print("TODO(josh): implement Channel.loseFocus")
 }
 
-func (c *Channel) save(e jsutil.Object) {
+func (c *Channel) save(e dom.Object) {
 	log.Print("TODO(josh): implement Channel.save")
 }
 
-func (c *Channel) delete(e jsutil.Object) {
+func (c *Channel) delete(e dom.Object) {
 	log.Print("TODO(josh): implement Channel.delete")
 }
 

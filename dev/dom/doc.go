@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package jsutil contains bits for making dealing with the DOM easier.
-package jsutil
+// Package dom contains bits for making dealing with the DOM easier.
+package dom

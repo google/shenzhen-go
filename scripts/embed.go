@@ -57,6 +57,7 @@ func main() {
 			i, err := ioutil.ReadFile(m)
 			if err != nil {
 				log.Printf("Cannot read input file: %v", err)
+				continue
 			}
 			fmt.Fprintf(w, "\t%q: []byte(%q),\n", m, string(i))
 		}

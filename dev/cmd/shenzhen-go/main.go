@@ -53,39 +53,41 @@ func open(url string) error {
 	}
 }
 
-// TODO: Implement this better.
+func isUp(base string) bool {
+	resp, err := http.Get(base + "ping")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	msg, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false
+	}
+	if string(msg) != pingMsg {
+		return false
+	}
+	if err := open(base); err != nil {
+		fmt.Fprintf(os.Stderr, "Couldn't automatically open: %v\n", err)
+		fmt.Printf("Ready to open %s\n", base)
+	}
+	return true
+}
+
 func openWhenUp(addr string) {
 	base := fmt.Sprintf(`http://%s/`, addr)
 	t := time.NewTicker(100 * time.Millisecond)
+	defer t.Stop()
 	for range t.C {
-		resp, err := http.Get(base + "ping")
-		if err != nil {
-			continue
+		if isUp(base) {
+			return
 		}
-		defer resp.Body.Close()
-		msg, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			continue
-		}
-		if string(msg) != pingMsg {
-			continue
-		}
-		if err := open(base); err != nil {
-			fmt.Fprintf(os.Stderr, "Couldn't automatically open: %v\n", err)
-			fmt.Printf("Ready to open %s\n", base)
-		}
-		t.Stop()
-		return
 	}
 }
 
 func main() {
 	flag.Parse()
 
-	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, pingMsg)
-	})
-
+	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(pingMsg)) })
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
 

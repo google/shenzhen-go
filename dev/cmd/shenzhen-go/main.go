@@ -63,14 +63,7 @@ func isUp(base string) bool {
 	if err != nil {
 		return false
 	}
-	if string(msg) != pingMsg {
-		return false
-	}
-	if err := open(base); err != nil {
-		fmt.Fprintf(os.Stderr, "Couldn't automatically open: %v\n", err)
-		fmt.Printf("Ready to open %s\n", base)
-	}
-	return true
+	return string(msg) == pingMsg
 }
 
 func openWhenUp(addr string) {
@@ -79,8 +72,12 @@ func openWhenUp(addr string) {
 	defer t.Stop()
 	for range t.C {
 		if isUp(base) {
-			return
+			break
 		}
+	}
+	if err := open(base); err != nil {
+		fmt.Fprintf(os.Stderr, "Couldn't automatically open: %v\n", err)
+		fmt.Printf("Ready to open %s\n", base)
 	}
 }
 

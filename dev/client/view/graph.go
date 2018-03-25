@@ -238,8 +238,7 @@ func (g *Graph) refresh() {
 		c.reposition(nil)
 		c.commit()
 		for p := range c.Pins {
-			p.l.SetAttribute("stroke", normalColour)
-			p.l.Show()
+			p.l.SetAttribute("stroke", normalColour).Show()
 		}
 	}
 }

@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"strings"
 
@@ -57,19 +58,12 @@ func LoadJSON(r io.Reader, filePath, urlPath string) (*Graph, error) {
 	// Each node and channel should cache it's own name.
 	for k, c := range g.Channels {
 		c.Name = k
-		c.Pins = make(map[NodePin]struct{})
 	}
 	for k, n := range g.Nodes {
 		n.Name = k
-		// Scan connections to cache them in channels.
-		for p, co := range n.Connections {
-			ch := g.Channels[co]
-			if ch == nil {
-				continue
-			}
-			ch.Pins[NodePin{Node: n.Name, Pin: p}] = struct{}{}
-		}
 	}
+	// Finally, set up channel pin caches.
+	g.RefreshChannelsPins()
 	return g, nil
 }
 
@@ -102,4 +96,29 @@ func (g *Graph) DeleteChannel(ch *Channel) {
 		g.Nodes[np.Node].Connections[np.Pin] = "nil"
 	}
 	delete(g.Channels, ch.Name)
+}
+
+// Check checks over the graph for any errors.
+func (g *Graph) Check() error {
+	// TODO: implement
+	return errors.New("not implemented")
+}
+
+// RefreshChannelsPins refreshes the Pins cache of all channels.
+// Use this when pin definitions might have changed.
+func (g *Graph) RefreshChannelsPins() {
+	// Reset all caches.
+	for _, ch := range g.Channels {
+		ch.Pins = make(map[NodePin]struct{})
+	}
+	// Add only those that now exist.
+	for _, n := range g.Nodes {
+		for p, co := range n.Connections {
+			ch := g.Channels[co]
+			if ch == nil {
+				continue
+			}
+			ch.Pins[NodePin{Node: n.Name, Pin: p}] = struct{}{}
+		}
+	}
 }

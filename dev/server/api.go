@@ -158,7 +158,7 @@ func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb
 		return &pb.Empty{}, err
 	}
 	delete(g.Nodes, req.Node)
-	// Also clean up channel connections...
+	// Also clean up channel connections.
 	for p, cn := range n.Connections {
 		if cn == "nil" {
 			continue
@@ -249,6 +249,7 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 		n.Name = req.Props.Name
 		g.Nodes[n.Name] = n
 	}
+	// TODO: update pins based on part
 	n.Multiplicity = uint(req.Props.Multiplicity)
 	n.Enabled = req.Props.Enabled
 	n.Wait = req.Props.Wait

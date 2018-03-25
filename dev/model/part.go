@@ -29,6 +29,8 @@ type Part interface {
 	// Clone returns a copy of this part.
 	Clone() interface{}
 
+	// TODO: Aspects supported by the part: multiplicity? variadic? generic?
+
 	// Impl returns Go source code implementing the part.
 	// The head is executed, then the body is executed (# Multiplicity
 	// instances of the body concurrently), then the tail (once the body/bodies

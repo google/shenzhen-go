@@ -160,15 +160,14 @@ func (n *Node) reallySave(e dom.Object) {
 	if n.Name != props.Name {
 		delete(n.View.Graph.Nodes, n.Name)
 		n.View.Graph.Nodes[props.Name] = n
-		n.Name = props.Name // TODO: simplify view-model
-		n.Node.Name = props.Name
+		n.Name = props.Name
 
 		n.box.setText(props.Name)
 		n.updatePinPositions()
 	}
-	n.Node.Enabled = props.Enabled
-	n.Node.Multiplicity = uint(props.Multiplicity)
-	n.Node.Wait = props.Wait
+	n.Enabled = props.Enabled
+	n.Multiplicity = uint(props.Multiplicity)
+	n.Wait = props.Wait
 }
 
 func (n *Node) delete(dom.Object) {
@@ -183,7 +182,7 @@ func (n *Node) reallyDelete() {
 	}
 	req := &pb.DeleteNodeRequest{
 		Graph: n.View.Graph.FilePath,
-		Node:  n.Node.Name,
+		Node:  n.Name,
 	}
 	if _, err := n.View.Client.DeleteNode(context.Background(), req); err != nil {
 		n.View.Diagram.setError("Couldn't delete: "+err.Error(), 0, 0)
@@ -194,6 +193,11 @@ func (n *Node) reallyDelete() {
 	for _, p := range n.AllPins {
 		p.unmakeElements()
 	}
+}
+
+func (n *Node) refresh() {
+	// TODO: implement
+	n.updatePinPositions()
 }
 
 func (n *Node) updatePinPositions() {

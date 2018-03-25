@@ -136,16 +136,22 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	n.Multiplicity = mp.Multiplicity
 	n.Part = p
 	n.X, n.Y = mp.X, mp.Y
+	n.Connections = mp.Connections
+	n.RefreshConnections()
+	return nil
+}
 
-	// Set connections, ensure only pins that exist are mapped.
-	pd := p.Pins()
-	n.Connections = make(map[string]string)
+// RefreshConnections filters n.Connections to ensure only pins defined by the
+// part are in the map, and any new ones are mapped to "nil".
+func (n *Node) RefreshConnections() {
+	pd := n.Pins()
+	conns := make(map[string]string)
 	for _, d := range pd {
-		c := mp.Connections[d.Name]
+		c := n.Connections[d.Name]
 		if c == "" {
 			c = "nil"
 		}
-		n.Connections[d.Name] = c
+		conns[d.Name] = c
 	}
-	return nil
+	n.Connections = conns
 }

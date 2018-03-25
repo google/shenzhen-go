@@ -234,6 +234,8 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 	if err != nil {
 		return &pb.Empty{}, err
 	}
+
+	// TODO: refactor; this is extremely similar to the file unmarshaling code...
 	p, err := (&model.PartJSON{
 		Part: req.Props.PartCfg,
 		Type: req.Props.PartType,
@@ -249,12 +251,13 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 		n.Name = req.Props.Name
 		g.Nodes[n.Name] = n
 	}
-	// TODO: update pins based on part
 	n.Multiplicity = uint(req.Props.Multiplicity)
 	n.Enabled = req.Props.Enabled
 	n.Wait = req.Props.Wait
 	n.Part = p
 	n.X, n.Y = req.Props.X, req.Props.Y
+	n.RefreshConnections()
+	g.RefreshChannelsPins() // Changing the part might have changed available pins.
 	return &pb.Empty{}, nil
 }
 

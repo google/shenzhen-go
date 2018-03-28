@@ -24,6 +24,17 @@ const (
 	Output Direction = "out"
 )
 
+// Type returns either "<-chan" or "chan<-" (input or output).
+func (d *Direction) Type() string {
+	switch *d {
+	case Input:
+		return "<-chan"
+	case Output:
+		return "chan<-"
+	}
+	return ""
+}
+
 // Definition describes the main properties of a pin.
 type Definition struct {
 	Name      string    `json:"-"`
@@ -33,11 +44,7 @@ type Definition struct {
 
 // FullType returns the full pin type, including the <-chan / chan<-.
 func (d *Definition) FullType() string {
-	c := "<-chan "
-	if d.Direction == Output {
-		c = "chan<- "
-	}
-	return c + d.Type
+	return d.Direction.Type() + " " + d.Type
 }
 
 // Map is a map from pin names to pin definitions.

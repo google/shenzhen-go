@@ -25,8 +25,8 @@ const (
 )
 
 // Type returns either "<-chan" or "chan<-" (input or output).
-func (d *Direction) Type() string {
-	switch *d {
+func (d Direction) Type() string {
+	switch d {
 	case Input:
 		return "<-chan"
 	case Output:

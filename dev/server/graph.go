@@ -311,7 +311,7 @@ func handlePropsPost(g *model.Graph, w http.ResponseWriter, r *http.Request) {
 
 func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
-	h.Set("Content-Type", "text/golang")
+	h.Set("Content-Type", "text/plain")
 	if err := WriteGoTo(w, g); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
@@ -320,7 +320,7 @@ func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
 
 func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
-	h.Set("Content-Type", "text/golang")
+	h.Set("Content-Type", "text/plain")
 	if err := WriteRawGoTo(w, g); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)

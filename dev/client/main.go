@@ -18,10 +18,14 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/gopherjs/gopherjs/js"
 
+	"github.com/google/shenzhen-go/dev/client/controller"
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"
+	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
@@ -34,7 +38,12 @@ func main() {
 	doc := dom.CurrentDocument()
 	client := pb.NewShenzhenGoClient(apiURL)
 	initial := js.Global.Get("GraphJSON").String()
-	if err := view.Setup(doc, client, graphPath, initial); err != nil {
+	g, err := model.LoadJSON(strings.NewReader(initial), graphPath, "")
+	if err != nil {
+		panic(err)
+	}
+	clr := controller.New(g, client)
+	if err := view.Setup(doc, client, clr); err != nil {
 		panic(err)
 	}
 }

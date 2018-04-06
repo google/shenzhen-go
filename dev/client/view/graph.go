@@ -17,87 +17,79 @@ package view
 import (
 	"math"
 	"strconv"
-	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
-	"golang.org/x/net/context"
 )
 
 // Graph is the view-model of a graph.
 type Graph struct {
 	*View
+	gc GraphController
 
 	*model.Graph
 	Nodes    map[string]*Node
 	Channels map[string]*Channel
 }
 
-func (v *View) loadGraph(filepath, graphJSON string) error {
-	g, err := model.LoadJSON(strings.NewReader(graphJSON), filepath, "")
-	if err != nil {
-		return err
-	}
-
-	v.Graph = &Graph{View: v, Graph: g}
-	v.Graph.refresh()
-	return nil
+func (g *Graph) createNode(partType string) {
+	go g.reallyCreateNode(partType) // don't block in callback
 }
 
-func (g *Graph) createNode(partType string) {
-	go func() {
-		// Invent a reasonable unique name.
-		name := partType
-		i := 2
-		for {
-			if _, found := g.Nodes[name]; !found {
-				break
-			}
-			name = partType + " " + strconv.Itoa(i)
-			i++
-		}
-		pt := model.PartTypes[partType].New()
-		pm, err := model.MarshalPart(pt)
-		if err != nil {
-			g.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
-			return
-		}
+func (g *Graph) reallyCreateNode(partType string) {
+	// Invent a reasonable unique name.
+	name := partType
 
-		n := &Node{
-			View: g.View,
-			Node: &model.Node{
-				Name:         name,
-				Enabled:      true,
-				Wait:         true,
-				Multiplicity: 1,
-				Part:         pt,
-				X:            150,
-				Y:            150,
-			},
+	for i := 2; ; i++ {
+		if _, found := g.Nodes[name]; !found {
+			break
 		}
+		name = partType + " " + strconv.Itoa(i)
+	}
+	pt := model.PartTypes[partType].New()
+	pm, err := model.MarshalPart(pt)
+	if err != nil {
+		g.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
+		return
+	}
 
-		_, err = g.View.Client.CreateNode(context.Background(), &pb.CreateNodeRequest{
-			Graph: g.FilePath,
-			Props: &pb.NodeConfig{
-				Name:         n.Name,
-				Enabled:      n.Enabled,
-				Wait:         n.Wait,
-				Multiplicity: uint32(n.Multiplicity),
-				PartType:     partType,
-				PartCfg:      pm.Part,
-			},
-		})
-		if err != nil {
-			g.View.Diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
-			return
-		}
-		g.View.Diagram.clearError()
+	n := &Node{
+		View: g.View,
+		Node: &model.Node{
+			Name:         name,
+			Enabled:      true,
+			Wait:         true,
+			Multiplicity: 1,
+			Part:         pt,
+			// TODO: use a better initial position
+			X: 150,
+			Y: 150,
+		},
+	}
 
-		n.makeElements()
-		g.Nodes[name] = n
-	}()
+	_, err = g.View.Client.CreateNode(context.Background(), &pb.CreateNodeRequest{
+		Graph: g.FilePath,
+		Props: &pb.NodeConfig{
+			Name:         n.Name,
+			Enabled:      n.Enabled,
+			Wait:         n.Wait,
+			Multiplicity: uint32(n.Multiplicity),
+			PartType:     partType,
+			PartCfg:      pm.Part,
+		},
+	})
+	if err != nil {
+		g.View.Diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
+		return
+	}
+	g.View.Diagram.clearError()
+
+	n.makeElements()
+	g.Nodes[name] = n
 }
 
 func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
@@ -121,30 +113,34 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
 }
 
 func (g *Graph) save(dom.Object) {
-	go func() { // cannot block in callback
-		if _, err := g.View.Client.Save(context.Background(), &pb.SaveRequest{Graph: g.FilePath}); err != nil {
-			g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
-		}
-	}()
+	go g.reallySave() // cannot block in callback
+}
+
+func (g *Graph) reallySave() {
+	if err := g.gc.Save(context.TODO()); err != nil {
+		g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
+	}
 }
 
 func (g *Graph) saveProperties(dom.Object) {
-	go func() { // cannot block in callback
-		req := &pb.SetGraphPropertiesRequest{
-			Graph:       g.FilePath,
-			Name:        g.View.graphNameElement.Get("value").String(),
-			PackagePath: g.View.graphPackagePathElement.Get("value").String(),
-			IsCommand:   g.View.graphIsCommandElement.Get("checked").Bool(),
-		}
-		if _, err := g.View.Client.SetGraphProperties(context.Background(), req); err != nil {
-			g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
-			return
-		}
-		// And commit locally
-		g.Name = req.Name
-		g.PackagePath = req.PackagePath
-		g.IsCommand = req.IsCommand
-	}()
+	go g.reallySaveProperties() // cannot block in callback
+}
+
+func (g *Graph) reallySaveProperties() {
+	req := &pb.SetGraphPropertiesRequest{
+		Graph:       g.FilePath,
+		Name:        g.View.graphNameTextInput.Get("value").String(),
+		PackagePath: g.View.graphPackagePathTextInput.Get("value").String(),
+		IsCommand:   g.View.graphIsCommandCheckbox.Get("checked").Bool(),
+	}
+	if _, err := g.View.Client.SetGraphProperties(context.Background(), req); err != nil {
+		g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
+		return
+	}
+	// And commit locally
+	g.Name = req.Name
+	g.PackagePath = req.PackagePath
+	g.IsCommand = req.IsCommand
 }
 
 // refresh ensures the view model matches the model.

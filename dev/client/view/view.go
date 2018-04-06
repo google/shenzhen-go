@@ -53,9 +53,9 @@ type View struct {
 	NodePropertiesPanel  dom.Element
 
 	// Graph properties panel inputs
-	graphNameElement        dom.Element
-	graphPackagePathElement dom.Element
-	graphIsCommandElement   dom.Element
+	graphNameTextInput        dom.Element
+	graphPackagePathTextInput dom.Element
+	graphIsCommandCheckbox    dom.Element
 
 	// Node properties subpanels and inputs
 	nodeMetadataSubpanel  dom.Element
@@ -68,18 +68,19 @@ type View struct {
 }
 
 // Setup connects to elements in the DOM.
-func Setup(doc dom.Document, client pb.ShenzhenGoClient, filepath, initialJSON string) error {
+func Setup(doc dom.Document, client pb.ShenzhenGoClient, clr Controller) error {
 	v := &View{
 		Document: doc,
 		Client:   client,
+		Graph:    &Graph{Graph: clr.GraphController().Graph()},
 
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),
 		CurrentRHSPanel:      doc.ElementByID("graph-properties"),
 
-		graphNameElement:        doc.ElementByID("graph-prop-name"),
-		graphPackagePathElement: doc.ElementByID("graph-prop-package-path"),
-		graphIsCommandElement:   doc.ElementByID("graph-prop-is-command"),
+		graphNameTextInput:        doc.ElementByID("graph-prop-name"),
+		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
+		graphIsCommandCheckbox:    doc.ElementByID("graph-prop-is-command"),
 
 		nodeMetadataSubpanel:  doc.ElementByID("node-metadata-panel"),
 		nodeCurrentSubpanel:   doc.ElementByID("node-metadata-panel"),
@@ -89,6 +90,7 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, filepath, initialJSON s
 		nodeWaitInput:         doc.ElementByID("node-wait"),
 		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
 	}
+	v.Graph.View = v
 
 	v.Diagram = &Diagram{
 		View:     v,
@@ -96,10 +98,7 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, filepath, initialJSON s
 		errLabel: v.newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32).hide(),
 	}
 	v.Diagram.AddChildren(v.errLabel)
-
-	if err := v.loadGraph(filepath, initialJSON); err != nil {
-		return err
-	}
+	v.Graph.refresh()
 
 	v.Diagram.
 		AddEventListener("mousedown", v.Diagram.mouseDown).
@@ -121,7 +120,7 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, filepath, initialJSON s
 			v.Diagram.selectedItem.(*Node).showSubPanel(v.nodeMetadataSubpanel)
 		})
 
-	for n, t := range model.PartTypes {
+	for n, t := range clr.PartTypes() {
 		doc.ElementByID("node-new-link:"+n).
 			AddEventListener("click", func(dom.Object) { v.Graph.createNode(n) })
 		p := make(map[string]dom.Element, len(t.Panels))

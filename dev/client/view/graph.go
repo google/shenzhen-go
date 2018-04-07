@@ -20,16 +20,14 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
 // Graph is the view-model of a graph.
 type Graph struct {
-	*View
-	gc GraphController
+	view *View
+	gc   GraphController
 
-	*model.Graph
 	Nodes    map[string]*Node
 	Channels map[string]*Channel
 }
@@ -41,14 +39,14 @@ func (g *Graph) createNode(partType string) {
 func (g *Graph) reallyCreateNode(partType string) {
 	node, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {
-		g.View.Diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
+		g.view.diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
 		return
 	}
-	g.View.Diagram.clearError()
+	g.view.diagram.clearError()
 
 	n := &Node{
-		View: g.View,
-		Node: node,
+		view: g.view,
+		node: node,
 	}
 	n.makeElements()
 	g.Nodes[node.Name] = n
@@ -80,7 +78,7 @@ func (g *Graph) save(dom.Object) {
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {
-		g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
+		g.view.diagram.setError("Couldn't save: "+err.Error(), 0, 0)
 	}
 }
 
@@ -90,7 +88,7 @@ func (g *Graph) saveProperties(dom.Object) {
 
 func (g *Graph) reallySaveProperties() {
 	if err := g.gc.SaveProperties(context.TODO()); err != nil {
-		g.View.Diagram.setError("Couldn't save properties: "+err.Error(), 0, 0)
+		g.view.diagram.setError("Couldn't save properties: "+err.Error(), 0, 0)
 	}
 }
 
@@ -98,15 +96,15 @@ func (g *Graph) reallySaveProperties() {
 func (g *Graph) refresh() {
 	// Ensure data structures are set up
 	if g.Channels == nil {
-		g.Channels = make(map[string]*Channel, len(g.Graph.Channels))
+		g.Channels = make(map[string]*Channel, len(g.gc.Graph().Channels))
 	}
 	if g.Nodes == nil {
-		g.Nodes = make(map[string]*Node, len(g.Graph.Nodes))
+		g.Nodes = make(map[string]*Node, len(g.gc.Graph().Nodes))
 	}
 
 	// Remove any channels that no longer exist.
 	for k, c := range g.Channels {
-		if _, found := g.Graph.Channels[k]; found {
+		if _, found := g.gc.Graph().Channels[k]; found {
 			continue
 		}
 		// Remove this channel.
@@ -116,15 +114,15 @@ func (g *Graph) refresh() {
 
 	// Add any channels that didn't exist but now do.
 	// Refresh any existing channels.
-	for k, c := range g.Graph.Channels {
+	for k, c := range g.gc.Graph().Channels {
 		if _, found := g.Channels[k]; found {
 			// TODO: ch.refresh()
 			continue
 		}
 		// Add the channel.
 		ch := &Channel{
-			View:    g.View,
-			Channel: c,
+			view:    g.view,
+			channel: c,
 			Pins:    make(map[*Pin]struct{}),
 			created: true,
 		}
@@ -134,7 +132,7 @@ func (g *Graph) refresh() {
 
 	// Remove any nodes that no longer exist.
 	for k, n := range g.Nodes {
-		if _, found := g.Graph.Nodes[k]; found {
+		if _, found := g.gc.Graph().Nodes[k]; found {
 			continue
 		}
 		// Remove this channel.
@@ -144,14 +142,14 @@ func (g *Graph) refresh() {
 
 	// Add any nodes that didn't exist but now do.
 	// Refresh existing nodes.
-	for k, n := range g.Graph.Nodes {
+	for k, n := range g.gc.Graph().Nodes {
 		if _, found := g.Nodes[k]; found {
 			// TODO: m.refresh()
 			continue
 		}
 		m := &Node{
-			View: g.View,
-			Node: n,
+			view: g.view,
+			node: n,
 		}
 		pd := n.Pins()
 		for _, p := range pd {

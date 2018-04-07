@@ -65,8 +65,8 @@ func (p *Pin) checkConnectionTo(q Point) error {
 		}
 
 	case *Channel:
-		if q.Type != p.Type {
-			return errors.New("mismatching types [" + p.Type + " != " + q.Type + "]")
+		if q.channel.Type != p.Type {
+			return errors.New("mismatching types [" + p.Type + " != " + q.channel.Type + "]")
 		}
 		same := true
 		for r := range q.Pins {
@@ -94,10 +94,10 @@ func (p *Pin) connectTo(q Point) {
 		}
 
 		// Create a new channel to connect to
-		ch := p.node.View.createChannel(p, q)
+		ch := p.node.view.createChannel(p, q)
 		ch.reposition(nil)
 		p.ch, q.ch = ch, ch
-		p.node.View.Graph.Channels[ch.Name] = ch
+		p.node.view.graph.Channels[ch.channel.Name] = ch
 		q.l.Show()
 
 	case *Channel:
@@ -114,13 +114,13 @@ func (p *Pin) connectTo(q Point) {
 
 func (p *Pin) reallyConnect() {
 	// Attach to the existing channel
-	if _, err := p.node.View.Client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
-		Graph:   p.node.View.Graph.FilePath,
-		Node:    p.node.Name,
+	if _, err := p.node.view.client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
+		Graph:   p.node.view.graph.gc.Graph().FilePath,
+		Node:    p.node.node.Name,
 		Pin:     p.Name,
-		Channel: p.ch.Channel.Name,
+		Channel: p.ch.channel.Name,
 	}); err != nil {
-		p.node.View.Diagram.setError("Couldn't connect: "+err.Error(), 0, 0)
+		p.node.view.diagram.setError("Couldn't connect: "+err.Error(), 0, 0)
 	}
 }
 
@@ -137,18 +137,18 @@ func (p *Pin) disconnect() {
 		for q := range p.ch.Pins {
 			q.ch = nil
 		}
-		delete(p.node.View.Graph.Channels, p.ch.Name)
+		delete(p.node.view.graph.Channels, p.ch.channel.Name)
 	}
 	p.ch = nil
 }
 
 func (p *Pin) reallyDisconnect() {
-	if _, err := p.node.View.Client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
-		Graph: p.node.View.Graph.FilePath,
-		Node:  p.node.Name,
+	if _, err := p.node.view.client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
+		Graph: p.node.view.graph.gc.Graph().FilePath,
+		Node:  p.node.node.Name,
 		Pin:   p.Name,
 	}); err != nil {
-		p.node.View.Diagram.setError("Couldn't disconnect: "+err.Error(), 0, 0)
+		p.node.view.diagram.setError("Couldn't disconnect: "+err.Error(), 0, 0)
 	}
 }
 
@@ -156,7 +156,7 @@ func (p *Pin) setPos(rx, ry float64) {
 	p.circ.
 		SetAttribute("cx", rx).
 		SetAttribute("cy", ry)
-	p.x, p.y = rx+p.node.X, ry+p.node.Y
+	p.x, p.y = rx+p.node.node.X, ry+p.node.node.Y
 	if p.l != nil {
 		p.l.
 			SetAttribute("x1", p.x).
@@ -171,7 +171,7 @@ func (p *Pin) setPos(rx, ry float64) {
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
 func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
-func (p *Pin) String() string { return p.node.Name + "." + p.Name }
+func (p *Pin) String() string { return p.node.node.Name + "." + p.Name }
 
 func (p *Pin) dragStart(e dom.Object) {
 	// If the pin is attached to something, detach and drag from that instead.
@@ -187,11 +187,11 @@ func (p *Pin) dragStart(e dom.Object) {
 			return
 		}
 	}
-	p.node.View.Diagram.dragItem = p
+	p.node.view.diagram.dragItem = p
 
 	p.circ.SetAttribute("fill", errorColour)
 
-	x, y := p.node.View.Diagram.cursorPos(e)
+	x, y := p.node.view.diagram.cursorPos(e)
 	p.l.SetAttribute("x2", x).
 		SetAttribute("y2", y).
 		SetAttribute("stroke", errorColour).
@@ -203,12 +203,12 @@ func (p *Pin) dragStart(e dom.Object) {
 }
 
 func (p *Pin) drag(e dom.Object) {
-	x, y := p.node.View.Diagram.cursorPos(e)
+	x, y := p.node.view.diagram.cursorPos(e)
 	defer func() {
 		p.l.SetAttribute("x2", x).SetAttribute("y2", y)
 		p.c.SetAttribute("cx", x).SetAttribute("cy", y)
 	}()
-	d, q := p.node.View.Graph.nearestPoint(x, y)
+	d, q := p.node.view.graph.nearestPoint(x, y)
 
 	noSnap := func() {
 		if p.ch != nil {
@@ -223,13 +223,13 @@ func (p *Pin) drag(e dom.Object) {
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
-		p.node.View.Diagram.clearError()
+		p.node.view.diagram.clearError()
 		noSnap()
 		return
 	}
 
 	if err := p.checkConnectionTo(q); err != nil {
-		p.node.View.Diagram.setError("Can't connect: "+err.Error(), x, y)
+		p.node.view.diagram.setError("Can't connect: "+err.Error(), x, y)
 		noSnap()
 		return
 	}
@@ -246,13 +246,13 @@ func (p *Pin) drag(e dom.Object) {
 	}
 
 	// Valid snap - ensure the colour is active.
-	p.node.View.Diagram.clearError()
+	p.node.view.diagram.clearError()
 	p.ch.setColour(activeColour)
 	p.c.Hide()
 }
 
 func (p *Pin) drop(e dom.Object) {
-	p.node.View.Diagram.clearError()
+	p.node.view.diagram.clearError()
 	p.circ.SetAttribute("fill", normalColour)
 	p.c.Hide()
 	if p.ch == nil {
@@ -268,7 +268,7 @@ func (p *Pin) drop(e dom.Object) {
 }
 
 func (p *Pin) mouseEnter(dom.Object) {
-	x, y := p.x-p.node.X, p.y-p.node.Y
+	x, y := p.x-p.node.node.X, p.y-p.node.node.Y
 	if p.input {
 		y -= 38
 	} else {
@@ -284,7 +284,7 @@ func (p *Pin) mouseLeave(dom.Object) {
 
 func (p *Pin) makeElements(n *Node) dom.Element {
 	p.node = n
-	p.circ = n.View.Document.MakeSVGElement("circle").
+	p.circ = n.view.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", normalColour).
 		AddEventListener("mousedown", p.dragStart).
@@ -292,21 +292,21 @@ func (p *Pin) makeElements(n *Node) dom.Element {
 		AddEventListener("mouseleave", p.mouseLeave)
 
 	// Line
-	p.l = n.View.Document.MakeSVGElement("line").
+	p.l = n.view.Document.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
 	// Another circ
-	p.c = n.View.Document.MakeSVGElement("circle").
+	p.c = n.view.Document.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	n.View.Diagram.AddChildren(p.l, p.c)
+	n.view.diagram.AddChildren(p.l, p.c)
 
 	// Nametag
-	p.nametag = p.node.View.newTextBox(p.Name+" ("+p.Type+")", nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.nametag = p.node.view.newTextBox(p.Name+" ("+p.Type+")", nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
 	p.node.box.AddChildren(p.nametag)
 	p.nametag.computeWidth()
 	p.nametag.hide()
@@ -314,6 +314,6 @@ func (p *Pin) makeElements(n *Node) dom.Element {
 }
 
 func (p *Pin) unmakeElements() {
-	p.node.View.Diagram.RemoveChildren(p.l, p.c)
+	p.node.view.diagram.RemoveChildren(p.l, p.c)
 	p.nametag.unmakeElements()
 }

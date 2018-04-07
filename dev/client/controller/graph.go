@@ -20,6 +20,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
@@ -36,8 +37,33 @@ type graphController struct {
 	graphIsCommandCheckbox    dom.Element
 }
 
+// New returns a new controller for a graph and binds outlets.
+func New(d dom.Document, g *model.Graph, c pb.ShenzhenGoClient) view.GraphController {
+	return &graphController{
+		doc:    d,
+		client: c,
+		graph:  g,
+
+		graphNameTextInput:        d.ElementByID("graph-prop-name"),
+		graphPackagePathTextInput: d.ElementByID("graph-prop-package-path"),
+		graphIsCommandCheckbox:    d.ElementByID("graph-prop-is-command"),
+	}
+}
+
 func (c *graphController) Graph() *model.Graph {
 	return c.graph
+}
+
+func (c *graphController) Channel(name string) view.ChannelController {
+	return nil // TODO
+}
+
+func (c *graphController) Node(name string) view.NodeController {
+	return nil // TODO
+}
+
+func (c graphController) PartTypes() map[string]*model.PartType {
+	return model.PartTypes
 }
 
 func (c *graphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {

@@ -41,11 +41,11 @@ type partEditor struct {
 
 // View caches the top-level objects for managing the UI.
 type View struct {
-	dom.Document // Global document object
-	*Diagram     // The LHS panel
-	*Graph       // SVG elements in the LHS panel
+	dom.Document          // Global document object
+	diagram      *Diagram // The LHS panel
+	graph        *Graph   // SVG elements in the LHS panel
 
-	Client pb.ShenzhenGoClient
+	client pb.ShenzhenGoClient
 
 	// RHS panels
 	CurrentRHSPanel      dom.Element
@@ -63,11 +63,11 @@ type View struct {
 }
 
 // Setup connects to elements in the DOM.
-func Setup(doc dom.Document, client pb.ShenzhenGoClient, clr Controller) error {
+func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) error {
 	v := &View{
 		Document: doc,
-		Client:   client,
-		Graph:    &Graph{Graph: clr.GraphController().Graph()},
+		client:   client,
+		graph:    &Graph{gc: gc},
 
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),
@@ -81,39 +81,39 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, clr Controller) error {
 		nodeWaitInput:         doc.ElementByID("node-wait"),
 		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
 	}
-	v.Graph.View = v
+	v.graph.view = v
 
-	v.Diagram = &Diagram{
+	v.diagram = &Diagram{
 		View:     v,
 		Element:  doc.ElementByID("diagram"),
 		errLabel: v.newTextBox("", errTextStyle, errRectStyle, 0, 0, 0, 32).hide(),
 	}
-	v.Diagram.AddChildren(v.errLabel)
-	v.Graph.refresh()
+	v.diagram.AddChildren(v.diagram.errLabel)
+	v.graph.refresh()
 
-	v.Diagram.
-		AddEventListener("mousedown", v.Diagram.mouseDown).
-		AddEventListener("mousemove", v.Diagram.mouseMove).
-		AddEventListener("mouseup", v.Diagram.mouseUp)
+	v.diagram.
+		AddEventListener("mousedown", v.diagram.mouseDown).
+		AddEventListener("mousemove", v.diagram.mouseMove).
+		AddEventListener("mouseup", v.diagram.mouseUp)
 
 	doc.ElementByID("graph-save").
-		AddEventListener("click", v.Graph.save)
+		AddEventListener("click", v.graph.save)
 	doc.ElementByID("graph-properties-save").
-		AddEventListener("click", v.Graph.saveProperties)
+		AddEventListener("click", v.graph.saveProperties)
 
 	doc.ElementByID("node-save-link").
-		AddEventListener("click", v.Diagram.saveSelected)
+		AddEventListener("click", v.diagram.saveSelected)
 	doc.ElementByID("node-delete-link").
-		AddEventListener("click", v.Diagram.deleteSelected)
+		AddEventListener("click", v.diagram.deleteSelected)
 
 	doc.ElementByID("node-metadata-link").
 		AddEventListener("click", func(dom.Object) {
-			v.Diagram.selectedItem.(*Node).showSubPanel(v.nodeMetadataSubpanel)
+			v.diagram.selectedItem.(*Node).showSubPanel(v.nodeMetadataSubpanel)
 		})
 
-	for n, t := range clr.PartTypes() {
+	for n, t := range gc.PartTypes() {
 		doc.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(dom.Object) { v.Graph.createNode(n) })
+			AddEventListener("click", func(dom.Object) { v.graph.createNode(n) })
 		p := make(map[string]dom.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
@@ -129,7 +129,7 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, clr Controller) error {
 			doc.ElementByID("node-"+n+"-"+m+"-link").
 				AddEventListener("click",
 					func(dom.Object) {
-						v.Diagram.selectedItem.(*Node).showSubPanel(p)
+						v.diagram.selectedItem.(*Node).showSubPanel(p)
 					})
 		}
 	}

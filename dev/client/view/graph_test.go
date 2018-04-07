@@ -17,22 +17,39 @@ package view
 import (
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
+type fakeGraphController model.Graph
+
+func (f *fakeGraphController) Graph() *model.Graph                   { return (*model.Graph)(f) }
+func (f *fakeGraphController) PartTypes() map[string]*model.PartType { return nil }
+
+// Sub-controllers
+func (f *fakeGraphController) Node(name string) NodeController       { return nil }
+func (f *fakeGraphController) Channel(name string) ChannelController { return nil }
+
+func (f *fakeGraphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
+	return nil, nil
+}
+func (f *fakeGraphController) Save(ctx context.Context) error           { return nil }
+func (f *fakeGraphController) SaveProperties(ctx context.Context) error { return nil }
+
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := dom.MakeFakeDocument()
 	v := &View{Document: doc}
-	v.Diagram = &Diagram{
+	v.diagram = &Diagram{
 		View:    v,
 		Element: doc.MakeSVGElement("svg"),
 	}
-	v.Graph = &Graph{
-		View: v,
-		Graph: &model.Graph{
+	v.graph = &Graph{
+		view: v,
+		gc: &fakeGraphController{
 			Nodes: map[string]*model.Node{
 				"Node 1": {
 					Name:         "Node 1",
@@ -58,25 +75,29 @@ func TestGraphRefreshFromEmpty(t *testing.T) {
 			},
 		},
 	}
-	v.Graph.refresh()
+	v.graph.refresh()
 
-	if v.Graph.Channels == nil {
-		t.Error("g.Channels = nil, want non-nil map")
+	if v.graph.Channels == nil {
+		t.Fatal("g.Channels = nil, want non-nil map")
 	}
-	if v.Graph.Nodes == nil {
-		t.Error("g.Nodes = nil, want non-nil map")
+	if v.graph.Nodes == nil {
+		t.Fatal("g.Nodes = nil, want non-nil map")
 	}
-	if got, want := len(v.Graph.Nodes["Node 1"].Inputs), 1; got != want {
+	node1 := v.graph.Nodes["Node 1"]
+	if node1 == nil {
+		t.Fatal("g.Nodes[Node 1] = nil, want non-nil node")
+	}
+	if got, want := len(node1.Inputs), 1; got != want {
 		t.Errorf("len(Nodes[Node 1].Inputs) = %d, want %d", got, want)
 	}
-	if got, want := len(v.Graph.Nodes["Node 1"].Outputs), 2; got != want {
+	if got, want := len(node1.Outputs), 2; got != want {
 		t.Errorf("len(Nodes[Node 1].Outputs) = %d, want %d", got, want)
 	}
-	if got, want := len(v.Graph.Nodes["Node 1"].AllPins), 3; got != want {
+	if got, want := len(node1.AllPins), 3; got != want {
 		t.Errorf("len(Nodes[Node 1].AllPins) = %d, want %d", got, want)
 	}
 
-	if got, want := v.Graph.Nodes["Node 1"].box.textNode.Get("wholeText").String(), "Node 1"; got != want {
+	if got, want := node1.box.textNode.Get("wholeText").String(), "Node 1"; got != want {
 		t.Errorf("Node 1 text = %q, want %q", got, want)
 	}
 }

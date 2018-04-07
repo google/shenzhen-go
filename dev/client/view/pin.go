@@ -36,7 +36,7 @@ type Pin struct {
 	node  *Node    // owner.
 	ch    *Channel // attached to this channel, is often nil
 
-	nametag *textBox // Hello, my name is ...
+	nametag *TextBox // Hello, my name is ...
 
 	circ dom.Element // my main representation
 	l    dom.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
@@ -274,12 +274,11 @@ func (p *Pin) mouseEnter(dom.Object) {
 	} else {
 		y += 8
 	}
-	p.nametag.moveTo(x, y)
-	p.nametag.show()
+	p.nametag.MoveTo(x, y).Show()
 }
 
 func (p *Pin) mouseLeave(dom.Object) {
-	p.nametag.hide()
+	p.nametag.Hide()
 }
 
 func (p *Pin) makeElements(n *Node) dom.Element {
@@ -306,14 +305,17 @@ func (p *Pin) makeElements(n *Node) dom.Element {
 	n.view.diagram.AddChildren(p.l, p.c)
 
 	// Nametag
-	p.nametag = p.node.view.newTextBox(p.Name+" ("+p.Type+")", nametagTextStyle, nametagRectStyle, 0, 0, 0, 30)
+	p.nametag = (&TextBox{Margin: 20, TextOffsetY: 5}).
+		MakeElements(n.view.doc).
+		SetHeight(30).
+		SetText(p.Name + " (" + p.Type + ")").
+		SetTextStyle(nametagTextStyle).
+		SetRectangleStyle(nametagRectStyle)
 	p.node.box.AddChildren(p.nametag)
-	p.nametag.computeWidth()
-	p.nametag.hide()
 	return p.circ
 }
 
 func (p *Pin) unmakeElements() {
 	p.node.view.diagram.RemoveChildren(p.l, p.c)
-	p.nametag.unmakeElements()
+	p.nametag.Remove()
 }

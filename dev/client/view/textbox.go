@@ -20,80 +20,88 @@ import (
 	"github.com/google/shenzhen-go/dev/dom"
 )
 
-const (
-	textBoxMargin = 20
-	textBoxOffset = 5
-)
+// TextBox is an SVG group containing a filled rectangle and text.
+type TextBox struct {
+	// Children Rectangle and Text, and Text has child TextNode.
+	dom.Element
+	Rectangle dom.Element
+	Text      dom.Element
+	TextNode  dom.Element
 
-type textBox struct {
-	dom.Element // group
-
-	view                 *View
-	rect, text, textNode dom.Element
-	width, minWidth      float64
+	MinWidth    float64
+	Margin      float64
+	TextOffsetY float64
 }
 
-func (v *View) newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
-	b := &textBox{
-		Element: v.doc.MakeSVGElement("g"),
+// MakeElements creates the DOM elements, organises them,
+// and sets default attributes. Note the default is to create hidden.
+func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
+	b.Element = doc.MakeSVGElement("g").Hide()
+	b.Rectangle = doc.MakeSVGElement("rect")
+	b.Text = doc.MakeSVGElement("text")
+	b.TextNode = doc.MakeTextNode("")
+	b.Element.
+		AddChildren(b.Rectangle, b.Text)
+	b.Text.
+		SetAttribute("text-anchor", "middle").
+		SetAttribute("unselectable", "on").
+		AddChildren(b.TextNode)
+	return b
+}
 
-		view:     v,
-		rect:     v.doc.MakeSVGElement("rect"),
-		text:     v.doc.MakeSVGElement("text"),
-		textNode: v.doc.MakeTextNode(text),
-		minWidth: minWidth,
+// MoveTo moves the textbox to have the topleft corner at x, y.
+func (b *TextBox) MoveTo(x, y float64) *TextBox {
+	b.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
+	return b
+}
+
+// SetHeight sets the textbox height.
+func (b *TextBox) SetHeight(height float64) *TextBox {
+	b.Rectangle.SetAttribute("height", height)
+	b.Text.SetAttribute("y", height/2+b.TextOffsetY)
+	return b
+}
+
+// SetRectangleStyle sets the style of the rectangle.
+func (b *TextBox) SetRectangleStyle(style string) *TextBox {
+	b.Rectangle.SetAttribute("style", style)
+	return b
+}
+
+// SetText sets te text in the textbox.
+func (b *TextBox) SetText(text string) *TextBox {
+	b.TextNode.Set("nodeValue", text)
+	return b.RecomputeWidth()
+}
+
+// SetTextStyle sets the style attribute of the text.
+func (b *TextBox) SetTextStyle(style string) *TextBox {
+	b.Text.SetAttribute("style", style)
+	return b.RecomputeWidth()
+}
+
+// SetWidth sets the width of the textbox, unless the width is less than the MinWidth,
+// in which case MinWidth is used instead.
+func (b *TextBox) SetWidth(w float64) *TextBox {
+	if w < b.MinWidth {
+		w = b.MinWidth
 	}
-
-	b.
-		SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y)).
-		AddChildren(
-			b.rect.
-				SetAttribute("height", height).
-				SetAttribute("style", rectStyle),
-			b.text.
-				SetAttribute("y", height/2+nodeTextOffset).
-				SetAttribute("text-anchor", "middle").
-				SetAttribute("unselectable", "on").
-				SetAttribute("style", textStyle).
-				AddChildren(b.textNode),
-		)
-	b.computeWidth()
+	b.Rectangle.SetAttribute("width", w)
+	b.Text.SetAttribute("x", w/2)
 	return b
 }
 
-func (b *textBox) show() *textBox {
-	b.Show()
-	return b
+// Width returns the current width.
+func (b *TextBox) Width() float64 {
+	return b.Rectangle.Get("width").Float()
 }
 
-func (b *textBox) hide() *textBox {
-	b.Hide()
-	return b
+// RecomputeWidth resizes the textbox to fit all text (plus a margin).
+func (b *TextBox) RecomputeWidth() *TextBox {
+	return b.SetWidth(b.Text.Call("getComputedTextLength").Float() + 2*b.Margin)
 }
 
-func (b *textBox) moveTo(x, y float64) *textBox {
-	tf := b.Get("transform").Get("baseVal").Call("getItem", 0).Get("matrix")
-	tf.Set("e", x)
-	tf.Set("f", y)
-	return b
-}
-
-func (b *textBox) setText(text string) *textBox {
-	b.textNode.Set("nodeValue", text)
-	b.computeWidth()
-	return b
-}
-
-func (b *textBox) computeWidth() *textBox {
-	b.width = b.minWidth
-	if w := b.text.Call("getComputedTextLength").Float() + 2*textBoxMargin; b.minWidth < w {
-		b.width = w
-	}
-	b.rect.SetAttribute("width", b.width)
-	b.text.SetAttribute("x", b.width/2)
-	return b
-}
-
-func (b *textBox) unmakeElements() {
+// Remove removes the textbox from the text box's parent element.
+func (b *TextBox) Remove() {
 	b.Parent().RemoveChildren(b.Element)
 }

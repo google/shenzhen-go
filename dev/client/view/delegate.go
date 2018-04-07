@@ -20,10 +20,10 @@ import (
 	"github.com/google/shenzhen-go/dev/model"
 )
 
-// GraphController is implemented by the view controller of a whole graph.
+// GraphController is implemented by the controller of a whole graph.
 type GraphController interface {
-	Graph() *model.Graph // TODO: remove
-	PartTypes() map[string]*model.PartType
+	Graph() *model.Graph                   // TODO: remove
+	PartTypes() map[string]*model.PartType // TODO: abstract
 
 	// Sub-controllers
 	Node(name string) NodeController
@@ -47,5 +47,9 @@ type ChannelController interface {
 type NodeController interface {
 	Node() *model.Node // TODO: remove
 
-	Delete() error
+	Name() string
+	Position() (x, y float64)
+
+	Delete(ctx context.Context) error
+	Save(ctx context.Context) error
 }

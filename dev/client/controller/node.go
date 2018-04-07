@@ -15,6 +15,8 @@
 package controller
 
 import (
+	"golang.org/x/net/context"
+
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
@@ -25,10 +27,14 @@ type nodeController struct {
 	node   *model.Node
 }
 
-func (c *nodeController) Node() *model.Node {
-	return c.node
+func (c *nodeController) Node() *model.Node        { return c.node }
+func (c *nodeController) Name() string             { return c.node.Name }
+func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
+
+func (c *nodeController) Delete(ctx context.Context) error {
+	return nil // TODO
 }
 
-func (c *nodeController) Delete() error {
+func (c *nodeController) Save(ctx context.Context) error {
 	return nil // TODO
 }

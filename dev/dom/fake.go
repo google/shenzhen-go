@@ -135,6 +135,9 @@ func (e *FakeElement) ID() string {
 // SetAttribute sets an attribute.
 func (e *FakeElement) SetAttribute(attr string, value interface{}) Element {
 	e.Attributes[attr] = value
+	// Also set the property, because property mapped attributes, but note this only
+	// counts for some things.
+	e.Properties[attr] = value
 	return e
 }
 
@@ -238,7 +241,7 @@ func (d *FakeDocument) MakeTextNode(text string) Element {
 	return e
 }
 
-// MakeSVGElement makes an SVG element
+// MakeSVGElement makes an SVG element.
 func (d *FakeDocument) MakeSVGElement(class string) Element {
 	e := MakeFakeElement(class, SVGNamespaceURI)
 	switch class {

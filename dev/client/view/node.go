@@ -27,7 +27,8 @@ const (
 	nodeTextStyle         = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 	nodeWidthPerPin       = 20
 	nodeHeight            = 50
-	nodeTextOffset        = 5
+	nodeBoxMargin         = 20
+	nodeTextOffsetY       = 5
 )
 
 // Node is the view's model of a node.
@@ -37,7 +38,7 @@ type Node struct {
 
 	Inputs, Outputs, AllPins []*Pin
 
-	box *textBox
+	box *TextBox
 
 	relX, relY float64 // relative client offset for moving around
 
@@ -53,9 +54,19 @@ func max(a, b int) int {
 
 func (n *Node) makeElements() {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = n.view.newTextBox(n.nc.Node().Name, nodeTextStyle, nodeNormalRectStyle, n.nc.Node().X, n.nc.Node().Y, float64(minWidth), nodeHeight)
+	n.box = (&TextBox{
+		Margin:      nodeBoxMargin,
+		TextOffsetY: nodeTextOffsetY,
+		MinWidth:    float64(minWidth),
+	}).
+		MakeElements(n.view.doc).
+		SetText(n.nc.Name()).
+		SetTextStyle(nodeTextStyle).
+		SetRectangleStyle(nodeNormalRectStyle).
+		SetHeight(nodeHeight).
+		MoveTo(n.nc.Position())
 	n.view.diagram.AddChildren(n.box)
-	n.box.rect.
+	n.box.Rectangle.
 		AddEventListener("mousedown", n.mouseDown).
 		AddEventListener("mousedown", n.view.diagram.selecter(n))
 
@@ -67,13 +78,14 @@ func (n *Node) makeElements() {
 }
 
 func (n *Node) unmakeElements() {
-	n.box.unmakeElements()
+	n.box.Remove()
 	n.box = nil
 }
 
 func (n *Node) mouseDown(e dom.Object) {
 	n.view.diagram.dragItem = n
-	n.relX, n.relY = e.Get("clientX").Float()-n.nc.Node().X, e.Get("clientY").Float()-n.nc.Node().Y
+	nx, ny := n.nc.Position()
+	n.relX, n.relY = e.Get("clientX").Float()-nx, e.Get("clientY").Float()-ny
 
 	// Bring to front
 	n.view.diagram.AddChildren(n.box)
@@ -81,7 +93,7 @@ func (n *Node) mouseDown(e dom.Object) {
 
 func (n *Node) drag(e dom.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-	n.box.moveTo(x, y)
+	n.box.MoveTo(x, y)
 	n.nc.Node().X, n.nc.Node().Y = x, y
 	n.updatePinPositions()
 }
@@ -106,7 +118,7 @@ type focusable interface {
 }
 
 func (n *Node) gainFocus(e dom.Object) {
-	n.box.rect.SetAttribute("style", nodeSelectedRectStyle)
+	n.box.Rectangle.SetAttribute("style", nodeSelectedRectStyle)
 	n.view.nodeNameInput.Set("value", n.nc.Node().Name)
 	n.view.nodeEnabledInput.Set("checked", n.nc.Node().Enabled)
 	n.view.nodeMultiplicityInput.Set("value", n.nc.Node().Multiplicity)
@@ -123,7 +135,7 @@ func (n *Node) gainFocus(e dom.Object) {
 }
 
 func (n *Node) loseFocus(e dom.Object) {
-	n.box.rect.SetAttribute("style", nodeNormalRectStyle)
+	n.box.Rectangle.SetAttribute("style", nodeNormalRectStyle)
 }
 
 func (n *Node) save(e dom.Object) {
@@ -136,6 +148,7 @@ func (n *Node) reallySave(e dom.Object) {
 		n.view.diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
 		return
 	}
+	nx, ny := n.nc.Position()
 	props := &pb.NodeConfig{
 		Name:         n.view.nodeNameInput.Get("value").String(),
 		Enabled:      n.view.nodeEnabledInput.Get("checked").Bool(),
@@ -143,12 +156,12 @@ func (n *Node) reallySave(e dom.Object) {
 		Wait:         n.view.nodeWaitInput.Get("checked").Bool(),
 		PartCfg:      pj.Part,
 		PartType:     pj.Type,
-		X:            n.nc.Node().X,
-		Y:            n.nc.Node().Y,
+		X:            nx,
+		Y:            ny,
 	}
 	req := &pb.SetNodePropertiesRequest{
 		Graph: n.view.graph.gc.Graph().FilePath,
-		Node:  n.nc.Node().Name,
+		Node:  n.nc.Name(),
 		Props: props,
 	}
 	if _, err := n.view.client.SetNodeProperties(context.Background(), req); err != nil {
@@ -162,7 +175,7 @@ func (n *Node) reallySave(e dom.Object) {
 		n.view.graph.Nodes[props.Name] = n
 		n.nc.Node().Name = props.Name
 
-		n.box.setText(props.Name)
+		n.box.SetText(props.Name)
 		n.updatePinPositions()
 	}
 	n.nc.Node().Enabled = props.Enabled
@@ -203,12 +216,13 @@ func (n *Node) refresh() {
 func (n *Node) updatePinPositions() {
 	// Pins have to be aware of both their global and local coordinates,
 	// so the nearest one can be found, and channels can be drawn correctly.
-	isp := n.box.width / float64(len(n.Inputs)+1)
+	w := n.box.Width()
+	isp := w / float64(len(n.Inputs)+1)
 	for i, p := range n.Inputs {
 		p.setPos(isp*float64(i+1), float64(-pinRadius))
 	}
 
-	osp := n.box.width / float64(len(n.Outputs)+1)
+	osp := w / float64(len(n.Outputs)+1)
 	for i, p := range n.Outputs {
 		p.setPos(osp*float64(i+1), float64(nodeHeight+pinRadius))
 	}

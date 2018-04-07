@@ -28,7 +28,7 @@ type Diagram struct {
 
 	dragItem     draggable  // nil if nothing is being dragged
 	selectedItem selectable // nil if nothing is selected
-	errLabel     *textBox
+	errLabel     *TextBox
 }
 
 func (d *Diagram) cursorPos(e dom.Object) (x, y float64) {
@@ -96,12 +96,12 @@ func (d *Diagram) setError(err string, x, y float64) {
 		d.clearError()
 		return
 	}
-	d.AddChildren(d.errLabel.moveTo(x, y).setText(err).show()) // Re-add = Bring to front
+	d.AddChildren(d.errLabel.MoveTo(x, y).SetText(err).Show()) // Re-add = Bring to front
 	log.Print(err)
 }
 
 func (d *Diagram) clearError() {
-	d.errLabel.hide()
+	d.errLabel.Hide()
 }
 
 // Point is anything that has a position on the canvas.

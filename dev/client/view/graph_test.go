@@ -72,7 +72,12 @@ func (f fakeNodeController) Node() *model.Node {
 			},
 		})}
 }
-func (f fakeNodeController) Delete() error { return nil }
+
+func (f fakeNodeController) Name() string             { return "Node 1" }
+func (f fakeNodeController) Position() (x, y float64) { return 150, 150 }
+
+func (f fakeNodeController) Delete(ctx context.Context) error { return nil }
+func (f fakeNodeController) Save(ctx context.Context) error   { return nil }
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := dom.MakeFakeDocument()
@@ -107,7 +112,8 @@ func TestGraphRefreshFromEmpty(t *testing.T) {
 		t.Errorf("len(Nodes[Node 1].AllPins) = %d, want %d", got, want)
 	}
 
-	if got, want := node1.box.textNode.Get("wholeText").String(), "Node 1"; got != want {
+	// Was checking "wholeText" property before, but this is with the fakes - how did that ever pass?
+	if got, want := node1.box.TextNode.Get("nodeValue").String(), "Node 1"; got != want {
 		t.Errorf("Node 1 text = %q, want %q", got, want)
 	}
 }

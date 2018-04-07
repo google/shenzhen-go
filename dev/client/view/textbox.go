@@ -28,19 +28,19 @@ const (
 type textBox struct {
 	dom.Element // group
 
-	View                 *View
+	view                 *View
 	rect, text, textNode dom.Element
 	width, minWidth      float64
 }
 
 func (v *View) newTextBox(text, textStyle, rectStyle string, x, y, minWidth, height float64) *textBox {
 	b := &textBox{
-		Element: v.Document.MakeSVGElement("g"),
+		Element: v.doc.MakeSVGElement("g"),
 
-		View:     v,
-		rect:     v.Document.MakeSVGElement("rect"),
-		text:     v.Document.MakeSVGElement("text"),
-		textNode: v.Document.MakeTextNode(text),
+		view:     v,
+		rect:     v.doc.MakeSVGElement("rect"),
+		text:     v.doc.MakeSVGElement("text"),
+		textNode: v.doc.MakeTextNode(text),
 		minWidth: minWidth,
 	}
 

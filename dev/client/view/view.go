@@ -41,9 +41,9 @@ type partEditor struct {
 
 // View caches the top-level objects for managing the UI.
 type View struct {
-	dom.Document          // Global document object
-	diagram      *Diagram // The LHS panel
-	graph        *Graph   // SVG elements in the LHS panel
+	doc     dom.Document // Global document object
+	diagram *Diagram     // The LHS panel
+	graph   *Graph       // SVG elements in the LHS panel
 
 	client pb.ShenzhenGoClient
 
@@ -65,9 +65,9 @@ type View struct {
 // Setup connects to elements in the DOM.
 func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) error {
 	v := &View{
-		Document: doc,
-		client:   client,
-		graph:    &Graph{gc: gc},
+		doc:    doc,
+		client: client,
+		graph:  &Graph{gc: gc},
 
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),

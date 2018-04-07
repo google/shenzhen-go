@@ -113,15 +113,15 @@ func (c *Channel) reallyCreate() {
 }
 
 func (c *Channel) makeElements() {
-	c.steiner = c.view.Document.MakeSVGElement("circle").
+	c.steiner = c.view.doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.dragStart)
 
-	c.l = c.view.Document.MakeSVGElement("line").
+	c.l = c.view.doc.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	c.c = c.view.Document.MakeSVGElement("circle").
+	c.c = c.view.doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).

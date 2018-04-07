@@ -42,7 +42,7 @@ func (f *fakeGraphController) SaveProperties(ctx context.Context) error { return
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := dom.MakeFakeDocument()
-	v := &View{Document: doc}
+	v := &View{doc: doc}
 	v.diagram = &Diagram{
 		View:    v,
 		Element: doc.MakeSVGElement("svg"),

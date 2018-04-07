@@ -30,9 +30,7 @@ type Controller interface {
 type GraphController interface {
 	Graph() *model.Graph
 
-	RegisterOutlets()
-
-	CreateNode(ctx context.Context, partType string) error
+	CreateNode(ctx context.Context, partType string) (*model.Node, error)
 	Save(ctx context.Context) error
 	SaveProperties(ctx context.Context) error
 }

@@ -16,14 +16,12 @@ package view
 
 import (
 	"math"
-	"strconv"
 
 	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
-	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
 // Graph is the view-model of a graph.
@@ -41,55 +39,19 @@ func (g *Graph) createNode(partType string) {
 }
 
 func (g *Graph) reallyCreateNode(partType string) {
-	// Invent a reasonable unique name.
-	name := partType
-
-	for i := 2; ; i++ {
-		if _, found := g.Nodes[name]; !found {
-			break
-		}
-		name = partType + " " + strconv.Itoa(i)
-	}
-	pt := model.PartTypes[partType].New()
-	pm, err := model.MarshalPart(pt)
-	if err != nil {
-		g.View.Diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
-		return
-	}
-
-	n := &Node{
-		View: g.View,
-		Node: &model.Node{
-			Name:         name,
-			Enabled:      true,
-			Wait:         true,
-			Multiplicity: 1,
-			Part:         pt,
-			// TODO: use a better initial position
-			X: 150,
-			Y: 150,
-		},
-	}
-
-	_, err = g.View.Client.CreateNode(context.Background(), &pb.CreateNodeRequest{
-		Graph: g.FilePath,
-		Props: &pb.NodeConfig{
-			Name:         n.Name,
-			Enabled:      n.Enabled,
-			Wait:         n.Wait,
-			Multiplicity: uint32(n.Multiplicity),
-			PartType:     partType,
-			PartCfg:      pm.Part,
-		},
-	})
+	node, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {
 		g.View.Diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
 		return
 	}
 	g.View.Diagram.clearError()
 
+	n := &Node{
+		View: g.View,
+		Node: node,
+	}
 	n.makeElements()
-	g.Nodes[name] = n
+	g.Nodes[node.Name] = n
 }
 
 func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
@@ -127,20 +89,9 @@ func (g *Graph) saveProperties(dom.Object) {
 }
 
 func (g *Graph) reallySaveProperties() {
-	req := &pb.SetGraphPropertiesRequest{
-		Graph:       g.FilePath,
-		Name:        g.View.graphNameTextInput.Get("value").String(),
-		PackagePath: g.View.graphPackagePathTextInput.Get("value").String(),
-		IsCommand:   g.View.graphIsCommandCheckbox.Get("checked").Bool(),
+	if err := g.gc.SaveProperties(context.TODO()); err != nil {
+		g.View.Diagram.setError("Couldn't save properties: "+err.Error(), 0, 0)
 	}
-	if _, err := g.View.Client.SetGraphProperties(context.Background(), req); err != nil {
-		g.View.Diagram.setError("Couldn't save: "+err.Error(), 0, 0)
-		return
-	}
-	// And commit locally
-	g.Name = req.Name
-	g.PackagePath = req.PackagePath
-	g.IsCommand = req.IsCommand
 }
 
 // refresh ensures the view model matches the model.

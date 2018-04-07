@@ -52,11 +52,6 @@ type View struct {
 	GraphPropertiesPanel dom.Element
 	NodePropertiesPanel  dom.Element
 
-	// Graph properties panel inputs
-	graphNameTextInput        dom.Element
-	graphPackagePathTextInput dom.Element
-	graphIsCommandCheckbox    dom.Element
-
 	// Node properties subpanels and inputs
 	nodeMetadataSubpanel  dom.Element
 	nodeCurrentSubpanel   dom.Element
@@ -77,10 +72,6 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, clr Controller) error {
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),
 		CurrentRHSPanel:      doc.ElementByID("graph-properties"),
-
-		graphNameTextInput:        doc.ElementByID("graph-prop-name"),
-		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
-		graphIsCommandCheckbox:    doc.ElementByID("graph-prop-is-command"),
 
 		nodeMetadataSubpanel:  doc.ElementByID("node-metadata-panel"),
 		nodeCurrentSubpanel:   doc.ElementByID("node-metadata-panel"),

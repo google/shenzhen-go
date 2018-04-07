@@ -16,18 +16,21 @@ package controller
 
 import (
 	"github.com/google/shenzhen-go/dev/client/view"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
 type controller struct {
+	doc    dom.Document
 	graph  *model.Graph
 	client pb.ShenzhenGoClient
 }
 
 // New returns a new controller for a graph.
-func New(g *model.Graph, c pb.ShenzhenGoClient) view.Controller {
+func New(d dom.Document, g *model.Graph, c pb.ShenzhenGoClient) view.Controller {
 	return &controller{
+		doc:    d,
 		client: c,
 		graph:  g,
 	}
@@ -37,6 +40,10 @@ func (c *controller) GraphController() view.GraphController {
 	return &graphController{
 		client: c.client,
 		graph:  c.graph,
+
+		graphNameTextInput:        c.doc.ElementByID("graph-prop-name"),
+		graphPackagePathTextInput: c.doc.ElementByID("graph-prop-package-path"),
+		graphIsCommandCheckbox:    c.doc.ElementByID("graph-prop-is-command"),
 	}
 }
 

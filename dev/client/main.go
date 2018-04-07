@@ -42,7 +42,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	clr := controller.New(g, client)
+	clr := controller.New(doc, g, client)
 	if err := view.Setup(doc, client, clr); err != nil {
 		panic(err)
 	}

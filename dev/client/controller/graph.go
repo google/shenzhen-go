@@ -15,28 +15,73 @@
 package controller
 
 import (
+	"errors"
+	"strconv"
+
 	"golang.org/x/net/context"
 
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
 type graphController struct {
+	doc    dom.Document
 	graph  *model.Graph
 	client pb.ShenzhenGoClient
+
+	// Graph properties panel inputs
+	graphNameTextInput        dom.Element
+	graphPackagePathTextInput dom.Element
+	graphIsCommandCheckbox    dom.Element
 }
 
 func (c *graphController) Graph() *model.Graph {
 	return c.graph
 }
 
-func (c *graphController) CreateNode(ctx context.Context, partType string) error {
-	// TODO
-	return nil
-}
+func (c *graphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
+	// Invent a reasonable unique name.
+	name := partType
 
-func (c *graphController) RegisterOutlets() {
-	// TODO
+	for i := 2; ; i++ {
+		if _, found := c.graph.Nodes[name]; !found {
+			break
+		}
+		name = partType + " " + strconv.Itoa(i)
+	}
+	pt := model.PartTypes[partType].New()
+	pm, err := model.MarshalPart(pt)
+	if err != nil {
+		return nil, errors.New("marshalling part: " + err.Error())
+	}
+
+	n := &model.Node{
+		Name:         name,
+		Enabled:      true,
+		Wait:         true,
+		Multiplicity: 1,
+		Part:         pt,
+		// TODO: use a better initial position
+		X: 150,
+		Y: 150,
+	}
+
+	_, err = c.client.CreateNode(ctx, &pb.CreateNodeRequest{
+		Graph: c.graph.FilePath,
+		Props: &pb.NodeConfig{
+			Name:         n.Name,
+			Enabled:      n.Enabled,
+			Wait:         n.Wait,
+			Multiplicity: uint32(n.Multiplicity),
+			PartType:     partType,
+			PartCfg:      pm.Part,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return n, nil
 }
 
 func (c *graphController) Save(ctx context.Context) error {
@@ -45,6 +90,17 @@ func (c *graphController) Save(ctx context.Context) error {
 }
 
 func (c *graphController) SaveProperties(ctx context.Context) error {
-	// TODO
+	req := &pb.SetGraphPropertiesRequest{
+		Graph:       c.graph.FilePath,
+		Name:        c.graphNameTextInput.Get("value").String(),
+		PackagePath: c.graphPackagePathTextInput.Get("value").String(),
+		IsCommand:   c.graphIsCommandCheckbox.Get("checked").Bool(),
+	}
+	if _, err := c.client.SetGraphProperties(ctx, req); err != nil {
+		return err
+	}
+	c.graph.Name = req.Name
+	c.graph.PackagePath = req.PackagePath
+	c.graph.IsCommand = req.IsCommand
 	return nil
 }

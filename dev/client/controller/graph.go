@@ -37,8 +37,8 @@ type graphController struct {
 	graphIsCommandCheckbox    dom.Element
 }
 
-// New returns a new controller for a graph and binds outlets.
-func New(d dom.Document, g *model.Graph, c pb.ShenzhenGoClient) view.GraphController {
+// NewGraphController returns a new controller for a graph and binds outlets.
+func NewGraphController(d dom.Document, g *model.Graph, c pb.ShenzhenGoClient) view.GraphController {
 	return &graphController{
 		doc:    d,
 		client: c,
@@ -94,7 +94,7 @@ func (c graphController) PartTypes() map[string]*model.PartType {
 	return model.PartTypes
 }
 
-func (c *graphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
+func (c *graphController) CreateNode(ctx context.Context, partType string) (view.NodeController, error) {
 	// Invent a reasonable unique name.
 	name := partType
 
@@ -135,7 +135,12 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (*mod
 	if err != nil {
 		return nil, err
 	}
-	return n, nil
+	c.graph.Nodes[n.Name] = n
+	return &nodeController{
+		client: c.client,
+		graph:  c.graph,
+		node:   n,
+	}, nil
 }
 
 func (c *graphController) Save(ctx context.Context) error {

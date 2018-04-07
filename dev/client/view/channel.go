@@ -100,9 +100,9 @@ func (c *Channel) reallyCreate() {
 		Type:  c.channel.Type,
 		Cap:   uint64(c.channel.Capacity),
 		Anon:  c.channel.Anonymous,
-		Node1: p.node.node.Name,
+		Node1: p.node.nc.Node().Name,
 		Pin1:  p.Name,
-		Node2: q.node.node.Name,
+		Node2: q.node.nc.Node().Name,
 		Pin2:  q.Name,
 	}
 	if _, err := c.view.client.CreateChannel(context.Background(), req); err != nil {

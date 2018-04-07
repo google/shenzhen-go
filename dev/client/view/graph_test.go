@@ -42,7 +42,7 @@ func (c fakeGraphController) NumNodes() int                         { return 1 }
 func (c fakeGraphController) Channel(name string) ChannelController { return nil }
 func (c fakeGraphController) Channels(f func(ChannelController))    {}
 func (c fakeGraphController) NumChannels() int                      { return 0 }
-func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
+func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (NodeController, error) {
 	return nil, nil
 }
 func (c fakeGraphController) Save(ctx context.Context) error           { return nil }

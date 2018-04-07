@@ -33,7 +33,7 @@ type GraphController interface {
 	Channels(func(ChannelController)) // input called for all channels
 	NumChannels() int
 
-	CreateNode(ctx context.Context, partType string) (*model.Node, error)
+	CreateNode(ctx context.Context, partType string) (NodeController, error)
 	Save(ctx context.Context) error
 	SaveProperties(ctx context.Context) error
 }

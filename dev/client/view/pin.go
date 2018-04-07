@@ -116,7 +116,7 @@ func (p *Pin) reallyConnect() {
 	// Attach to the existing channel
 	if _, err := p.node.view.client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
 		Graph:   p.node.view.graph.gc.Graph().FilePath,
-		Node:    p.node.node.Name,
+		Node:    p.node.nc.Node().Name,
 		Pin:     p.Name,
 		Channel: p.ch.channel.Name,
 	}); err != nil {
@@ -145,7 +145,7 @@ func (p *Pin) disconnect() {
 func (p *Pin) reallyDisconnect() {
 	if _, err := p.node.view.client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
 		Graph: p.node.view.graph.gc.Graph().FilePath,
-		Node:  p.node.node.Name,
+		Node:  p.node.nc.Node().Name,
 		Pin:   p.Name,
 	}); err != nil {
 		p.node.view.diagram.setError("Couldn't disconnect: "+err.Error(), 0, 0)
@@ -156,7 +156,7 @@ func (p *Pin) setPos(rx, ry float64) {
 	p.circ.
 		SetAttribute("cx", rx).
 		SetAttribute("cy", ry)
-	p.x, p.y = rx+p.node.node.X, ry+p.node.node.Y
+	p.x, p.y = rx+p.node.nc.Node().X, ry+p.node.nc.Node().Y
 	if p.l != nil {
 		p.l.
 			SetAttribute("x1", p.x).
@@ -171,7 +171,7 @@ func (p *Pin) setPos(rx, ry float64) {
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
 func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
-func (p *Pin) String() string { return p.node.node.Name + "." + p.Name }
+func (p *Pin) String() string { return p.node.nc.Node().Name + "." + p.Name }
 
 func (p *Pin) dragStart(e dom.Object) {
 	// If the pin is attached to something, detach and drag from that instead.
@@ -268,7 +268,7 @@ func (p *Pin) drop(e dom.Object) {
 }
 
 func (p *Pin) mouseEnter(dom.Object) {
-	x, y := p.x-p.node.node.X, p.y-p.node.node.Y
+	x, y := p.x-p.node.nc.Node().X, p.y-p.node.nc.Node().Y
 	if p.input {
 		y -= 38
 	} else {

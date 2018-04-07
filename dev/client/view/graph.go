@@ -37,7 +37,7 @@ func (g *Graph) createNode(partType string) {
 }
 
 func (g *Graph) reallyCreateNode(partType string) {
-	node, err := g.gc.CreateNode(context.TODO(), partType)
+	nc, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {
 		g.view.diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
 		return
@@ -46,10 +46,10 @@ func (g *Graph) reallyCreateNode(partType string) {
 
 	n := &Node{
 		view: g.view,
-		node: node,
+		nc:   nc,
 	}
 	n.makeElements()
-	g.Nodes[node.Name] = n
+	g.Nodes[nc.Node().Name] = n
 }
 
 func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
@@ -153,7 +153,7 @@ func (g *Graph) refresh() {
 		}
 		m := &Node{
 			view: g.view,
-			node: nc.Node(),
+			nc:   nc,
 		}
 		pd := nc.Node().Pins()
 		for _, p := range pd {

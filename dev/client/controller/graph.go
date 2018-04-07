@@ -54,12 +54,40 @@ func (c *graphController) Graph() *model.Graph {
 	return c.graph
 }
 
-func (c *graphController) Channel(name string) view.ChannelController {
-	return nil // TODO
+func (c *graphController) Nodes(f func(view.NodeController)) {
+	for _, n := range c.graph.Nodes {
+		f(&nodeController{node: n})
+	}
 }
 
 func (c *graphController) Node(name string) view.NodeController {
-	return nil // TODO
+	n := c.graph.Nodes[name]
+	if n == nil {
+		return nil
+	}
+	return &nodeController{node: n}
+}
+
+func (c *graphController) NumNodes() int {
+	return len(c.graph.Nodes)
+}
+
+func (c *graphController) Channel(name string) view.ChannelController {
+	ch := c.graph.Channels[name]
+	if ch == nil {
+		return nil
+	}
+	return &channelController{channel: ch}
+}
+
+func (c *graphController) Channels(f func(view.ChannelController)) {
+	for _, ch := range c.graph.Channels {
+		f(&channelController{channel: ch})
+	}
+}
+
+func (c *graphController) NumChannels() int {
+	return len(c.graph.Channels)
 }
 
 func (c graphController) PartTypes() map[string]*model.PartType {

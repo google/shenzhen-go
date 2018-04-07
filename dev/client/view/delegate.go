@@ -27,7 +27,11 @@ type GraphController interface {
 
 	// Sub-controllers
 	Node(name string) NodeController
+	Nodes(func(NodeController)) // input called for all nodes
+	NumNodes() int
 	Channel(name string) ChannelController
+	Channels(func(ChannelController)) // input called for all channels
+	NumChannels() int
 
 	CreateNode(ctx context.Context, partType string) (*model.Node, error)
 	Save(ctx context.Context) error
@@ -42,4 +46,6 @@ type ChannelController interface {
 // NodeController is implemented by the controller of a node.
 type NodeController interface {
 	Node() *model.Node // TODO: remove
+
+	Delete() error
 }

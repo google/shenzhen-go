@@ -25,17 +25,54 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
-type fakeGraphController model.Graph
+type fakeGraphController struct{}
 
-func (f *fakeGraphController) Graph() *model.Graph                   { return (*model.Graph)(f) }
-func (f *fakeGraphController) PartTypes() map[string]*model.PartType { return nil }
-func (f *fakeGraphController) Node(name string) NodeController       { return nil }
-func (f *fakeGraphController) Channel(name string) ChannelController { return nil }
-func (f *fakeGraphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
+func (c fakeGraphController) Graph() *model.Graph                   { return nil }
+func (c fakeGraphController) PartTypes() map[string]*model.PartType { return nil }
+func (c fakeGraphController) Nodes(f func(NodeController))          { f(fakeNodeController{}) }
+
+func (c fakeGraphController) Node(name string) NodeController {
+	if name != "Node 1" {
+		return nil
+	}
+	return fakeNodeController{}
+}
+
+func (c fakeGraphController) NumNodes() int                         { return 1 }
+func (c fakeGraphController) Channel(name string) ChannelController { return nil }
+func (c fakeGraphController) Channels(f func(ChannelController))    {}
+func (c fakeGraphController) NumChannels() int                      { return 0 }
+func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
 	return nil, nil
 }
-func (f *fakeGraphController) Save(ctx context.Context) error           { return nil }
-func (f *fakeGraphController) SaveProperties(ctx context.Context) error { return nil }
+func (c fakeGraphController) Save(ctx context.Context) error           { return nil }
+func (c fakeGraphController) SaveProperties(ctx context.Context) error { return nil }
+
+type fakeNodeController struct{}
+
+func (f fakeNodeController) Node() *model.Node {
+	return &model.Node{
+		Name:         "Node 1",
+		Multiplicity: 1,
+		Part: parts.NewCode(nil, "", "", "", pin.Map{
+			"input": {
+				Name:      "input",
+				Direction: pin.Input,
+				Type:      "int",
+			},
+			"output": {
+				Name:      "output",
+				Direction: pin.Output,
+				Type:      "int",
+			},
+			"output 2": {
+				Name:      "output 2",
+				Direction: pin.Output,
+				Type:      "int",
+			},
+		})}
+}
+func (f fakeNodeController) Delete() error { return nil }
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := dom.MakeFakeDocument()
@@ -46,31 +83,7 @@ func TestGraphRefreshFromEmpty(t *testing.T) {
 	}
 	v.graph = &Graph{
 		view: v,
-		gc: &fakeGraphController{
-			Nodes: map[string]*model.Node{
-				"Node 1": {
-					Name:         "Node 1",
-					Multiplicity: 1,
-					Part: parts.NewCode(nil, "", "", "", pin.Map{
-						"input": {
-							Name:      "input",
-							Direction: pin.Input,
-							Type:      "int",
-						},
-						"output": {
-							Name:      "output",
-							Direction: pin.Output,
-							Type:      "int",
-						},
-						"output 2": {
-							Name:      "output 2",
-							Direction: pin.Output,
-							Type:      "int",
-						},
-					}),
-				},
-			},
-		},
+		gc:   fakeGraphController{},
 	}
 	v.graph.refresh()
 

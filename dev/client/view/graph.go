@@ -96,15 +96,15 @@ func (g *Graph) reallySaveProperties() {
 func (g *Graph) refresh() {
 	// Ensure data structures are set up
 	if g.Channels == nil {
-		g.Channels = make(map[string]*Channel, len(g.gc.Graph().Channels))
+		g.Channels = make(map[string]*Channel, g.gc.NumChannels())
 	}
 	if g.Nodes == nil {
-		g.Nodes = make(map[string]*Node, len(g.gc.Graph().Nodes))
+		g.Nodes = make(map[string]*Node, g.gc.NumNodes())
 	}
 
 	// Remove any channels that no longer exist.
 	for k, c := range g.Channels {
-		if _, found := g.gc.Graph().Channels[k]; found {
+		if g.gc.Channel(k) != nil {
 			continue
 		}
 		// Remove this channel.
@@ -114,25 +114,27 @@ func (g *Graph) refresh() {
 
 	// Add any channels that didn't exist but now do.
 	// Refresh any existing channels.
-	for k, c := range g.gc.Graph().Channels {
-		if _, found := g.Channels[k]; found {
+	//for k, c := range g.gc.Graph().Channels {
+	g.gc.Channels(func(cc ChannelController) {
+		k := cc.Channel().Name
+		if g.Channels[k] != nil {
 			// TODO: ch.refresh()
-			continue
+			return
 		}
 		// Add the channel.
 		ch := &Channel{
 			view:    g.view,
-			channel: c,
+			channel: cc.Channel(),
 			Pins:    make(map[*Pin]struct{}),
 			created: true,
 		}
 		g.Channels[k] = ch
 		ch.makeElements()
-	}
+	})
 
 	// Remove any nodes that no longer exist.
 	for k, n := range g.Nodes {
-		if _, found := g.gc.Graph().Nodes[k]; found {
+		if g.gc.Node(k) != nil {
 			continue
 		}
 		// Remove this channel.
@@ -142,16 +144,18 @@ func (g *Graph) refresh() {
 
 	// Add any nodes that didn't exist but now do.
 	// Refresh existing nodes.
-	for k, n := range g.gc.Graph().Nodes {
-		if _, found := g.Nodes[k]; found {
+	//for k, n := range g.gc.Graph().Nodes {
+	g.gc.Nodes(func(nc NodeController) {
+		k := nc.Node().Name
+		if g.Nodes[k] != nil {
 			// TODO: m.refresh()
-			continue
+			return
 		}
 		m := &Node{
 			view: g.view,
-			node: n,
+			node: nc.Node(),
 		}
-		pd := n.Pins()
+		pd := nc.Node().Pins()
 		for _, p := range pd {
 			q := &Pin{
 				Name:  p.Name,
@@ -163,7 +167,7 @@ func (g *Graph) refresh() {
 			} else {
 				m.Outputs = append(m.Outputs, q)
 			}
-			if b := n.Connections[p.Name]; b != "" {
+			if b := nc.Node().Connections[p.Name]; b != "" {
 				if c := g.Channels[b]; c != nil {
 					q.ch = c
 					c.Pins[q] = struct{}{}
@@ -174,9 +178,9 @@ func (g *Graph) refresh() {
 		m.AllPins = append(m.Inputs, m.Outputs...)
 		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
 
-		g.Nodes[n.Name] = m
+		g.Nodes[nc.Node().Name] = m
 		m.makeElements()
-	}
+	})
 
 	// Refresh existing connections
 	for _, c := range g.Channels {

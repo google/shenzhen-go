@@ -13,3 +13,22 @@
 // limitations under the License.
 
 package controller
+
+import (
+	"github.com/google/shenzhen-go/dev/model"
+	pb "github.com/google/shenzhen-go/dev/proto/js"
+)
+
+type nodeController struct {
+	client pb.ShenzhenGoClient
+	graph  *model.Graph
+	node   *model.Node
+}
+
+func (c *nodeController) Node() *model.Node {
+	return c.node
+}
+
+func (c *nodeController) Delete() error {
+	return nil // TODO
+}

@@ -29,11 +29,8 @@ type fakeGraphController model.Graph
 
 func (f *fakeGraphController) Graph() *model.Graph                   { return (*model.Graph)(f) }
 func (f *fakeGraphController) PartTypes() map[string]*model.PartType { return nil }
-
-// Sub-controllers
 func (f *fakeGraphController) Node(name string) NodeController       { return nil }
 func (f *fakeGraphController) Channel(name string) ChannelController { return nil }
-
 func (f *fakeGraphController) CreateNode(ctx context.Context, partType string) (*model.Node, error) {
 	return nil, nil
 }

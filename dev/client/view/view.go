@@ -91,7 +91,7 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 	v.diagram.errLabel.
 		MakeElements(doc).
 		SetTextStyle(errTextStyle).
-		SetRectangleStyle(errRectStyle).
+		SetRectStyle(errRectStyle).
 		SetHeight(32).
 		AddTo(v.diagram)
 	v.graph.refresh()

@@ -20,9 +20,9 @@ import "github.com/google/shenzhen-go/dev/dom"
 type TextBox struct {
 	// Children Rectangle and Text, and Text has child TextNode.
 	Group
-	Rectangle dom.Element
-	Text      dom.Element
-	TextNode  dom.Element
+	Rect     dom.Element
+	Text     dom.Element
+	TextNode dom.Element
 
 	MinWidth    float64
 	Margin      float64
@@ -30,16 +30,14 @@ type TextBox struct {
 }
 
 // MakeElements creates the DOM elements, organises them,
-// and sets default attributes. Note the default is to create hidden.
-// The return is the main group.
+// and sets default attributes. The return is the main group.
 func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
 	b.Group = NewGroup(doc)
-	b.Group.Hide()
-	b.Rectangle = doc.MakeSVGElement("rect")
+	b.Rect = doc.MakeSVGElement("rect")
 	b.Text = doc.MakeSVGElement("text")
 	b.TextNode = doc.MakeTextNode("")
 	b.Group.
-		AddChildren(b.Rectangle, b.Text)
+		AddChildren(b.Rect, b.Text)
 	b.Text.
 		SetAttribute("text-anchor", "middle").
 		SetAttribute("unselectable", "on").
@@ -49,20 +47,21 @@ func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
 
 // SetHeight sets the textbox height.
 func (b *TextBox) SetHeight(height float64) *TextBox {
-	b.Rectangle.SetAttribute("height", height)
+	b.Rect.SetAttribute("height", height)
 	b.Text.SetAttribute("y", height/2+b.TextOffsetY)
 	return b
 }
 
-// SetRectangleStyle sets the style of the rectangle.
-func (b *TextBox) SetRectangleStyle(style string) *TextBox {
-	b.Rectangle.SetAttribute("style", style)
+// SetRectStyle sets the style of the rectangle.
+func (b *TextBox) SetRectStyle(style string) *TextBox {
+	b.Rect.SetAttribute("style", style)
 	return b
 }
 
 // SetText sets te text in the textbox.
 func (b *TextBox) SetText(text string) *TextBox {
 	b.TextNode.Set("nodeValue", text)
+	b.RecomputeWidth()
 	return b
 }
 
@@ -78,14 +77,14 @@ func (b *TextBox) SetWidth(w float64) *TextBox {
 	if w < b.MinWidth {
 		w = b.MinWidth
 	}
-	b.Rectangle.SetAttribute("width", w)
+	b.Rect.SetAttribute("width", w)
 	b.Text.SetAttribute("x", w/2)
 	return b
 }
 
 // Width returns the current width.
 func (b *TextBox) Width() float64 {
-	return b.Rectangle.GetAttribute("width").Float()
+	return b.Rect.GetAttribute("width").Float()
 }
 
 // RecomputeWidth resizes the textbox to fit all text (plus a margin).

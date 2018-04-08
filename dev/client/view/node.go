@@ -70,12 +70,11 @@ func (n *Node) MakeElements(doc dom.Document) *Node {
 		MakeElements(doc).
 		SetText(n.nc.Name()).
 		SetTextStyle(nodeTextStyle).
-		SetRectangleStyle(nodeNormalRectStyle).
+		SetRectStyle(nodeNormalRectStyle).
 		SetHeight(nodeHeight).
-		RecomputeWidth().
-		AddTo(n.Group.Element).
-		Show()
-	n.TextBox.Rectangle.
+		AddTo(n.Group)
+
+	n.TextBox.Rect.
 		AddEventListener("mousedown", n.mouseDown).
 		AddEventListener("mousedown", n.view.diagram.selecter(n))
 
@@ -154,7 +153,7 @@ type focusable interface {
 }
 
 func (n *Node) gainFocus(e dom.Object) {
-	n.TextBox.Rectangle.SetAttribute("style", nodeSelectedRectStyle)
+	n.TextBox.Rect.SetAttribute("style", nodeSelectedRectStyle)
 	n.view.nodeNameInput.Set("value", n.nc.Node().Name)
 	n.view.nodeEnabledInput.Set("checked", n.nc.Node().Enabled)
 	n.view.nodeMultiplicityInput.Set("value", n.nc.Node().Multiplicity)
@@ -171,7 +170,7 @@ func (n *Node) gainFocus(e dom.Object) {
 }
 
 func (n *Node) loseFocus(e dom.Object) {
-	n.TextBox.Rectangle.SetAttribute("style", nodeNormalRectStyle)
+	n.TextBox.Rect.SetAttribute("style", nodeNormalRectStyle)
 }
 
 func (n *Node) save(e dom.Object) {

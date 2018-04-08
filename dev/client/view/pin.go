@@ -30,7 +30,7 @@ const (
 // Pin represents a node pin visually, and has enough information to know
 // if it is validly connected.
 type Pin struct {
-	Group   dom.Element
+	Group
 	Shape   dom.Element // my main visual representation
 	Nametag *TextBox    // Hello, my name is ...
 	x, y    float64     // computed, not relative to node
@@ -287,7 +287,7 @@ func (p *Pin) mouseLeave(dom.Object) {
 // MakeElements creates elements associated with this pin.
 func (p *Pin) MakeElements(doc dom.Document) *Pin {
 	// Container for the pin elements.
-	p.Group = doc.MakeSVGElement("g")
+	p.Group = NewGroup(doc)
 
 	// The pin itself, visually
 	p.Shape = doc.MakeSVGElement("circle").
@@ -305,9 +305,10 @@ func (p *Pin) MakeElements(doc dom.Document) *Pin {
 		SetHeight(30).
 		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).
-		SetRectangleStyle(nametagRectStyle).
+		SetRectStyle(nametagRectStyle).
 		RecomputeWidth().
-		AddTo(p.Group)
+		AddTo(p.Group).
+		Hide()
 
 	return p
 }

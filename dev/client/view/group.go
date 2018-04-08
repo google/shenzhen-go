@@ -38,11 +38,11 @@ func (g Group) MoveTo(x, y float64) Group {
 
 // AddTo adds the group to the given parent element.
 func (g Group) AddTo(parent dom.Element) Group {
-	parent.AddChildren(g.Element)
+	parent.AddChildren(g)
 	return g
 }
 
 // Remove removes the group from the parent.
 func (g Group) Remove() {
-	g.Parent().RemoveChildren(g.Element)
+	g.Parent().RemoveChildren(g)
 }

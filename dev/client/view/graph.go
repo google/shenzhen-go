@@ -48,7 +48,7 @@ func (g *Graph) reallyCreateNode(partType string) {
 		view: g.view,
 		nc:   nc,
 	}
-	n.makeElements()
+	n.MakeElements(g.view.doc)
 	g.Nodes[nc.Node().Name] = n
 }
 
@@ -138,7 +138,7 @@ func (g *Graph) refresh() {
 			continue
 		}
 		// Remove this channel.
-		n.unmakeElements()
+		n.Remove()
 		delete(g.Nodes, k)
 	}
 
@@ -179,7 +179,7 @@ func (g *Graph) refresh() {
 		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
 
 		g.Nodes[nc.Node().Name] = m
-		m.makeElements()
+		m.MakeElements(g.view.doc)
 	})
 
 	// Refresh existing connections

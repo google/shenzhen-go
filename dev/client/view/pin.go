@@ -311,7 +311,7 @@ func (p *Pin) makeElements(n *Node) dom.Element {
 		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).
 		SetRectangleStyle(nametagRectStyle)
-	p.node.box.AddChildren(p.nametag)
+	p.node.TextBox.AddChildren(p.nametag)
 	return p.circ
 }
 

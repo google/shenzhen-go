@@ -113,7 +113,7 @@ func TestGraphRefreshFromEmpty(t *testing.T) {
 	}
 
 	// Was checking "wholeText" property before, but this is with the fakes - how did that ever pass?
-	if got, want := node1.box.TextNode.Get("nodeValue").String(), "Node 1"; got != want {
+	if got, want := node1.TextBox.TextNode.Get("nodeValue").String(), "Node 1"; got != want {
 		t.Errorf("Node 1 text = %q, want %q", got, want)
 	}
 }

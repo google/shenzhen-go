@@ -33,12 +33,12 @@ const (
 
 // Node is the view's model of a node.
 type Node struct {
+	*TextBox
+
 	nc   NodeController
 	view *View
 
 	Inputs, Outputs, AllPins []*Pin
-
-	box *TextBox
 
 	relX, relY float64 // relative client offset for moving around
 
@@ -52,34 +52,34 @@ func max(a, b int) int {
 	return b
 }
 
-func (n *Node) makeElements() {
+// MakeElements makes the elements that are part of this node.
+func (n *Node) MakeElements(doc dom.Document) {
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.box = (&TextBox{
+	n.TextBox = (&TextBox{
 		Margin:      nodeBoxMargin,
 		TextOffsetY: nodeTextOffsetY,
 		MinWidth:    float64(minWidth),
 	}).
-		MakeElements(n.view.doc).
+		MakeElements(doc).
 		SetText(n.nc.Name()).
 		SetTextStyle(nodeTextStyle).
 		SetRectangleStyle(nodeNormalRectStyle).
 		SetHeight(nodeHeight).
 		MoveTo(n.nc.Position())
-	n.view.diagram.AddChildren(n.box)
-	n.box.Rectangle.
+	n.view.diagram.AddChildren(n.TextBox)
+	n.TextBox.Rectangle.
 		AddEventListener("mousedown", n.mouseDown).
 		AddEventListener("mousedown", n.view.diagram.selecter(n))
 
 	// Pins
 	for _, p := range n.AllPins {
-		n.box.AddChildren(p.makeElements(n))
+		n.TextBox.AddChildren(p.makeElements(n))
 	}
 	n.updatePinPositions()
 }
 
-func (n *Node) unmakeElements() {
-	n.box.Remove()
-	n.box = nil
+func (n *Node) Remove() {
+	n.TextBox.Remove()
 }
 
 func (n *Node) mouseDown(e dom.Object) {
@@ -88,12 +88,12 @@ func (n *Node) mouseDown(e dom.Object) {
 	n.relX, n.relY = e.Get("clientX").Float()-nx, e.Get("clientY").Float()-ny
 
 	// Bring to front
-	n.view.diagram.AddChildren(n.box)
+	n.TextBox.Parent().AddChildren(n.TextBox)
 }
 
 func (n *Node) drag(e dom.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-	n.box.MoveTo(x, y)
+	n.TextBox.MoveTo(x, y)
 	n.nc.Node().X, n.nc.Node().Y = x, y
 	n.updatePinPositions()
 }
@@ -118,7 +118,7 @@ type focusable interface {
 }
 
 func (n *Node) gainFocus(e dom.Object) {
-	n.box.Rectangle.SetAttribute("style", nodeSelectedRectStyle)
+	n.TextBox.Rectangle.SetAttribute("style", nodeSelectedRectStyle)
 	n.view.nodeNameInput.Set("value", n.nc.Node().Name)
 	n.view.nodeEnabledInput.Set("checked", n.nc.Node().Enabled)
 	n.view.nodeMultiplicityInput.Set("value", n.nc.Node().Multiplicity)
@@ -135,7 +135,7 @@ func (n *Node) gainFocus(e dom.Object) {
 }
 
 func (n *Node) loseFocus(e dom.Object) {
-	n.box.Rectangle.SetAttribute("style", nodeNormalRectStyle)
+	n.TextBox.Rectangle.SetAttribute("style", nodeNormalRectStyle)
 }
 
 func (n *Node) save(e dom.Object) {
@@ -175,7 +175,7 @@ func (n *Node) reallySave(e dom.Object) {
 		n.view.graph.Nodes[props.Name] = n
 		n.nc.Node().Name = props.Name
 
-		n.box.SetText(props.Name)
+		n.TextBox.SetText(props.Name)
 		n.updatePinPositions()
 	}
 	n.nc.Node().Enabled = props.Enabled
@@ -202,7 +202,7 @@ func (n *Node) reallyDelete() {
 		return
 	}
 	delete(n.view.graph.Nodes, n.nc.Node().Name)
-	n.view.diagram.RemoveChildren(n.box)
+	n.Remove()
 	for _, p := range n.AllPins {
 		p.unmakeElements()
 	}
@@ -216,7 +216,7 @@ func (n *Node) refresh() {
 func (n *Node) updatePinPositions() {
 	// Pins have to be aware of both their global and local coordinates,
 	// so the nearest one can be found, and channels can be drawn correctly.
-	w := n.box.Width()
+	w := n.TextBox.Width()
 	isp := w / float64(len(n.Inputs)+1)
 	for i, p := range n.Inputs {
 		p.setPos(isp*float64(i+1), float64(-pinRadius))

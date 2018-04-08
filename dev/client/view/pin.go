@@ -281,9 +281,9 @@ func (p *Pin) mouseLeave(dom.Object) {
 	p.nametag.Hide()
 }
 
-func (p *Pin) makeElements(n *Node) dom.Element {
+func (p *Pin) makeElements(doc dom.Document, n *Node) dom.Element {
 	p.node = n
-	p.circ = n.view.doc.MakeSVGElement("circle").
+	p.circ = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", normalColour).
 		AddEventListener("mousedown", p.dragStart).
@@ -291,12 +291,12 @@ func (p *Pin) makeElements(n *Node) dom.Element {
 		AddEventListener("mouseleave", p.mouseLeave)
 
 	// Line
-	p.l = n.view.doc.MakeSVGElement("line").
+	p.l = doc.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
 	// Another circ
-	p.c = n.view.doc.MakeSVGElement("circle").
+	p.c = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).
@@ -306,7 +306,7 @@ func (p *Pin) makeElements(n *Node) dom.Element {
 
 	// Nametag
 	p.nametag = (&TextBox{Margin: 20, TextOffsetY: 5}).
-		MakeElements(n.view.doc).
+		MakeElements(doc).
 		SetHeight(30).
 		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).

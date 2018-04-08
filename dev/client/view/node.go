@@ -73,13 +73,9 @@ func (n *Node) MakeElements(doc dom.Document) {
 
 	// Pins
 	for _, p := range n.AllPins {
-		n.TextBox.AddChildren(p.makeElements(n))
+		n.TextBox.AddChildren(p.makeElements(n.view.doc, n))
 	}
 	n.updatePinPositions()
-}
-
-func (n *Node) Remove() {
-	n.TextBox.Remove()
 }
 
 func (n *Node) mouseDown(e dom.Object) {

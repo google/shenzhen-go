@@ -132,12 +132,14 @@ func (e *FakeElement) ID() string {
 	return e.Get("id").String()
 }
 
+// GetAttribute gets an attribute value.
+func (e *FakeElement) GetAttribute(attr string) Object {
+	return MakeFakeObject(e.Attributes[attr])
+}
+
 // SetAttribute sets an attribute.
 func (e *FakeElement) SetAttribute(attr string, value interface{}) Element {
 	e.Attributes[attr] = value
-	// Also set the property, because property mapped attributes, but note this only
-	// counts for some things.
-	e.Properties[attr] = value
 	return e
 }
 

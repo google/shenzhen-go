@@ -23,10 +23,10 @@ import (
 // TextBox is an SVG group containing a filled rectangle and text.
 type TextBox struct {
 	// Children Rectangle and Text, and Text has child TextNode.
-	dom.Element // Group
-	Rectangle   dom.Element
-	Text        dom.Element
-	TextNode    dom.Element
+	Group     dom.Element
+	Rectangle dom.Element
+	Text      dom.Element
+	TextNode  dom.Element
 
 	MinWidth    float64
 	Margin      float64
@@ -35,12 +35,13 @@ type TextBox struct {
 
 // MakeElements creates the DOM elements, organises them,
 // and sets default attributes. Note the default is to create hidden.
+// The return is the main group.
 func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
-	b.Element = doc.MakeSVGElement("g").Hide()
+	b.Group = doc.MakeSVGElement("g").Hide()
 	b.Rectangle = doc.MakeSVGElement("rect")
 	b.Text = doc.MakeSVGElement("text")
 	b.TextNode = doc.MakeTextNode("")
-	b.Element.
+	b.Group.
 		AddChildren(b.Rectangle, b.Text)
 	b.Text.
 		SetAttribute("text-anchor", "middle").
@@ -51,7 +52,7 @@ func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
 
 // MoveTo moves the textbox to have the topleft corner at x, y.
 func (b *TextBox) MoveTo(x, y float64) *TextBox {
-	b.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
+	b.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
 	return b
 }
 
@@ -71,13 +72,13 @@ func (b *TextBox) SetRectangleStyle(style string) *TextBox {
 // SetText sets te text in the textbox.
 func (b *TextBox) SetText(text string) *TextBox {
 	b.TextNode.Set("nodeValue", text)
-	return b.RecomputeWidth()
+	return b
 }
 
 // SetTextStyle sets the style attribute of the text.
 func (b *TextBox) SetTextStyle(style string) *TextBox {
 	b.Text.SetAttribute("style", style)
-	return b.RecomputeWidth()
+	return b
 }
 
 // SetWidth sets the width of the textbox, unless the width is less than the MinWidth,
@@ -91,9 +92,21 @@ func (b *TextBox) SetWidth(w float64) *TextBox {
 	return b
 }
 
+// Show shows the textbox.
+func (b *TextBox) Show() *TextBox {
+	b.Group.Show()
+	return b
+}
+
+// Hide hides the textbox.
+func (b *TextBox) Hide() *TextBox {
+	b.Group.Hide()
+	return b
+}
+
 // Width returns the current width.
 func (b *TextBox) Width() float64 {
-	return b.Rectangle.Get("width").Float()
+	return b.Rectangle.GetAttribute("width").Float()
 }
 
 // RecomputeWidth resizes the textbox to fit all text (plus a margin).
@@ -101,7 +114,13 @@ func (b *TextBox) RecomputeWidth() *TextBox {
 	return b.SetWidth(b.Text.Call("getComputedTextLength").Float() + 2*b.Margin)
 }
 
+// AddTo adds the group to the given parent.
+func (b *TextBox) AddTo(parent dom.Element) *TextBox {
+	parent.AddChildren(b.Group)
+	return b
+}
+
 // Remove removes the textbox from the text box's parent element.
 func (b *TextBox) Remove() {
-	b.Parent().RemoveChildren(b.Element)
+	b.Group.Parent().RemoveChildren(b.Group)
 }

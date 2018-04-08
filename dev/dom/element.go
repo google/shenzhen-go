@@ -23,6 +23,9 @@ type Element interface {
 	// ID returns the element ID.
 	ID() string
 
+	// GetAttribute gets the JS getAttribute method, returning the requested attribute.
+	GetAttribute(string) Object
+
 	// SetAttribute calls the JS setAttribute method, returning the element for chaining.
 	SetAttribute(string, interface{}) Element
 
@@ -65,6 +68,10 @@ func WrapElement(o Object) Element {
 
 func (e element) ID() string {
 	return e.Get("id").String()
+}
+
+func (e element) GetAttribute(attr string) Object {
+	return e.Call("getAttribute", attr)
 }
 
 func (e element) SetAttribute(attr string, value interface{}) Element {

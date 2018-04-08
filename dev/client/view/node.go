@@ -15,6 +15,8 @@
 package view
 
 import (
+	"fmt"
+
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
@@ -33,12 +35,14 @@ const (
 
 // Node is the view's model of a node.
 type Node struct {
-	*TextBox
-
 	nc   NodeController
 	view *View
 
-	Inputs, Outputs, AllPins []*Pin
+	Group   dom.Element
+	TextBox *TextBox
+	Inputs  []*Pin
+	Outputs []*Pin
+	AllPins []*Pin
 
 	relX, relY float64 // relative client offset for moving around
 
@@ -53,7 +57,10 @@ func max(a, b int) int {
 }
 
 // MakeElements makes the elements that are part of this node.
-func (n *Node) MakeElements(doc dom.Document) {
+func (n *Node) MakeElements(doc dom.Document) *Node {
+	n.Group = doc.MakeSVGElement("g")
+	n.MoveTo(n.nc.Position())
+
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.TextBox = (&TextBox{
 		Margin:      nodeBoxMargin,
@@ -61,20 +68,22 @@ func (n *Node) MakeElements(doc dom.Document) {
 		MinWidth:    float64(minWidth),
 	}).
 		MakeElements(doc).
+		AddTo(n.Group).
 		SetText(n.nc.Name()).
 		SetTextStyle(nodeTextStyle).
 		SetRectangleStyle(nodeNormalRectStyle).
 		SetHeight(nodeHeight).
-		MoveTo(n.nc.Position())
-	n.view.diagram.AddChildren(n.TextBox)
+		RecomputeWidth().
+		Show()
 	n.TextBox.Rectangle.
 		AddEventListener("mousedown", n.mouseDown).
 		AddEventListener("mousedown", n.view.diagram.selecter(n))
 
 	// Pins
 	for _, p := range n.AllPins {
+		p.MakeElements(doc).AddTo(n.Group)
 		p.node = n
-		n.TextBox.AddChildren(p.MakeElements(n.view.doc))
+
 		// TODO: move below to Channel
 		p.l = doc.MakeSVGElement("line").
 			SetAttribute("stroke-width", lineWidth).
@@ -89,6 +98,24 @@ func (n *Node) MakeElements(doc dom.Document) {
 
 	}
 	n.updatePinPositions()
+	return n
+}
+
+// AddTo adds the node as a child of the given parent.
+func (n *Node) AddTo(parent dom.Element) *Node {
+	parent.AddChildren(n.Group)
+	return n
+}
+
+// Remove removes the node from the group's parent.
+func (n *Node) Remove() {
+	n.Group.Parent().RemoveChildren(n.Group)
+}
+
+// MoveTo moves the textbox to have the topleft corner at x, y.
+func (n *Node) MoveTo(x, y float64) *Node {
+	n.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
+	return n
 }
 
 func (n *Node) mouseDown(e dom.Object) {
@@ -97,12 +124,12 @@ func (n *Node) mouseDown(e dom.Object) {
 	n.relX, n.relY = e.Get("clientX").Float()-nx, e.Get("clientY").Float()-ny
 
 	// Bring to front
-	n.TextBox.Parent().AddChildren(n.TextBox)
+	n.Group.Parent().AddChildren(n.Group)
 }
 
 func (n *Node) drag(e dom.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-	n.TextBox.MoveTo(x, y)
+	n.MoveTo(x, y)
 	n.nc.Node().X, n.nc.Node().Y = x, y
 	n.updatePinPositions()
 }
@@ -213,7 +240,7 @@ func (n *Node) reallyDelete() {
 	delete(n.view.graph.Nodes, n.nc.Node().Name)
 	n.Remove()
 	for _, p := range n.AllPins {
-		p.unmakeElements()
+		p.node.view.diagram.RemoveChildren(p.l, p.c) // TODO: move to Channel
 	}
 }
 
@@ -228,12 +255,12 @@ func (n *Node) updatePinPositions() {
 	w := n.TextBox.Width()
 	isp := w / float64(len(n.Inputs)+1)
 	for i, p := range n.Inputs {
-		p.setPos(isp*float64(i+1), float64(-pinRadius))
+		p.MoveTo(isp*float64(i+1), float64(-pinRadius))
 	}
 
 	osp := w / float64(len(n.Outputs)+1)
 	for i, p := range n.Outputs {
-		p.setPos(osp*float64(i+1), float64(nodeHeight+pinRadius))
+		p.MoveTo(osp*float64(i+1), float64(nodeHeight+pinRadius))
 	}
 }
 

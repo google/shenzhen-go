@@ -30,10 +30,10 @@ const (
 // Pin represents a node pin visually, and has enough information to know
 // if it is validly connected.
 type Pin struct {
-	dom.Element             // group
-	Shape       dom.Element // my main visual representation
-	Nametag     *TextBox    // Hello, my name is ...
-	x, y        float64     // computed, not relative to node
+	Group   dom.Element
+	Shape   dom.Element // my main visual representation
+	Nametag *TextBox    // Hello, my name is ...
+	x, y    float64     // computed, not relative to node
 
 	// TODO: consult a controller?
 	Name, Type string
@@ -155,20 +155,20 @@ func (p *Pin) reallyDisconnect() {
 	}
 }
 
-func (p *Pin) setPos(rx, ry float64) {
-	p.Shape.
-		SetAttribute("cx", rx).
-		SetAttribute("cy", ry)
+// MoveTo moves the pin (relatively).
+func (p *Pin) MoveTo(rx, ry float64) {
+	p.Shape.SetAttribute("cx", rx).SetAttribute("cy", ry)
 	p.x, p.y = rx+p.node.nc.Node().X, ry+p.node.nc.Node().Y
+
+	// TODO: move below to Channel
 	if p.l != nil {
-		p.l.
-			SetAttribute("x1", p.x).
-			SetAttribute("y1", p.y)
+		p.l.SetAttribute("x1", p.x).SetAttribute("y1", p.y)
 	}
 	if p.ch != nil {
 		p.ch.reposition(nil)
 		p.ch.commit()
 	}
+	// end TODO
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
@@ -287,7 +287,7 @@ func (p *Pin) mouseLeave(dom.Object) {
 // MakeElements creates elements associated with this pin.
 func (p *Pin) MakeElements(doc dom.Document) *Pin {
 	// Container for the pin elements.
-	p.Element = doc.MakeSVGElement("g")
+	p.Group = doc.MakeSVGElement("g")
 
 	// The pin itself, visually
 	p.Shape = doc.MakeSVGElement("circle").
@@ -296,20 +296,28 @@ func (p *Pin) MakeElements(doc dom.Document) *Pin {
 		AddEventListener("mousedown", p.dragStart).
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
+	p.Group.AddChildren(p.Shape)
 
 	// Nametag textbox.
 	p.Nametag = (&TextBox{Margin: 20, TextOffsetY: 5}).
 		MakeElements(doc).
+		AddTo(p.Group).
 		SetHeight(30).
 		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).
-		SetRectangleStyle(nametagRectStyle)
+		SetRectangleStyle(nametagRectStyle).
+		RecomputeWidth()
 
-	p.Element.AddChildren(p.Shape, p.Nametag)
 	return p
 }
 
-func (p *Pin) unmakeElements() {
-	p.node.view.diagram.RemoveChildren(p.l, p.c)
-	p.Nametag.Remove()
+// AddTo adds the pin's group as a child to the given parent.
+func (p *Pin) AddTo(parent dom.Element) *Pin {
+	parent.AddChildren(p.Group)
+	return p
+}
+
+// Remove removes the group from its parent.
+func (p *Pin) Remove() {
+	p.Group.Parent().RemoveChildren(p.Group)
 }

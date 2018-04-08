@@ -188,7 +188,7 @@ func (c *Channel) drag(e dom.Object) {
 
 	if c.p != nil && (c.p != p || d >= snapQuad) {
 		c.p.disconnect()
-		c.p.circ.SetAttribute("fill", normalColour)
+		c.p.Shape.SetAttribute("fill", normalColour)
 		c.p.l.Hide()
 		c.p = nil
 	}
@@ -309,7 +309,7 @@ func (c *Channel) setColour(col string) {
 	c.c.SetAttribute("stroke", col)
 	c.l.SetAttribute("stroke", col)
 	for t := range c.Pins {
-		t.circ.SetAttribute("fill", col)
+		t.Shape.SetAttribute("fill", col)
 		t.l.SetAttribute("stroke", col)
 	}
 }

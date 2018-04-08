@@ -23,10 +23,10 @@ import (
 // TextBox is an SVG group containing a filled rectangle and text.
 type TextBox struct {
 	// Children Rectangle and Text, and Text has child TextNode.
-	dom.Element
-	Rectangle dom.Element
-	Text      dom.Element
-	TextNode  dom.Element
+	dom.Element // Group
+	Rectangle   dom.Element
+	Text        dom.Element
+	TextNode    dom.Element
 
 	MinWidth    float64
 	Margin      float64

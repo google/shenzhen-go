@@ -73,7 +73,20 @@ func (n *Node) MakeElements(doc dom.Document) {
 
 	// Pins
 	for _, p := range n.AllPins {
-		n.TextBox.AddChildren(p.makeElements(n.view.doc, n))
+		p.node = n
+		n.TextBox.AddChildren(p.MakeElements(n.view.doc))
+		// TODO: move below to Channel
+		p.l = doc.MakeSVGElement("line").
+			SetAttribute("stroke-width", lineWidth).
+			Hide()
+		p.c = doc.MakeSVGElement("circle").
+			SetAttribute("r", pinRadius).
+			SetAttribute("fill", "transparent").
+			SetAttribute("stroke-width", lineWidth).
+			Hide()
+		n.view.diagram.AddChildren(p.l, p.c)
+		// end TODO
+
 	}
 	n.updatePinPositions()
 }

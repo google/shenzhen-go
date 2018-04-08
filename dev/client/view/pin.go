@@ -30,18 +30,21 @@ const (
 // Pin represents a node pin visually, and has enough information to know
 // if it is validly connected.
 type Pin struct {
+	dom.Element             // group
+	Shape       dom.Element // my main visual representation
+	Nametag     *TextBox    // Hello, my name is ...
+	x, y        float64     // computed, not relative to node
+
+	// TODO: consult a controller?
 	Name, Type string
+	input      bool // am I an input?
 
-	input bool     // am I an input?
-	node  *Node    // owner.
-	ch    *Channel // attached to this channel, is often nil
+	node *Node    // owner.
+	ch   *Channel // attached to this channel, is often nil
 
-	nametag *TextBox // Hello, my name is ...
-
-	circ dom.Element // my main representation
-	l    dom.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
-	x, y float64     // computed, not relative to node
-	c    dom.Element // circle, when dragging from a pin
+	// TODO: These should be moved to Channel
+	l dom.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
+	c dom.Element // circle, when dragging from a pin
 }
 
 // Save time by checking whether a potential connection can succeeds.
@@ -153,7 +156,7 @@ func (p *Pin) reallyDisconnect() {
 }
 
 func (p *Pin) setPos(rx, ry float64) {
-	p.circ.
+	p.Shape.
 		SetAttribute("cx", rx).
 		SetAttribute("cy", ry)
 	p.x, p.y = rx+p.node.nc.Node().X, ry+p.node.nc.Node().Y
@@ -189,7 +192,7 @@ func (p *Pin) dragStart(e dom.Object) {
 	}
 	p.node.view.diagram.dragItem = p
 
-	p.circ.SetAttribute("fill", errorColour)
+	p.Shape.SetAttribute("fill", errorColour)
 
 	x, y := p.node.view.diagram.cursorPos(e)
 	p.l.SetAttribute("x2", x).
@@ -216,7 +219,7 @@ func (p *Pin) drag(e dom.Object) {
 			p.disconnect()
 		}
 
-		p.circ.SetAttribute("fill", errorColour)
+		p.Shape.SetAttribute("fill", errorColour)
 		p.l.SetAttribute("stroke", errorColour)
 		p.c.SetAttribute("stroke", errorColour).Show()
 	}
@@ -253,7 +256,7 @@ func (p *Pin) drag(e dom.Object) {
 
 func (p *Pin) drop(e dom.Object) {
 	p.node.view.diagram.clearError()
-	p.circ.SetAttribute("fill", normalColour)
+	p.Shape.SetAttribute("fill", normalColour)
 	p.c.Hide()
 	if p.ch == nil {
 		p.l.Hide()
@@ -274,48 +277,39 @@ func (p *Pin) mouseEnter(dom.Object) {
 	} else {
 		y += 8
 	}
-	p.nametag.MoveTo(x, y).Show()
+	p.Nametag.MoveTo(x, y).Show()
 }
 
 func (p *Pin) mouseLeave(dom.Object) {
-	p.nametag.Hide()
+	p.Nametag.Hide()
 }
 
-func (p *Pin) makeElements(doc dom.Document, n *Node) dom.Element {
-	p.node = n
-	p.circ = doc.MakeSVGElement("circle").
+// MakeElements creates elements associated with this pin.
+func (p *Pin) MakeElements(doc dom.Document) *Pin {
+	// Container for the pin elements.
+	p.Element = doc.MakeSVGElement("g")
+
+	// The pin itself, visually
+	p.Shape = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", normalColour).
 		AddEventListener("mousedown", p.dragStart).
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
 
-	// Line
-	p.l = doc.MakeSVGElement("line").
-		SetAttribute("stroke-width", lineWidth).
-		Hide()
-
-	// Another circ
-	p.c = doc.MakeSVGElement("circle").
-		SetAttribute("r", pinRadius).
-		SetAttribute("fill", "transparent").
-		SetAttribute("stroke-width", lineWidth).
-		Hide()
-
-	n.view.diagram.AddChildren(p.l, p.c)
-
-	// Nametag
-	p.nametag = (&TextBox{Margin: 20, TextOffsetY: 5}).
+	// Nametag textbox.
+	p.Nametag = (&TextBox{Margin: 20, TextOffsetY: 5}).
 		MakeElements(doc).
 		SetHeight(30).
 		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).
 		SetRectangleStyle(nametagRectStyle)
-	p.node.TextBox.AddChildren(p.nametag)
-	return p.circ
+
+	p.Element.AddChildren(p.Shape, p.Nametag)
+	return p
 }
 
 func (p *Pin) unmakeElements() {
 	p.node.view.diagram.RemoveChildren(p.l, p.c)
-	p.nametag.Remove()
+	p.Nametag.Remove()
 }

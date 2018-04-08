@@ -299,14 +299,15 @@ func (p *Pin) MakeElements(doc dom.Document) *Pin {
 	p.Group.AddChildren(p.Shape)
 
 	// Nametag textbox.
-	p.Nametag = (&TextBox{Margin: 20, TextOffsetY: 5}).
+	p.Nametag = &TextBox{Margin: 20, TextOffsetY: 5}
+	p.Nametag.
 		MakeElements(doc).
-		AddTo(p.Group).
 		SetHeight(30).
 		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).
 		SetRectangleStyle(nametagRectStyle).
-		RecomputeWidth()
+		RecomputeWidth().
+		AddTo(p.Group)
 
 	return p
 }

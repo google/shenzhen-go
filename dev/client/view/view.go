@@ -84,15 +84,16 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 	v.graph.view = v
 
 	v.diagram = &Diagram{
-		Element: doc.ElementByID("diagram"),
-		View:    v,
+		Element:  doc.ElementByID("diagram"),
+		View:     v,
+		errLabel: &TextBox{Margin: 20, TextOffsetY: 5},
 	}
-	v.diagram.errLabel = (&TextBox{Margin: 20, TextOffsetY: 5}).
+	v.diagram.errLabel.
 		MakeElements(doc).
-		AddTo(v.diagram).
 		SetTextStyle(errTextStyle).
 		SetRectangleStyle(errRectStyle).
-		SetHeight(32)
+		SetHeight(32).
+		AddTo(v.diagram)
 	v.graph.refresh()
 
 	v.diagram.

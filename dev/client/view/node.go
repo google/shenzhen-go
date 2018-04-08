@@ -35,14 +35,14 @@ const (
 
 // Node is the view's model of a node.
 type Node struct {
-	nc   NodeController
-	view *View
-
-	Group   dom.Element
+	Group
 	TextBox *TextBox
 	Inputs  []*Pin
 	Outputs []*Pin
 	AllPins []*Pin
+
+	nc   NodeController
+	view *View
 
 	relX, relY float64 // relative client offset for moving around
 
@@ -58,22 +58,22 @@ func max(a, b int) int {
 
 // MakeElements makes the elements that are part of this node.
 func (n *Node) MakeElements(doc dom.Document) *Node {
-	n.Group = doc.MakeSVGElement("g")
-	n.MoveTo(n.nc.Position())
+	n.Group = NewGroup(doc).MoveTo(n.nc.Position())
 
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
-	n.TextBox = (&TextBox{
+	n.TextBox = &TextBox{
 		Margin:      nodeBoxMargin,
 		TextOffsetY: nodeTextOffsetY,
 		MinWidth:    float64(minWidth),
-	}).
+	}
+	n.TextBox.
 		MakeElements(doc).
-		AddTo(n.Group).
 		SetText(n.nc.Name()).
 		SetTextStyle(nodeTextStyle).
 		SetRectangleStyle(nodeNormalRectStyle).
 		SetHeight(nodeHeight).
 		RecomputeWidth().
+		AddTo(n.Group.Element).
 		Show()
 	n.TextBox.Rectangle.
 		AddEventListener("mousedown", n.mouseDown).
@@ -81,7 +81,7 @@ func (n *Node) MakeElements(doc dom.Document) *Node {
 
 	// Pins
 	for _, p := range n.AllPins {
-		p.MakeElements(doc).AddTo(n.Group)
+		p.MakeElements(doc).AddTo(n.Group.Element)
 		p.node = n
 
 		// TODO: move below to Channel

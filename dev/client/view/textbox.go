@@ -14,16 +14,12 @@
 
 package view
 
-import (
-	"fmt"
-
-	"github.com/google/shenzhen-go/dev/dom"
-)
+import "github.com/google/shenzhen-go/dev/dom"
 
 // TextBox is an SVG group containing a filled rectangle and text.
 type TextBox struct {
 	// Children Rectangle and Text, and Text has child TextNode.
-	Group     dom.Element
+	Group
 	Rectangle dom.Element
 	Text      dom.Element
 	TextNode  dom.Element
@@ -37,7 +33,8 @@ type TextBox struct {
 // and sets default attributes. Note the default is to create hidden.
 // The return is the main group.
 func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
-	b.Group = doc.MakeSVGElement("g").Hide()
+	b.Group = NewGroup(doc)
+	b.Group.Hide()
 	b.Rectangle = doc.MakeSVGElement("rect")
 	b.Text = doc.MakeSVGElement("text")
 	b.TextNode = doc.MakeTextNode("")
@@ -47,12 +44,6 @@ func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
 		SetAttribute("text-anchor", "middle").
 		SetAttribute("unselectable", "on").
 		AddChildren(b.TextNode)
-	return b
-}
-
-// MoveTo moves the textbox to have the topleft corner at x, y.
-func (b *TextBox) MoveTo(x, y float64) *TextBox {
-	b.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
 	return b
 }
 
@@ -92,18 +83,6 @@ func (b *TextBox) SetWidth(w float64) *TextBox {
 	return b
 }
 
-// Show shows the textbox.
-func (b *TextBox) Show() *TextBox {
-	b.Group.Show()
-	return b
-}
-
-// Hide hides the textbox.
-func (b *TextBox) Hide() *TextBox {
-	b.Group.Hide()
-	return b
-}
-
 // Width returns the current width.
 func (b *TextBox) Width() float64 {
 	return b.Rectangle.GetAttribute("width").Float()
@@ -112,15 +91,4 @@ func (b *TextBox) Width() float64 {
 // RecomputeWidth resizes the textbox to fit all text (plus a margin).
 func (b *TextBox) RecomputeWidth() *TextBox {
 	return b.SetWidth(b.Text.Call("getComputedTextLength").Float() + 2*b.Margin)
-}
-
-// AddTo adds the group to the given parent.
-func (b *TextBox) AddTo(parent dom.Element) *TextBox {
-	parent.AddChildren(b.Group)
-	return b
-}
-
-// Remove removes the textbox from the text box's parent element.
-func (b *TextBox) Remove() {
-	b.Group.Parent().RemoveChildren(b.Group)
 }

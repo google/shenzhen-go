@@ -26,8 +26,10 @@ type Group struct {
 }
 
 // NewGroup creates an SVG group in the given document.
-func NewGroup(doc dom.Document) Group {
-	return Group{doc.MakeSVGElement("g")}
+func NewGroup(doc dom.Document, parent dom.Element) Group {
+	g := Group{doc.MakeSVGElement("g")}
+	parent.AddChildren(g)
+	return g
 }
 
 // MoveTo moves the group to have the topleft corner at x, y.

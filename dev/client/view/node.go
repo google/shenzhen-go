@@ -57,8 +57,8 @@ func max(a, b int) int {
 }
 
 // MakeElements makes the elements that are part of this node.
-func (n *Node) MakeElements(doc dom.Document) *Node {
-	n.Group = NewGroup(doc).MoveTo(n.nc.Position())
+func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
+	n.Group = NewGroup(doc, parent).MoveTo(n.nc.Position())
 
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.TextBox = &TextBox{
@@ -67,12 +67,12 @@ func (n *Node) MakeElements(doc dom.Document) *Node {
 		MinWidth:    float64(minWidth),
 	}
 	n.TextBox.
-		MakeElements(doc).
-		SetText(n.nc.Name()).
+		MakeElements(doc, n.Group).
 		SetTextStyle(nodeTextStyle).
 		SetRectStyle(nodeNormalRectStyle).
 		SetHeight(nodeHeight).
-		AddTo(n.Group)
+		SetText(n.nc.Name()).
+		RecomputeWidth()
 
 	n.TextBox.Rect.
 		AddEventListener("mousedown", n.mouseDown).
@@ -80,7 +80,7 @@ func (n *Node) MakeElements(doc dom.Document) *Node {
 
 	// Pins
 	for _, p := range n.AllPins {
-		p.MakeElements(doc).AddTo(n.Group.Element)
+		p.MakeElements(doc, n.Group)
 		p.node = n
 
 		// TODO: move below to Channel

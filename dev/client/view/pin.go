@@ -285,9 +285,9 @@ func (p *Pin) mouseLeave(dom.Object) {
 }
 
 // MakeElements creates elements associated with this pin.
-func (p *Pin) MakeElements(doc dom.Document) *Pin {
+func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	// Container for the pin elements.
-	p.Group = NewGroup(doc)
+	p.Group = NewGroup(doc, parent)
 
 	// The pin itself, visually
 	p.Shape = doc.MakeSVGElement("circle").
@@ -301,14 +301,13 @@ func (p *Pin) MakeElements(doc dom.Document) *Pin {
 	// Nametag textbox.
 	p.Nametag = &TextBox{Margin: 20, TextOffsetY: 5}
 	p.Nametag.
-		MakeElements(doc).
+		MakeElements(doc, p.Group).
 		SetHeight(30).
-		SetText(p.Name + " (" + p.Type + ")").
 		SetTextStyle(nametagTextStyle).
 		SetRectStyle(nametagRectStyle).
-		RecomputeWidth().
-		AddTo(p.Group).
-		Hide()
+		SetText(p.Name + " (" + p.Type + ")")
+	p.Nametag.RecomputeWidth()
+	p.Nametag.Hide()
 
 	return p
 }

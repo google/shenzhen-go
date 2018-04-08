@@ -27,18 +27,21 @@ type TextBox struct {
 	MinWidth    float64
 	Margin      float64
 	TextOffsetY float64
+
+	currentText string
 }
 
 // MakeElements creates the DOM elements, organises them,
 // and sets default attributes. The return is the main group.
-func (b *TextBox) MakeElements(doc dom.Document) *TextBox {
-	b.Group = NewGroup(doc)
+func (b *TextBox) MakeElements(doc dom.Document, parent dom.Element) *TextBox {
+	b.Group = NewGroup(doc, parent)
 	b.Rect = doc.MakeSVGElement("rect")
 	b.Text = doc.MakeSVGElement("text")
 	b.TextNode = doc.MakeTextNode("")
 	b.Group.
 		AddChildren(b.Rect, b.Text)
 	b.Text.
+		SetAttribute("alignment-baseline", "middle").
 		SetAttribute("text-anchor", "middle").
 		SetAttribute("unselectable", "on").
 		AddChildren(b.TextNode)
@@ -58,10 +61,16 @@ func (b *TextBox) SetRectStyle(style string) *TextBox {
 	return b
 }
 
+// CurrentText returns the last string passed to SetText.
+func (b *TextBox) CurrentText() string {
+	return b.currentText
+}
+
 // SetText sets te text in the textbox.
 func (b *TextBox) SetText(text string) *TextBox {
 	b.TextNode.Set("nodeValue", text)
-	b.RecomputeWidth()
+	//b.RecomputeWidth()
+	b.currentText = text
 	return b
 }
 
@@ -88,6 +97,16 @@ func (b *TextBox) Width() float64 {
 }
 
 // RecomputeWidth resizes the textbox to fit all text (plus a margin).
-func (b *TextBox) RecomputeWidth() *TextBox {
-	return b.SetWidth(b.Text.Call("getComputedTextLength").Float() + 2*b.Margin)
+func (b *TextBox) RecomputeWidth() {
+	// This is kind of ridiculous.
+	// I just want some text centred in a rect.
+	// You can't add the text as a child of the rect, so we add both to a group.
+	// Then to figure out how big the rect needs to be, use the size of the text.
+	// getComputedTextLength does this, but only if the text has been rendered.
+	// getBBox works kind of similarly, but when it works it works better, and when
+	// it fails it crashes hard (on Firefox).
+
+	//b.SetWidth(b.Text.Call("getComputedTextLength").Float() + 2*b.Margin)
+	w := b.Text.Call("getBBox").Get("width").Float()
+	b.SetWidth(w + 2*b.Margin)
 }

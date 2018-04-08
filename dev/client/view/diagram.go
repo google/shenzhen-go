@@ -96,8 +96,11 @@ func (d *Diagram) setError(err string, x, y float64) {
 		d.clearError()
 		return
 	}
-	d.errLabel.SetText(err).AddTo(d).MoveTo(x, y).Show() // Re-add = Bring to front
-	log.Print(err)
+	d.errLabel.AddTo(d).MoveTo(x, y).Show()
+	if d.errLabel.CurrentText() != err {
+		d.errLabel.SetText(err).RecomputeWidth()
+		log.Print(err)
+	}
 }
 
 func (d *Diagram) clearError() {

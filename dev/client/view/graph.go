@@ -48,7 +48,7 @@ func (g *Graph) reallyCreateNode(partType string) {
 		view: g.view,
 		nc:   nc,
 	}
-	n.MakeElements(g.view.doc).AddTo(g.view.diagram)
+	n.MakeElements(g.view.doc, g.view.diagram)
 	g.Nodes[nc.Node().Name] = n
 }
 
@@ -179,7 +179,7 @@ func (g *Graph) refresh() {
 		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
 
 		g.Nodes[nc.Node().Name] = m
-		m.MakeElements(g.view.doc).AddTo(g.view.diagram)
+		m.MakeElements(g.view.doc, g.view.diagram)
 	})
 
 	// Refresh existing connections

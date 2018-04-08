@@ -31,6 +31,9 @@ type FakeObject struct {
 
 // MakeFakeObject makes a FakeObject.
 func MakeFakeObject(value interface{}) *FakeObject {
+	if o, ok := value.(*FakeObject); ok {
+		return o
+	}
 	return &FakeObject{
 		Value:      value,
 		Properties: make(map[string]interface{}),
@@ -250,6 +253,14 @@ func (d *FakeDocument) MakeSVGElement(class string) Element {
 	case "text":
 		e.Methods["getComputedTextLength"] = func(...interface{}) interface{} {
 			return rand.Float64() * 200
+		}
+		e.Methods["getBBox"] = func(...interface{}) interface{} {
+			o := MakeFakeObject(nil)
+			o.Set("x", 150.0)
+			o.Set("y", 160.0)
+			o.Set("height", 40.0)
+			o.Set("width", 130.0)
+			return o
 		}
 	}
 	return e

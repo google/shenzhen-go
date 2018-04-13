@@ -14,12 +14,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/gopherjs/websocket"
-  packages = ["websocketjs"]
-  revision = "87ee47603f137e7f8419765b3621b3c36e715a08"
-
-[[projects]]
   name = "github.com/improbable-eng/grpc-web"
   packages = ["go/grpcweb"]
   revision = "9cca7d4530683dc49fc10cf627309ce4be119af5"
@@ -30,19 +24,17 @@
   packages = [
     "grpcweb",
     "grpcweb/grpcwebjs",
-    "grpcweb/metadata",
     "grpcweb/status",
-    "internal",
     "jspb"
   ]
-  revision = "16ac2b41dc72a3179b1f7196da31f6f2c19f87db"
-  version = "v0.5.4"
+  revision = "13864234c1633f98c43de4faf32083209cc511d7"
+  version = "v0.6.0"
 
 [[projects]]
   name = "github.com/rs/cors"
   packages = ["."]
-  revision = "7af7a1e09ba336d2ea14b1ce73bf693c6837dbf6"
-  version = "v1.2"
+  revision = "feef513b9575b32f84bafa580aad89b011259019"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -59,7 +51,7 @@
     "font/gofont/gomonoitalic",
     "font/gofont/goregular"
   ]
-  revision = "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+  revision = "f315e440302883054d0c2bd85486878cb4f8572c"
 
 [[projects]]
   branch = "master"
@@ -73,10 +65,9 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+  revision = "61147c48b25b599e5b561d2e9c4f3e1ef489ca41"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -94,13 +85,14 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
+  revision = "51d0944304c3cbce4afe9e5247e21100037bff78"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -113,6 +105,7 @@
     "connectivity",
     "credentials",
     "encoding",
+    "encoding/proto",
     "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "internal",
@@ -128,12 +121,12 @@
     "tap",
     "transport"
   ]
-  revision = "6b51017f791ae1cfbec89c52efdf444b13b550ef"
-  version = "v1.9.2"
+  revision = "d11072e7ca9811b1100b80ca0269ac831f06d024"
+  version = "v1.11.3"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c6c91f9175e2585e0f5c2319a9f5fc3c53d1bcc1aabae796cc1d71c0af5692f8"
+  inputs-digest = "9ba00d032ef5473fce87515e3ccdd34e487ef492cc9a18a28d63944f86e78643"
   solver-name = "gps-cdcl"
   solver-version = 1

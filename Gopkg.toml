@@ -40,7 +40,7 @@ ignored = ["github.com/gopherjs/gopherjs/js"]
 
 [[override]]
   name = "github.com/johanbrandhorst/protobuf"
-  version = "0.5.4"
+  version = "0.6.0"
 
 [[constraint]]
   branch = "master"

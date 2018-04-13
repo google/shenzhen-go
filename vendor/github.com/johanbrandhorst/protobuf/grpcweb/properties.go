@@ -22,58 +22,27 @@ package grpcweb
 
 import (
 	"github.com/gopherjs/gopherjs/js"
-
-	"github.com/johanbrandhorst/protobuf/grpcweb/metadata"
-	"github.com/johanbrandhorst/protobuf/grpcweb/status"
 )
-
-// Request pretends to be an Improbable gRPC-web Request.
-type request struct {
-	*js.Object
-	serializeFunc func() []byte `js:"serializeBinary"`
-}
-
-// NewRequest returns a new Request, populated
-// with a serializeFunc that returns the bytes provided.
-func newRequest(rawBytes []byte) *request {
-	r := &request{
-		Object: js.Global.Get("Object").New(),
-	}
-	r.serializeFunc = func() []byte { return rawBytes }
-
-	return r
-}
-
-type onHeadersFunc func(metadata.Metadata)
-type onEndFunc func(*status.Status)
-type rawOnEndFunc func(int, string, metadata.Metadata)
-type onMessageFunc func([]byte)
 
 // Properties pretends to be an Improbable gRPC-web Properties struct.
 type properties struct {
 	*js.Object
-	request   *request           `js:"request"`
-	headers   *metadata.Metadata `js:"metadata"`
-	onHeaders onHeadersFunc      `js:"onHeaders"`
-	onMessage onMessageFunc      `js:"onMessage"`
-	onEnd     rawOnEndFunc       `js:"onEnd"`
-	host      string             `js:"host"`
-	debug     bool               `js:"debug"`
+	host      string     `js:"host"`
+	debug     bool       `js:"debug"`
+	transport *js.Object `js:"transport"`
 }
 
 // NewProperties creates a new, initialized, Properties struct.
-func newProperties(host string, debug bool, req *request, headers *metadata.Metadata,
-	onHeaders onHeadersFunc, onMsg onMessageFunc, onEnd rawOnEndFunc) *properties {
+func newProperties(host string, useWebsockets bool) *properties {
 	r := &properties{
 		Object: js.Global.Get("Object").New(),
 	}
 	r.host = host
-	r.debug = debug
-	r.request = req
-	r.headers = headers
-	r.onHeaders = onHeaders
-	r.onMessage = onMsg
-	r.onEnd = onEnd
+	r.debug = false
+	r.transport = js.Global.Get("grpc").Get("DefaultTransportFactory")
+	if useWebsockets {
+		r.transport = js.Global.Get("grpc").Get("WebsocketTransportFactory")
+	}
 
 	return r
 }

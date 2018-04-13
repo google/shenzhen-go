@@ -20,15 +20,6 @@
 
 package grpcweb
 
-import (
-	"context"
-	"io"
-
-	"google.golang.org/grpc/codes"
-
-	"github.com/johanbrandhorst/protobuf/grpcweb/status"
-)
-
 // Client encapsulates all gRPC calls to a
 // host-service combination.
 type Client struct {
@@ -48,45 +39,4 @@ func NewClient(host, service string, opts ...DialOption) *Client {
 	}
 
 	return c
-}
-
-// RPCCall performs a unary call to an endpoint, blocking until a
-// reply has been received or the context was canceled.
-func (c Client) RPCCall(ctx context.Context, method string, req []byte, opts ...CallOption) ([]byte, error) {
-	respChan := make(chan []byte, 1)
-	errChan := make(chan error, 1)
-
-	onMsg := func(in []byte) {
-		respChan <- in
-	}
-	onEnd := func(s *status.Status) {
-		if s.Code != codes.OK {
-			errChan <- s
-		} else {
-			errChan <- io.EOF // Success!
-		}
-	}
-	cancel, err := invoke(ctx, c.host, c.service, method, req, onMsg, onEnd, opts...)
-	if err != nil {
-		return nil, err
-	}
-	defer cancel()
-
-	select {
-	case err := <-errChan:
-		// Wait until we've gotten the result from onEnd
-		if err == io.EOF {
-			select {
-			// Now check for the response - should already be
-			// here, but can't be too careful
-			case resp := <-respChan:
-				return resp, nil
-			case <-ctx.Done():
-				return nil, ctx.Err()
-			}
-		}
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
 }

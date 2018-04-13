@@ -29,6 +29,6 @@ import (
 	_ "github.com/johanbrandhorst/protobuf/jspb"
 )
 
-// GrpcWebPackageIsVersion2 is referenced from generated protocol buffer files
+// GrpcWebPackageIsVersion3 is referenced from generated protocol buffer files
 // to assert that that code is compatible with this version of the proto package.
-const GrpcWebPackageIsVersion2 = true
+const GrpcWebPackageIsVersion3 = true

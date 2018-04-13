@@ -22,6 +22,22 @@ package grpcweb
 
 import "github.com/gopherjs/gopherjs/js"
 
+// Service pretends to be an Improbable gRPC-web Service struct.
+type service struct {
+	*js.Object
+	name string `js:"serviceName"`
+}
+
+// NewService creates a new Service with the given name.
+func newService(name string) *service {
+	r := &service{
+		Object: js.Global.Get("Object").New(),
+	}
+	r.name = name
+
+	return r
+}
+
 // ResponseType pretends to be a ProtobufJS ResponseType
 type responseType struct {
 	*js.Object
@@ -41,18 +57,21 @@ func newResponseType() *responseType {
 	return r
 }
 
-// Service pretends to be an Improbable gRPC-web Service struct.
-type service struct {
+// requestType pretends to be a ProtobufJS requestType
+type requestType struct {
 	*js.Object
-	name string `js:"serviceName"`
+	serializeFunc func() []byte `js:"serializeBinary"`
 }
 
-// NewService creates a new Service with the given name.
-func newService(name string) *service {
-	r := &service{
+// NewRequestType creates a new RequestType,
+// populated with a deserialization function that
+// just forwards the raw bytes back to the caller.
+func newRequestType(payload []byte) *requestType {
+	r := &requestType{
 		Object: js.Global.Get("Object").New(),
 	}
-	r.name = name
+	// Serialization is done elsewhere
+	r.serializeFunc = func() []byte { return payload }
 
 	return r
 }
@@ -61,19 +80,28 @@ func newService(name string) *service {
 // MethodDescriptor.
 type methodDescriptor struct {
 	*js.Object
-	service      *service      `js:"service"`
-	method       string        `js:"methodName"`
-	responseType *responseType `js:"responseType"`
+	service        *service      `js:"service"`
+	method         string        `js:"methodName"`
+	requestStream  bool          `js:"requestStream"`
+	responseStream bool          `js:"responseStream"`
+	responseType   *responseType `js:"responseType"`
 }
 
 // NewMethodDescriptor creates a new MethodDescriptor.
-func newMethodDescriptor(service *service, method string, responseType *responseType) *methodDescriptor {
+func newMethodDescriptor(
+	service *service,
+	method string,
+	isRequestStream,
+	isResponseStream bool,
+) *methodDescriptor {
 	r := &methodDescriptor{
 		Object: js.Global.Get("Object").New(),
 	}
 	r.service = service
 	r.method = method
-	r.responseType = responseType
+	r.responseType = newResponseType()
+	r.requestStream = isRequestStream
+	r.responseStream = isResponseStream
 
 	return r
 }

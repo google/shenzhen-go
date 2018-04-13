@@ -1256,7 +1256,7 @@ var _ grpcweb.Client
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpcweb package it is being compiled against.
-const _ = grpcweb.GrpcWebPackageIsVersion2
+const _ = grpcweb.GrpcWebPackageIsVersion3
 
 // Client API for ShenzhenGo service
 

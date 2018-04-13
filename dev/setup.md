@@ -1,6 +1,6 @@
 # Development setup
 
-All the steps needed to completely rebuild (i.e. you want to edit client/* or proto/*).
+All the steps needed to completely rebuild (i.e. you want to edit `client/*` or `proto/*`).
 
 TODO(josh): Validate on a fresh machine
 

@@ -67,7 +67,6 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 	v := &View{
 		doc:    doc,
 		client: client,
-		graph:  &Graph{gc: gc},
 
 		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:  doc.ElementByID("node-properties"),
@@ -81,7 +80,6 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 		nodeWaitInput:         doc.ElementByID("node-wait"),
 		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
 	}
-	v.graph.view = v
 
 	v.diagram = &Diagram{
 		Element:  doc.ElementByID("diagram"),
@@ -93,6 +91,13 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 		SetTextStyle(errTextStyle).
 		SetRectStyle(errRectStyle).
 		SetHeight(32)
+
+	v.graph = &Graph{
+		gc:   gc,
+		doc:  doc,
+		view: v,
+	}
+	v.graph.makeElements(doc, v.diagram)
 	v.graph.refresh()
 
 	v.diagram.
@@ -148,4 +153,12 @@ func (v *View) ShowRHSPanel(p dom.Element) {
 	}
 	v.CurrentRHSPanel.Hide()
 	v.CurrentRHSPanel = p.Show()
+}
+
+func (v *View) setError(err string, x, y float64) {
+	v.diagram.setError(err, x, y)
+}
+
+func (v *View) clearError() {
+	v.diagram.clearError()
 }

@@ -83,17 +83,19 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 		p.MakeElements(doc, n.Group)
 		p.node = n
 
-		// TODO: move below to Channel
-		p.l = doc.MakeSVGElement("line").
-			SetAttribute("stroke-width", lineWidth).
-			Hide()
-		p.c = doc.MakeSVGElement("circle").
-			SetAttribute("r", pinRadius).
-			SetAttribute("fill", "transparent").
-			SetAttribute("stroke-width", lineWidth).
-			Hide()
-		n.view.diagram.AddChildren(p.l, p.c)
-		// end TODO
+		/*
+			// TODO: move below to Channel
+			p.l = doc.MakeSVGElement("line").
+				SetAttribute("stroke-width", lineWidth).
+				Hide()
+			p.c = doc.MakeSVGElement("circle").
+				SetAttribute("r", pinRadius).
+				SetAttribute("fill", "transparent").
+				SetAttribute("stroke-width", lineWidth).
+				Hide()
+			n.view.diagram.AddChildren(p.l, p.c)
+			// end TODO
+		*/
 
 	}
 	n.updatePinPositions()
@@ -226,7 +228,7 @@ func (n *Node) reallyDelete() {
 	// Chatty, but cleans everything up.
 	for _, p := range n.AllPins {
 		p.reallyDisconnect()
-		p.l.Hide()
+		//	p.l.Hide()
 	}
 	req := &pb.DeleteNodeRequest{
 		Graph: n.view.graph.gc.Graph().FilePath,
@@ -238,9 +240,11 @@ func (n *Node) reallyDelete() {
 	}
 	delete(n.view.graph.Nodes, n.nc.Node().Name)
 	n.Remove()
-	for _, p := range n.AllPins {
-		p.node.view.diagram.RemoveChildren(p.l, p.c) // TODO: move to Channel
-	}
+	/*
+		for _, p := range n.AllPins {
+			p.node.view.diagram.RemoveChildren(p.l, p.c) // TODO: move to Channel
+		}
+	*/
 }
 
 func (n *Node) refresh() {

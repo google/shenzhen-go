@@ -16,27 +16,21 @@ package view
 
 import (
 	"log"
-	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"github.com/google/shenzhen-go/dev/model"
-	pb "github.com/google/shenzhen-go/dev/proto/js"
 	"golang.org/x/net/context"
 )
 
-const anonChannelNamePrefix = "anonymousChannel"
-
-var anonChannelNameRE = regexp.MustCompile(`^anonymousChannel\d+$`)
-
 // Channel is the view's model of a channel.
 type Channel struct {
-	channel *model.Channel
-	view    *View
+	Group // Container for all the channel elements.
+
+	cc    ChannelController
+	view  *View
+	graph *Graph
 
 	// Cache of raw Pin objects which are connected.
-	Pins map[*Pin]struct{}
+	Pins map[*Pin]*Route
 
 	created bool // create operation sent to server?
 
@@ -47,72 +41,34 @@ type Channel struct {
 	p       *Pin        // considering attaching to this pin
 }
 
-func (v *View) createChannel(p, q *Pin) *Channel {
-	c := &model.Channel{
-		Type:      p.Type,
-		Capacity:  0,
-		Anonymous: true,
+func (v *View) createChannel(p *Pin) *Channel {
+	cc, err := v.graph.gc.CreateChannel(p.node.nc.Name(), p.Name)
+	if err != nil {
+		// TODO: handle better
+		panic(err)
 	}
-	// Pick a unique name
-	max := -1
-	for _, ec := range v.graph.Channels {
-		if !anonChannelNameRE.MatchString(ec.channel.Name) {
-			continue
-		}
-		n, err := strconv.Atoi(strings.TrimPrefix(ec.channel.Name, anonChannelNamePrefix))
-		if err != nil {
-			// The string just matched \d+ but can't be converted to an int?...
-			panic(err)
-		}
-		if n > max {
-			max = n
-		}
-	}
-	c.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
 	ch := &Channel{
-		channel: c,
-		view:    v,
-		Pins: map[*Pin]struct{}{
+		cc:   cc,
+		view: v,
+		Pins: map[*Pin]*Route{
 			p: {},
-			q: {},
 		},
 	}
-	ch.makeElements()
+	ch.makeElements(v.doc, v.diagram)
 	return ch
 }
 
 func (c *Channel) reallyCreate() {
-	// Hacky extraction of first two channels
-	var p, q *Pin
-	for x := range c.Pins {
-		if p == nil {
-			p = x
-			continue
-		}
-		if q == nil {
-			q = x
-			break
-		}
-	}
-	req := &pb.CreateChannelRequest{
-		Graph: c.view.graph.gc.Graph().FilePath,
-		Name:  c.channel.Name,
-		Type:  c.channel.Type,
-		Cap:   uint64(c.channel.Capacity),
-		Anon:  c.channel.Anonymous,
-		Node1: p.node.nc.Node().Name,
-		Pin1:  p.Name,
-		Node2: q.node.nc.Node().Name,
-		Pin2:  q.Name,
-	}
-	if _, err := c.view.client.CreateChannel(context.Background(), req); err != nil {
+	if err := c.cc.Commit(context.TODO()); err != nil {
 		c.view.diagram.setError("Couldn't create a channel: "+err.Error(), 0, 0)
 		return
 	}
 	c.created = true
 }
 
-func (c *Channel) makeElements() {
+func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
+	c.Group = NewGroup(doc, parent)
+
 	c.steiner = c.view.doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.dragStart)
@@ -127,7 +83,7 @@ func (c *Channel) makeElements() {
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	c.view.diagram.AddChildren(c.steiner, c.l, c.c)
+	c.Group.AddChildren(c.steiner, c.l, c.c)
 }
 
 func (c *Channel) unmakeElements() {
@@ -189,7 +145,6 @@ func (c *Channel) drag(e dom.Object) {
 	if c.p != nil && (c.p != p || d >= snapQuad) {
 		c.p.disconnect()
 		c.p.Shape.SetAttribute("fill", normalColour)
-		c.p.l.Hide()
 		c.p = nil
 	}
 
@@ -223,7 +178,6 @@ func (c *Channel) drag(e dom.Object) {
 	// Let's snap!
 	c.view.diagram.clearError()
 	c.p = p
-	p.l.Show()
 	c.setColour(activeColour)
 	c.l.Hide()
 	c.c.Hide()
@@ -269,9 +223,8 @@ func (c *Channel) reposition(additional Point) {
 	if np < 2 {
 		// Not actually a channel anymore - hide.
 		c.steiner.Hide()
-		for t := range c.Pins {
-			t.c.Hide()
-			t.l.Hide()
+		for _, r := range c.Pins {
+			r.Element.Hide()
 		}
 		return
 	}
@@ -292,8 +245,8 @@ func (c *Channel) reposition(additional Point) {
 	c.l.
 		SetAttribute("x2", c.tx).
 		SetAttribute("y2", c.ty)
-	for t := range c.Pins {
-		t.l.
+	for _, r := range c.Pins {
+		r.Element.
 			SetAttribute("x2", c.tx).
 			SetAttribute("y2", c.ty)
 	}
@@ -310,6 +263,6 @@ func (c *Channel) setColour(col string) {
 	c.l.SetAttribute("stroke", col)
 	for t := range c.Pins {
 		t.Shape.SetAttribute("fill", col)
-		t.l.SetAttribute("stroke", col)
+		//t.l.SetAttribute("stroke", col)
 	}
 }

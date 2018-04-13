@@ -41,10 +41,6 @@ type Pin struct {
 
 	node *Node    // owner.
 	ch   *Channel // attached to this channel, is often nil
-
-	// TODO: These should be moved to Channel
-	l dom.Element // attached line; x1, y1 = x, y; x2, y2 = ch.tx, ch.ty.
-	c dom.Element // circle, when dragging from a pin
 }
 
 // Save time by checking whether a potential connection can succeeds.
@@ -68,8 +64,8 @@ func (p *Pin) checkConnectionTo(q Point) error {
 		}
 
 	case *Channel:
-		if q.channel.Type != p.Type {
-			return errors.New("mismatching types [" + p.Type + " != " + q.channel.Type + "]")
+		if q.cc.Channel().Type != p.Type {
+			return errors.New("mismatching types [" + p.Type + " != " + q.cc.Channel().Type + "]")
 		}
 		same := true
 		for r := range q.Pins {
@@ -85,43 +81,13 @@ func (p *Pin) checkConnectionTo(q Point) error {
 	return nil
 }
 
-func (p *Pin) connectTo(q Point) {
-	switch q := q.(type) {
-	case *Pin:
-		if p.ch != nil && p.ch != q.ch {
-			p.disconnect()
-		}
-		if q.ch != nil {
-			p.connectTo(q.ch)
-			return
-		}
-
-		// Create a new channel to connect to
-		ch := p.node.view.createChannel(p, q)
-		ch.reposition(nil)
-		p.ch, q.ch = ch, ch
-		p.node.view.graph.Channels[ch.channel.Name] = ch
-		q.l.Show()
-
-	case *Channel:
-		if p.ch != nil && p.ch != q {
-			p.disconnect()
-		}
-
-		p.ch = q
-		q.Pins[p] = struct{}{}
-		q.reposition(nil)
-	}
-	return
-}
-
 func (p *Pin) reallyConnect() {
 	// Attach to the existing channel
 	if _, err := p.node.view.client.ConnectPin(context.Background(), &pb.ConnectPinRequest{
 		Graph:   p.node.view.graph.gc.Graph().FilePath,
 		Node:    p.node.nc.Node().Name,
 		Pin:     p.Name,
-		Channel: p.ch.channel.Name,
+		Channel: p.ch.cc.Channel().Name,
 	}); err != nil {
 		p.node.view.diagram.setError("Couldn't connect: "+err.Error(), 0, 0)
 	}
@@ -140,7 +106,7 @@ func (p *Pin) disconnect() {
 		for q := range p.ch.Pins {
 			q.ch = nil
 		}
-		delete(p.node.view.graph.Channels, p.ch.channel.Name)
+		delete(p.node.view.graph.Channels, p.ch.cc.Channel().Name)
 	}
 	p.ch = nil
 }
@@ -159,16 +125,6 @@ func (p *Pin) reallyDisconnect() {
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Shape.SetAttribute("cx", rx).SetAttribute("cy", ry)
 	p.x, p.y = rx+p.node.nc.Node().X, ry+p.node.nc.Node().Y
-
-	// TODO: move below to Channel
-	if p.l != nil {
-		p.l.SetAttribute("x1", p.x).SetAttribute("y1", p.y)
-	}
-	if p.ch != nil {
-		p.ch.reposition(nil)
-		p.ch.commit()
-	}
-	// end TODO
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
@@ -177,97 +133,20 @@ func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 func (p *Pin) String() string { return p.node.nc.Node().Name + "." + p.Name }
 
 func (p *Pin) dragStart(e dom.Object) {
-	// If the pin is attached to something, detach and drag from that instead.
-	if ch := p.ch; ch != nil {
+	// If a channel is attached, detach and drag from that instead.
+	// If not, create a new channela and attach it.
+	if p.ch != nil {
 		p.disconnect()
-		p.l.Hide()
-		if len(ch.Pins) > 1 {
-			ch.dragStart(e)
-			return
-		}
-		for q := range ch.Pins {
-			q.dragStart(e)
-			return
-		}
-	}
-	p.node.view.diagram.dragItem = p
-
-	p.Shape.SetAttribute("fill", errorColour)
-
-	x, y := p.node.view.diagram.cursorPos(e)
-	p.l.SetAttribute("x2", x).
-		SetAttribute("y2", y).
-		SetAttribute("stroke", errorColour).
-		Show()
-	p.c.SetAttribute("cx", x).
-		SetAttribute("cy", y).
-		SetAttribute("stroke", errorColour).
-		Show()
-}
-
-func (p *Pin) drag(e dom.Object) {
-	x, y := p.node.view.diagram.cursorPos(e)
-	defer func() {
-		p.l.SetAttribute("x2", x).SetAttribute("y2", y)
-		p.c.SetAttribute("cx", x).SetAttribute("cy", y)
-	}()
-	d, q := p.node.view.graph.nearestPoint(x, y)
-
-	noSnap := func() {
-		if p.ch != nil {
-			p.ch.setColour(normalColour)
-			p.disconnect()
-		}
-
-		p.Shape.SetAttribute("fill", errorColour)
-		p.l.SetAttribute("stroke", errorColour)
-		p.c.SetAttribute("stroke", errorColour).Show()
-	}
-
-	// Don't connect P to itself, don't connect if nearest is far away.
-	if p == q || d >= snapQuad {
-		p.node.view.diagram.clearError()
-		noSnap()
+		p.ch.dragStart(e)
 		return
 	}
-
-	if err := p.checkConnectionTo(q); err != nil {
-		p.node.view.diagram.setError("Can't connect: "+err.Error(), x, y)
-		noSnap()
-		return
+	p.ch = &Channel{
+		// TODO
+		Pins: map[*Pin]*Route{
+			p: nil,
+		},
 	}
-
-	// Make the connection.
-	p.connectTo(q)
-
-	// Snap to q.ch, or q if q is a channel. Visual.
-	switch q := q.(type) {
-	case *Pin:
-		x, y = q.ch.tx, q.ch.ty
-	case *Channel:
-		x, y = q.tx, q.ty
-	}
-
-	// Valid snap - ensure the colour is active.
-	p.node.view.diagram.clearError()
-	p.ch.setColour(activeColour)
-	p.c.Hide()
-}
-
-func (p *Pin) drop(e dom.Object) {
-	p.node.view.diagram.clearError()
-	p.Shape.SetAttribute("fill", normalColour)
-	p.c.Hide()
-	if p.ch == nil {
-		p.l.Hide()
-		go p.reallyDisconnect()
-		return
-	}
-	if p.ch.created {
-		go p.reallyConnect()
-	}
-	p.ch.setColour(normalColour)
-	p.ch.commit()
+	p.ch.dragStart(e)
 }
 
 func (p *Pin) mouseEnter(dom.Object) {

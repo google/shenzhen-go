@@ -10,6 +10,7 @@
 	It has these top-level messages:
 		Empty
 		NodeConfig
+		NodePin
 		CreateChannelRequest
 		CreateNodeRequest
 		ConnectPinRequest
@@ -251,17 +252,91 @@ func (m *NodeConfig) Unmarshal(rawBytes []byte) (*NodeConfig, error) {
 	return m, nil
 }
 
+type NodePin struct {
+	Node string
+	Pin  string
+}
+
+// GetNode gets the Node of the NodePin.
+func (m *NodePin) GetNode() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Node
+}
+
+// GetPin gets the Pin of the NodePin.
+func (m *NodePin) GetPin() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Pin
+}
+
+// MarshalToWriter marshals NodePin to the provided writer.
+func (m *NodePin) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Node) > 0 {
+		writer.WriteString(1, m.Node)
+	}
+
+	if len(m.Pin) > 0 {
+		writer.WriteString(2, m.Pin)
+	}
+
+	return
+}
+
+// Marshal marshals NodePin to a slice of bytes.
+func (m *NodePin) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a NodePin from the provided reader.
+func (m *NodePin) UnmarshalFromReader(reader jspb.Reader) *NodePin {
+	for reader.Next() {
+		if m == nil {
+			m = &NodePin{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Node = reader.ReadString()
+		case 2:
+			m.Pin = reader.ReadString()
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a NodePin from a slice of bytes.
+func (m *NodePin) Unmarshal(rawBytes []byte) (*NodePin, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
 type CreateChannelRequest struct {
 	Graph string
 	Name  string
 	Type  string
 	Anon  bool
 	Cap   uint64
-	// Also connect two pins together, to reduce chatter (1 Create RPC instead of [Create, Connect, Connect])
-	Node1 string
-	Pin1  string
-	Node2 string
-	Pin2  string
+	Pins  []*NodePin
 }
 
 // GetGraph gets the Graph of the CreateChannelRequest.
@@ -304,36 +379,12 @@ func (m *CreateChannelRequest) GetCap() (x uint64) {
 	return m.Cap
 }
 
-// GetNode1 gets the Node1 of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetNode1() (x string) {
+// GetPins gets the Pins of the CreateChannelRequest.
+func (m *CreateChannelRequest) GetPins() (x []*NodePin) {
 	if m == nil {
 		return x
 	}
-	return m.Node1
-}
-
-// GetPin1 gets the Pin1 of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetPin1() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Pin1
-}
-
-// GetNode2 gets the Node2 of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetNode2() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Node2
-}
-
-// GetPin2 gets the Pin2 of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetPin2() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Pin2
+	return m.Pins
 }
 
 // MarshalToWriter marshals CreateChannelRequest to the provided writer.
@@ -362,20 +413,10 @@ func (m *CreateChannelRequest) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteUint64(5, m.Cap)
 	}
 
-	if len(m.Node1) > 0 {
-		writer.WriteString(6, m.Node1)
-	}
-
-	if len(m.Pin1) > 0 {
-		writer.WriteString(7, m.Pin1)
-	}
-
-	if len(m.Node2) > 0 {
-		writer.WriteString(8, m.Node2)
-	}
-
-	if len(m.Pin2) > 0 {
-		writer.WriteString(9, m.Pin2)
+	for _, msg := range m.Pins {
+		writer.WriteMessage(6, func() {
+			msg.MarshalToWriter(writer)
+		})
 	}
 
 	return
@@ -407,13 +448,9 @@ func (m *CreateChannelRequest) UnmarshalFromReader(reader jspb.Reader) *CreateCh
 		case 5:
 			m.Cap = reader.ReadUint64()
 		case 6:
-			m.Node1 = reader.ReadString()
-		case 7:
-			m.Pin1 = reader.ReadString()
-		case 8:
-			m.Node2 = reader.ReadString()
-		case 9:
-			m.Pin2 = reader.ReadString()
+			reader.ReadMessage(func() {
+				m.Pins = append(m.Pins, new(NodePin).UnmarshalFromReader(reader))
+			})
 		default:
 			reader.SkipField()
 		}

@@ -25,8 +25,11 @@ import (
 
 // Graph is the view-model of a graph.
 type Graph struct {
-	view *View
-	gc   GraphController
+	Group
+	gc GraphController
+
+	doc  dom.Document // responsible for creating new elements dynamically
+	view *View        // for setting errors, mostly
 
 	Nodes    map[string]*Node
 	Channels map[string]*Channel
@@ -39,16 +42,16 @@ func (g *Graph) createNode(partType string) {
 func (g *Graph) reallyCreateNode(partType string) {
 	nc, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {
-		g.view.diagram.setError("Couldn't create a new node: "+err.Error(), 0, 0)
+		g.view.setError("Couldn't create a new node: "+err.Error(), 0, 0)
 		return
 	}
-	g.view.diagram.clearError()
+	g.view.clearError()
 
 	n := &Node{
 		view: g.view,
 		nc:   nc,
 	}
-	n.MakeElements(g.view.doc, g.view.diagram)
+	n.MakeElements(g.doc, g.Group)
 	g.Nodes[nc.Node().Name] = n
 }
 
@@ -78,7 +81,7 @@ func (g *Graph) save(dom.Object) {
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {
-		g.view.diagram.setError("Couldn't save: "+err.Error(), 0, 0)
+		g.view.setError("Couldn't save: "+err.Error(), 0, 0)
 	}
 }
 
@@ -88,8 +91,12 @@ func (g *Graph) saveProperties(dom.Object) {
 
 func (g *Graph) reallySaveProperties() {
 	if err := g.gc.SaveProperties(context.TODO()); err != nil {
-		g.view.diagram.setError("Couldn't save properties: "+err.Error(), 0, 0)
+		g.view.setError("Couldn't save properties: "+err.Error(), 0, 0)
 	}
+}
+
+func (g *Graph) makeElements(doc dom.Document, parent dom.Element) {
+	g.Group = NewGroup(doc, parent)
 }
 
 // refresh ensures the view model matches the model.
@@ -124,12 +131,12 @@ func (g *Graph) refresh() {
 		// Add the channel.
 		ch := &Channel{
 			view:    g.view,
-			channel: cc.Channel(),
-			Pins:    make(map[*Pin]struct{}),
+			cc:      cc,
+			Pins:    make(map[*Pin]*Route),
 			created: true,
 		}
 		g.Channels[k] = ch
-		ch.makeElements()
+		ch.makeElements(g.doc, g.Group)
 	})
 
 	// Remove any nodes that no longer exist.
@@ -170,7 +177,7 @@ func (g *Graph) refresh() {
 			if b := nc.Node().Connections[p.Name]; b != "" {
 				if c := g.Channels[b]; c != nil {
 					q.ch = c
-					c.Pins[q] = struct{}{}
+					c.Pins[q] = nil
 				}
 			}
 		}
@@ -179,15 +186,15 @@ func (g *Graph) refresh() {
 		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
 
 		g.Nodes[nc.Node().Name] = m
-		m.MakeElements(g.view.doc, g.view.diagram)
+		m.MakeElements(g.doc, g.Group)
 	})
 
 	// Refresh existing connections
 	for _, c := range g.Channels {
 		c.reposition(nil)
 		c.commit()
-		for p := range c.Pins {
-			p.l.SetAttribute("stroke", normalColour).Show()
+		for _, r := range c.Pins {
+			r.MakeElements(g.doc, c)
 		}
 	}
 }

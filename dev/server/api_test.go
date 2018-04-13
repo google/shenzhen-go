@@ -70,10 +70,16 @@ func TestCreateChannel(t *testing.T) {
 			req: &pb.CreateChannelRequest{
 				Graph: "nope",
 				Name:  "baz",
-				Node1: "node1",
-				Pin1:  "pin1",
-				Node2: "node2",
-				Pin2:  "pin2",
+				Pins: []*pb.NodePin{
+					{
+						Node: "node1",
+						Pin:  "pin1",
+					},
+					{
+						Node: "node2",
+						Pin:  "pin2",
+					},
+				},
 			},
 			code: codes.NotFound,
 		},
@@ -81,10 +87,16 @@ func TestCreateChannel(t *testing.T) {
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "bar",
-				Node1: "node1",
-				Pin1:  "pin1",
-				Node2: "node2",
-				Pin2:  "pin2",
+				Pins: []*pb.NodePin{
+					{
+						Node: "node1",
+						Pin:  "pin1",
+					},
+					{
+						Node: "node2",
+						Pin:  "pin2",
+					},
+				},
 			},
 			code: codes.FailedPrecondition,
 		},
@@ -92,10 +104,16 @@ func TestCreateChannel(t *testing.T) {
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
-				Node1: "nope",
-				Pin1:  "pin1",
-				Node2: "node2",
-				Pin2:  "pin2",
+				Pins: []*pb.NodePin{
+					{
+						Node: "nope",
+						Pin:  "pin1",
+					},
+					{
+						Node: "node2",
+						Pin:  "pin2",
+					},
+				},
 			},
 			code: codes.NotFound,
 		},
@@ -103,10 +121,16 @@ func TestCreateChannel(t *testing.T) {
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
-				Node1: "node1",
-				Pin1:  "pin1",
-				Node2: "noope",
-				Pin2:  "pin2",
+				Pins: []*pb.NodePin{
+					{
+						Node: "node1",
+						Pin:  "pin1",
+					},
+					{
+						Node: "noop",
+						Pin:  "pin2",
+					},
+				},
 			},
 			code: codes.NotFound,
 		},
@@ -114,10 +138,16 @@ func TestCreateChannel(t *testing.T) {
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
-				Node1: "node1",
-				Pin1:  "pine",
-				Node2: "node2",
-				Pin2:  "pin2",
+				Pins: []*pb.NodePin{
+					{
+						Node: "node1",
+						Pin:  "pine",
+					},
+					{
+						Node: "node2",
+						Pin:  "pin2",
+					},
+				},
 			},
 			code: codes.FailedPrecondition,
 		},
@@ -125,10 +155,16 @@ func TestCreateChannel(t *testing.T) {
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
-				Node1: "node1",
-				Pin1:  "pin1",
-				Node2: "node2",
-				Pin2:  "pine",
+				Pins: []*pb.NodePin{
+					{
+						Node: "node1",
+						Pin:  "pin1",
+					},
+					{
+						Node: "node2",
+						Pin:  "pint",
+					},
+				},
 			},
 			code: codes.FailedPrecondition,
 		},
@@ -137,10 +173,16 @@ func TestCreateChannel(t *testing.T) {
 				Graph: "foo",
 				Name:  "baz",
 				Type:  "int",
-				Node1: "node1",
-				Pin1:  "pin1",
-				Node2: "node2",
-				Pin2:  "pin2",
+				Pins: []*pb.NodePin{
+					{
+						Node: "node1",
+						Pin:  "pin1",
+					},
+					{
+						Node: "node2",
+						Pin:  "pin2",
+					},
+				},
 			},
 			code: codes.OK,
 		},

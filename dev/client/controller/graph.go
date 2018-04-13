@@ -16,7 +16,10 @@ package controller
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -25,6 +28,10 @@ import (
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
+
+const anonChannelNamePrefix = "anonymousChannel"
+
+var anonChannelNameRE = regexp.MustCompile(`^anonymousChannel\d+$`)
 
 type graphController struct {
 	doc    dom.Document
@@ -77,12 +84,20 @@ func (c *graphController) Channel(name string) view.ChannelController {
 	if ch == nil {
 		return nil
 	}
-	return &channelController{channel: ch}
+	return &channelController{
+		client:  c.client,
+		graph:   c.graph,
+		channel: ch,
+	}
 }
 
 func (c *graphController) Channels(f func(view.ChannelController)) {
 	for _, ch := range c.graph.Channels {
-		f(&channelController{channel: ch})
+		f(&channelController{
+			client:  c.client,
+			graph:   c.graph,
+			channel: ch,
+		})
 	}
 }
 
@@ -92,6 +107,46 @@ func (c *graphController) NumChannels() int {
 
 func (c graphController) PartTypes() map[string]*model.PartType {
 	return model.PartTypes
+}
+
+func (c *graphController) CreateChannel(firstNode, firstPin string) (view.ChannelController, error) {
+	node := c.graph.Nodes[firstNode]
+	if node == nil {
+		return nil, fmt.Errorf("node %q does not exist", firstNode)
+	}
+
+	pin := node.Pins()[firstPin]
+	if pin == nil {
+		return nil, fmt.Errorf("pin %q does not exist on node %q", firstPin, firstNode)
+	}
+
+	ch := &model.Channel{
+		Type:      pin.Type,
+		Capacity:  0,
+		Anonymous: true,
+	}
+	// Pick a unique name
+	max := -1
+	for _, ec := range c.graph.Channels {
+		if !anonChannelNameRE.MatchString(ec.Name) {
+			continue
+		}
+		n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
+		if err != nil {
+			// The string just matched \d+ but can't be converted to an int?...
+			panic(err)
+		}
+		if n > max {
+			max = n
+		}
+	}
+	ch.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
+
+	return &channelController{
+		client:  c.client,
+		graph:   c.graph,
+		channel: ch,
+	}, nil
 }
 
 func (c *graphController) CreateNode(ctx context.Context, partType string) (view.NodeController, error) {

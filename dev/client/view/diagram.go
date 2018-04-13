@@ -92,6 +92,7 @@ func (d *Diagram) deleteSelected(e dom.Object) {
 }
 
 func (d *Diagram) setError(err string, x, y float64) {
+	// TODO: remove this function; the error should be at a fixed position
 	if err == "" {
 		d.clearError()
 		return

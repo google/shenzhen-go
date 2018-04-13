@@ -38,10 +38,11 @@ func (c fakeGraphController) Node(name string) NodeController {
 	return fakeNodeController{}
 }
 
-func (c fakeGraphController) NumNodes() int                         { return 1 }
-func (c fakeGraphController) Channel(name string) ChannelController { return nil }
-func (c fakeGraphController) Channels(f func(ChannelController))    {}
-func (c fakeGraphController) NumChannels() int                      { return 0 }
+func (c fakeGraphController) NumNodes() int                                           { return 1 }
+func (c fakeGraphController) Channel(name string) ChannelController                   { return nil }
+func (c fakeGraphController) Channels(f func(ChannelController))                      {}
+func (c fakeGraphController) NumChannels() int                                        { return 0 }
+func (c fakeGraphController) CreateChannel(string, string) (ChannelController, error) { return nil, nil }
 func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (NodeController, error) {
 	return nil, nil
 }

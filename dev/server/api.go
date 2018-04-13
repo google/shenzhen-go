@@ -31,19 +31,15 @@ func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest
 	g.Lock()
 	defer g.Unlock()
 
-	n1, err := g.lookupNode(req.Node1)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	n2, err := g.lookupNode(req.Node2)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if co := n1.Connections[req.Pin1]; co != "nil" {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node1, req.Pin1, co)
-	}
-	if co := n2.Connections[req.Pin2]; co != "nil" {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", req.Node2, req.Pin2, co)
+	np := make(map[model.NodePin]struct{}, len(req.Pins))
+	for _, x := range req.Pins {
+		n, err := g.lookupNode(x.Node)
+		if err != nil {
+			return &pb.Empty{}, err
+		}
+		if co := n.Connections[x.Pin]; co != "nil" {
+			return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", x.Node, x.Pin, co)
+		}
 	}
 	// TODO: better validation
 	if req.Name == "nil" {
@@ -58,13 +54,11 @@ func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest
 		Type:      req.Type,
 		Anonymous: req.Anon,
 		Capacity:  int(req.Cap),
-		Pins: map[model.NodePin]struct{}{
-			{Node: req.Node1, Pin: req.Pin1}: {},
-			{Node: req.Node2, Pin: req.Pin2}: {},
-		},
+		Pins:      np,
 	}
-	n1.Connections[req.Pin1] = req.Name
-	n2.Connections[req.Pin2] = req.Name
+	for _, x := range req.Pins {
+		g.Nodes[x.Node].Connections[x.Pin] = req.Name
+	}
 	return &pb.Empty{}, nil
 }
 

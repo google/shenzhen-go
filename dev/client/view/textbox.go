@@ -44,6 +44,7 @@ func (b *TextBox) MakeElements(doc dom.Document, parent dom.Element) *TextBox {
 		SetAttribute("alignment-baseline", "middle").
 		SetAttribute("text-anchor", "middle").
 		SetAttribute("unselectable", "on").
+		SetAttribute("pointer-events", "none").
 		AddChildren(b.TextNode)
 	return b
 }

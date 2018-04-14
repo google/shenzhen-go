@@ -27,9 +27,10 @@ import (
 
 type fakeGraphController struct{}
 
-func (c fakeGraphController) Graph() *model.Graph                   { return nil }
-func (c fakeGraphController) PartTypes() map[string]*model.PartType { return nil }
-func (c fakeGraphController) Nodes(f func(NodeController))          { f(fakeNodeController{}) }
+func (c fakeGraphController) Graph() *model.Graph          { return nil }
+func (c fakeGraphController) GainFocus()                   {}
+func (c fakeGraphController) LoseFocus()                   {}
+func (c fakeGraphController) Nodes(f func(NodeController)) { f(fakeNodeController{}) }
 
 func (c fakeGraphController) Node(name string) NodeController {
 	if name != "Node 1" {
@@ -88,8 +89,14 @@ func (f fakeNodeController) Pins(x func(PinController)) {
 	x(fakePinController("output 2"))
 }
 
-func (f fakeNodeController) Delete(ctx context.Context) error { return nil }
-func (f fakeNodeController) Save(ctx context.Context) error   { return nil }
+func (f fakeNodeController) GainFocus() {}
+func (f fakeNodeController) LoseFocus() {}
+
+func (f fakeNodeController) Delete(context.Context) error                        { return nil }
+func (f fakeNodeController) Save(context.Context) error                          { return nil }
+func (f fakeNodeController) SetPosition(context.Context, float64, float64) error { return nil }
+func (f fakeNodeController) ShowMetadataSubpanel()                               {}
+func (f fakeNodeController) ShowPartSubpanel(string)                             {}
 
 type fakePinController string
 
@@ -102,10 +109,9 @@ func (f fakePinController) Detach(ctx context.Context) error                    
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := dom.MakeFakeDocument()
-	v := &View{doc: doc}
-	v.diagram = &Diagram{
-		View:    v,
-		Element: doc.MakeSVGElement("svg"),
+	v := &View{
+		doc:     doc,
+		diagram: doc.MakeSVGElement("svg"),
 	}
 	v.graph = &Graph{
 		view: v,

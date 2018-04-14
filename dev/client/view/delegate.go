@@ -22,8 +22,10 @@ import (
 
 // GraphController is implemented by the controller of a whole graph.
 type GraphController interface {
-	Graph() *model.Graph                   // TODO: remove
-	PartTypes() map[string]*model.PartType // TODO: abstract
+	Graph() *model.Graph // TODO: remove
+
+	GainFocus()
+	LoseFocus()
 
 	// Sub-controllers
 	Node(name string) NodeController
@@ -47,6 +49,8 @@ type ChannelController interface {
 
 	Pins(func(PinController)) // input called for all currently attached pins
 
+	// Bind(*Channel)
+
 	Attach(ctx context.Context, pc PinController) error
 	Detach(ctx context.Context, pc PinController) error
 	Commit(ctx context.Context) error
@@ -59,11 +63,17 @@ type NodeController interface {
 
 	Name() string
 	Position() (x, y float64)
-
 	Pins(func(PinController)) // input called for all pins on this node
+
+	// Bind(*Node)
+	GainFocus()
+	LoseFocus()
+	ShowMetadataSubpanel()
+	ShowPartSubpanel(name string)
 
 	Delete(ctx context.Context) error
 	Save(ctx context.Context) error
+	SetPosition(ctx context.Context, x, y float64) error
 }
 
 // PinController is implemented by the controller for a pin.
@@ -71,6 +81,8 @@ type PinController interface {
 	Name() string
 	Type() string
 	IsInput() bool
+
+	// Bind(*Pin)
 
 	Attach(ctx context.Context, cc ChannelController) error
 	Detach(ctx context.Context) error

@@ -16,9 +16,10 @@
 package view
 
 import (
-	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
-	pb "github.com/google/shenzhen-go/dev/proto/js"
+	"log"
+
+	"github.com/google/shenzhen-go/dev/dom"
 )
 
 const (
@@ -34,63 +35,23 @@ const (
 	snapQuad  = 144
 )
 
-type partEditor struct {
-	Links  dom.Element
-	Panels map[string]dom.Element
-}
-
 // View caches the top-level objects for managing the UI.
 type View struct {
 	doc     dom.Document // Global document object
-	diagram *Diagram     // The LHS panel
+	diagram dom.Element  // The LHS panel
 	graph   *Graph       // SVG elements in the LHS panel
 
-	client pb.ShenzhenGoClient
-
-	// RHS panels
-	CurrentRHSPanel      dom.Element
-	GraphPropertiesPanel dom.Element
-	NodePropertiesPanel  dom.Element
-
-	// Node properties subpanels and inputs
-	nodeMetadataSubpanel  dom.Element
-	nodeCurrentSubpanel   dom.Element
-	nodeNameInput         dom.Element
-	nodeEnabledInput      dom.Element
-	nodeMultiplicityInput dom.Element
-	nodeWaitInput         dom.Element
-	nodePartEditors       map[string]*partEditor
+	dragItem     draggable  // nil if nothing is being dragged
+	selectedItem selectable // nil if nothing is selected
+	errLabel     *TextBox
 }
 
 // Setup connects to elements in the DOM.
-func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) error {
+func Setup(doc dom.Document, gc GraphController) error {
 	v := &View{
-		doc:    doc,
-		client: client,
-
-		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
-		NodePropertiesPanel:  doc.ElementByID("node-properties"),
-		CurrentRHSPanel:      doc.ElementByID("graph-properties"),
-
-		nodeMetadataSubpanel:  doc.ElementByID("node-metadata-panel"),
-		nodeCurrentSubpanel:   doc.ElementByID("node-metadata-panel"),
-		nodeNameInput:         doc.ElementByID("node-name"),
-		nodeEnabledInput:      doc.ElementByID("node-enabled"),
-		nodeMultiplicityInput: doc.ElementByID("node-multiplicity"),
-		nodeWaitInput:         doc.ElementByID("node-wait"),
-		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
+		doc:     doc,
+		diagram: doc.ElementByID("diagram"),
 	}
-
-	v.diagram = &Diagram{
-		Element:  doc.ElementByID("diagram"),
-		View:     v,
-		errLabel: &TextBox{Margin: 20, TextOffsetY: 5},
-	}
-	v.diagram.errLabel.
-		MakeElements(doc, v.diagram).
-		SetTextStyle(errTextStyle).
-		SetRectStyle(errRectStyle).
-		SetHeight(32)
 
 	v.graph = &Graph{
 		gc:   gc,
@@ -101,9 +62,9 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 	v.graph.refresh()
 
 	v.diagram.
-		AddEventListener("mousedown", v.diagram.mouseDown).
-		AddEventListener("mousemove", v.diagram.mouseMove).
-		AddEventListener("mouseup", v.diagram.mouseUp)
+		AddEventListener("mousedown", v.diagramMouseDown).
+		AddEventListener("mousemove", v.diagramMouseMove).
+		AddEventListener("mouseup", v.diagramMouseUp)
 
 	doc.ElementByID("graph-save").
 		AddEventListener("click", v.graph.save)
@@ -111,54 +72,118 @@ func Setup(doc dom.Document, client pb.ShenzhenGoClient, gc GraphController) err
 		AddEventListener("click", v.graph.saveProperties)
 
 	doc.ElementByID("node-save-link").
-		AddEventListener("click", v.diagram.saveSelected)
+		AddEventListener("click", v.saveSelected)
 	doc.ElementByID("node-delete-link").
-		AddEventListener("click", v.diagram.deleteSelected)
+		AddEventListener("click", v.deleteSelected)
 
 	doc.ElementByID("node-metadata-link").
 		AddEventListener("click", func(dom.Object) {
-			v.diagram.selectedItem.(*Node).showSubPanel(v.nodeMetadataSubpanel)
+			v.selectedItem.(*Node).nc.ShowMetadataSubpanel()
 		})
 
-	for n, t := range gc.PartTypes() {
+	for n, t := range model.PartTypes {
 		doc.ElementByID("node-new-link:"+n).
 			AddEventListener("click", func(dom.Object) { v.graph.createNode(n) })
-		p := make(map[string]dom.Element, len(t.Panels))
-		for _, d := range t.Panels {
-			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
-		}
-		v.nodePartEditors[n] = &partEditor{
-			Links:  doc.ElementByID("node-" + n + "-links"),
-			Panels: p,
-		}
-	}
-	for n, e := range v.nodePartEditors {
-		for m, p := range e.Panels {
-			p := p
-			doc.ElementByID("node-"+n+"-"+m+"-link").
-				AddEventListener("click",
-					func(dom.Object) {
-						v.diagram.selectedItem.(*Node).showSubPanel(p)
-					})
-		}
-	}
 
+		for _, p := range t.Panels {
+			m := p.Name
+			doc.ElementByID("node-"+n+"-"+m+"-link").
+				AddEventListener("click", func(dom.Object) { v.selectedItem.(*Node).nc.ShowPartSubpanel(m) })
+		}
+
+	}
 	return nil
 }
 
-// ShowRHSPanel hides any existing panel and shows the given element as the panel.
-func (v *View) ShowRHSPanel(p dom.Element) {
-	if p == v.CurrentRHSPanel {
-		return
-	}
-	v.CurrentRHSPanel.Hide()
-	v.CurrentRHSPanel = p.Show()
-}
-
 func (v *View) setError(err string) {
-	v.diagram.setError(err, 0, 0)
+	// TODO
+	log.Print(err)
 }
 
 func (v *View) clearError() {
-	v.diagram.clearError()
+	// TODO
+}
+
+func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
+	bcr := v.diagram.Call("getBoundingClientRect")
+	x = e.Get("clientX").Float() - bcr.Get("left").Float()
+	y = e.Get("clientY").Float() - bcr.Get("top").Float()
+	return
+}
+
+func (v *View) diagramMouseDown(e dom.Object) {
+	if v.selectedItem == nil {
+		return
+	}
+	v.selectedItem.loseFocus(e)
+	v.graph.gc.GainFocus()
+	e.Call("stopPropagation")
+}
+
+func (v *View) diagramMouseMove(e dom.Object) {
+	if v.dragItem == nil {
+		return
+	}
+	v.dragItem.drag(e)
+	e.Call("stopPropagation")
+}
+
+func (v *View) diagramMouseUp(e dom.Object) {
+	if v.dragItem == nil {
+		return
+	}
+	v.dragItem.drag(e)
+	v.dragItem.drop(e)
+	v.dragItem = nil
+	e.Call("stopPropagation")
+}
+
+// selecter makes an onclick handler for a selectable.
+func (v *View) selecter(s selectable) func(dom.Object) {
+	return func(e dom.Object) {
+		if v.selectedItem != nil {
+			v.selectedItem.loseFocus(e)
+		}
+		v.selectedItem = s
+		s.gainFocus(e)
+		e.Call("stopPropagation")
+	}
+}
+
+func (v *View) saveSelected(e dom.Object) {
+	if v.selectedItem == nil {
+		return
+	}
+	v.selectedItem.save(e)
+}
+
+func (v *View) deleteSelected(e dom.Object) {
+	if v.selectedItem == nil {
+		return
+	}
+	v.selectedItem.delete(e)
+}
+
+// Point is anything that has a position on the canvas.
+type Point interface {
+	Pt() (x, y float64)
+}
+
+// ephemeral is a basic implementation of Point.
+type ephemeral struct{ x, y float64 }
+
+func (e ephemeral) Pt() (x, y float64) { return e.x, e.y }
+
+// draggable is anything that can be dragged on the canvas/SVG.
+type draggable interface {
+	drag(dom.Object)
+	drop(dom.Object)
+}
+
+// selectable is anything that can be selected on the canvas/SVG.
+type selectable interface {
+	gainFocus(dom.Object)
+	loseFocus(dom.Object)
+	delete(dom.Object)
+	save(dom.Object)
 }

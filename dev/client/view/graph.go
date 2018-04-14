@@ -161,8 +161,6 @@ func (g *Graph) refresh() {
 			view: g.view,
 			nc:   nc,
 		}
-		//pd := nc.Node().Pins()
-		//for _, p := range pd {
 		nc.Pins(func(pc PinController) {
 			q := &Pin{
 				pc: pc,

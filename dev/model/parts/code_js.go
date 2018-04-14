@@ -85,7 +85,7 @@ func (c *Code) handleHeadChange(*js.Object) { c.head = codeHeadSession.Call("get
 func (c *Code) handleBodyChange(*js.Object) { c.body = codeBodySession.Call("getValue").String() }
 func (c *Code) handleTailChange(*js.Object) { c.tail = codeTailSession.Call("getValue").String() }
 
-func (c *Code) GainFocus(dom.Object) {
+func (c *Code) GainFocus() {
 	focused = c
 	p, err := json.MarshalIndent(c.pins, "", "\t")
 	if err != nil {

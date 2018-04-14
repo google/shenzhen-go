@@ -18,8 +18,6 @@ import (
 	"fmt"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"github.com/google/shenzhen-go/dev/model"
-	pb "github.com/google/shenzhen-go/dev/proto/js"
 	"golang.org/x/net/context"
 )
 
@@ -45,8 +43,6 @@ type Node struct {
 	view *View
 
 	relX, relY float64 // relative client offset for moving around
-
-	subpanel dom.Element // temporarily remember last subpanel for each node
 }
 
 func max(a, b int) int {
@@ -76,7 +72,7 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 
 	n.TextBox.Rect.
 		AddEventListener("mousedown", n.mouseDown).
-		AddEventListener("mousedown", n.view.diagram.selecter(n))
+		AddEventListener("mousedown", n.view.selecter(n))
 
 	// Pins
 	for _, p := range n.AllPins {
@@ -105,7 +101,7 @@ func (n *Node) MoveTo(x, y float64) *Node {
 }
 
 func (n *Node) mouseDown(e dom.Object) {
-	n.view.diagram.dragItem = n
+	n.view.dragItem = n
 	nx, ny := n.nc.Position()
 	n.relX, n.relY = e.Get("clientX").Float()-nx, e.Get("clientY").Float()-ny
 
@@ -123,41 +119,20 @@ func (n *Node) drag(e dom.Object) {
 func (n *Node) drop(e dom.Object) {
 	go func() { // cannot block in callback
 		x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-		req := &pb.SetPositionRequest{
-			Graph: n.view.graph.gc.Graph().FilePath,
-			Node:  n.nc.Node().Name,
-			X:     x,
-			Y:     y,
-		}
-		if _, err := n.view.client.SetPosition(context.Background(), req); err != nil {
-			n.view.diagram.setError("Couldn't set the position: "+err.Error(), x, y)
+		if err := n.nc.SetPosition(context.TODO(), x, y); err != nil {
+			n.view.setError("Couldn't set the position: " + err.Error())
 		}
 	}()
 }
 
-type focusable interface {
-	GainFocus(dom.Object)
-}
-
 func (n *Node) gainFocus(e dom.Object) {
 	n.TextBox.Rect.SetAttribute("style", nodeSelectedRectStyle)
-	n.view.nodeNameInput.Set("value", n.nc.Node().Name)
-	n.view.nodeEnabledInput.Set("checked", n.nc.Node().Enabled)
-	n.view.nodeMultiplicityInput.Set("value", n.nc.Node().Multiplicity)
-	n.view.nodeWaitInput.Set("checked", n.nc.Node().Wait)
-	n.view.ShowRHSPanel(n.view.NodePropertiesPanel)
-	n.view.nodePartEditors[n.nc.Node().Part.TypeKey()].Links.Show()
-	if n.subpanel == nil {
-		n.subpanel = n.view.nodeMetadataSubpanel
-	}
-	n.showSubPanel(n.subpanel)
-	if f := n.nc.Node().Part.(focusable); f != nil {
-		f.GainFocus(e)
-	}
+	n.nc.GainFocus()
 }
 
 func (n *Node) loseFocus(e dom.Object) {
 	n.TextBox.Rect.SetAttribute("style", nodeNormalRectStyle)
+	n.nc.LoseFocus()
 }
 
 func (n *Node) save(e dom.Object) {
@@ -165,44 +140,19 @@ func (n *Node) save(e dom.Object) {
 }
 
 func (n *Node) reallySave(e dom.Object) {
-	pj, err := model.MarshalPart(n.nc.Node().Part)
-	if err != nil {
-		n.view.setError("Couldn't marshal part: " + err.Error())
-		return
-	}
-	nx, ny := n.nc.Position()
-	props := &pb.NodeConfig{
-		Name:         n.view.nodeNameInput.Get("value").String(),
-		Enabled:      n.view.nodeEnabledInput.Get("checked").Bool(),
-		Multiplicity: uint32(n.view.nodeMultiplicityInput.Get("value").Int()),
-		Wait:         n.view.nodeWaitInput.Get("checked").Bool(),
-		PartCfg:      pj.Part,
-		PartType:     pj.Type,
-		X:            nx,
-		Y:            ny,
-	}
-	req := &pb.SetNodePropertiesRequest{
-		Graph: n.view.graph.gc.Graph().FilePath,
-		Node:  n.nc.Name(),
-		Props: props,
-	}
-	if _, err := n.view.client.SetNodeProperties(context.Background(), req); err != nil {
+	oldName := n.nc.Name()
+	if err := n.nc.Save(context.TODO()); err != nil {
 		n.view.setError("Couldn't update node properties: " + err.Error())
 		return
 	}
 	// Update local copy, since these were read at save time.
-	// TODO: check whether the available pins have changed.
-	if n.nc.Node().Name != props.Name {
-		delete(n.view.graph.Nodes, n.nc.Node().Name)
-		n.view.graph.Nodes[props.Name] = n
-		n.nc.Node().Name = props.Name
-
-		n.TextBox.SetText(props.Name)
+	// TODO: refresh pins
+	if name := n.nc.Name(); name != oldName {
+		delete(n.view.graph.Nodes, oldName)
+		n.view.graph.Nodes[name] = n
+		n.TextBox.SetText(name)
 		n.updatePinPositions()
 	}
-	n.nc.Node().Enabled = props.Enabled
-	n.nc.Node().Multiplicity = uint(props.Multiplicity)
-	n.nc.Node().Wait = props.Wait
 }
 
 func (n *Node) delete(dom.Object) {
@@ -213,7 +163,6 @@ func (n *Node) reallyDelete() {
 	// Chatty, but cleans everything up.
 	for _, p := range n.AllPins {
 		p.reallyDisconnect()
-		//	p.l.Hide()
 	}
 	if err := n.nc.Delete(context.TODO()); err != nil {
 		n.view.setError("Couldn't delete: " + err.Error())
@@ -221,11 +170,6 @@ func (n *Node) reallyDelete() {
 	}
 	delete(n.view.graph.Nodes, n.nc.Node().Name)
 	n.Remove()
-	/*
-		for _, p := range n.AllPins {
-			p.node.view.diagram.RemoveChildren(p.l, p.c) // TODO: move to Channel
-		}
-	*/
 }
 
 func (n *Node) refresh() {
@@ -246,13 +190,4 @@ func (n *Node) updatePinPositions() {
 	for i, p := range n.Outputs {
 		p.MoveTo(osp*float64(i+1), float64(nodeHeight+pinRadius))
 	}
-}
-
-func (n *Node) showSubPanel(p dom.Element) {
-	n.subpanel = p
-	if n.view.nodeCurrentSubpanel == p {
-		return
-	}
-	n.view.nodeCurrentSubpanel.Hide()
-	n.view.nodeCurrentSubpanel = p.Show()
 }

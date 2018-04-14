@@ -38,22 +38,75 @@ type graphController struct {
 	graph  *model.Graph
 	client pb.ShenzhenGoClient
 
+	// RHS panels
+	CurrentRHSPanel      dom.Element
+	GraphPropertiesPanel dom.Element
+	NodePropertiesPanel  dom.Element
+	// ChannelPropertiesPanel dom.Element
+
 	// Graph properties panel inputs
 	graphNameTextInput        dom.Element
 	graphPackagePathTextInput dom.Element
 	graphIsCommandCheckbox    dom.Element
+
+	// Shared outlets for nodes, stored here for passing to new nodeControllers
+	nodeSharedOutlets *nodeSharedOutlets
 }
 
-// NewGraphController returns a new controller for a graph and binds outlets.
-func NewGraphController(d dom.Document, g *model.Graph, c pb.ShenzhenGoClient) view.GraphController {
-	return &graphController{
-		doc:    d,
-		client: c,
-		graph:  g,
+// NewGraphController returns a new controller for a graph, and binds outlets.
+func NewGraphController(doc dom.Document, graph *model.Graph, client pb.ShenzhenGoClient) view.GraphController {
+	nso := &nodeSharedOutlets{
+		nodeMetadataSubpanel:  doc.ElementByID("node-metadata-panel"),
+		nodeCurrentSubpanel:   doc.ElementByID("node-metadata-panel"),
+		nodeNameInput:         doc.ElementByID("node-name"),
+		nodeEnabledInput:      doc.ElementByID("node-enabled"),
+		nodeMultiplicityInput: doc.ElementByID("node-multiplicity"),
+		nodeWaitInput:         doc.ElementByID("node-wait"),
+		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
+	}
 
-		graphNameTextInput:        d.ElementByID("graph-prop-name"),
-		graphPackagePathTextInput: d.ElementByID("graph-prop-package-path"),
-		graphIsCommandCheckbox:    d.ElementByID("graph-prop-is-command"),
+	for n, t := range model.PartTypes {
+		p := make(map[string]dom.Element, len(t.Panels))
+		for _, d := range t.Panels {
+			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
+		}
+		nso.nodePartEditors[n] = &partEditor{
+			Links:  doc.ElementByID("node-" + n + "-links"),
+			Panels: p,
+		}
+	}
+
+	return &graphController{
+		doc:    doc,
+		client: client,
+		graph:  graph,
+
+		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
+		NodePropertiesPanel:  doc.ElementByID("node-properties"),
+		CurrentRHSPanel:      doc.ElementByID("graph-properties"),
+
+		graphNameTextInput:        doc.ElementByID("graph-prop-name"),
+		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
+		graphIsCommandCheckbox:    doc.ElementByID("graph-prop-is-command"),
+
+		nodeSharedOutlets: nso,
+	}
+}
+
+func (c *graphController) newChannelController(channel *model.Channel) *channelController {
+	return &channelController{
+		client:  c.client,
+		graph:   c.graph,
+		channel: channel,
+	}
+}
+
+func (c *graphController) newNodeController(node *model.Node) *nodeController {
+	return &nodeController{
+		client:        c.client,
+		graph:         c.graph,
+		node:          node,
+		sharedOutlets: c.nodeSharedOutlets,
 	}
 }
 
@@ -61,9 +114,17 @@ func (c *graphController) Graph() *model.Graph {
 	return c.graph
 }
 
+func (c *graphController) GainFocus() {
+	c.showRHSPanel(c.GraphPropertiesPanel)
+}
+
+func (c *graphController) LoseFocus() {
+	// Nop.
+}
+
 func (c *graphController) Nodes(f func(view.NodeController)) {
 	for _, n := range c.graph.Nodes {
-		f(&nodeController{node: n})
+		f(c.newNodeController(n))
 	}
 }
 
@@ -72,7 +133,7 @@ func (c *graphController) Node(name string) view.NodeController {
 	if n == nil {
 		return nil
 	}
-	return &nodeController{node: n}
+	return c.newNodeController(n)
 }
 
 func (c *graphController) NumNodes() int {
@@ -84,20 +145,12 @@ func (c *graphController) Channel(name string) view.ChannelController {
 	if ch == nil {
 		return nil
 	}
-	return &channelController{
-		client:  c.client,
-		graph:   c.graph,
-		channel: ch,
-	}
+	return c.newChannelController(ch)
 }
 
 func (c *graphController) Channels(f func(view.ChannelController)) {
 	for _, ch := range c.graph.Channels {
-		f(&channelController{
-			client:  c.client,
-			graph:   c.graph,
-			channel: ch,
-		})
+		f(c.newChannelController(ch))
 	}
 }
 
@@ -153,7 +206,6 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 func (c *graphController) CreateNode(ctx context.Context, partType string) (view.NodeController, error) {
 	// Invent a reasonable unique name.
 	name := partType
-
 	for i := 2; ; i++ {
 		if _, found := c.graph.Nodes[name]; !found {
 			break
@@ -192,11 +244,7 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 		return nil, err
 	}
 	c.graph.Nodes[n.Name] = n
-	return &nodeController{
-		client: c.client,
-		graph:  c.graph,
-		node:   n,
-	}, nil
+	return c.newNodeController(n), nil
 }
 
 func (c *graphController) Save(ctx context.Context) error {
@@ -218,4 +266,13 @@ func (c *graphController) SaveProperties(ctx context.Context) error {
 	c.graph.PackagePath = req.PackagePath
 	c.graph.IsCommand = req.IsCommand
 	return nil
+}
+
+// showRHSPanel hides any existing panel and shows the given element as the panel.
+func (c *graphController) showRHSPanel(p dom.Element) {
+	if p == c.CurrentRHSPanel {
+		return
+	}
+	c.CurrentRHSPanel.Hide()
+	c.CurrentRHSPanel = p.Show()
 }

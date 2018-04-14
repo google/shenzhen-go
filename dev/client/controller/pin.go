@@ -19,6 +19,7 @@ import (
 
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/model"
+	"github.com/google/shenzhen-go/dev/model/pin"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
@@ -27,6 +28,7 @@ type pinController struct {
 	graph  *model.Graph
 	node   *model.Node
 	name   string
+	def    *pin.Definition
 }
 
 func (c *pinController) Name() string {
@@ -34,13 +36,11 @@ func (c *pinController) Name() string {
 }
 
 func (c *pinController) Type() string {
-	// TODO
-	return ""
+	return c.node.Pins()[c.name].Type
 }
 
 func (c *pinController) IsInput() bool {
-	// TODO
-	return false
+	return c.node.Pins()[c.name].Direction == pin.Input
 }
 
 func (c *pinController) Attach(ctx context.Context, cc view.ChannelController) error {

@@ -96,14 +96,14 @@ func TestGraphRefreshFromEmpty(t *testing.T) {
 	v.graph.refresh()
 
 	if v.graph.Channels == nil {
-		t.Fatal("g.Channels = nil, want non-nil map")
+		t.Fatal("v.graph.Channels = nil, want non-nil map")
 	}
 	if v.graph.Nodes == nil {
-		t.Fatal("g.Nodes = nil, want non-nil map")
+		t.Fatal("v.graph.Nodes = nil, want non-nil map")
 	}
 	node1 := v.graph.Nodes["Node 1"]
 	if node1 == nil {
-		t.Fatal("g.Nodes[Node 1] = nil, want non-nil node")
+		t.Fatal("v.graph.Nodes[Node 1] = nil, want non-nil node")
 	}
 	if got, want := len(node1.Inputs), 1; got != want {
 		t.Errorf("len(Nodes[Node 1].Inputs) = %d, want %d", got, want)

@@ -52,5 +52,5 @@ func (c *nodeController) Delete(ctx context.Context) error {
 }
 
 func (c *nodeController) Save(ctx context.Context) error {
-	return nil // TODO
+	return errNotImplemented // TODO
 }

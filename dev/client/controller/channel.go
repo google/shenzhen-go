@@ -46,18 +46,18 @@ func (c *channelController) Pins(f func(view.PinController)) {
 
 func (c *channelController) Attach(ctx context.Context, pc view.PinController) error {
 	// TODO: implement
-	return nil
+	return errNotImplemented
 }
 
 func (c *channelController) Detach(ctx context.Context, pc view.PinController) error {
 	// TODO: implement
-	return nil
+	return errNotImplemented
 }
 
 func (c *channelController) Commit(ctx context.Context) error {
 	if c.created {
 		// TODO: implement update
-		return nil
+		return errNotImplemented
 	}
 
 	if err := c.create(ctx); err != nil {
@@ -70,7 +70,7 @@ func (c *channelController) Commit(ctx context.Context) error {
 
 func (c *channelController) Delete(ctx context.Context) error {
 	// TODO: implement
-	return nil
+	return errNotImplemented
 }
 
 func (c *channelController) create(ctx context.Context) error {

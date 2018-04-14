@@ -155,8 +155,8 @@ func (v *View) ShowRHSPanel(p dom.Element) {
 	v.CurrentRHSPanel = p.Show()
 }
 
-func (v *View) setError(err string, x, y float64) {
-	v.diagram.setError(err, x, y)
+func (v *View) setError(err string) {
+	v.diagram.setError(err, 0, 0)
 }
 
 func (v *View) clearError() {

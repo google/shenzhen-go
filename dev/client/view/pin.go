@@ -89,7 +89,7 @@ func (p *Pin) reallyConnect() {
 		Pin:     p.Name,
 		Channel: p.ch.cc.Channel().Name,
 	}); err != nil {
-		p.node.view.diagram.setError("Couldn't connect: "+err.Error(), 0, 0)
+		p.node.view.setError("Couldn't connect: " + err.Error())
 	}
 }
 
@@ -117,7 +117,7 @@ func (p *Pin) reallyDisconnect() {
 		Node:  p.node.nc.Node().Name,
 		Pin:   p.Name,
 	}); err != nil {
-		p.node.view.diagram.setError("Couldn't disconnect: "+err.Error(), 0, 0)
+		p.node.view.setError("Couldn't disconnect: " + err.Error())
 	}
 }
 

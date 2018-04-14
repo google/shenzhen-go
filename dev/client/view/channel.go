@@ -60,7 +60,7 @@ func (v *View) createChannel(p *Pin) *Channel {
 
 func (c *Channel) reallyCreate() {
 	if err := c.cc.Commit(context.TODO()); err != nil {
-		c.view.diagram.setError("Couldn't create a channel: "+err.Error(), 0, 0)
+		c.view.setError("Couldn't create a channel: " + err.Error())
 		return
 	}
 	c.created = true

@@ -42,7 +42,7 @@ func (g *Graph) createNode(partType string) {
 func (g *Graph) reallyCreateNode(partType string) {
 	nc, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {
-		g.view.setError("Couldn't create a new node: "+err.Error(), 0, 0)
+		g.view.setError("Couldn't create a new node: " + err.Error())
 		return
 	}
 	g.view.clearError()
@@ -81,7 +81,7 @@ func (g *Graph) save(dom.Object) {
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {
-		g.view.setError("Couldn't save: "+err.Error(), 0, 0)
+		g.view.setError("Couldn't save: " + err.Error())
 	}
 }
 
@@ -91,7 +91,7 @@ func (g *Graph) saveProperties(dom.Object) {
 
 func (g *Graph) reallySaveProperties() {
 	if err := g.gc.SaveProperties(context.TODO()); err != nil {
-		g.view.setError("Couldn't save properties: "+err.Error(), 0, 0)
+		g.view.setError("Couldn't save properties: " + err.Error())
 	}
 }
 

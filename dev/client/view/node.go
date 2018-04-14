@@ -182,7 +182,7 @@ func (n *Node) save(e dom.Object) {
 func (n *Node) reallySave(e dom.Object) {
 	pj, err := model.MarshalPart(n.nc.Node().Part)
 	if err != nil {
-		n.view.diagram.setError("Couldn't marshal part: "+err.Error(), 0, 0)
+		n.view.setError("Couldn't marshal part: " + err.Error())
 		return
 	}
 	nx, ny := n.nc.Position()
@@ -202,7 +202,7 @@ func (n *Node) reallySave(e dom.Object) {
 		Props: props,
 	}
 	if _, err := n.view.client.SetNodeProperties(context.Background(), req); err != nil {
-		n.view.diagram.setError("Couldn't update node properties: "+err.Error(), 0, 0)
+		n.view.setError("Couldn't update node properties: " + err.Error())
 		return
 	}
 	// Update local copy, since these were read at save time.
@@ -235,7 +235,7 @@ func (n *Node) reallyDelete() {
 		Node:  n.nc.Node().Name,
 	}
 	if _, err := n.view.client.DeleteNode(context.Background(), req); err != nil {
-		n.view.diagram.setError("Couldn't delete: "+err.Error(), 0, 0)
+		n.view.setError("Couldn't delete: " + err.Error())
 		return
 	}
 	delete(n.view.graph.Nodes, n.nc.Node().Name)

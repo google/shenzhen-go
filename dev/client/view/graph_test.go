@@ -38,14 +38,19 @@ func (c fakeGraphController) Node(name string) NodeController {
 	return fakeNodeController{}
 }
 
-func (c fakeGraphController) NumNodes() int                                           { return 1 }
-func (c fakeGraphController) Channel(name string) ChannelController                   { return nil }
-func (c fakeGraphController) Channels(f func(ChannelController))                      {}
-func (c fakeGraphController) NumChannels() int                                        { return 0 }
-func (c fakeGraphController) CreateChannel(string, string) (ChannelController, error) { return nil, nil }
+func (c fakeGraphController) NumNodes() int                         { return 1 }
+func (c fakeGraphController) Channel(name string) ChannelController { return nil }
+func (c fakeGraphController) Channels(f func(ChannelController))    {}
+func (c fakeGraphController) NumChannels() int                      { return 0 }
+
+func (c fakeGraphController) CreateChannel(...PinController) (ChannelController, error) {
+	return nil, nil
+}
+
 func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (NodeController, error) {
 	return nil, nil
 }
+
 func (c fakeGraphController) Save(ctx context.Context) error           { return nil }
 func (c fakeGraphController) SaveProperties(ctx context.Context) error { return nil }
 
@@ -77,8 +82,23 @@ func (f fakeNodeController) Node() *model.Node {
 func (f fakeNodeController) Name() string             { return "Node 1" }
 func (f fakeNodeController) Position() (x, y float64) { return 150, 150 }
 
+func (f fakeNodeController) Pins(x func(PinController)) {
+	x(fakePinController("input"))
+	x(fakePinController("output"))
+	x(fakePinController("output 2"))
+}
+
 func (f fakeNodeController) Delete(ctx context.Context) error { return nil }
 func (f fakeNodeController) Save(ctx context.Context) error   { return nil }
+
+type fakePinController string
+
+func (f fakePinController) Name() string  { return string(f) }
+func (f fakePinController) Type() string  { return "int" }
+func (f fakePinController) IsInput() bool { return f == "input" }
+
+func (f fakePinController) Attach(ctx context.Context, cc ChannelController) error { return nil }
+func (f fakePinController) Detach(ctx context.Context) error                       { return nil }
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	doc := dom.MakeFakeDocument()

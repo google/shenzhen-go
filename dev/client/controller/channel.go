@@ -15,9 +15,11 @@
 package controller
 
 import (
+	"golang.org/x/net/context"
+
+	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
-	"golang.org/x/net/context"
 )
 
 type channelController struct {
@@ -31,12 +33,23 @@ func (c *channelController) Channel() *model.Channel {
 	return c.channel
 }
 
-func (c *channelController) Attach(node, pin string) error {
+func (c *channelController) Pins(f func(view.PinController)) {
+	for p := range c.channel.Pins {
+		f(&pinController{
+			client: c.client,
+			graph:  c.graph,
+			node:   c.graph.Nodes[p.Node],
+			name:   p.Pin,
+		})
+	}
+}
+
+func (c *channelController) Attach(ctx context.Context, pc view.PinController) error {
 	// TODO: implement
 	return nil
 }
 
-func (c *channelController) Detach(node, pin string) error {
+func (c *channelController) Detach(ctx context.Context, pc view.PinController) error {
 	// TODO: implement
 	return nil
 }

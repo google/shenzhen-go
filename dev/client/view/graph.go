@@ -20,7 +20,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
 // Graph is the view-model of a graph.
@@ -162,25 +161,24 @@ func (g *Graph) refresh() {
 			view: g.view,
 			nc:   nc,
 		}
-		pd := nc.Node().Pins()
-		for _, p := range pd {
+		//pd := nc.Node().Pins()
+		//for _, p := range pd {
+		nc.Pins(func(pc PinController) {
 			q := &Pin{
-				Name:  p.Name,
-				Type:  p.Type,
-				input: p.Direction == pin.Input,
+				pc: pc,
 			}
-			if q.input {
+			if pc.IsInput() {
 				m.Inputs = append(m.Inputs, q)
 			} else {
 				m.Outputs = append(m.Outputs, q)
 			}
-			if b := nc.Node().Connections[p.Name]; b != "" {
+			/*if b := nc.Node().Connections[pc.Name()]; b != "" {
 				if c := g.Channels[b]; c != nil {
 					q.ch = c
 					c.Pins[q] = nil
 				}
-			}
-		}
+			}*/
+		})
 		// Consolidate slices (not that it really matters)
 		m.AllPins = append(m.Inputs, m.Outputs...)
 		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]

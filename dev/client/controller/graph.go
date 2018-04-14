@@ -109,22 +109,23 @@ func (c graphController) PartTypes() map[string]*model.PartType {
 	return model.PartTypes
 }
 
-func (c *graphController) CreateChannel(firstNode, firstPin string) (view.ChannelController, error) {
-	node := c.graph.Nodes[firstNode]
-	if node == nil {
-		return nil, fmt.Errorf("node %q does not exist", firstNode)
-	}
-
-	pin := node.Pins()[firstPin]
-	if pin == nil {
-		return nil, fmt.Errorf("pin %q does not exist on node %q", firstPin, firstNode)
-	}
-
+func (c *graphController) CreateChannel(pcs ...view.PinController) (view.ChannelController, error) {
 	ch := &model.Channel{
-		Type:      pin.Type,
 		Capacity:  0,
 		Anonymous: true,
 	}
+
+	// Set the type; validate they are all equal.
+	for _, pc := range pcs {
+		if ch.Type == "" {
+			ch.Type = pc.Type()
+			continue
+		}
+		if t := pc.Type(); ch.Type != t {
+			return nil, fmt.Errorf("mismatching types [%q != %q]", t, ch.Type)
+		}
+	}
+
 	// Pick a unique name
 	max := -1
 	for _, ec := range c.graph.Channels {

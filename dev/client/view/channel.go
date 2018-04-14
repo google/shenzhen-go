@@ -37,28 +37,28 @@ type Channel struct {
 	steiner dom.Element // symbol representing the channel itself, not used if channel is simple
 	x, y    float64     // centre of steiner point, for snapping
 	tx, ty  float64     // temporary centre of steiner point, for display
-	l, c    dom.Element // for dragging to more pins
+	l, c    dom.Element // temporarily visible, for dragging to more pins
 	p       *Pin        // considering attaching to this pin
 }
 
-/*
-func (v *View) createChannel(p *Pin) *Channel {
-	cc, err := v.graph.gc.CreateChannel(p.node.nc.Name(), p.Name)
+func (v *View) createChannel(p, q *Pin) *Channel {
+	cc, err := v.graph.gc.CreateChannel(p.pc, q.pc)
 	if err != nil {
-		// TODO: handle better
-		panic(err)
+		v.setError("Couldn't create a channel: " + err.Error())
+		return nil
 	}
 	ch := &Channel{
 		cc:   cc,
 		view: v,
 		Pins: map[*Pin]*Route{
 			p: {},
+			q: {},
 		},
 	}
+	p.ch, q.ch = ch, ch
 	ch.makeElements(v.doc, v.diagram)
 	return ch
 }
-*/
 
 func (c *Channel) reallyCreate() {
 	if err := c.cc.Commit(context.TODO()); err != nil {
@@ -164,13 +164,14 @@ func (c *Channel) drag(e dom.Object) {
 		c.setColour(errorColour)
 		return
 	}
-
-	if err := p.checkConnectionTo(c); err != nil {
-		c.view.diagram.setError("Can't connect: "+err.Error(), x, y)
-		noSnap()
-		c.setColour(errorColour)
-		return
-	}
+	/*
+		if err := p.checkConnectionTo(c); err != nil {
+			c.view.diagram.setError("Can't connect: "+err.Error(), x, y)
+			noSnap()
+			c.setColour(errorColour)
+			return
+		}
+	*/
 
 	// Let's snap!
 	c.view.diagram.clearError()

@@ -34,7 +34,7 @@ type GraphController interface {
 	Channels(func(ChannelController)) // input called for all channels
 	NumChannels() int
 
-	CreateChannel(firstNode, firstPin string) (ChannelController, error)
+	CreateChannel(pcs ...PinController) (ChannelController, error)
 
 	CreateNode(ctx context.Context, partType string) (NodeController, error)
 	Save(ctx context.Context) error
@@ -45,8 +45,10 @@ type GraphController interface {
 type ChannelController interface {
 	Channel() *model.Channel // TODO: remove
 
-	Attach(node, pin string) error
-	Detach(node, pin string) error
+	Pins(func(PinController)) // input called for all currently attached pins
+
+	Attach(ctx context.Context, pc PinController) error
+	Detach(ctx context.Context, pc PinController) error
 	Commit(ctx context.Context) error
 	Delete(ctx context.Context) error
 }
@@ -58,20 +60,18 @@ type NodeController interface {
 	Name() string
 	Position() (x, y float64)
 
-	//Pins(func(PinController)) // input called for all pins
+	Pins(func(PinController)) // input called for all pins on this node
 
 	Delete(ctx context.Context) error
 	Save(ctx context.Context) error
 }
 
-/*
 // PinController is implemented by the controller for a pin.
 type PinController interface {
 	Name() string
 	Type() string
 	IsInput() bool
 
-	Attach(channel string) error
-	Detach()
+	Attach(ctx context.Context, cc ChannelController) error
+	Detach(ctx context.Context) error
 }
-*/

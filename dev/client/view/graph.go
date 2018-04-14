@@ -115,7 +115,7 @@ func (g *Graph) refresh() {
 			continue
 		}
 		// Remove this channel.
-		c.unmakeElements()
+		c.Remove()
 		delete(g.Channels, k)
 	}
 

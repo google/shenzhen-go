@@ -32,7 +32,11 @@ func (c *nodeController) Name() string             { return c.node.Name }
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
 
 func (c *nodeController) Delete(ctx context.Context) error {
-	return nil // TODO
+	_, err := c.client.DeleteNode(ctx, &pb.DeleteNodeRequest{
+		Graph: c.graph.FilePath,
+		Node:  c.node.Name,
+	})
+	return err
 }
 
 func (c *nodeController) Save(ctx context.Context) error {

@@ -58,6 +58,20 @@ type NodeController interface {
 	Name() string
 	Position() (x, y float64)
 
+	//Pins(func(PinController)) // input called for all pins
+
 	Delete(ctx context.Context) error
 	Save(ctx context.Context) error
 }
+
+/*
+// PinController is implemented by the controller for a pin.
+type PinController interface {
+	Name() string
+	Type() string
+	IsInput() bool
+
+	Attach(channel string) error
+	Detach()
+}
+*/

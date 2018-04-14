@@ -41,6 +41,7 @@ type Channel struct {
 	p       *Pin        // considering attaching to this pin
 }
 
+/*
 func (v *View) createChannel(p *Pin) *Channel {
 	cc, err := v.graph.gc.CreateChannel(p.node.nc.Name(), p.Name)
 	if err != nil {
@@ -57,6 +58,7 @@ func (v *View) createChannel(p *Pin) *Channel {
 	ch.makeElements(v.doc, v.diagram)
 	return ch
 }
+*/
 
 func (c *Channel) reallyCreate() {
 	if err := c.cc.Commit(context.TODO()); err != nil {
@@ -69,26 +71,21 @@ func (c *Channel) reallyCreate() {
 func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
 	c.Group = NewGroup(doc, parent)
 
-	c.steiner = c.view.doc.MakeSVGElement("circle").
+	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.dragStart)
 
-	c.l = c.view.doc.MakeSVGElement("line").
+	c.l = doc.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
-	c.c = c.view.doc.MakeSVGElement("circle").
+	c.c = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		SetAttribute("fill", "transparent").
 		SetAttribute("stroke-width", lineWidth).
 		Hide()
 
 	c.Group.AddChildren(c.steiner, c.l, c.c)
-}
-
-func (c *Channel) unmakeElements() {
-	c.view.diagram.RemoveChildren(c.steiner, c.l, c.c)
-	c.steiner, c.l, c.c = nil, nil, nil
 }
 
 // Pt implements Point.

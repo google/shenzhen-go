@@ -90,7 +90,9 @@ func TestGraphRefreshFromEmpty(t *testing.T) {
 	v.graph = &Graph{
 		view: v,
 		gc:   fakeGraphController{},
+		doc:  doc,
 	}
+	v.graph.makeElements(doc, v.diagram)
 	v.graph.refresh()
 
 	if v.graph.Channels == nil {

@@ -29,10 +29,6 @@ type channelController struct {
 	created bool
 }
 
-func (c *channelController) Channel() *model.Channel {
-	return c.channel
-}
-
 func (c *channelController) Name() string { return c.channel.Name }
 
 func (c *channelController) Pins(f func(view.PinController)) {

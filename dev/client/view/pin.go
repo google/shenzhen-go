@@ -238,14 +238,3 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	p.Group.AddChildren(p.Shape, p.dragLine, p.dragCirc)
 	return p
 }
-
-// AddTo adds the pin's group as a child to the given parent.
-func (p *Pin) AddTo(parent dom.Element) *Pin {
-	parent.AddChildren(p.Group)
-	return p
-}
-
-// Remove removes the group from its parent.
-func (p *Pin) Remove() {
-	p.Group.Parent().RemoveChildren(p.Group)
-}

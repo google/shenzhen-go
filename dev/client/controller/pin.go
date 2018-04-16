@@ -48,7 +48,7 @@ func (c *pinController) Attach(ctx context.Context, cc view.ChannelController) e
 		Graph:   c.graph.FilePath,
 		Node:    c.node.Name,
 		Pin:     c.name,
-		Channel: cc.Channel().Name, // TODO
+		Channel: cc.Name(),
 	})
 	return err
 }

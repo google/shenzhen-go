@@ -122,7 +122,7 @@ func (g *Graph) refresh() {
 	// Refresh any existing channels.
 	//for k, c := range g.gc.Graph().Channels {
 	g.gc.Channels(func(cc ChannelController) {
-		k := cc.Channel().Name
+		k := cc.Name()
 		if g.Channels[k] != nil {
 			// TODO: ch.refresh()
 			return

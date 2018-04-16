@@ -45,8 +45,7 @@ type GraphController interface {
 
 // ChannelController is implemented by the controller of a channel.
 type ChannelController interface {
-	Channel() *model.Channel // TODO: remove
-
+	Name() string
 	Pins(func(PinController)) // input called for all currently attached pins
 
 	// Bind(*Channel)

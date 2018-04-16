@@ -61,7 +61,7 @@ func (p *Pin) disconnect() {
 		for q := range p.ch.Pins {
 			q.ch = nil
 		}
-		delete(p.node.view.graph.Channels, p.ch.cc.Channel().Name)
+		delete(p.node.view.graph.Channels, p.ch.cc.Name())
 	}
 	p.ch = nil
 }
@@ -97,7 +97,6 @@ func (p *Pin) connectTo(q Point) {
 		// Create a new channel to connect to
 		ch := p.node.view.createChannel(p, q)
 		ch.reposition(nil)
-		p.node.view.graph.Channels[ch.cc.Channel().Name] = ch
 
 	case *Channel:
 		if p.ch != nil && p.ch != q {

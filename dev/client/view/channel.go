@@ -55,6 +55,7 @@ func (v *View) createChannel(p, q *Pin) *Channel {
 			q: {},
 		},
 	}
+	v.graph.Channels[cc.Name()] = ch
 	p.ch, q.ch = ch, ch
 	ch.makeElements(v.doc, v.diagram)
 	return ch

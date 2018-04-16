@@ -191,11 +191,9 @@ func (p *Pin) hideDrag() {
 }
 
 func (p *Pin) mouseEnter(dom.Object) {
-	x, y := 8.0, 0.0
+	x, y := 8.0, 8.0
 	if p.pc.IsInput() {
-		y -= 38
-	} else {
-		y += 8
+		y = -38
 	}
 	p.Nametag.MoveTo(x, y).Show()
 }

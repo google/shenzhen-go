@@ -75,13 +75,13 @@ func (p *Pin) reallyDisconnect() {
 // MoveTo moves the pin (relatively).
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
-	p.x, p.y = rx+p.node.nc.Node().X, ry+p.node.nc.Node().Y
+	p.x, p.y = rx+p.node.x, ry+p.node.y
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
 func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
-func (p *Pin) String() string { return p.node.nc.Node().Name + "." + p.pc.Name() }
+func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 
 func (p *Pin) connectTo(q Point) {
 	switch q := q.(type) {
@@ -191,7 +191,7 @@ func (p *Pin) hideDrag() {
 }
 
 func (p *Pin) mouseEnter(dom.Object) {
-	x, y := p.x-p.node.nc.Node().X, p.y-p.node.nc.Node().Y
+	x, y := 8.0, 0.0
 	if p.pc.IsInput() {
 		y -= 38
 	} else {

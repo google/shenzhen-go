@@ -43,6 +43,7 @@ type Node struct {
 	view *View
 
 	relX, relY float64 // relative client offset for moving around
+	x, y       float64 // cache of actual position
 }
 
 func max(a, b int) int {
@@ -112,7 +113,7 @@ func (n *Node) mouseDown(e dom.Object) {
 func (n *Node) drag(e dom.Object) {
 	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
 	n.MoveTo(x, y)
-	n.nc.Node().X, n.nc.Node().Y = x, y
+	n.x, n.y = x, y
 	n.updatePinPositions()
 }
 
@@ -168,7 +169,7 @@ func (n *Node) reallyDelete() {
 		n.view.setError("Couldn't delete: " + err.Error())
 		return
 	}
-	delete(n.view.graph.Nodes, n.nc.Node().Name)
+	delete(n.view.graph.Nodes, n.nc.Name())
 	n.Remove()
 }
 

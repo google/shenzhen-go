@@ -51,7 +51,7 @@ func (g *Graph) reallyCreateNode(partType string) {
 		nc:   nc,
 	}
 	n.MakeElements(g.doc, g.Group)
-	g.Nodes[nc.Node().Name] = n
+	g.Nodes[nc.Name()] = n
 }
 
 func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
@@ -152,7 +152,7 @@ func (g *Graph) refresh() {
 	// Refresh existing nodes.
 	//for k, n := range g.gc.Graph().Nodes {
 	g.gc.Nodes(func(nc NodeController) {
-		k := nc.Node().Name
+		k := nc.Name()
 		if g.Nodes[k] != nil {
 			// TODO: m.refresh()
 			return
@@ -161,6 +161,7 @@ func (g *Graph) refresh() {
 			view: g.view,
 			nc:   nc,
 		}
+		m.x, m.y = nc.Position()
 		nc.Pins(func(pc PinController) {
 			q := &Pin{
 				pc: pc,
@@ -181,7 +182,7 @@ func (g *Graph) refresh() {
 		m.AllPins = append(m.Inputs, m.Outputs...)
 		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
 
-		g.Nodes[nc.Node().Name] = m
+		g.Nodes[nc.Name()] = m
 		m.MakeElements(g.doc, g.Group)
 	})
 

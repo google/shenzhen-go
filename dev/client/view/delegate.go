@@ -58,7 +58,7 @@ type ChannelController interface {
 
 // NodeController is implemented by the controller of a node.
 type NodeController interface {
-	Node() *model.Node // TODO: remove
+	//Node() *model.Node // TODO: remove
 
 	Name() string
 	Position() (x, y float64)

@@ -110,10 +110,6 @@ func (c *graphController) newNodeController(node *model.Node) *nodeController {
 	}
 }
 
-func (c *graphController) Graph() *model.Graph {
-	return c.graph
-}
-
 func (c *graphController) GainFocus() {
 	c.showRHSPanel(c.GraphPropertiesPanel)
 }

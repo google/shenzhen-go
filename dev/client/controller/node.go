@@ -49,7 +49,6 @@ type nodeController struct {
 	subpanel dom.Element // remember most recent subpanel for each node
 }
 
-func (c *nodeController) Node() *model.Node        { return c.node }
 func (c *nodeController) Name() string             { return c.node.Name }
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
 

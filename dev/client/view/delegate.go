@@ -14,16 +14,10 @@
 
 package view
 
-import (
-	"golang.org/x/net/context"
-
-	"github.com/google/shenzhen-go/dev/model"
-)
+import "golang.org/x/net/context"
 
 // GraphController is implemented by the controller of a whole graph.
 type GraphController interface {
-	Graph() *model.Graph // TODO: remove
-
 	GainFocus()
 	LoseFocus()
 
@@ -58,8 +52,6 @@ type ChannelController interface {
 
 // NodeController is implemented by the controller of a node.
 type NodeController interface {
-	//Node() *model.Node // TODO: remove
-
 	Name() string
 	Position() (x, y float64)
 	Pins(func(PinController)) // input called for all pins on this node

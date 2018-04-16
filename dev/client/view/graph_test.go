@@ -21,8 +21,6 @@ import (
 
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
-	"github.com/google/shenzhen-go/dev/model/parts"
-	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
 type fakeGraphController struct{}
@@ -56,29 +54,6 @@ func (c fakeGraphController) Save(ctx context.Context) error           { return 
 func (c fakeGraphController) SaveProperties(ctx context.Context) error { return nil }
 
 type fakeNodeController struct{}
-
-func (f fakeNodeController) Node() *model.Node {
-	return &model.Node{
-		Name:         "Node 1",
-		Multiplicity: 1,
-		Part: parts.NewCode(nil, "", "", "", pin.Map{
-			"input": {
-				Name:      "input",
-				Direction: pin.Input,
-				Type:      "int",
-			},
-			"output": {
-				Name:      "output",
-				Direction: pin.Output,
-				Type:      "int",
-			},
-			"output 2": {
-				Name:      "output 2",
-				Direction: pin.Output,
-				Type:      "int",
-			},
-		})}
-}
 
 func (f fakeNodeController) Name() string             { return "Node 1" }
 func (f fakeNodeController) Position() (x, y float64) { return 150, 150 }

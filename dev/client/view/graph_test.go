@@ -20,12 +20,10 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"github.com/google/shenzhen-go/dev/model"
 )
 
 type fakeGraphController struct{}
 
-func (c fakeGraphController) Graph() *model.Graph          { return nil }
 func (c fakeGraphController) GainFocus()                   {}
 func (c fakeGraphController) LoseFocus()                   {}
 func (c fakeGraphController) Nodes(f func(NodeController)) { f(fakeNodeController{}) }

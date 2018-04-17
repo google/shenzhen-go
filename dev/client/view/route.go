@@ -21,11 +21,15 @@ type Route struct {
 	dom.Element
 }
 
-// MakeElements makes SVG elements for the route and attaches them to the DOM.
-func (r *Route) MakeElements(doc dom.Document, ch *Channel) {
-	r.Element = doc.MakeSVGElement("line").
-		SetAttribute("stroke", normalColour).
-		SetAttribute("x1", ch.tx).
-		SetAttribute("y1", ch.ty)
+func (r *Route) makeElements(doc dom.Document, ch *Channel, p *Pin) {
+	if r.Element == nil {
+		r.Element = doc.MakeSVGElement("line").
+			SetAttribute("stroke", normalColour).
+			SetAttribute("stroke-width", lineWidth).
+			SetAttribute("x1", ch.tx).
+			SetAttribute("y1", ch.ty).
+			SetAttribute("x2", p.x).
+			SetAttribute("y2", p.y)
+	}
 	ch.Group.AddChildren(r.Element)
 }

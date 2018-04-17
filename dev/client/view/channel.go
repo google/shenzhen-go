@@ -70,23 +70,35 @@ func (c *Channel) reallyCreate() {
 }
 
 func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
-	c.Group = NewGroup(doc, parent)
+	if c.Group == (Group{}) {
+		c.Group = NewGroup(doc, parent)
+	}
 
-	c.steiner = doc.MakeSVGElement("circle").
-		SetAttribute("r", pinRadius).
-		AddEventListener("mousedown", c.dragStart)
+	if c.steiner == nil {
+		c.steiner = doc.MakeSVGElement("circle").
+			SetAttribute("r", pinRadius).
+			AddEventListener("mousedown", c.dragStart)
+	}
 
-	c.dragLine = doc.MakeSVGElement("line").
-		SetAttribute("stroke-width", lineWidth).
-		Hide()
+	if c.dragLine == nil {
+		c.dragLine = doc.MakeSVGElement("line").
+			SetAttribute("stroke-width", lineWidth).
+			Hide()
+	}
 
-	c.dragCirc = doc.MakeSVGElement("circle").
-		SetAttribute("r", pinRadius).
-		SetAttribute("fill", "transparent").
-		SetAttribute("stroke-width", lineWidth).
-		Hide()
+	if c.dragCirc == nil {
+		c.dragCirc = doc.MakeSVGElement("circle").
+			SetAttribute("r", pinRadius).
+			SetAttribute("fill", "transparent").
+			SetAttribute("stroke-width", lineWidth).
+			Hide()
+	}
 
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
+
+	for p, r := range c.Pins {
+		r.makeElements(doc, c, p)
+	}
 }
 
 // Pt implements Point.

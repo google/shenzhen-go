@@ -187,11 +187,11 @@ func (g *Graph) refresh() {
 	})
 
 	// Refresh existing connections
-	for _, c := range g.Channels {
-		c.reposition(nil)
-		c.commit()
-		for _, r := range c.Pins {
-			r.MakeElements(g.doc, c)
+	for _, ch := range g.Channels {
+		ch.reposition(nil)
+		ch.commit()
+		for p, r := range ch.Pins {
+			r.makeElements(g.doc, ch, p)
 		}
 	}
 }

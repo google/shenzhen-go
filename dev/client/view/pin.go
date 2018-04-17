@@ -145,7 +145,7 @@ func (p *Pin) drag(e dom.Object) {
 		return
 	}
 
-	// Make the connection - this is the responsibility of the channel.
+	// Make the connection - hand responsibility to the channel.
 	p.node.view.clearError()
 	colour = activeColour
 	p.connectTo(q)

@@ -97,7 +97,10 @@ func (p *Pin) connectTo(q Point) {
 		}
 
 		// Create a new channel to connect to.
-		p.node.view.createChannel(p, q)
+		if err := p.node.view.createChannel(p, q); err != nil {
+			p.node.view.setError("Couldn't create channel: " + err.Error())
+			return
+		}
 
 		// Now we're dragging q instead of p.
 		p.node.view.dragItem = q

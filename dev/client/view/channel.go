@@ -41,11 +41,10 @@ type Channel struct {
 	p                  *Pin        // considering attaching to this pin
 }
 
-func (v *View) createChannel(p, q *Pin) *Channel {
+func (v *View) createChannel(p, q *Pin) error {
 	cc, err := v.graph.gc.CreateChannel(p.pc, q.pc)
 	if err != nil {
-		v.setError("Couldn't create a channel: " + err.Error())
-		return nil
+		return err
 	}
 	ch := &Channel{
 		cc:   cc,
@@ -58,7 +57,7 @@ func (v *View) createChannel(p, q *Pin) *Channel {
 	v.graph.Channels[cc.Name()] = ch
 	ch.makeElements(v.doc, v.diagram)
 	ch.reposition(nil)
-	return ch
+	return nil
 }
 
 func (c *Channel) reallyCreate() {

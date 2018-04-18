@@ -50,14 +50,14 @@ func (v *View) createChannel(p, q *Pin) *Channel {
 	ch := &Channel{
 		cc:   cc,
 		view: v,
-		Pins: map[*Pin]*Route{
-			p: {},
-			q: {},
-		},
+		Pins: make(map[*Pin]*Route),
 	}
+	ch.Pins[p] = NewRoute(v.doc, ch, p)
+	ch.Pins[q] = NewRoute(v.doc, ch, q)
 	v.graph.Channels[cc.Name()] = ch
 	p.ch, q.ch = ch, ch
 	ch.makeElements(v.doc, v.diagram)
+	ch.reposition(nil)
 	return ch
 }
 
@@ -95,10 +95,6 @@ func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
 	}
 
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
-
-	for p, r := range c.Pins {
-		r.makeElements(doc, c, p)
-	}
 }
 
 // Pt implements Point.
@@ -227,6 +223,10 @@ func (c *Channel) delete(e dom.Object) {
 }
 
 func (c *Channel) reposition(additional Point) {
+	if c == nil {
+		return
+	}
+
 	np := len(c.Pins)
 	if additional != nil {
 		np++
@@ -235,7 +235,7 @@ func (c *Channel) reposition(additional Point) {
 		// Not actually a channel anymore - hide.
 		c.steiner.Hide()
 		for _, r := range c.Pins {
-			r.Element.Hide()
+			r.Hide()
 		}
 		return
 	}
@@ -257,9 +257,7 @@ func (c *Channel) reposition(additional Point) {
 		SetAttribute("x2", c.tx).
 		SetAttribute("y2", c.ty)
 	for _, r := range c.Pins {
-		r.Element.
-			SetAttribute("x2", c.tx).
-			SetAttribute("y2", c.ty)
+		r.Reroute()
 	}
 	if np <= 2 {
 		c.steiner.Hide()

@@ -76,6 +76,7 @@ func (p *Pin) reallyDisconnect() {
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
 	p.x, p.y = rx+p.node.x, ry+p.node.y
+	p.ch.reposition(nil)
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
@@ -89,14 +90,17 @@ func (p *Pin) connectTo(q Point) {
 		if p.ch != nil && p.ch != q.ch {
 			p.disconnect()
 		}
+		// If the target pin is already connected, connect to that channel.
 		if q.ch != nil {
 			p.connectTo(q.ch)
 			return
 		}
 
-		// Create a new channel to connect to
-		ch := p.node.view.createChannel(p, q)
-		ch.reposition(nil)
+		// Create a new channel to connect to.
+		p.node.view.createChannel(p, q)
+
+		// Now we're dragging q instead of p.
+		p.node.view.dragItem = q
 
 	case *Channel:
 		if p.ch != nil && p.ch != q {
@@ -104,10 +108,9 @@ func (p *Pin) connectTo(q Point) {
 		}
 
 		p.ch = q
-		q.Pins[p] = &Route{}
+		q.Pins[p] = NewRoute(p.node.view.doc, p.ch, p)
 		q.reposition(nil)
 	}
-	return
 }
 
 func (p *Pin) dragStart(e dom.Object) {

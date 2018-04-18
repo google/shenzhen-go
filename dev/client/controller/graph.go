@@ -107,6 +107,8 @@ func (c *graphController) newNodeController(node *model.Node) *nodeController {
 		graph:         c.graph,
 		node:          node,
 		sharedOutlets: c.nodeSharedOutlets,
+		gc:            c,
+		subpanel:      c.nodeSharedOutlets.nodeMetadataSubpanel,
 	}
 }
 

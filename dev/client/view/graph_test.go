@@ -56,10 +56,10 @@ type fakeNodeController struct{}
 func (f fakeNodeController) Name() string             { return "Node 1" }
 func (f fakeNodeController) Position() (x, y float64) { return 150, 150 }
 
-func (f fakeNodeController) Pins(x func(PinController)) {
-	x(fakePinController("input"))
-	x(fakePinController("output"))
-	x(fakePinController("output 2"))
+func (f fakeNodeController) Pins(x func(PinController, string)) {
+	x(fakePinController("input"), "nil")
+	x(fakePinController("output"), "nil")
+	x(fakePinController("output 2"), "nil")
 }
 
 func (f fakeNodeController) GainFocus() {}

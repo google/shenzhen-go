@@ -162,7 +162,7 @@ func (g *Graph) refresh() {
 			nc:   nc,
 		}
 		m.x, m.y = nc.Position()
-		nc.Pins(func(pc PinController) {
+		nc.Pins(func(pc PinController, channel string) {
 			q := &Pin{
 				pc: pc,
 			}
@@ -171,12 +171,12 @@ func (g *Graph) refresh() {
 			} else {
 				m.Outputs = append(m.Outputs, q)
 			}
-			/*if b := nc.Node().Connections[pc.Name()]; b != "" {
-				if c := g.Channels[b]; c != nil {
+			if channel != "" && channel != "nil" {
+				if c := g.Channels[channel]; c != nil {
 					q.ch = c
-					c.Pins[q] = nil
+					c.Pins[q] = NewRoute(g.doc, c, q)
 				}
-			}*/
+			}
 		})
 		// Consolidate slices (not that it really matters)
 		m.AllPins = append(m.Inputs, m.Outputs...)
@@ -190,8 +190,8 @@ func (g *Graph) refresh() {
 	for _, ch := range g.Channels {
 		ch.reposition(nil)
 		ch.commit()
-		for p, r := range ch.Pins {
-			r.makeElements(g.doc, ch, p)
+		for p := range ch.Pins {
+			ch.Pins[p].Reroute()
 		}
 	}
 }

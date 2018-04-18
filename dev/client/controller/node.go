@@ -52,14 +52,17 @@ type nodeController struct {
 func (c *nodeController) Name() string             { return c.node.Name }
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
 
-func (c *nodeController) Pins(f func(view.PinController)) {
-	for name := range c.node.Pins() {
-		f(&pinController{
+func (c *nodeController) Pins(f func(view.PinController, string)) {
+	defs := c.node.Pins()
+	for name, conn := range c.node.Connections {
+		pc := &pinController{
 			client: c.client,
 			graph:  c.graph,
 			node:   c.node,
 			name:   name,
-		})
+			def:    defs[name],
+		}
+		f(pc, conn)
 	}
 }
 
@@ -131,9 +134,6 @@ func (c *nodeController) GainFocus() {
 	c.sharedOutlets.nodeMultiplicityInput.Set("value", c.node.Multiplicity)
 	c.sharedOutlets.nodeWaitInput.Set("checked", c.node.Wait)
 	c.sharedOutlets.nodePartEditors[c.node.Part.TypeKey()].Links.Show()
-	if c.subpanel == nil {
-		c.subpanel = c.sharedOutlets.nodeMetadataSubpanel
-	}
 	c.showSubpanel(c.subpanel)
 	if f := c.node.Part.(focusable); f != nil {
 		f.GainFocus()

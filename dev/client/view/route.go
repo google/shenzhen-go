@@ -18,18 +18,43 @@ import "github.com/google/shenzhen-go/dev/dom"
 
 // Route is the visual connection between a pin and a channel.
 type Route struct {
-	dom.Element
+	line dom.Element
+
+	ch *Channel
+	p  *Pin
 }
 
-func (r *Route) makeElements(doc dom.Document, ch *Channel, p *Pin) {
-	if r.Element == nil {
-		r.Element = doc.MakeSVGElement("line").
+// NewRoute creates a route connecting a channel and a pin, and adds it
+// as a child of the channel's group.
+func NewRoute(doc dom.Document, ch *Channel, p *Pin) *Route {
+	r := &Route{
+		line: doc.MakeSVGElement("line").
 			SetAttribute("stroke", normalColour).
-			SetAttribute("stroke-width", lineWidth).
-			SetAttribute("x1", ch.tx).
-			SetAttribute("y1", ch.ty).
-			SetAttribute("x2", p.x).
-			SetAttribute("y2", p.y)
+			SetAttribute("stroke-width", lineWidth),
+		ch: ch,
+		p:  p,
 	}
-	ch.Group.AddChildren(r.Element)
+	r.Reroute()
+	ch.Group.AddChildren(r.line)
+	return r
 }
+
+// Remove removes the route.
+func (r *Route) Remove() {
+	r.ch.Group.RemoveChildren(r.line)
+}
+
+// Reroute repositions the route. Call after moving either the channel or the pin.
+func (r *Route) Reroute() {
+	r.line.
+		SetAttribute("x1", r.ch.tx).
+		SetAttribute("y1", r.ch.ty).
+		SetAttribute("x2", r.p.x).
+		SetAttribute("y2", r.p.y)
+}
+
+// Show shows the route.
+func (r *Route) Show() { r.line.Show() }
+
+// Hide hides the route.
+func (r *Route) Hide() { r.line.Hide() }

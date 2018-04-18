@@ -108,7 +108,7 @@ func (p *Pin) connectTo(q Point) {
 		}
 
 		p.ch = q
-		q.Pins[p] = NewRoute(p.node.view.doc, p.ch, p)
+		q.Pins[p] = NewRoute(p.node.view.doc, q.Group, p, q)
 		q.reposition(nil)
 	}
 }

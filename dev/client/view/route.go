@@ -16,41 +16,43 @@ package view
 
 import "github.com/google/shenzhen-go/dev/dom"
 
-// Route is the visual connection between a pin and a channel.
+// Route is the visual connection between two points
 type Route struct {
 	line dom.Element
 
-	ch *Channel
-	p  *Pin
+	src, dst Point
+	parent   Group
 }
 
 // NewRoute creates a route connecting a channel and a pin, and adds it
 // as a child of the channel's group.
-func NewRoute(doc dom.Document, ch *Channel, p *Pin) *Route {
+func NewRoute(doc dom.Document, parent Group, src, dst Point) *Route {
 	r := &Route{
 		line: doc.MakeSVGElement("line").
 			SetAttribute("stroke", normalColour).
 			SetAttribute("stroke-width", lineWidth),
-		ch: ch,
-		p:  p,
+		src: src,
+		dst: dst,
 	}
 	r.Reroute()
-	ch.Group.AddChildren(r.line)
+	parent.AddChildren(r.line)
 	return r
 }
 
 // Remove removes the route.
 func (r *Route) Remove() {
-	r.ch.Group.RemoveChildren(r.line)
+	r.line.Parent().RemoveChildren(r.line)
 }
 
 // Reroute repositions the route. Call after moving either the channel or the pin.
 func (r *Route) Reroute() {
+	x1, y1 := r.src.Pt()
+	x2, y2 := r.dst.Pt()
 	r.line.
-		SetAttribute("x1", r.ch.tx).
-		SetAttribute("y1", r.ch.ty).
-		SetAttribute("x2", r.p.x).
-		SetAttribute("y2", r.p.y)
+		SetAttribute("x1", x1).
+		SetAttribute("y1", y1).
+		SetAttribute("x2", x2).
+		SetAttribute("y2", y2)
 }
 
 // Show shows the route.

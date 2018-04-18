@@ -120,7 +120,6 @@ func (g *Graph) refresh() {
 
 	// Add any channels that didn't exist but now do.
 	// Refresh any existing channels.
-	//for k, c := range g.gc.Graph().Channels {
 	g.gc.Channels(func(cc ChannelController) {
 		k := cc.Name()
 		if g.Channels[k] != nil {
@@ -174,7 +173,7 @@ func (g *Graph) refresh() {
 			if channel != "" && channel != "nil" {
 				if c := g.Channels[channel]; c != nil {
 					q.ch = c
-					c.Pins[q] = NewRoute(g.doc, c, q)
+					c.Pins[q] = NewRoute(g.doc, c.Group, c, q)
 				}
 			}
 		})
@@ -190,8 +189,6 @@ func (g *Graph) refresh() {
 	for _, ch := range g.Channels {
 		ch.reposition(nil)
 		ch.commit()
-		for p := range ch.Pins {
-			ch.Pins[p].Reroute()
-		}
+		ch.Show()
 	}
 }

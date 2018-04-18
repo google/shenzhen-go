@@ -52,10 +52,10 @@ func (v *View) createChannel(p, q *Pin) *Channel {
 		view: v,
 		Pins: make(map[*Pin]*Route),
 	}
-	ch.Pins[p] = NewRoute(v.doc, ch, p)
-	ch.Pins[q] = NewRoute(v.doc, ch, q)
-	v.graph.Channels[cc.Name()] = ch
 	p.ch, q.ch = ch, ch
+	ch.Pins[p] = NewRoute(v.doc, ch.Group, ch, p)
+	ch.Pins[q] = NewRoute(v.doc, ch.Group, ch, q)
+	v.graph.Channels[cc.Name()] = ch
 	ch.makeElements(v.doc, v.diagram)
 	ch.reposition(nil)
 	return ch
@@ -233,10 +233,7 @@ func (c *Channel) reposition(additional Point) {
 	}
 	if np < 2 {
 		// Not actually a channel anymore - hide.
-		c.steiner.Hide()
-		for _, r := range c.Pins {
-			r.Hide()
-		}
+		c.Hide()
 		return
 	}
 	c.tx, c.ty = 0, 0
@@ -270,8 +267,8 @@ func (c *Channel) setColour(col string) {
 	c.steiner.SetAttribute("fill", col)
 	c.dragCirc.SetAttribute("stroke", col)
 	c.dragLine.SetAttribute("stroke", col)
-	for t := range c.Pins {
+	for t, r := range c.Pins {
 		t.Shape.SetAttribute("fill", col)
-		//t.l.SetAttribute("stroke", col)
+		r.line.SetAttribute("stroke", col)
 	}
 }

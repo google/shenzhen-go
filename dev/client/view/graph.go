@@ -54,9 +54,9 @@ func (g *Graph) reallyCreateNode(partType string) {
 	g.Nodes[nc.Name()] = n
 }
 
-func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Point) {
+func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Pointer) {
 	quad = math.MaxFloat64
-	test := func(p Point) {
+	test := func(p Pointer) {
 		px, py := p.Pt()
 		dx, dy := x-px, y-py
 		if t := dx*dx + dy*dy; t < quad {
@@ -173,7 +173,7 @@ func (g *Graph) refresh() {
 			if channel != "" && channel != "nil" {
 				if c := g.Channels[channel]; c != nil {
 					q.ch = c
-					c.Pins[q] = NewRoute(g.doc, c.Group, c, q)
+					c.Pins[q] = NewRoute(g.doc, c.Group, &c.visual, q)
 				}
 			}
 		})
@@ -188,7 +188,10 @@ func (g *Graph) refresh() {
 	// Refresh existing connections
 	for _, ch := range g.Channels {
 		ch.reposition(nil)
-		ch.commit()
+		ch.logical = ch.visual
 		ch.Show()
+		for _, r := range ch.Pins {
+			r.Reroute()
+		}
 	}
 }

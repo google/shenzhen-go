@@ -16,8 +16,9 @@
 package view
 
 import (
-	"github.com/google/shenzhen-go/dev/model"
 	"log"
+
+	"github.com/google/shenzhen-go/dev/model"
 
 	"github.com/google/shenzhen-go/dev/dom"
 )
@@ -163,16 +164,6 @@ func (v *View) deleteSelected(e dom.Object) {
 	}
 	v.selectedItem.delete(e)
 }
-
-// Point is anything that has a position on the canvas.
-type Point interface {
-	Pt() (x, y float64)
-}
-
-// ephemeral is a basic implementation of Point.
-type ephemeral struct{ x, y float64 }
-
-func (e ephemeral) Pt() (x, y float64) { return e.x, e.y }
 
 // draggable is anything that can be dragged on the canvas/SVG.
 type draggable interface {

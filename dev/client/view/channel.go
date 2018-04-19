@@ -35,8 +35,8 @@ type Channel struct {
 	created bool // create operation sent to server?
 
 	steiner            dom.Element // symbol representing the channel itself, not used if channel is simple
-	x, y               float64     // centre of steiner point, for snapping
-	tx, ty             float64     // temporary centre of steiner point, for display
+	logical            Point       // centre of steiner point, for snapping
+	visual             Point       // temporary centre of steiner point, for display
 	dragLine, dragCirc dom.Element // temporarily visible, for dragging to more pins
 	p                  *Pin        // considering attaching to this pin
 }
@@ -52,8 +52,8 @@ func (v *View) createChannel(p, q *Pin) error {
 		Pins: make(map[*Pin]*Route),
 	}
 	p.ch, q.ch = ch, ch
-	ch.Pins[p] = NewRoute(v.doc, ch.Group, ch, p)
-	ch.Pins[q] = NewRoute(v.doc, ch.Group, ch, q)
+	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
+	ch.Pins[q] = NewRoute(v.doc, ch.Group, &ch.visual, q)
 	v.graph.Channels[cc.Name()] = ch
 	ch.makeElements(v.doc, v.diagram)
 	ch.reposition(nil)
@@ -96,11 +96,11 @@ func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
 }
 
-// Pt implements Point.
-func (c *Channel) Pt() (x, y float64) { return c.x, c.y }
+// Pt implements Pointer.
+func (c *Channel) Pt() (x, y float64) { return c.logical.Pt() }
 
 func (c *Channel) commit() {
-	c.x, c.y = c.tx, c.ty
+	c.logical = c.visual
 	if !c.created {
 		go c.reallyCreate()
 	}
@@ -114,15 +114,15 @@ func (c *Channel) dragStart(e dom.Object) {
 	// delete the whole channel if dropped.
 
 	c.steiner.Show()
-	c.setColour(activeColour)
+	c.SetColour(activeColour)
 
 	x, y := c.view.diagramCursorPos(e)
-	c.reposition(ephemeral{x, y})
+	c.reposition(Point{x, y})
 	c.dragLine.
 		SetAttribute("x1", x).
 		SetAttribute("y1", y).
-		SetAttribute("x2", c.tx).
-		SetAttribute("y2", c.ty).
+		SetAttribute("x2", c.visual.x).
+		SetAttribute("y2", c.visual.y).
 		Show()
 
 	c.dragCirc.
@@ -149,27 +149,27 @@ func (c *Channel) drag(e dom.Object) {
 
 	if c.p != nil && (c.p != p || d >= snapQuad) {
 		c.p.disconnect()
-		c.p.Shape.SetAttribute("fill", normalColour)
+		c.p.SetColour(normalColour)
 		c.p = nil
 	}
 
 	noSnap := func() {
 		c.dragCirc.Show()
 		c.dragLine.Show()
-		c.reposition(ephemeral{x, y})
+		c.reposition(Point{x, y})
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
 		c.view.clearError()
 		noSnap()
-		c.setColour(activeColour)
+		c.SetColour(activeColour)
 		return
 	}
 
 	if p == nil || p.ch != nil {
 		c.view.setError("Can't connect different channels together (use another goroutine)")
 		noSnap()
-		c.setColour(errorColour)
+		c.SetColour(errorColour)
 		return
 	}
 	/*
@@ -184,7 +184,7 @@ func (c *Channel) drag(e dom.Object) {
 	// Let's snap!
 	c.view.clearError()
 	c.p = p
-	c.setColour(activeColour)
+	c.SetColour(activeColour)
 	c.dragLine.Hide()
 	c.dragCirc.Hide()
 }
@@ -193,7 +193,7 @@ func (c *Channel) drop(e dom.Object) {
 	c.view.clearError()
 	c.reposition(nil)
 	c.commit()
-	c.setColour(normalColour)
+	c.SetColour(normalColour)
 	if c.p != nil {
 		c.p = nil
 		return
@@ -221,7 +221,7 @@ func (c *Channel) delete(e dom.Object) {
 	log.Print("TODO(josh): implement Channel.delete")
 }
 
-func (c *Channel) reposition(additional Point) {
+func (c *Channel) reposition(additional Pointer) {
 	if c == nil {
 		return
 	}
@@ -235,23 +235,20 @@ func (c *Channel) reposition(additional Point) {
 		c.Hide()
 		return
 	}
-	c.tx, c.ty = 0, 0
+	c.visual = Point{0, 0}
 	if additional != nil {
-		c.tx, c.ty = additional.Pt()
+		c.visual.Set(additional.Pt())
 	}
-	for t := range c.Pins {
-		c.tx += t.x
-		c.ty += t.y
+	for p := range c.Pins {
+		c.visual.Add(p.Pt())
 	}
-	n := float64(np)
-	c.tx /= n
-	c.ty /= n
+	c.visual.Scale(1.0 / float64(np))
 	c.steiner.
-		SetAttribute("cx", c.tx).
-		SetAttribute("cy", c.ty)
+		SetAttribute("cx", c.visual.x).
+		SetAttribute("cy", c.visual.y)
 	c.dragLine.
-		SetAttribute("x2", c.tx).
-		SetAttribute("y2", c.ty)
+		SetAttribute("x2", c.visual.x).
+		SetAttribute("y2", c.visual.y)
 	for _, r := range c.Pins {
 		r.Reroute()
 	}
@@ -262,12 +259,13 @@ func (c *Channel) reposition(additional Point) {
 	}
 }
 
-func (c *Channel) setColour(col string) {
+// SetColour changes the colour of the whole channel.
+func (c *Channel) SetColour(col string) {
 	c.steiner.SetAttribute("fill", col)
 	c.dragCirc.SetAttribute("stroke", col)
 	c.dragLine.SetAttribute("stroke", col)
-	for t, r := range c.Pins {
-		t.Shape.SetAttribute("fill", col)
-		r.line.SetAttribute("stroke", col)
+	for p, r := range c.Pins {
+		p.SetColour(col)
+		r.SetStroke(col)
 	}
 }

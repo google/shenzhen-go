@@ -54,7 +54,7 @@ func (p *Pin) disconnect() {
 	}
 	go p.reallyDisconnect()
 	delete(p.ch.Pins, p)
-	p.ch.setColour(normalColour)
+	p.ch.SetColour(normalColour)
 	p.ch.reposition(nil)
 	if len(p.ch.Pins) < 2 {
 		// Delete the channel
@@ -84,7 +84,7 @@ func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
 func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 
-func (p *Pin) connectTo(q Point) {
+func (p *Pin) connectTo(q Pointer) {
 	switch q := q.(type) {
 	case *Pin:
 		if p.ch != nil && p.ch != q.ch {
@@ -127,41 +127,38 @@ func (p *Pin) dragStart(e dom.Object) {
 	// Not attached, so the pin is the drag item and show the temporary line and circle.
 	p.node.view.dragItem = p
 	x, y := p.node.view.diagramCursorPos(e)
+	p.dragTo(x, y)
 
 	// Start with errorColour because we're probably only in range of ourself.
-	p.dragTo(x, y, errorColour)
+	p.SetColour(errorColour)
 }
 
 func (p *Pin) drag(e dom.Object) {
 	x, y := p.node.view.diagramCursorPos(e)
-	colour := activeColour
-
 	d, q := p.node.view.graph.nearestPoint(x, y)
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
 		p.node.view.clearError()
 		if p.ch != nil {
-			p.ch.setColour(normalColour)
+			p.ch.SetColour(normalColour)
 			p.disconnect()
 		}
-		colour = errorColour
-		p.Shape.SetAttribute("fill", colour)
-		p.dragTo(x-p.x, y-p.y, colour)
+		p.SetColour(errorColour)
+		p.dragTo(x, y)
 		return
 	}
 
 	// Make the connection - hand responsibility to the channel.
 	p.node.view.clearError()
-	colour = activeColour
 	p.connectTo(q)
-	p.ch.setColour(colour)
+	p.ch.SetColour(activeColour)
 	p.hideDrag()
 }
 
 func (p *Pin) drop(e dom.Object) {
 	p.node.view.clearError()
-	p.Shape.SetAttribute("fill", normalColour)
+	p.SetColour(normalColour)
 	p.hideDrag()
 	if p.ch == nil {
 		go p.reallyDisconnect()
@@ -170,24 +167,20 @@ func (p *Pin) drop(e dom.Object) {
 	if p.ch.created {
 		go p.reallyConnect()
 	}
-	p.ch.setColour(normalColour)
+	p.ch.SetColour(normalColour)
 	p.ch.commit()
 }
 
 // Show the temporary drag elements with a specific colour.
 // Coordinates are pin relative.
-func (p *Pin) dragTo(rx, ry float64, stroke string) {
+func (p *Pin) dragTo(x, y float64) {
 	p.dragLine.
-		SetAttribute("x2", rx).
-		SetAttribute("y2", ry).
-		SetAttribute("stroke", stroke).
-		SetAttribute("stroke-width", lineWidth).
+		SetAttribute("x2", x-p.x).
+		SetAttribute("y2", y-p.y).
 		Show()
 	p.dragCirc.
-		SetAttribute("cx", rx).
-		SetAttribute("cy", ry).
-		SetAttribute("stroke", stroke).
-		SetAttribute("stroke-width", lineWidth).
+		SetAttribute("cx", x-p.x).
+		SetAttribute("cy", y-p.y).
 		Show()
 }
 
@@ -216,7 +209,6 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	// The pin itself, visually
 	p.Shape = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
-		SetAttribute("fill", normalColour).
 		AddEventListener("mousedown", p.dragStart).
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
@@ -234,13 +226,20 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 
 	// Temporarily-visible elements when dragging from an unattached pin.
 	p.dragLine = doc.MakeSVGElement("line").
-		SetAttribute("stroke", normalColour).
+		SetAttribute("stroke-width", lineWidth).
 		Hide()
-	p.dragCirc = doc.MakeSVGElement("circ").
+	p.dragCirc = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
-		SetAttribute("stroke", normalColour).
 		Hide()
 
 	p.Group.AddChildren(p.Shape, p.dragLine, p.dragCirc)
+	p.SetColour(normalColour)
 	return p
+}
+
+// SetColour sets the colour of the pin (and dragging elements).
+func (p *Pin) SetColour(colour string) {
+	p.Shape.SetAttribute("fill", colour)
+	p.dragLine.SetAttribute("stroke", colour)
+	p.dragCirc.SetAttribute("fill", colour)
 }

@@ -20,13 +20,13 @@ import "github.com/google/shenzhen-go/dev/dom"
 type Route struct {
 	line dom.Element
 
-	src, dst Point
+	src, dst Pointer
 	parent   Group
 }
 
 // NewRoute creates a route connecting a channel and a pin, and adds it
 // as a child of the channel's group.
-func NewRoute(doc dom.Document, parent Group, src, dst Point) *Route {
+func NewRoute(doc dom.Document, parent Group, src, dst Pointer) *Route {
 	r := &Route{
 		line: doc.MakeSVGElement("line").
 			SetAttribute("stroke", normalColour).
@@ -54,6 +54,9 @@ func (r *Route) Reroute() {
 		SetAttribute("x2", x2).
 		SetAttribute("y2", y2)
 }
+
+// SetStroke sets the stroke colour.
+func (r *Route) SetStroke(colour string) { r.line.SetAttribute("stroke", colour) }
 
 // Show shows the route.
 func (r *Route) Show() { r.line.Show() }

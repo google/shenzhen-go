@@ -118,12 +118,12 @@ func (p *Pin) connectTo(q Pointer) {
 	}
 }
 
-func (p *Pin) dragStart(x, y float64) {
+func (p *Pin) dragStart(float64, float64) {
 	p.SetColour(activeColour)
 }
 
 func (p *Pin) drag(x, y float64) {
-	d, q := p.view.graph.nearestPoint(x, y)
+	d, q := p.graph.nearestPoint(x, y)
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {

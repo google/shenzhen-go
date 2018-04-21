@@ -17,5 +17,16 @@ package view
 import "testing"
 
 func TestPinDragScenarios(t *testing.T) {
-	// TODO
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "TODO",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// TODO
+		})
+	}
 }

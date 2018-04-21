@@ -14,9 +14,7 @@
 
 package view
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestGraphRefreshFromEmpty(t *testing.T) {
 	v := makeFakeView() // Calls v.graph.refresh

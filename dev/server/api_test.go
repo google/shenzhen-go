@@ -63,10 +63,12 @@ func TestCreateChannel(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.CreateChannelRequest
 		code codes.Code
 	}{
-		{ // no such graph
+		{
+			name: "no such graph",
 			req: &pb.CreateChannelRequest{
 				Graph: "nope",
 				Name:  "baz",
@@ -83,7 +85,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // channel already exists
+		{
+			name: "channel already exists",
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "bar",
@@ -100,7 +103,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // node1 doesn't exist
+		{
+			name: "node1 doesn't exist",
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
@@ -117,7 +121,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // node2 doesn't exist
+		{
+			name: "node2 doesn't exist",
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
@@ -134,7 +139,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // pin1 doesn't exist
+		{
+			name: "pin1 doesn't exist",
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
@@ -151,7 +157,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // pin2 doesn't exist
+		{
+			name: "pin2 doesn't exist",
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
@@ -168,7 +175,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // ok
+		{
+			name: "ok",
 			req: &pb.CreateChannelRequest{
 				Graph: "foo",
 				Name:  "baz",
@@ -188,24 +196,26 @@ func TestCreateChannel(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.CreateChannel(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.CreateChannel(%v) = error %v, want %v", test.req, err, want)
-		}
-		wantBaz, wantCon := true, "baz"
-		if err != nil {
-			wantBaz, wantCon = false, "nil"
-		}
-		_, got := foo.Channels["baz"]
-		if want := wantBaz; got != want {
-			t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] = _, %t, want %t", test.req, got, want)
-		}
-		if got, want := node1.Connections["pin1"], wantCon; got != want {
-			t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
-		}
-		if got, want := node2.Connections["pin2"], wantCon; got != want {
-			t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.CreateChannel(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Fatalf("c.CreateChannel(%v) = error %v, want %v", test.req, err, want)
+			}
+			wantBaz, wantCon := true, "baz"
+			if err != nil {
+				wantBaz, wantCon = false, "nil"
+			}
+			_, got := foo.Channels["baz"]
+			if want := wantBaz; got != want {
+				t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] = _, %t, want %t", test.req, got, want)
+			}
+			if got, want := node1.Connections["pin1"], wantCon; got != want {
+				t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
+			}
+			if got, want := node2.Connections["pin2"], wantCon; got != want {
+				t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
+			}
+		})
 	}
 }
 
@@ -221,17 +231,20 @@ func TestCreateNode(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.CreateNodeRequest
 		code codes.Code
 	}{
-		{ // no such graph
+		{
+			name: "no such graph",
 			req: &pb.CreateNodeRequest{
 				Graph: "nope",
 				Props: &pb.NodeConfig{},
 			},
 			code: codes.NotFound,
 		},
-		{ // can't unmarshal
+		{
+			name: "can't unmarshal",
 			req: &pb.CreateNodeRequest{
 				Graph: "foo",
 				Props: &pb.NodeConfig{
@@ -240,7 +253,8 @@ func TestCreateNode(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // existing name
+		{
+			name: "existing name",
 			req: &pb.CreateNodeRequest{
 				Graph: "foo",
 				Props: &pb.NodeConfig{
@@ -251,7 +265,8 @@ func TestCreateNode(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // Ok
+		{
+			name: "Ok",
 			req: &pb.CreateNodeRequest{
 				Graph: "foo",
 				Props: &pb.NodeConfig{
@@ -267,10 +282,12 @@ func TestCreateNode(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.CreateNode(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.CreateNode(%v) = error %v, want %v", test.req, err, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.CreateNode(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.CreateNode(%v) = error %v, want %v", test.req, err, want)
+			}
+		})
 	}
 	bax := foo.Nodes["bax"]
 	if bax == nil {
@@ -322,11 +339,12 @@ func TestConnectPin(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.ConnectPinRequest
 		code codes.Code
 	}{
 		{
-			// no such graph
+			name: "no such graph",
 			req: &pb.ConnectPinRequest{
 				Graph:   "nope",
 				Node:    "baz",
@@ -336,7 +354,7 @@ func TestConnectPin(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
-			// no such node
+			name: "no such node",
 			req: &pb.ConnectPinRequest{
 				Graph:   "foo",
 				Node:    "barz",
@@ -346,7 +364,7 @@ func TestConnectPin(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
-			// no such channel
+			name: "no such channel",
 			req: &pb.ConnectPinRequest{
 				Graph:   "foo",
 				Node:    "baz",
@@ -356,7 +374,7 @@ func TestConnectPin(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
-			// No such pin
+			name: "No such pin",
 			req: &pb.ConnectPinRequest{
 				Graph:   "foo",
 				Node:    "baz",
@@ -366,7 +384,7 @@ func TestConnectPin(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
-			// It works
+			name: "It works",
 			req: &pb.ConnectPinRequest{
 				Graph:   "foo",
 				Node:    "baz",
@@ -377,10 +395,12 @@ func TestConnectPin(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.ConnectPin(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.ConnectPin(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.ConnectPin(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.ConnectPin(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	if got, want := baz.Connections["qux"], "bar"; got != want {
 		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
@@ -415,24 +435,28 @@ func TestDeleteChannel(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.DeleteChannelRequest
 		code codes.Code
 	}{
-		{ // No such graph
+		{
+			name: "No such graph",
 			req: &pb.DeleteChannelRequest{
 				Graph:   "nope",
 				Channel: "bar",
 			},
 			code: codes.NotFound,
 		},
-		{ // No such channel
+		{
+			name: "No such channel",
 			req: &pb.DeleteChannelRequest{
 				Graph:   "foo",
 				Channel: "baz",
 			},
 			code: codes.NotFound,
 		},
-		{ // Ok
+		{
+			name: "Ok",
 			req: &pb.DeleteChannelRequest{
 				Graph:   "foo",
 				Channel: "bar",
@@ -441,10 +465,12 @@ func TestDeleteChannel(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.DeleteChannel(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.DeleteChannel(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.DeleteChannel(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.DeleteChannel(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	// Channel should be gone
 	if _, found := foo.Channels["bar"]; found {
@@ -484,24 +510,28 @@ func TestDeleteNode(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.DeleteNodeRequest
 		code codes.Code
 	}{
-		{ // No such graph
+		{
+			name: "No such graph",
 			req: &pb.DeleteNodeRequest{
 				Graph: "nope",
 				Node:  "baz",
 			},
 			code: codes.NotFound,
 		},
-		{ // No such channel
+		{
+			name: "No such channel",
 			req: &pb.DeleteNodeRequest{
 				Graph: "foo",
 				Node:  "bar",
 			},
 			code: codes.NotFound,
 		},
-		{ // Ok
+		{
+			name: "Ok",
 			req: &pb.DeleteNodeRequest{
 				Graph: "foo",
 				Node:  "baz",
@@ -510,10 +540,12 @@ func TestDeleteNode(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.DeleteNode(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.DeleteNode(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.DeleteNode(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.DeleteNode(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	// Channel should be gone
 	if _, found := foo.Channels["bar"]; found {
@@ -561,10 +593,12 @@ func TestDisconnectPin(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.DisconnectPinRequest
 		code codes.Code
 	}{
-		{ // No such graph
+		{
+			name: "No such graph",
 			req: &pb.DisconnectPinRequest{
 				Graph: "nope",
 				Node:  "baz",
@@ -572,7 +606,8 @@ func TestDisconnectPin(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // No such node
+		{
+			name: "No such node",
 			req: &pb.DisconnectPinRequest{
 				Graph: "foo",
 				Node:  "bar",
@@ -580,7 +615,8 @@ func TestDisconnectPin(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // No such pin
+		{
+			name: "No such pin",
 			req: &pb.DisconnectPinRequest{
 				Graph: "foo",
 				Node:  "baz",
@@ -588,7 +624,8 @@ func TestDisconnectPin(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // Ok
+		{
+			name: "Ok",
 			req: &pb.DisconnectPinRequest{
 				Graph: "foo",
 				Node:  "baz",
@@ -598,10 +635,12 @@ func TestDisconnectPin(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.DisconnectPin(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.DisconnectPin(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.DisconnectPin(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.DisconnectPin(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	// Reference from node should be gone
 	if got, want := baz.Connections["qux"], "nil"; got != want {
@@ -625,16 +664,19 @@ func TestSetGraphProperties(t *testing.T) {
 		},
 	}
 	tests := []struct {
+		name string
 		req  *pb.SetGraphPropertiesRequest
 		code codes.Code
 	}{
 		{
+			name: "No such graph",
 			req: &pb.SetGraphPropertiesRequest{
 				Graph: "oof",
 			},
 			code: codes.NotFound,
 		},
 		{
+			name: "Ok",
 			req: &pb.SetGraphPropertiesRequest{
 				Graph:       "foo",
 				Name:        "name",
@@ -645,10 +687,12 @@ func TestSetGraphProperties(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.SetGraphProperties(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.SetGraphProperties(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.SetGraphProperties(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.SetGraphProperties(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	if got, want := foo.Name, "name"; got != want {
 		t.Errorf("foo.Name = %q, want %q", got, want)
@@ -675,10 +719,12 @@ func TestSetNodeProperties(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.SetNodePropertiesRequest
 		code codes.Code
 	}{
-		{ // no such graph
+		{
+			name: "no such graph",
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "nope",
 				Node:  "bar",
@@ -686,7 +732,8 @@ func TestSetNodeProperties(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // no such node
+		{
+			name: "no such node",
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "foo",
 				Node:  "bak",
@@ -694,7 +741,8 @@ func TestSetNodeProperties(t *testing.T) {
 			},
 			code: codes.NotFound,
 		},
-		{ // can't unmarshal
+		{
+			name: "can't unmarshal",
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "foo",
 				Node:  "bar",
@@ -704,7 +752,8 @@ func TestSetNodeProperties(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // rename to existing name
+		{
+			name: "rename to existing name",
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "foo",
 				Node:  "bar",
@@ -716,7 +765,8 @@ func TestSetNodeProperties(t *testing.T) {
 			},
 			code: codes.FailedPrecondition,
 		},
-		{ // Ok
+		{
+			name: "Ok",
 			req: &pb.SetNodePropertiesRequest{
 				Graph: "foo",
 				Node:  "bar",
@@ -733,10 +783,12 @@ func TestSetNodeProperties(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.SetNodeProperties(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.SetNodeProperties(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.SetNodeProperties(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.SetNodeProperties(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	if _, found := foo.Nodes["bar"]; found {
 		t.Error("foo.Nodes[bar] is found, want not found")
@@ -772,10 +824,12 @@ func TestSetPosition(t *testing.T) {
 		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
 	}
 	tests := []struct {
+		name string
 		req  *pb.SetPositionRequest
 		code codes.Code
 	}{
 		{
+			name: "Graph not found",
 			req: &pb.SetPositionRequest{
 				Graph: "nope",
 				Node:  "bar",
@@ -783,6 +837,7 @@ func TestSetPosition(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
+			name: "Node not found",
 			req: &pb.SetPositionRequest{
 				Graph: "foo",
 				Node:  "baz",
@@ -790,6 +845,7 @@ func TestSetPosition(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
+			name: "Ok",
 			req: &pb.SetPositionRequest{
 				Graph: "foo",
 				Node:  "bar",
@@ -800,10 +856,12 @@ func TestSetPosition(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		_, err := c.SetPosition(context.Background(), test.req)
-		if got, want := code(err), test.code; got != want {
-			t.Errorf("c.SetPosition(%v) = code %v, want %v", test.req, got, want)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			_, err := c.SetPosition(context.Background(), test.req)
+			if got, want := code(err), test.code; got != want {
+				t.Errorf("c.SetPosition(%v) = code %v, want %v", test.req, got, want)
+			}
+		})
 	}
 	if got, want := bar.X, 42.; got != want {
 		t.Errorf("bar.X = %f, want %f", got, want)

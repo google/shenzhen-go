@@ -172,14 +172,6 @@ func (c *Channel) drag(x, y float64) {
 		c.SetColour(errorColour)
 		return
 	}
-	/*
-		if err := p.checkConnectionTo(c); err != nil {
-			c.view.diagram.setError("Can't connect: "+err.Error(), x, y)
-			noSnap()
-			c.setColour(errorColour)
-			return
-		}
-	*/
 
 	// Let's snap!
 	c.errors.clearError()

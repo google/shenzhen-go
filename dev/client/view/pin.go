@@ -119,19 +119,7 @@ func (p *Pin) connectTo(q Pointer) {
 }
 
 func (p *Pin) dragStart(x, y float64) {
-	// If a channel is attached, detach and drag from that instead.
-	if p.channel != nil {
-		p.disconnect()
-		p.channel.dragStart(x, y)
-		return
-	}
-
-	// Not attached, so the pin is the drag item and show the temporary line and circle.
-	p.view.dragItem = p
-	p.dragTo(x, y)
-
-	// Start with errorColour because we're probably only in range of ourself.
-	p.SetColour(errorColour)
+	p.SetColour(activeColour)
 }
 
 func (p *Pin) drag(x, y float64) {

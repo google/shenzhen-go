@@ -103,7 +103,6 @@ func (n *Node) MoveTo(x, y float64) *Node {
 }
 
 func (n *Node) dragStart(x, y float64) {
-	n.view.dragItem = n
 	nx, ny := n.nc.Position()
 	n.relX, n.relY = x-nx, y-ny
 

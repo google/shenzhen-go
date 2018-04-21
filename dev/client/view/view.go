@@ -113,6 +113,7 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 
 func (v *View) dragStarter(d draggable) func(dom.Object) {
 	return func(e dom.Object) {
+		v.dragItem = d
 		d.dragStart(v.diagramCursorPos(e))
 		e.Call("stopPropagation")
 	}

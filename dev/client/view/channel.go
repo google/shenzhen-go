@@ -109,8 +109,6 @@ func (c *Channel) commit() {
 }
 
 func (c *Channel) dragStart(x, y float64) {
-	c.view.dragItem = c
-
 	// TODO: make it so that if the current configuration is invalid
 	// (e.g. all input pins / output pins) then use errorColour, and
 	// delete the whole channel if dropped.

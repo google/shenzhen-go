@@ -78,7 +78,7 @@ func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
 	if c.steiner == nil {
 		c.steiner = doc.MakeSVGElement("circle").
 			SetAttribute("r", pinRadius).
-			AddEventListener("mousedown", c.dragStart)
+			AddEventListener("mousedown", c.view.dragStarter(c))
 	}
 
 	if c.dragLine == nil {
@@ -108,7 +108,7 @@ func (c *Channel) commit() {
 	}
 }
 
-func (c *Channel) dragStart(e dom.Object) {
+func (c *Channel) dragStart(x, y float64) {
 	c.view.dragItem = c
 
 	// TODO: make it so that if the current configuration is invalid
@@ -118,7 +118,6 @@ func (c *Channel) dragStart(e dom.Object) {
 	c.steiner.Show()
 	c.SetColour(activeColour)
 
-	x, y := c.view.diagramCursorPos(e)
 	c.reposition(Point{x, y})
 	c.dragLine.
 		SetAttribute("x1", x).
@@ -133,8 +132,7 @@ func (c *Channel) dragStart(e dom.Object) {
 		Show()
 }
 
-func (c *Channel) drag(e dom.Object) {
-	x, y := c.view.diagramCursorPos(e)
+func (c *Channel) drag(x, y float64) {
 	c.steiner.Show()
 	c.dragLine.
 		SetAttribute("x1", x).
@@ -191,7 +189,7 @@ func (c *Channel) drag(e dom.Object) {
 	c.dragCirc.Hide()
 }
 
-func (c *Channel) drop(e dom.Object) {
+func (c *Channel) drop() {
 	c.view.clearError()
 	c.reposition(nil)
 	c.commit()

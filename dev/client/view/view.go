@@ -111,12 +111,19 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 	return
 }
 
+func (v *View) dragStarter(d draggable) func(dom.Object) {
+	return func(e dom.Object) {
+		d.dragStart(v.diagramCursorPos(e))
+		e.Call("stopPropagation")
+	}
+}
+
 func (v *View) diagramMouseDown(e dom.Object) {
 	defer e.Call("stopPropagation")
 	if v.selectedItem == nil {
 		return
 	}
-	v.selectedItem.loseFocus(e)
+	v.selectedItem.loseFocus()
 	v.graph.gc.GainFocus()
 }
 
@@ -125,7 +132,7 @@ func (v *View) diagramMouseMove(e dom.Object) {
 	if v.dragItem == nil {
 		return
 	}
-	v.dragItem.drag(e)
+	v.dragItem.drag(v.diagramCursorPos(e))
 }
 
 func (v *View) diagramMouseUp(e dom.Object) {
@@ -133,8 +140,8 @@ func (v *View) diagramMouseUp(e dom.Object) {
 	if v.dragItem == nil {
 		return
 	}
-	v.dragItem.drag(e)
-	v.dragItem.drop(e)
+	v.dragItem.drag(v.diagramCursorPos(e))
+	v.dragItem.drop()
 	v.dragItem = nil
 }
 
@@ -143,10 +150,10 @@ func (v *View) selecter(s selectable) func(dom.Object) {
 	return func(e dom.Object) {
 		defer e.Call("stopPropagation")
 		if v.selectedItem != nil {
-			v.selectedItem.loseFocus(e)
+			v.selectedItem.loseFocus()
 		}
 		v.selectedItem = s
-		s.gainFocus(e)
+		s.gainFocus()
 	}
 }
 
@@ -154,26 +161,27 @@ func (v *View) saveSelected(e dom.Object) {
 	if v.selectedItem == nil {
 		return
 	}
-	v.selectedItem.save(e)
+	v.selectedItem.save()
 }
 
 func (v *View) deleteSelected(e dom.Object) {
 	if v.selectedItem == nil {
 		return
 	}
-	v.selectedItem.delete(e)
+	v.selectedItem.delete()
 }
 
 // draggable is anything that can be dragged on the canvas/SVG.
 type draggable interface {
-	drag(dom.Object)
-	drop(dom.Object)
+	dragStart(diagramX, diagramY float64)
+	drag(diagramX, diagramY float64)
+	drop()
 }
 
 // selectable is anything that can be selected on the canvas/SVG.
 type selectable interface {
-	gainFocus(dom.Object)
-	loseFocus(dom.Object)
-	delete(dom.Object)
-	save(dom.Object)
+	gainFocus()
+	loseFocus()
+	delete()
+	save()
 }

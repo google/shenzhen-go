@@ -118,25 +118,23 @@ func (p *Pin) connectTo(q Pointer) {
 	}
 }
 
-func (p *Pin) dragStart(e dom.Object) {
+func (p *Pin) dragStart(x, y float64) {
 	// If a channel is attached, detach and drag from that instead.
 	if p.channel != nil {
 		p.disconnect()
-		p.channel.dragStart(e)
+		p.channel.dragStart(x, y)
 		return
 	}
 
 	// Not attached, so the pin is the drag item and show the temporary line and circle.
 	p.view.dragItem = p
-	x, y := p.view.diagramCursorPos(e)
 	p.dragTo(x, y)
 
 	// Start with errorColour because we're probably only in range of ourself.
 	p.SetColour(errorColour)
 }
 
-func (p *Pin) drag(e dom.Object) {
-	x, y := p.view.diagramCursorPos(e)
+func (p *Pin) drag(x, y float64) {
 	d, q := p.view.graph.nearestPoint(x, y)
 
 	// Don't connect P to itself, don't connect if nearest is far away.
@@ -158,7 +156,7 @@ func (p *Pin) drag(e dom.Object) {
 	p.hideDrag()
 }
 
-func (p *Pin) drop(e dom.Object) {
+func (p *Pin) drop() {
 	p.view.clearError()
 	p.SetColour(normalColour)
 	p.hideDrag()
@@ -211,7 +209,7 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	// The pin itself, visually
 	p.Shape = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
-		AddEventListener("mousedown", p.dragStart).
+		AddEventListener("mousedown", p.view.dragStarter(p)).
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
 

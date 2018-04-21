@@ -73,7 +73,7 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 		RecomputeWidth()
 
 	n.TextBox.Rect.
-		AddEventListener("mousedown", n.mouseDown).
+		AddEventListener("mousedown", n.view.dragStarter(n)).
 		AddEventListener("mousedown", n.view.selecter(n))
 
 	// Pins
@@ -102,46 +102,45 @@ func (n *Node) MoveTo(x, y float64) *Node {
 	return n
 }
 
-func (n *Node) mouseDown(e dom.Object) {
+func (n *Node) dragStart(x, y float64) {
 	n.view.dragItem = n
 	nx, ny := n.nc.Position()
-	n.relX, n.relY = e.Get("clientX").Float()-nx, e.Get("clientY").Float()-ny
+	n.relX, n.relY = x-nx, y-ny
 
 	// Bring to front
 	n.Group.Parent().AddChildren(n.Group)
 }
 
-func (n *Node) drag(e dom.Object) {
-	x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
+func (n *Node) drag(x, y float64) {
+	x, y = x-n.relX, y-n.relY
 	n.MoveTo(x, y)
 	n.x, n.y = x, y
 	n.updatePinPositions()
 }
 
-func (n *Node) drop(e dom.Object) {
+func (n *Node) drop() {
 	go func() { // cannot block in callback
-		x, y := e.Get("clientX").Float()-n.relX, e.Get("clientY").Float()-n.relY
-		if err := n.nc.SetPosition(context.TODO(), x, y); err != nil {
+		if err := n.nc.SetPosition(context.TODO(), n.x, n.y); err != nil {
 			n.view.setError("Couldn't set the position: " + err.Error())
 		}
 	}()
 }
 
-func (n *Node) gainFocus(e dom.Object) {
+func (n *Node) gainFocus() {
 	n.TextBox.Rect.SetAttribute("style", nodeSelectedRectStyle)
 	n.nc.GainFocus()
 }
 
-func (n *Node) loseFocus(e dom.Object) {
+func (n *Node) loseFocus() {
 	n.TextBox.Rect.SetAttribute("style", nodeNormalRectStyle)
 	n.nc.LoseFocus()
 }
 
-func (n *Node) save(e dom.Object) {
-	go n.reallySave(e)
+func (n *Node) save() {
+	go n.reallySave()
 }
 
-func (n *Node) reallySave(e dom.Object) {
+func (n *Node) reallySave() {
 	oldName := n.nc.Name()
 	if err := n.nc.Save(context.TODO()); err != nil {
 		n.view.setError("Couldn't update node properties: " + err.Error())
@@ -157,7 +156,7 @@ func (n *Node) reallySave(e dom.Object) {
 	}
 }
 
-func (n *Node) delete(dom.Object) {
+func (n *Node) delete() {
 	go n.reallyDelete() // don't block handler
 }
 

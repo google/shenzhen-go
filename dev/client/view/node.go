@@ -100,12 +100,12 @@ func (n *Node) Remove() {
 // MoveTo moves the textbox to have the topleft corner at x, y.
 func (n *Node) MoveTo(x, y float64) *Node {
 	n.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
+	n.x, n.y = x, y
 	return n
 }
 
 func (n *Node) dragStart(x, y float64) {
-	nx, ny := n.nc.Position()
-	n.relX, n.relY = x-nx, y-ny
+	n.relX, n.relY = x-n.x, y-n.y
 
 	// Bring to front
 	n.Group.Parent().AddChildren(n.Group)
@@ -114,7 +114,6 @@ func (n *Node) dragStart(x, y float64) {
 func (n *Node) drag(x, y float64) {
 	x, y = x-n.relX, y-n.relY
 	n.MoveTo(x, y)
-	n.x, n.y = x, y
 	n.updatePinPositions()
 }
 

@@ -48,7 +48,7 @@ type View struct {
 }
 
 // Setup connects to elements in the DOM.
-func Setup(doc dom.Document, gc GraphController) error {
+func Setup(doc dom.Document, gc GraphController) {
 	v := &View{
 		doc:     doc,
 		diagram: doc.ElementByID("diagram"),
@@ -93,7 +93,6 @@ func Setup(doc dom.Document, gc GraphController) error {
 		}
 
 	}
-	return nil
 }
 
 func (v *View) setError(err string) {
@@ -113,41 +112,41 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 }
 
 func (v *View) diagramMouseDown(e dom.Object) {
+	defer e.Call("stopPropagation")
 	if v.selectedItem == nil {
 		return
 	}
 	v.selectedItem.loseFocus(e)
 	v.graph.gc.GainFocus()
-	e.Call("stopPropagation")
 }
 
 func (v *View) diagramMouseMove(e dom.Object) {
+	defer e.Call("stopPropagation")
 	if v.dragItem == nil {
 		return
 	}
 	v.dragItem.drag(e)
-	e.Call("stopPropagation")
 }
 
 func (v *View) diagramMouseUp(e dom.Object) {
+	defer e.Call("stopPropagation")
 	if v.dragItem == nil {
 		return
 	}
 	v.dragItem.drag(e)
 	v.dragItem.drop(e)
 	v.dragItem = nil
-	e.Call("stopPropagation")
 }
 
 // selecter makes an onclick handler for a selectable.
 func (v *View) selecter(s selectable) func(dom.Object) {
 	return func(e dom.Object) {
+		defer e.Call("stopPropagation")
 		if v.selectedItem != nil {
 			v.selectedItem.loseFocus(e)
 		}
 		v.selectedItem = s
 		s.gainFocus(e)
-		e.Call("stopPropagation")
 	}
 }
 

@@ -47,9 +47,11 @@ func (v *View) createChannel(p, q *Pin) error {
 		return err
 	}
 	ch := &Channel{
-		cc:   cc,
-		view: v,
-		Pins: make(map[*Pin]*Route),
+		cc:      cc,
+		view:    v,
+		graph:   v.graph,
+		Pins:    make(map[*Pin]*Route),
+		created: false,
 	}
 	p.channel, q.channel = ch, ch
 	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)

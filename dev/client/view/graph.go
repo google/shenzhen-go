@@ -47,8 +47,9 @@ func (g *Graph) reallyCreateNode(partType string) {
 	g.view.clearError()
 
 	n := &Node{
-		view: g.view,
-		nc:   nc,
+		view:  g.view,
+		graph: g,
+		nc:    nc,
 	}
 	n.MakeElements(g.doc, g.Group)
 	g.Nodes[nc.Name()] = n

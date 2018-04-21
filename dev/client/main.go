@@ -43,7 +43,5 @@ func main() {
 		panic(err)
 	}
 	gc := controller.NewGraphController(doc, g, client)
-	if err := view.Setup(doc, gc); err != nil {
-		panic(err)
-	}
+	view.Setup(doc, gc)
 }

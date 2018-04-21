@@ -113,13 +113,10 @@ func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	pin, found := n.Pins()[req.Pin]
-	if !found {
+	if _, found := n.Pins()[req.Pin]; !found {
 		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
 	}
-	if ch.Type != pin.Type {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "pin %q, channel %q type mismatch [%q != %q]", req.Pin, req.Channel, pin.Type, ch.Type)
-	}
+	// TODO: Report type mismatches later on.
 	n.Connections[req.Pin] = req.Channel
 	ch.Pins[model.NodePin{Node: req.Node, Pin: req.Pin}] = struct{}{}
 	return &pb.Empty{}, nil

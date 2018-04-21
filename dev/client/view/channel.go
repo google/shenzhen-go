@@ -205,20 +205,32 @@ func (c *Channel) drop() {
 	}
 }
 
-func (c *Channel) gainFocus(e dom.Object) {
+func (c *Channel) gainFocus() {
 	log.Print("TODO(josh): implement Channel.gainFocus")
 }
 
-func (c *Channel) loseFocus(e dom.Object) {
+func (c *Channel) loseFocus() {
 	log.Print("TODO(josh): implement Channel.loseFocus")
 }
 
-func (c *Channel) save(e dom.Object) {
+func (c *Channel) save() {
 	log.Print("TODO(josh): implement Channel.save")
 }
 
-func (c *Channel) delete(e dom.Object) {
-	log.Print("TODO(josh): implement Channel.delete")
+func (c *Channel) delete() {
+	if c.created {
+		if err := c.cc.Delete(context.TODO()); err != nil {
+			c.errors.setError("Couldn't delete channel: " + err.Error())
+			return
+		}
+	}
+
+	// Reset all attached pins, remove all the elements, delete from graph.
+	for q := range c.Pins {
+		q.channel = nil
+	}
+	c.Group.Remove()
+	delete(c.graph.Channels, c.cc.Name())
 }
 
 func (c *Channel) reposition(additional Pointer) {

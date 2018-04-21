@@ -366,16 +366,6 @@ func TestConnectPin(t *testing.T) {
 			code: codes.NotFound,
 		},
 		{
-			// type mismatch
-			req: &pb.ConnectPinRequest{
-				Graph:   "foo",
-				Node:    "baz",
-				Channel: "tuz",
-				Pin:     "qux",
-			},
-			code: codes.FailedPrecondition,
-		},
-		{
 			// It works
 			req: &pb.ConnectPinRequest{
 				Graph:   "foo",

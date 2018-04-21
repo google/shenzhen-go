@@ -55,24 +55,27 @@ func (p *Pin) disconnect() {
 	if p.channel == nil {
 		return
 	}
-	go p.reallyDisconnect()
-	delete(p.channel.Pins, p)
-	p.channel.SetColour(normalColour)
-	p.channel.reposition(nil)
-	if len(p.channel.Pins) < 2 {
-		// Delete the channel
-		for q := range p.channel.Pins {
-			q.channel = nil
-		}
-		delete(p.graph.Channels, p.channel.cc.Name())
-	}
-	p.channel = nil
+	go p.reallyDisconnect() // Don't block handler.
 }
 
 func (p *Pin) reallyDisconnect() {
 	if err := p.pc.Detach(context.TODO()); err != nil {
 		p.errors.setError("Couldn't disconnect: " + err.Error())
+		return
 	}
+	if p.channel == nil {
+		return
+	}
+	p.channel.Pins[p].Remove()
+	delete(p.channel.Pins, p)
+	if len(p.channel.Pins) < 2 {
+		p.channel.delete()
+		return
+	}
+	p.channel.SetColour(normalColour)
+	p.channel.reposition(nil)
+	p.channel = nil
+
 }
 
 // MoveTo moves the pin (relatively).
@@ -93,6 +96,7 @@ func (p *Pin) connectTo(q Pointer) {
 		if p.channel != nil && p.channel != q.channel {
 			p.disconnect()
 		}
+
 		// If the target pin is already connected, connect to that channel.
 		if q.channel != nil {
 			p.connectTo(q.channel)
@@ -105,16 +109,17 @@ func (p *Pin) connectTo(q Pointer) {
 			return
 		}
 
-		// Now we're dragging q instead of p.
-		p.view.dragItem = q
-
 	case *Channel:
+		if p.channel == q {
+			return
+		}
+
 		if p.channel != nil && p.channel != q {
 			p.disconnect()
 		}
 
 		p.channel = q
-		q.Pins[p] = NewRoute(p.view.doc, q.Group, p, q)
+		q.Pins[p] = NewRoute(p.view.doc, q.Group, &q.visual, p)
 		q.reposition(nil)
 	}
 }
@@ -195,7 +200,7 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	// Container for the pin elements.
 	p.Group = NewGroup(doc, parent)
 
-	// The pin itself, visually
+	// The pin itself, visually.
 	p.Shape = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", p.view.dragStarter(p)).

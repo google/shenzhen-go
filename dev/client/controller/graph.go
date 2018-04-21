@@ -16,7 +16,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -166,14 +165,12 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 		Anonymous: true,
 	}
 
-	// Set the type; validate they are all equal.
+	// Set the type to the first one found.
+	// TODO: Mismatches will be reported later.
 	for _, pc := range pcs {
 		if ch.Type == "" {
 			ch.Type = pc.Type()
-			continue
-		}
-		if t := pc.Type(); ch.Type != t {
-			return nil, fmt.Errorf("mismatching types [%q != %q]", t, ch.Type)
+			break
 		}
 	}
 

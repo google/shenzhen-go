@@ -44,7 +44,6 @@ type View struct {
 
 	dragItem     draggable  // nil if nothing is being dragged
 	selectedItem selectable // nil if nothing is selected
-	errLabel     *TextBox
 }
 
 // Setup connects to elements in the DOM.

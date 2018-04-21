@@ -39,9 +39,10 @@ type Node struct {
 	Outputs []*Pin
 	AllPins []*Pin
 
-	nc    NodeController
-	view  *View
-	graph *Graph
+	nc     NodeController
+	view   *View
+	errors errorViewer
+	graph  *Graph
 
 	relX, relY float64 // relative client offset for moving around
 	x, y       float64 // cache of actual position
@@ -120,7 +121,7 @@ func (n *Node) drag(x, y float64) {
 func (n *Node) drop() {
 	go func() { // cannot block in callback
 		if err := n.nc.SetPosition(context.TODO(), n.x, n.y); err != nil {
-			n.view.setError("Couldn't set the position: " + err.Error())
+			n.errors.setError("Couldn't set the position: " + err.Error())
 		}
 	}()
 }
@@ -142,7 +143,7 @@ func (n *Node) save() {
 func (n *Node) reallySave() {
 	oldName := n.nc.Name()
 	if err := n.nc.Save(context.TODO()); err != nil {
-		n.view.setError("Couldn't update node properties: " + err.Error())
+		n.errors.setError("Couldn't update node properties: " + err.Error())
 		return
 	}
 	// Update local copy, since these were read at save time.
@@ -165,7 +166,7 @@ func (n *Node) reallyDelete() {
 		p.reallyDisconnect()
 	}
 	if err := n.nc.Delete(context.TODO()); err != nil {
-		n.view.setError("Couldn't delete: " + err.Error())
+		n.errors.setError("Couldn't delete: " + err.Error())
 		return
 	}
 	delete(n.graph.Nodes, n.nc.Name())

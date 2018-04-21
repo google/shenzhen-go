@@ -25,9 +25,10 @@ import (
 type Channel struct {
 	Group // Container for all the channel elements.
 
-	cc    ChannelController
-	view  *View
-	graph *Graph
+	cc     ChannelController
+	view   *View
+	errors errorViewer
+	graph  *Graph
 
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]*Route
@@ -49,6 +50,7 @@ func (v *View) createChannel(p, q *Pin) error {
 	ch := &Channel{
 		cc:      cc,
 		view:    v,
+		errors:  v,
 		graph:   v.graph,
 		Pins:    make(map[*Pin]*Route),
 		created: false,
@@ -64,7 +66,7 @@ func (v *View) createChannel(p, q *Pin) error {
 
 func (c *Channel) reallyCreate() {
 	if err := c.cc.Commit(context.TODO()); err != nil {
-		c.view.setError("Couldn't create a channel: " + err.Error())
+		c.errors.setError("Couldn't create a channel: " + err.Error())
 		return
 	}
 	c.created = true
@@ -158,14 +160,14 @@ func (c *Channel) drag(x, y float64) {
 	}
 
 	if d >= snapQuad || q == c || (p != nil && p.channel == c) {
-		c.view.clearError()
+		c.errors.clearError()
 		noSnap()
 		c.SetColour(activeColour)
 		return
 	}
 
 	if p == nil || p.channel != nil {
-		c.view.setError("Can't connect different channels together (use another goroutine)")
+		c.errors.setError("Can't connect different channels together (use another goroutine)")
 		noSnap()
 		c.SetColour(errorColour)
 		return
@@ -180,7 +182,7 @@ func (c *Channel) drag(x, y float64) {
 	*/
 
 	// Let's snap!
-	c.view.clearError()
+	c.errors.clearError()
 	c.p = p
 	c.SetColour(activeColour)
 	c.dragLine.Hide()
@@ -188,7 +190,7 @@ func (c *Channel) drag(x, y float64) {
 }
 
 func (c *Channel) drop() {
-	c.view.clearError()
+	c.errors.clearError()
 	c.reposition(nil)
 	c.commit()
 	c.SetColour(normalColour)

@@ -38,6 +38,7 @@ type Pin struct {
 	pc PinController
 
 	view    *View
+	errors  errorViewer
 	graph   *Graph
 	node    *Node    // owner.
 	channel *Channel // attached to this channel, is often nil
@@ -46,7 +47,7 @@ type Pin struct {
 func (p *Pin) reallyConnect() {
 	// Attach to the existing channel
 	if err := p.pc.Attach(context.TODO(), p.channel.cc); err != nil {
-		p.view.setError("Couldn't connect: " + err.Error())
+		p.errors.setError("Couldn't connect: " + err.Error())
 	}
 }
 
@@ -70,7 +71,7 @@ func (p *Pin) disconnect() {
 
 func (p *Pin) reallyDisconnect() {
 	if err := p.pc.Detach(context.TODO()); err != nil {
-		p.view.setError("Couldn't disconnect: " + err.Error())
+		p.errors.setError("Couldn't disconnect: " + err.Error())
 	}
 }
 
@@ -100,7 +101,7 @@ func (p *Pin) connectTo(q Pointer) {
 
 		// Create a new channel to connect to.
 		if err := p.view.createChannel(p, q); err != nil {
-			p.view.setError("Couldn't create channel: " + err.Error())
+			p.errors.setError("Couldn't create channel: " + err.Error())
 			return
 		}
 
@@ -127,7 +128,7 @@ func (p *Pin) drag(x, y float64) {
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
-		p.view.clearError()
+		p.errors.clearError()
 		if p.channel != nil {
 			p.channel.SetColour(normalColour)
 			p.disconnect()
@@ -138,14 +139,14 @@ func (p *Pin) drag(x, y float64) {
 	}
 
 	// Make the connection - hand responsibility to the channel.
-	p.view.clearError()
+	p.errors.clearError()
 	p.connectTo(q)
 	p.channel.SetColour(activeColour)
 	p.hideDrag()
 }
 
 func (p *Pin) drop() {
-	p.view.clearError()
+	p.errors.clearError()
 	p.SetColour(normalColour)
 	p.hideDrag()
 	if p.channel == nil {

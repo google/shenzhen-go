@@ -24,11 +24,12 @@ import (
 
 // Graph is the view-model of a graph.
 type Graph struct {
-	Group
-	gc GraphController
+	Group // container for all graph elements
+	gc    GraphController
 
-	doc  dom.Document // responsible for creating new elements dynamically
-	view *View        // for setting errors, mostly
+	doc    dom.Document // responsible for creating new elements dynamically
+	view   *View        // for passing to
+	errors errorViewer
 
 	Nodes    map[string]*Node
 	Channels map[string]*Channel
@@ -41,15 +42,16 @@ func (g *Graph) createNode(partType string) {
 func (g *Graph) reallyCreateNode(partType string) {
 	nc, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {
-		g.view.setError("Couldn't create a new node: " + err.Error())
+		g.errors.setError("Couldn't create a new node: " + err.Error())
 		return
 	}
-	g.view.clearError()
+	g.errors.clearError()
 
 	n := &Node{
-		view:  g.view,
-		graph: g,
-		nc:    nc,
+		view:   g.view,
+		errors: g.errors,
+		graph:  g,
+		nc:     nc,
 	}
 	n.MakeElements(g.doc, g.Group)
 	g.Nodes[nc.Name()] = n
@@ -81,7 +83,7 @@ func (g *Graph) save(dom.Object) {
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {
-		g.view.setError("Couldn't save: " + err.Error())
+		g.errors.setError("Couldn't save: " + err.Error())
 	}
 }
 
@@ -91,7 +93,7 @@ func (g *Graph) saveProperties(dom.Object) {
 
 func (g *Graph) reallySaveProperties() {
 	if err := g.gc.SaveProperties(context.TODO()); err != nil {
-		g.view.setError("Couldn't save properties: " + err.Error())
+		g.errors.setError("Couldn't save properties: " + err.Error())
 	}
 }
 
@@ -130,6 +132,7 @@ func (g *Graph) refresh() {
 		// Add the channel.
 		ch := &Channel{
 			view:    g.view,
+			errors:  g.errors,
 			graph:   g,
 			cc:      cc,
 			Pins:    make(map[*Pin]*Route),
@@ -159,17 +162,19 @@ func (g *Graph) refresh() {
 			return
 		}
 		m := &Node{
-			view:  g.view,
-			graph: g,
-			nc:    nc,
+			view:   g.view,
+			errors: g.errors,
+			graph:  g,
+			nc:     nc,
 		}
 		m.x, m.y = nc.Position()
 		nc.Pins(func(pc PinController, channel string) {
 			q := &Pin{
-				pc:    pc,
-				view:  g.view,
-				graph: g,
-				node:  m,
+				pc:     pc,
+				view:   g.view,
+				errors: g.errors,
+				graph:  g,
+				node:   m,
 			}
 			if pc.IsInput() {
 				m.Inputs = append(m.Inputs, q)

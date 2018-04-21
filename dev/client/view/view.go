@@ -55,9 +55,10 @@ func Setup(doc dom.Document, gc GraphController) {
 	}
 
 	v.graph = &Graph{
-		gc:   gc,
-		doc:  doc,
-		view: v,
+		gc:     gc,
+		doc:    doc,
+		view:   v,
+		errors: v,
 	}
 	v.graph.makeElements(doc, v.diagram)
 	v.graph.refresh()
@@ -185,4 +186,9 @@ type selectable interface {
 	loseFocus()
 	delete()
 	save()
+}
+
+type errorViewer interface {
+	setError(string)
+	clearError()
 }

@@ -39,8 +39,9 @@ type Node struct {
 	Outputs []*Pin
 	AllPins []*Pin
 
-	nc   NodeController
-	view *View
+	nc    NodeController
+	view  *View
+	graph *Graph
 
 	relX, relY float64 // relative client offset for moving around
 	x, y       float64 // cache of actual position
@@ -149,8 +150,8 @@ func (n *Node) reallySave(e dom.Object) {
 	// Update local copy, since these were read at save time.
 	// TODO: refresh pins
 	if name := n.nc.Name(); name != oldName {
-		delete(n.view.graph.Nodes, oldName)
-		n.view.graph.Nodes[name] = n
+		delete(n.graph.Nodes, oldName)
+		n.graph.Nodes[name] = n
 		n.TextBox.SetText(name)
 		n.updatePinPositions()
 	}
@@ -169,7 +170,7 @@ func (n *Node) reallyDelete() {
 		n.view.setError("Couldn't delete: " + err.Error())
 		return
 	}
-	delete(n.view.graph.Nodes, n.nc.Name())
+	delete(n.graph.Nodes, n.nc.Name())
 	n.Remove()
 }
 

@@ -37,38 +37,40 @@ type Pin struct {
 
 	pc PinController
 
-	node *Node    // owner.
-	ch   *Channel // attached to this channel, is often nil
+	view    *View
+	graph   *Graph
+	node    *Node    // owner.
+	channel *Channel // attached to this channel, is often nil
 }
 
 func (p *Pin) reallyConnect() {
 	// Attach to the existing channel
-	if err := p.pc.Attach(context.TODO(), p.ch.cc); err != nil {
-		p.node.view.setError("Couldn't connect: " + err.Error())
+	if err := p.pc.Attach(context.TODO(), p.channel.cc); err != nil {
+		p.view.setError("Couldn't connect: " + err.Error())
 	}
 }
 
 func (p *Pin) disconnect() {
-	if p.ch == nil {
+	if p.channel == nil {
 		return
 	}
 	go p.reallyDisconnect()
-	delete(p.ch.Pins, p)
-	p.ch.SetColour(normalColour)
-	p.ch.reposition(nil)
-	if len(p.ch.Pins) < 2 {
+	delete(p.channel.Pins, p)
+	p.channel.SetColour(normalColour)
+	p.channel.reposition(nil)
+	if len(p.channel.Pins) < 2 {
 		// Delete the channel
-		for q := range p.ch.Pins {
-			q.ch = nil
+		for q := range p.channel.Pins {
+			q.channel = nil
 		}
-		delete(p.node.view.graph.Channels, p.ch.cc.Name())
+		delete(p.graph.Channels, p.channel.cc.Name())
 	}
-	p.ch = nil
+	p.channel = nil
 }
 
 func (p *Pin) reallyDisconnect() {
 	if err := p.pc.Detach(context.TODO()); err != nil {
-		p.node.view.setError("Couldn't disconnect: " + err.Error())
+		p.view.setError("Couldn't disconnect: " + err.Error())
 	}
 }
 
@@ -76,7 +78,7 @@ func (p *Pin) reallyDisconnect() {
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
 	p.x, p.y = rx+p.node.x, ry+p.node.y
-	p.ch.reposition(nil)
+	p.channel.reposition(nil)
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
@@ -87,46 +89,46 @@ func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 func (p *Pin) connectTo(q Pointer) {
 	switch q := q.(type) {
 	case *Pin:
-		if p.ch != nil && p.ch != q.ch {
+		if p.channel != nil && p.channel != q.channel {
 			p.disconnect()
 		}
 		// If the target pin is already connected, connect to that channel.
-		if q.ch != nil {
-			p.connectTo(q.ch)
+		if q.channel != nil {
+			p.connectTo(q.channel)
 			return
 		}
 
 		// Create a new channel to connect to.
-		if err := p.node.view.createChannel(p, q); err != nil {
-			p.node.view.setError("Couldn't create channel: " + err.Error())
+		if err := p.view.createChannel(p, q); err != nil {
+			p.view.setError("Couldn't create channel: " + err.Error())
 			return
 		}
 
 		// Now we're dragging q instead of p.
-		p.node.view.dragItem = q
+		p.view.dragItem = q
 
 	case *Channel:
-		if p.ch != nil && p.ch != q {
+		if p.channel != nil && p.channel != q {
 			p.disconnect()
 		}
 
-		p.ch = q
-		q.Pins[p] = NewRoute(p.node.view.doc, q.Group, p, q)
+		p.channel = q
+		q.Pins[p] = NewRoute(p.view.doc, q.Group, p, q)
 		q.reposition(nil)
 	}
 }
 
 func (p *Pin) dragStart(e dom.Object) {
 	// If a channel is attached, detach and drag from that instead.
-	if p.ch != nil {
+	if p.channel != nil {
 		p.disconnect()
-		p.ch.dragStart(e)
+		p.channel.dragStart(e)
 		return
 	}
 
 	// Not attached, so the pin is the drag item and show the temporary line and circle.
-	p.node.view.dragItem = p
-	x, y := p.node.view.diagramCursorPos(e)
+	p.view.dragItem = p
+	x, y := p.view.diagramCursorPos(e)
 	p.dragTo(x, y)
 
 	// Start with errorColour because we're probably only in range of ourself.
@@ -134,14 +136,14 @@ func (p *Pin) dragStart(e dom.Object) {
 }
 
 func (p *Pin) drag(e dom.Object) {
-	x, y := p.node.view.diagramCursorPos(e)
-	d, q := p.node.view.graph.nearestPoint(x, y)
+	x, y := p.view.diagramCursorPos(e)
+	d, q := p.view.graph.nearestPoint(x, y)
 
 	// Don't connect P to itself, don't connect if nearest is far away.
 	if p == q || d >= snapQuad {
-		p.node.view.clearError()
-		if p.ch != nil {
-			p.ch.SetColour(normalColour)
+		p.view.clearError()
+		if p.channel != nil {
+			p.channel.SetColour(normalColour)
 			p.disconnect()
 		}
 		p.SetColour(errorColour)
@@ -150,25 +152,25 @@ func (p *Pin) drag(e dom.Object) {
 	}
 
 	// Make the connection - hand responsibility to the channel.
-	p.node.view.clearError()
+	p.view.clearError()
 	p.connectTo(q)
-	p.ch.SetColour(activeColour)
+	p.channel.SetColour(activeColour)
 	p.hideDrag()
 }
 
 func (p *Pin) drop(e dom.Object) {
-	p.node.view.clearError()
+	p.view.clearError()
 	p.SetColour(normalColour)
 	p.hideDrag()
-	if p.ch == nil {
+	if p.channel == nil {
 		go p.reallyDisconnect()
 		return
 	}
-	if p.ch.created {
+	if p.channel.created {
 		go p.reallyConnect()
 	}
-	p.ch.SetColour(normalColour)
-	p.ch.commit()
+	p.channel.SetColour(normalColour)
+	p.channel.commit()
 }
 
 // Show the temporary drag elements with a specific colour.

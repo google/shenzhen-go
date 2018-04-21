@@ -51,7 +51,7 @@ func (v *View) createChannel(p, q *Pin) error {
 		view: v,
 		Pins: make(map[*Pin]*Route),
 	}
-	p.ch, q.ch = ch, ch
+	p.channel, q.channel = ch, ch
 	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
 	ch.Pins[q] = NewRoute(v.doc, ch.Group, &ch.visual, q)
 	v.graph.Channels[cc.Name()] = ch
@@ -140,7 +140,7 @@ func (c *Channel) drag(e dom.Object) {
 	c.dragCirc.
 		SetAttribute("cx", x).
 		SetAttribute("cy", y)
-	d, q := c.view.graph.nearestPoint(x, y)
+	d, q := c.graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
 	if p != nil && p == c.p && d < snapQuad {
@@ -159,14 +159,14 @@ func (c *Channel) drag(e dom.Object) {
 		c.reposition(Point{x, y})
 	}
 
-	if d >= snapQuad || q == c || (p != nil && p.ch == c) {
+	if d >= snapQuad || q == c || (p != nil && p.channel == c) {
 		c.view.clearError()
 		noSnap()
 		c.SetColour(activeColour)
 		return
 	}
 
-	if p == nil || p.ch != nil {
+	if p == nil || p.channel != nil {
 		c.view.setError("Can't connect different channels together (use another goroutine)")
 		noSnap()
 		c.SetColour(errorColour)

@@ -129,6 +129,7 @@ func (g *Graph) refresh() {
 		// Add the channel.
 		ch := &Channel{
 			view:    g.view,
+			graph:   g,
 			cc:      cc,
 			Pins:    make(map[*Pin]*Route),
 			created: true,
@@ -157,13 +158,17 @@ func (g *Graph) refresh() {
 			return
 		}
 		m := &Node{
-			view: g.view,
-			nc:   nc,
+			view:  g.view,
+			graph: g,
+			nc:    nc,
 		}
 		m.x, m.y = nc.Position()
 		nc.Pins(func(pc PinController, channel string) {
 			q := &Pin{
-				pc: pc,
+				pc:    pc,
+				view:  g.view,
+				graph: g,
+				node:  m,
 			}
 			if pc.IsInput() {
 				m.Inputs = append(m.Inputs, q)
@@ -172,7 +177,7 @@ func (g *Graph) refresh() {
 			}
 			if channel != "" && channel != "nil" {
 				if c := g.Channels[channel]; c != nil {
-					q.ch = c
+					q.channel = c
 					c.Pins[q] = NewRoute(g.doc, c.Group, &c.visual, q)
 				}
 			}

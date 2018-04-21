@@ -109,7 +109,7 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 	bcr := v.diagram.Call("getBoundingClientRect")
 	x = e.Get("clientX").Float() - bcr.Get("left").Float()
 	y = e.Get("clientY").Float() - bcr.Get("top").Float()
-	return
+	return x, y
 }
 
 func (v *View) dragStarter(d draggable) func(dom.Object) {

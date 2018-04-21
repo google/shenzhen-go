@@ -44,7 +44,11 @@ func (g Group) AddTo(parent dom.Element) Group {
 	return g
 }
 
-// Remove removes the group from the parent.
+// Remove removes the group from the parent, if set.
 func (g Group) Remove() {
-	g.Parent().RemoveChildren(g)
+	p := g.Parent()
+	if p == nil {
+		return
+	}
+	p.RemoveChildren(g)
 }

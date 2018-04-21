@@ -143,7 +143,7 @@ func (p *Pin) drag(x, y float64) {
 		return
 	}
 
-	// Make the connection - hand responsibility to the channel.
+	// Make the connection.
 	p.errors.clearError()
 	p.connectTo(q)
 	p.channel.SetColour(activeColour)

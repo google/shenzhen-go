@@ -41,7 +41,14 @@ func NewRoute(doc dom.Document, parent Group, src, dst Pointer) *Route {
 
 // Remove removes the route.
 func (r *Route) Remove() {
-	r.line.Parent().RemoveChildren(r.line)
+	if r == nil || r.line == nil {
+		return
+	}
+	p := r.line.Parent()
+	if p == nil {
+		return
+	}
+	p.RemoveChildren(r.line)
 }
 
 // Reroute repositions the route. Call after moving either the channel or the pin.

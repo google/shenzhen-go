@@ -55,11 +55,11 @@ func (v *View) createChannel(p, q *Pin) error {
 		Pins:    make(map[*Pin]*Route),
 		created: false,
 	}
+	ch.makeElements(v.doc, v.diagram)
 	p.channel, q.channel = ch, ch
 	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
 	ch.Pins[q] = NewRoute(v.doc, ch.Group, &ch.visual, q)
 	v.graph.Channels[cc.Name()] = ch
-	ch.makeElements(v.doc, v.diagram)
 	ch.reposition(nil)
 	return nil
 }

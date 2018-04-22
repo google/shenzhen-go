@@ -72,6 +72,7 @@ func (c *Channel) reallyCreate() {
 	c.created = true
 }
 
+// MakeElements creates elements for this channel and adds them to the parent.
 func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	if c.Group == (Group{}) {
 		c.Group = NewGroup(doc, parent)

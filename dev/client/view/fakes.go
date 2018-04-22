@@ -22,21 +22,12 @@ import (
 
 type fakeGraphController struct{}
 
-func (c fakeGraphController) GainFocus()                   {}
-func (c fakeGraphController) LoseFocus()                   {}
-func (c fakeGraphController) Nodes(f func(NodeController)) { f(fakeNodeController{}) }
-
-func (c fakeGraphController) Node(name string) NodeController {
-	if name != "Node 1" {
-		return nil
-	}
-	return fakeNodeController{}
-}
-
-func (c fakeGraphController) NumNodes() int                         { return 1 }
-func (c fakeGraphController) Channel(name string) ChannelController { return nil }
-func (c fakeGraphController) Channels(f func(ChannelController))    {}
-func (c fakeGraphController) NumChannels() int                      { return 0 }
+func (c fakeGraphController) GainFocus()                         {}
+func (c fakeGraphController) LoseFocus()                         {}
+func (c fakeGraphController) Nodes(f func(NodeController))       { f(fakeNodeController{}) }
+func (c fakeGraphController) NumNodes() int                      { return 1 }
+func (c fakeGraphController) Channels(f func(ChannelController)) {}
+func (c fakeGraphController) NumChannels() int                   { return 0 }
 
 func (c fakeGraphController) CreateChannel(...PinController) (ChannelController, error) {
 	return nil, nil

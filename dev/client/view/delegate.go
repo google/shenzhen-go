@@ -22,11 +22,9 @@ type GraphController interface {
 	LoseFocus()
 
 	// Sub-controllers
-	Node(name string) NodeController
 	Nodes(func(NodeController)) // input called for all nodes
 	NumNodes() int
 
-	Channel(name string) ChannelController
 	Channels(func(ChannelController)) // input called for all channels
 	NumChannels() int
 

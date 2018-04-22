@@ -125,24 +125,8 @@ func (c *graphController) Nodes(f func(view.NodeController)) {
 	}
 }
 
-func (c *graphController) Node(name string) view.NodeController {
-	n := c.graph.Nodes[name]
-	if n == nil {
-		return nil
-	}
-	return c.newNodeController(n)
-}
-
 func (c *graphController) NumNodes() int {
 	return len(c.graph.Nodes)
-}
-
-func (c *graphController) Channel(name string) view.ChannelController {
-	ch := c.graph.Channels[name]
-	if ch == nil {
-		return nil
-	}
-	return c.newChannelController(ch)
 }
 
 func (c *graphController) Channels(f func(view.ChannelController)) {

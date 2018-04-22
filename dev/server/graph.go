@@ -25,11 +25,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/server/view"
 )
+
+var identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
 // GuessPackagePath attempts to find a sensible package path.
 func GuessPackagePath(srcPath string) (string, error) {
@@ -256,57 +259,14 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if n := q.Get("channel"); n != "" {
-		handleChannelRequest(g.Graph, n, w, r)
-		return
-	}
-	switch r.Method {
-	case "POST":
-		handlePropsPost(g.Graph, w, r)
-		view.Graph(w, g.Graph)
-	case "GET":
-		view.Graph(w, g.Graph)
-	default:
+
+	if r.Method != "GET" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Unsupported verb %q", r.Method)
-	}
-}
-
-func handlePropsPost(g *model.Graph, w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		log.Printf("Couldn't parse posted form: %v", err)
 		return
 	}
 
-	// Validate.
-	nm := strings.TrimSpace(r.FormValue("Name"))
-	if nm == "" {
-		log.Printf(`Name field is empty [%q == ""]`, nm)
-		return
-
-	}
-	pp := strings.TrimSpace(r.FormValue("PackagePath"))
-	if pp == "" {
-		log.Printf(`PackagePath is empty [%q == ""]`, pp)
-		return
-	}
-
-	imps := strings.Split(r.FormValue("Imports"), "\n")
-	i := 0
-	for _, imp := range imps {
-		imp = strings.TrimSpace(imp)
-		if imp == "" {
-			continue
-		}
-		imps[i] = imp
-		i++
-	}
-	imps = imps[:i]
-
-	// Update.
-	g.Name = nm
-	g.PackagePath = pp
-	g.IsCommand = (r.FormValue("IsCommand") == "on")
+	view.Graph(w, g.Graph)
 }
 
 func outputGoSrc(g *model.Graph, w http.ResponseWriter) {

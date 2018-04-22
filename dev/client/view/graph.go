@@ -97,38 +97,19 @@ func (g *Graph) reallySaveProperties() {
 	}
 }
 
-func (g *Graph) makeElements(doc dom.Document, parent dom.Element) {
+// MakeElements drops any existing elements, and then loads new ones
+// from the graph controller.
+func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
+	g.Group.Remove()
 	g.Group = NewGroup(doc, parent)
-}
 
-// refresh ensures the view model matches the model.
-func (g *Graph) refresh() {
-	// Ensure data structures are set up
-	if g.Channels == nil {
-		g.Channels = make(map[string]*Channel, g.gc.NumChannels())
-	}
-	if g.Nodes == nil {
-		g.Nodes = make(map[string]*Node, g.gc.NumNodes())
-	}
-
-	// Remove any channels that no longer exist.
-	for k, c := range g.Channels {
-		if g.gc.Channel(k) != nil {
-			continue
-		}
-		// Remove this channel.
-		c.Remove()
-		delete(g.Channels, k)
-	}
+	// Set up data structures.
+	g.Channels = make(map[string]*Channel, g.gc.NumChannels())
+	g.Nodes = make(map[string]*Node, g.gc.NumNodes())
 
 	// Add any channels that didn't exist but now do.
 	// Refresh any existing channels.
 	g.gc.Channels(func(cc ChannelController) {
-		k := cc.Name()
-		if g.Channels[k] != nil {
-			// TODO: ch.refresh()
-			return
-		}
 		// Add the channel.
 		ch := &Channel{
 			view:    g.view,
@@ -138,29 +119,14 @@ func (g *Graph) refresh() {
 			Pins:    make(map[*Pin]*Route),
 			created: true,
 		}
-		g.Channels[k] = ch
-		ch.makeElements(g.doc, g.Group)
+		g.Channels[cc.Name()] = ch
+		ch.MakeElements(g.doc, g.Group)
 	})
-
-	// Remove any nodes that no longer exist.
-	for k, n := range g.Nodes {
-		if g.gc.Node(k) != nil {
-			continue
-		}
-		// Remove this channel.
-		n.Remove()
-		delete(g.Nodes, k)
-	}
 
 	// Add any nodes that didn't exist but now do.
 	// Refresh existing nodes.
 	//for k, n := range g.gc.Graph().Nodes {
 	g.gc.Nodes(func(nc NodeController) {
-		k := nc.Name()
-		if g.Nodes[k] != nil {
-			// TODO: m.refresh()
-			return
-		}
 		m := &Node{
 			view:   g.view,
 			errors: g.errors,
@@ -196,7 +162,7 @@ func (g *Graph) refresh() {
 		m.MakeElements(g.doc, g.Group)
 	})
 
-	// Refresh existing connections
+	// Load connections.
 	for _, ch := range g.Channels {
 		ch.reposition(nil)
 		ch.logical = ch.visual

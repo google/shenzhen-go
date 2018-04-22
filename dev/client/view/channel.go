@@ -55,7 +55,7 @@ func (v *View) createChannel(p, q *Pin) error {
 		Pins:    make(map[*Pin]*Route),
 		created: false,
 	}
-	ch.makeElements(v.doc, v.diagram)
+	ch.MakeElements(v.doc, v.diagram)
 	p.channel, q.channel = ch, ch
 	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
 	ch.Pins[q] = NewRoute(v.doc, ch.Group, &ch.visual, q)
@@ -72,7 +72,7 @@ func (c *Channel) reallyCreate() {
 	c.created = true
 }
 
-func (c *Channel) makeElements(doc dom.Document, parent dom.Element) {
+func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	if c.Group == (Group{}) {
 		c.Group = NewGroup(doc, parent)
 	}

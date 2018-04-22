@@ -89,7 +89,6 @@ func makeFakeView() *View {
 		gc:   fakeGraphController{},
 		doc:  doc,
 	}
-	v.graph.makeElements(doc, v.diagram)
-	v.graph.refresh()
+	v.graph.MakeElements(doc, v.diagram)
 	return v
 }

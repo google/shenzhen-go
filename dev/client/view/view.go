@@ -59,8 +59,7 @@ func Setup(doc dom.Document, gc GraphController) {
 		view:   v,
 		errors: v,
 	}
-	v.graph.makeElements(doc, v.diagram)
-	v.graph.refresh()
+	v.graph.MakeElements(doc, v.diagram)
 
 	v.diagram.
 		AddEventListener("mousedown", v.diagramMouseDown).

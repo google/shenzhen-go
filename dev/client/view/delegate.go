@@ -70,6 +70,7 @@ type PinController interface {
 	Name() string
 	Type() string
 	IsInput() bool
+	NodeName() string
 
 	// Bind(*Pin)
 

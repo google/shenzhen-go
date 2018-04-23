@@ -147,6 +147,7 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 	ch := &model.Channel{
 		Capacity:  0,
 		Anonymous: true,
+		Pins:      make(map[model.NodePin]struct{}, len(pcs)),
 	}
 
 	// Set the type to the first one found.
@@ -154,8 +155,8 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 	for _, pc := range pcs {
 		if ch.Type == "" {
 			ch.Type = pc.Type()
-			break
 		}
+		ch.Pins[model.NodePin{Node: pc.NodeName(), Pin: pc.Name()}] = struct{}{}
 	}
 
 	// Pick a unique name

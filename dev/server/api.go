@@ -15,6 +15,9 @@
 package server
 
 import (
+	"log"
+
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,6 +27,7 @@ import (
 )
 
 func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
+	log.Printf("api: CreateChannel(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -63,6 +67,7 @@ func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest
 }
 
 func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Empty, error) {
+	log.Printf("api: CreateNode(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -98,6 +103,7 @@ func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb
 }
 
 func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
+	log.Printf("api: ConnectPin(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -123,6 +129,7 @@ func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb
 }
 
 func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
+	log.Printf("api: DeleteChannel(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -138,6 +145,7 @@ func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest
 }
 
 func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
+	log.Printf("api: DeleteNode(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -168,6 +176,7 @@ func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb
 }
 
 func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
+	log.Printf("api: DisconnectPin(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -194,6 +203,7 @@ func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest
 }
 
 func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
+	log.Printf("api: Save(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -204,6 +214,7 @@ func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, erro
 }
 
 func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
+	log.Printf("api: SetGraphProperties(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -215,6 +226,7 @@ func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropert
 }
 
 func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
+	log.Printf("api: SetNodeProperties(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
@@ -253,6 +265,7 @@ func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertie
 }
 
 func (c *server) SetPosition(ctx context.Context, req *pb.SetPositionRequest) (*pb.Empty, error) {
+	log.Printf("api: SetPosition(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err

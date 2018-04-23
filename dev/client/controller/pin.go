@@ -43,6 +43,10 @@ func (c *pinController) IsInput() bool {
 	return c.node.Pins()[c.name].Direction == pin.Input
 }
 
+func (c *pinController) NodeName() string {
+	return c.node.Name
+}
+
 func (c *pinController) Attach(ctx context.Context, cc view.ChannelController) error {
 	_, err := c.client.ConnectPin(ctx, &pb.ConnectPinRequest{
 		Graph:   c.graph.FilePath,

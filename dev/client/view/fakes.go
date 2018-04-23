@@ -62,9 +62,10 @@ func (f fakeNodeController) ShowPartSubpanel(string)                            
 
 type fakePinController string
 
-func (f fakePinController) Name() string  { return string(f) }
-func (f fakePinController) Type() string  { return "int" }
-func (f fakePinController) IsInput() bool { return f == "input" }
+func (f fakePinController) Name() string     { return string(f) }
+func (f fakePinController) Type() string     { return "int" }
+func (f fakePinController) IsInput() bool    { return f == "input" }
+func (f fakePinController) NodeName() string { return "Node 1" }
 
 func (f fakePinController) Attach(ctx context.Context, cc ChannelController) error { return nil }
 func (f fakePinController) Detach(ctx context.Context) error                       { return nil }

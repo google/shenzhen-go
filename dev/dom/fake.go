@@ -17,6 +17,8 @@ package dom
 import (
 	"math/rand"
 	"reflect"
+	"sort"
+	"strings"
 )
 
 // MethodFunc is what a typical method looks like... sort of.
@@ -108,6 +110,46 @@ func (o *FakeObject) Interface() interface{} { return o.Value }
 // Unsafe returns o.Value asserted as a uintptr.
 func (o *FakeObject) Unsafe() uintptr { return o.Value.(uintptr) }
 
+// FakeClassList implements a virtual classList (DOMTokenList).
+// Unlike a real DOMTokenList, it doesn't preserve order.
+type FakeClassList map[string]struct{}
+
+// Add adds a class to the classlist.
+func (c FakeClassList) Add(class string) { c[class] = struct{}{} }
+
+// Remove removes a class from the classlist.
+func (c FakeClassList) Remove(class string) { delete(c, class) }
+
+// Toggle adds if the class is not present, and removes if it is.
+func (c FakeClassList) Toggle(class string) {
+	if c.Contains(class) {
+		c.Remove(class)
+	} else {
+		c.Add(class)
+	}
+}
+
+// Contains tests if the class is present.
+func (c FakeClassList) Contains(class string) bool {
+	_, found := c[class]
+	return found
+}
+
+// Replace swaps an old class for a new one.
+func (c FakeClassList) Replace(oldClass, newClass string) {
+	c.Remove(oldClass)
+	c.Add(newClass)
+}
+
+func (c FakeClassList) String() string {
+	cls := make([]string, 0, len(c))
+	for cl := range c {
+		cls = append(cls, cl)
+	}
+	sort.Strings(cls)
+	return strings.Join(cls, " ")
+}
+
 // FakeElement implements a virtual DOM element.
 type FakeElement struct {
 	FakeObject
@@ -116,6 +158,7 @@ type FakeElement struct {
 	Attributes     map[string]interface{}
 	Children       []*FakeElement
 	EventListeners map[string][]func(Object)
+	Classes        FakeClassList
 	parent         *FakeElement
 }
 
@@ -127,6 +170,7 @@ func MakeFakeElement(class, nsuri string) *FakeElement {
 		NamespaceURI:   nsuri,
 		Attributes:     make(map[string]interface{}),
 		EventListeners: make(map[string][]func(Object)),
+		Classes:        make(FakeClassList),
 	}
 }
 
@@ -208,6 +252,11 @@ func (e *FakeElement) Display(style string) Element {
 // Parent returns the parent element.
 func (e *FakeElement) Parent() Element {
 	return e.parent
+}
+
+// ClassList returns the list of classes.
+func (e *FakeElement) ClassList() ClassList {
+	return e.Classes
 }
 
 // FakeDocument implements a fake Document.

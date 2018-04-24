@@ -52,6 +52,9 @@ type Element interface {
 
 	// Parent returns the parent element.
 	Parent() Element
+
+	// ClassList returns the classList.
+	ClassList() ClassList
 }
 
 type element struct {
@@ -113,4 +116,8 @@ func (e element) Display(style string) Element {
 
 func (e element) Parent() Element {
 	return WrapElement(e.Get("parentElement"))
+}
+
+func (e element) ClassList() ClassList {
+	return classList{e.Get("classList")}
 }

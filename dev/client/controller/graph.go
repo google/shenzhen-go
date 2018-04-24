@@ -156,7 +156,7 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 		if ch.Type == "" {
 			ch.Type = pc.Type()
 		}
-		ch.Pins[model.NodePin{Node: pc.NodeName(), Pin: pc.Name()}] = struct{}{}
+		ch.AddPin(pc.NodeName(), pc.Name())
 	}
 
 	// Pick a unique name

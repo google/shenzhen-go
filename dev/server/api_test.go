@@ -560,7 +560,7 @@ func TestDeleteNode(t *testing.T) {
 		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
 	}
 	// Reference from channel should be gone
-	if _, found := bar.Pins[model.NodePin{Node: "baz", Pin: "qux"}]; found {
+	if bar.HasPin("baz", "qux") {
 		t.Error("channel 'bar' still references node 'baz' pin 'qux'")
 	}
 }

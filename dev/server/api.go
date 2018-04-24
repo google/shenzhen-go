@@ -124,7 +124,7 @@ func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb
 	}
 	// TODO: Report type mismatches later on.
 	n.Connections[req.Pin] = req.Channel
-	ch.Pins[model.NodePin{Node: req.Node, Pin: req.Pin}] = struct{}{}
+	ch.AddPin(req.Node, req.Pin)
 	return &pb.Empty{}, nil
 }
 

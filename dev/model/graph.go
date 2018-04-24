@@ -118,7 +118,7 @@ func (g *Graph) RefreshChannelsPins() {
 			if ch == nil {
 				continue
 			}
-			ch.Pins[NodePin{Node: n.Name, Pin: p}] = struct{}{}
+			ch.AddPin(n.Name, p)
 		}
 	}
 }

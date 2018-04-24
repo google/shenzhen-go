@@ -151,7 +151,7 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 			if channel != "" && channel != "nil" {
 				if c := g.Channels[channel]; c != nil {
 					q.channel = c
-					c.Pins[q] = NewRoute(g.doc, c.Group, &c.visual, q)
+					c.addPin(q)
 				}
 			}
 		})

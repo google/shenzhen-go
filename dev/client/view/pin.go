@@ -15,6 +15,8 @@
 package view
 
 import (
+	"log"
+
 	"github.com/google/shenzhen-go/dev/dom"
 	"golang.org/x/net/context"
 )
@@ -27,10 +29,10 @@ const (
 // Pin represents a node pin visually, and has enough information to know
 // if it is validly connected.
 type Pin struct {
-	Group                          // Container for all the pin elements.
-	Shape              dom.Element // The pin itself.
-	Nametag            *TextBox    // Temporarily visible on hover.
-	dragLine, dragCirc dom.Element // Temporary elements when dragging from unattached pin.
+	Group               // Container for all the pin elements.
+	Shape   dom.Element // The pin itself.
+	Nametag *TextBox    // Temporarily visible on hover.
+	//dragLine, dragCirc dom.Element // Temporary elements when dragging from unattached pin.
 
 	// Computed, absolute coordinates (not relative to node).
 	x, y float64
@@ -66,14 +68,15 @@ func (p *Pin) reallyDisconnect() {
 	if p.channel == nil {
 		return
 	}
-	p.channel.Pins[p].Remove()
-	delete(p.channel.Pins, p)
-	if len(p.channel.Pins) < 2 {
-		p.channel.delete()
-		return
-	}
-	p.channel.SetColour(normalColour)
-	p.channel.reposition(nil)
+	p.channel.removePin(p)
+	/*
+			if len(p.channel.Pins) < 2 {
+				p.channel.reallyDelete()
+				return
+			}
+		p.channel.SetColour(normalColour)
+		p.channel.reposition(nil)
+	*/
 	p.channel = nil
 
 }
@@ -128,9 +131,15 @@ func (p *Pin) connectTo(q Pointer) {
 */
 
 func (p *Pin) dragStart(x, y float64) {
-	if err := p.view.createChannel(p); err != nil {
-		p.errors.setError("Couldn't create channel: " + err.Error())
-		return
+	log.Print("*Pin.dragStart")
+
+	if p.channel == nil {
+		if err := p.view.createChannel(p); err != nil {
+			p.errors.setError("Couldn't create channel: " + err.Error())
+			return
+		}
+	} else {
+		p.disconnect()
 	}
 	p.view.dragItem = p.channel
 	p.channel.dragStart(x, y)
@@ -176,6 +185,7 @@ func (p *Pin) drop() {
 }
 */
 
+/*
 // Show the temporary drag elements with a specific colour.
 // Coordinates are pin relative.
 func (p *Pin) dragTo(x, y float64) {
@@ -193,6 +203,7 @@ func (p *Pin) hideDrag() {
 	p.dragLine.Hide()
 	p.dragCirc.Hide()
 }
+*/
 
 func (p *Pin) mouseEnter(dom.Object) {
 	x, y := 8.0, 8.0
@@ -206,9 +217,10 @@ func (p *Pin) mouseLeave(dom.Object) {
 	p.Nametag.Hide()
 }
 
-// MakeElements creates elements associated with this pin.
+// MakeElements recreates elements associated with this pin.
 func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	// Container for the pin elements.
+	p.Group.Remove()
 	p.Group = NewGroup(doc, parent)
 
 	// The pin itself, visually.
@@ -229,15 +241,18 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	p.Nametag.RecomputeWidth()
 	p.Nametag.Hide()
 
-	// Temporarily-visible elements when dragging from an unattached pin.
-	p.dragLine = doc.MakeSVGElement("line").
-		SetAttribute("stroke-width", lineWidth).
-		Hide()
-	p.dragCirc = doc.MakeSVGElement("circle").
-		SetAttribute("r", pinRadius).
-		Hide()
+	/*
+			// Temporarily-visible elements when dragging from an unattached pin.
+			p.dragLine = doc.MakeSVGElement("line").
+				SetAttribute("stroke-width", lineWidth).
+				Hide()
+			p.dragCirc = doc.MakeSVGElement("circle").
+				SetAttribute("r", pinRadius).
+				Hide()
 
-	p.Group.AddChildren(p.Shape, p.dragLine, p.dragCirc)
+		p.Group.AddChildren(p.Shape, p.dragLine, p.dragCirc)
+	*/
+	p.Group.AddChildren(p.Shape)
 	p.SetColour(normalColour)
 	return p
 }
@@ -245,6 +260,8 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 // SetColour sets the colour of the pin (and dragging elements).
 func (p *Pin) SetColour(colour string) {
 	p.Shape.SetAttribute("fill", colour)
-	p.dragLine.SetAttribute("stroke", colour)
-	p.dragCirc.SetAttribute("fill", colour)
+	/*
+		p.dragLine.SetAttribute("stroke", colour)
+		p.dragCirc.SetAttribute("fill", colour)
+	*/
 }

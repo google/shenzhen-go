@@ -101,9 +101,12 @@ func (v *View) setError(err string) {
 
 func (v *View) clearError() {
 	// TODO
+	log.Print("*View.clearError")
 }
 
 func (v *View) createChannel(p *Pin) error {
+	log.Print("*View.createChannel")
+
 	cc, err := v.graph.gc.CreateChannel(p.pc)
 	if err != nil {
 		return err
@@ -120,7 +123,6 @@ func (v *View) createChannel(p *Pin) error {
 	p.channel = ch
 	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
 	v.graph.Channels[cc.Name()] = ch
-	ch.reposition(nil)
 	return nil
 }
 
@@ -200,7 +202,6 @@ type dragStarter interface {
 
 // draggable is anything that can be dragged on the canvas/SVG.
 type draggable interface {
-	dragStarter
 	drag(diagramX, diagramY float64)
 	drop()
 }

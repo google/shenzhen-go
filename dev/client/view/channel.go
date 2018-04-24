@@ -50,29 +50,22 @@ func (c *Channel) reallyCreate() {
 	c.created = true
 }
 
-// MakeElements creates elements for this channel and adds them to the parent.
+// MakeElements recreates elements for this channel and adds them to the parent.
 func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
-	if c.Group == (Group{}) {
-		c.Group = NewGroup(doc, parent)
-	}
+	c.Group.Remove()
+	c.Group = NewGroup(doc, parent)
 
-	if c.steiner == nil {
-		c.steiner = doc.MakeSVGElement("circle").
-			SetAttribute("r", pinRadius).
-			AddEventListener("mousedown", c.view.dragStarter(c))
-	}
+	c.steiner = doc.MakeSVGElement("circle").
+		SetAttribute("r", pinRadius).
+		AddEventListener("mousedown", c.view.dragStarter(c))
 
-	if c.dragLine == nil {
-		c.dragLine = doc.MakeSVGElement("line").
-			SetAttribute("stroke-width", lineWidth).
-			Hide()
-	}
+	c.dragLine = doc.MakeSVGElement("line").
+		SetAttribute("stroke-width", lineWidth).
+		Hide()
 
-	if c.dragCirc == nil {
-		c.dragCirc = doc.MakeSVGElement("circle").
-			SetAttribute("r", pinRadius).
-			Hide()
-	}
+	c.dragCirc = doc.MakeSVGElement("circle").
+		SetAttribute("r", pinRadius).
+		Hide()
 
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
 }
@@ -104,6 +97,8 @@ func (c *Channel) dragTo(x, y float64) {
 }
 
 func (c *Channel) dragStart(x, y float64) {
+	log.Print("*Channel.dragStart")
+
 	// TODO: make it so that if the current configuration is invalid
 	// (e.g. all input pins / output pins) then use errorColour, and
 	// delete the whole channel if dropped.
@@ -116,19 +111,21 @@ func (c *Channel) dragStart(x, y float64) {
 }
 
 func (c *Channel) drag(x, y float64) {
+	log.Print("*Channel.drag")
+
 	c.steiner.Show()
 	c.dragTo(x, y)
 	d, q := c.graph.nearestPoint(x, y)
-	p, _ := q.(*Pin)
+	p, pin := q.(*Pin)
 
 	// Already connected to this pin?
-	if p != nil && p == c.potentialPin && d < snapQuad {
+	if pin && p == c.potentialPin && d < snapQuad {
 		return
 	}
 
 	// Was considering connecting to a pin, but now connecting to a
 	// different pin?
-	if c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
+	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
 		c.potentialPin.disconnect()
 		c.potentialPin.SetColour(normalColour)
 		c.potentialPin = nil
@@ -143,15 +140,15 @@ func (c *Channel) drag(x, y float64) {
 	// Too far from something to snap to?
 	// Trying to snap to itself?
 	// Don't snap, but not an error.
-	if d >= snapQuad || q == c || (p != nil && p.channel == c) {
+	if d >= snapQuad || q == c || (pin && p.channel == c) {
 		c.errors.clearError()
 		noSnap()
 		c.SetColour(activeColour)
 		return
 	}
 
-	// Trying to snap to a different channel.
-	if p == nil || p.channel != nil {
+	// Trying to snap to a different channel, either directly or via a pin.
+	if !pin || p.channel != nil {
 		c.errors.setError("Can't connect different channels together (use another goroutine)")
 		noSnap()
 		c.SetColour(errorColour)
@@ -167,6 +164,12 @@ func (c *Channel) drag(x, y float64) {
 }
 
 func (c *Channel) drop() {
+	log.Print("*Channel.drop")
+
+	if len(c.Pins) < 2 {
+		go c.reallyDelete()
+		return
+	}
 	c.errors.clearError()
 	c.reposition(nil)
 	c.commit()
@@ -177,9 +180,18 @@ func (c *Channel) drop() {
 	}
 	c.dragCirc.Hide()
 	c.dragLine.Hide()
-	if len(c.Pins) <= 2 {
+	if len(c.Pins) < 3 {
 		c.steiner.Hide()
 	}
+}
+
+func (c *Channel) addPin(p *Pin) {
+	c.Pins[p] = NewRoute(c.view.doc, c.Group, &c.visual, p)
+}
+
+func (c *Channel) removePin(p *Pin) {
+	c.Pins[p].Remove()
+	delete(c.Pins, p)
 }
 
 func (c *Channel) gainFocus() {
@@ -194,7 +206,7 @@ func (c *Channel) save() {
 	log.Print("TODO(josh): implement Channel.save")
 }
 
-func (c *Channel) delete() {
+func (c *Channel) reallyDelete() {
 	if c.created {
 		if err := c.cc.Delete(context.TODO()); err != nil {
 			c.errors.setError("Couldn't delete channel: " + err.Error())
@@ -219,11 +231,20 @@ func (c *Channel) reposition(additional Pointer) {
 	if additional != nil {
 		np++
 	}
+
 	if np < 2 {
 		// Not actually a channel anymore - hide.
 		c.Hide()
 		return
 	}
+	c.Show()
+
+	if np < 3 {
+		c.steiner.Hide()
+	} else {
+		c.steiner.Show()
+	}
+
 	c.visual = Point{0, 0}
 	if additional != nil {
 		c.visual.Set(additional.Pt())
@@ -240,11 +261,6 @@ func (c *Channel) reposition(additional Pointer) {
 		SetAttribute("y2", c.visual.y)
 	for _, r := range c.Pins {
 		r.Reroute()
-	}
-	if np <= 2 {
-		c.steiner.Hide()
-	} else {
-		c.steiner.Show()
 	}
 }
 

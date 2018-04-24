@@ -101,7 +101,7 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 		AddEventListener("mouseleave", p.mouseLeave)
 
 	// Nametag textbox.
-	p.Nametag = &TextBox{Margin: 20, TextOffsetY: 5}
+	p.Nametag = &TextBox{Margin: 20}
 	p.Nametag.
 		MakeElements(doc, p.Group).
 		SetHeight(30).

@@ -24,9 +24,8 @@ type TextBox struct {
 	Text     dom.Element
 	TextNode dom.Element
 
-	MinWidth    float64
-	Margin      float64
-	TextOffsetY float64
+	MinWidth float64
+	Margin   float64
 
 	currentText string
 }
@@ -42,9 +41,11 @@ func (b *TextBox) MakeElements(doc dom.Document, parent dom.Element) *TextBox {
 		AddChildren(b.Rect, b.Text)
 	b.Text.
 		SetAttribute("alignment-baseline", "middle").
+		SetAttribute("dominant-baseline", "middle").
 		SetAttribute("text-anchor", "middle").
 		SetAttribute("unselectable", "on").
 		SetAttribute("pointer-events", "none").
+		SetAttribute("user-select", "none").
 		AddChildren(b.TextNode)
 	return b
 }
@@ -52,7 +53,7 @@ func (b *TextBox) MakeElements(doc dom.Document, parent dom.Element) *TextBox {
 // SetHeight sets the textbox height.
 func (b *TextBox) SetHeight(height float64) *TextBox {
 	b.Rect.SetAttribute("height", height)
-	b.Text.SetAttribute("y", height/2+b.TextOffsetY)
+	b.Text.SetAttribute("y", height/2)
 	return b
 }
 

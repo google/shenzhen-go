@@ -23,10 +23,10 @@ import (
 )
 
 type channelController struct {
-	client  pb.ShenzhenGoClient
-	graph   *model.Graph
-	channel *model.Channel
-	created bool
+	client       pb.ShenzhenGoClient
+	graph        *model.Graph
+	channel      *model.Channel
+	existingName string
 }
 
 func (c *channelController) Name() string { return c.channel.Name }
@@ -51,7 +51,8 @@ func (c *channelController) Commit(ctx context.Context) error {
 		})
 	}
 	req := &pb.SetChannelRequest{
-		Graph: c.graph.FilePath,
+		Graph:   c.graph.FilePath,
+		Channel: c.existingName,
 		Config: &pb.ChannelConfig{
 			Name: c.channel.Name,
 			Type: c.channel.Type,
@@ -64,18 +65,18 @@ func (c *channelController) Commit(ctx context.Context) error {
 	if err != nil {
 		return err // TODO: contextualise
 	}
+	c.existingName = c.channel.Name
 	c.graph.Channels[c.channel.Name] = c.channel
-	c.created = true
 	return nil
 }
 
 func (c *channelController) Delete(ctx context.Context) error {
-	if !c.created {
+	if c.existingName == "" {
 		return nil
 	}
 	_, err := c.client.SetChannel(ctx, &pb.SetChannelRequest{
 		Graph:   c.graph.FilePath,
-		Channel: c.channel.Name,
+		Channel: c.existingName,
 	})
 	return err
 }

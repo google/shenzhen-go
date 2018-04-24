@@ -28,7 +28,6 @@ const (
 	nodeWidthPerPin       = 20
 	nodeHeight            = 50
 	nodeBoxMargin         = 20
-	nodeTextOffsetY       = 5
 )
 
 // Node is the view's model of a node.
@@ -61,9 +60,8 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.TextBox = &TextBox{
-		Margin:      nodeBoxMargin,
-		TextOffsetY: nodeTextOffsetY,
-		MinWidth:    float64(minWidth),
+		Margin:   nodeBoxMargin,
+		MinWidth: float64(minWidth),
 	}
 	n.TextBox.
 		MakeElements(doc, n.Group).

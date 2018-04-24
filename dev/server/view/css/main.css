@@ -152,3 +152,7 @@ fieldset#pathtemplate {
 	font-size: 14px;
 	flex: auto;
 }
+svg text {
+	cursor: default;
+	user-select: none;
+}

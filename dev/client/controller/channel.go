@@ -42,16 +42,6 @@ func (c *channelController) Pins(f func(view.PinController)) {
 	}
 }
 
-func (c *channelController) Attach(ctx context.Context, pc view.PinController) error {
-	// TODO: implement
-	return errNotImplemented
-}
-
-func (c *channelController) Detach(ctx context.Context, pc view.PinController) error {
-	// TODO: implement
-	return errNotImplemented
-}
-
 func (c *channelController) Commit(ctx context.Context) error {
 	if c.created {
 		// TODO: implement update
@@ -67,8 +57,14 @@ func (c *channelController) Commit(ctx context.Context) error {
 }
 
 func (c *channelController) Delete(ctx context.Context) error {
-	// TODO: implement
-	return errNotImplemented
+	if !c.created {
+		return nil
+	}
+	_, err := c.client.DeleteChannel(ctx, &pb.DeleteChannelRequest{
+		Graph:   c.graph.FilePath,
+		Channel: c.channel.Name,
+	})
+	return err
 }
 
 func (c *channelController) create(ctx context.Context) error {

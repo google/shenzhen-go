@@ -87,33 +87,36 @@ func (c *Channel) commit() {
 func (c *Channel) dragTo(x, y float64) {
 	c.dragLine.
 		SetAttribute("x1", x).
-		SetAttribute("y1", y).
-		Show()
-
+		SetAttribute("y1", y)
 	c.dragCirc.
 		SetAttribute("cx", x).
-		SetAttribute("cy", y).
-		Show()
+		SetAttribute("cy", y)
+}
+
+func (c *Channel) showDrag() {
+	c.dragLine.Show()
+	c.dragCirc.Show()
+}
+
+func (c *Channel) hideDrag() {
+	c.dragLine.Hide()
+	c.dragCirc.Hide()
 }
 
 func (c *Channel) dragStart(x, y float64) {
 	log.Print("*Channel.dragStart")
 
-	// TODO: make it so that if the current configuration is invalid
-	// (e.g. all input pins / output pins) then use errorColour, and
-	// delete the whole channel if dropped.
-
 	c.steiner.Show()
 	c.SetColour(activeColour)
 
-	c.reposition(Point{x, y})
+	c.layout(Point{x, y})
 	c.dragTo(x, y)
+	c.showDrag()
 }
 
 func (c *Channel) drag(x, y float64) {
 	log.Print("*Channel.drag")
 
-	c.steiner.Show()
 	c.dragTo(x, y)
 	d, q := c.graph.nearestPoint(x, y)
 	p, pin := q.(*Pin)
@@ -124,17 +127,17 @@ func (c *Channel) drag(x, y float64) {
 	}
 
 	// Was considering connecting to a pin, but now connecting to a
-	// different pin?
+	// different pin or to nothing?
 	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
+		c.removePin(c.potentialPin)
 		c.potentialPin.disconnect()
 		c.potentialPin.SetColour(normalColour)
 		c.potentialPin = nil
 	}
 
 	noSnap := func() {
-		c.dragCirc.Show()
-		c.dragLine.Show()
-		c.reposition(Point{x, y})
+		c.showDrag()
+		c.layout(Point{x, y})
 	}
 
 	// Too far from something to snap to?
@@ -158,22 +161,22 @@ func (c *Channel) drag(x, y float64) {
 	// Snap to pin p!
 	c.errors.clearError()
 	c.potentialPin = p
+	c.addPin(p)
 	c.SetColour(activeColour)
-	c.dragLine.Hide()
-	c.dragCirc.Hide()
+	c.hideDrag()
 }
 
 func (c *Channel) drop() {
 	log.Print("*Channel.drop")
+	c.SetColour(normalColour)
+	c.errors.clearError()
 
 	if len(c.Pins) < 2 {
 		go c.reallyDelete()
 		return
 	}
-	c.errors.clearError()
-	c.reposition(nil)
+	c.layout(nil)
 	c.commit()
-	c.SetColour(normalColour)
 	if c.potentialPin != nil {
 		c.potentialPin = nil
 		return
@@ -222,7 +225,7 @@ func (c *Channel) reallyDelete() {
 	delete(c.graph.Channels, c.cc.Name())
 }
 
-func (c *Channel) reposition(additional Pointer) {
+func (c *Channel) layout(additional Pointer) {
 	if c == nil {
 		return
 	}

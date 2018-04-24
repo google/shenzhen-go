@@ -165,7 +165,7 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 
 	// Load connections.
 	for _, ch := range g.Channels {
-		ch.reposition(nil)
+		ch.layout(nil)
 		ch.logical = ch.visual
 		ch.Show()
 		for _, r := range ch.Pins {

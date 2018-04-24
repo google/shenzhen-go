@@ -42,8 +42,6 @@ type ChannelController interface {
 
 	// Bind(*Channel)
 
-	Attach(ctx context.Context, pc PinController) error
-	Detach(ctx context.Context, pc PinController) error
 	Commit(ctx context.Context) error
 	Delete(ctx context.Context) error
 }

@@ -42,6 +42,9 @@ type ChannelController interface {
 
 	// Bind(*Channel)
 
+	Attach(PinController)
+	Detach(PinController)
+
 	Commit(ctx context.Context) error
 	Delete(ctx context.Context) error
 }
@@ -71,7 +74,4 @@ type PinController interface {
 	NodeName() string
 
 	// Bind(*Pin)
-
-	Attach(ctx context.Context, cc ChannelController) error
-	Detach(ctx context.Context) error
 }

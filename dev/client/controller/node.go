@@ -67,7 +67,7 @@ func (c *nodeController) Pins(f func(view.PinController, string)) {
 }
 
 func (c *nodeController) Delete(ctx context.Context) error {
-	_, err := c.client.DeleteNode(ctx, &pb.DeleteNodeRequest{
+	_, err := c.client.SetNode(ctx, &pb.SetNodeRequest{
 		Graph: c.graph.FilePath,
 		Node:  c.node.Name,
 	})
@@ -79,7 +79,7 @@ func (c *nodeController) Save(ctx context.Context) error {
 	if err != nil {
 		return err // TODO: contextualise
 	}
-	props := &pb.NodeConfig{
+	cfg := &pb.NodeConfig{
 		Name:         c.sharedOutlets.nodeNameInput.Get("value").String(),
 		Enabled:      c.sharedOutlets.nodeEnabledInput.Get("checked").Bool(),
 		Multiplicity: uint32(c.sharedOutlets.nodeMultiplicityInput.Get("value").Int()),
@@ -89,22 +89,22 @@ func (c *nodeController) Save(ctx context.Context) error {
 		X:            c.node.X,
 		Y:            c.node.Y,
 	}
-	req := &pb.SetNodePropertiesRequest{
-		Graph: c.graph.FilePath,
-		Node:  c.node.Name,
-		Props: props,
+	req := &pb.SetNodeRequest{
+		Graph:  c.graph.FilePath,
+		Node:   c.node.Name,
+		Config: cfg,
 	}
-	if _, err := c.client.SetNodeProperties(ctx, req); err != nil {
+	if _, err := c.client.SetNode(ctx, req); err != nil {
 		return err // TODO: contextualise
 	}
 	// Update local copy, since these were read at save time.
 	// TODO: check whether the available pins have changed.
-	if c.node.Name != props.Name {
-		c.node.Name = props.Name
+	if c.node.Name != cfg.Name {
+		c.node.Name = cfg.Name
 	}
-	c.node.Enabled = props.Enabled
-	c.node.Multiplicity = uint(props.Multiplicity)
-	c.node.Wait = props.Wait
+	c.node.Enabled = cfg.Enabled
+	c.node.Multiplicity = uint(cfg.Multiplicity)
+	c.node.Wait = cfg.Wait
 	return nil
 }
 

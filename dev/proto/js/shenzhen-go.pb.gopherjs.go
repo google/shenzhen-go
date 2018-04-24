@@ -9,17 +9,13 @@
 
 	It has these top-level messages:
 		Empty
-		NodeConfig
 		NodePin
-		CreateChannelRequest
-		CreateNodeRequest
-		ConnectPinRequest
-		DeleteChannelRequest
-		DeleteNodeRequest
-		DisconnectPinRequest
+		ChannelConfig
+		NodeConfig
 		SaveRequest
+		SetChannelRequest
 		SetGraphPropertiesRequest
-		SetNodePropertiesRequest
+		SetNodeRequest
 		SetPositionRequest
 */
 package proto
@@ -73,6 +69,211 @@ func (m *Empty) UnmarshalFromReader(reader jspb.Reader) *Empty {
 
 // Unmarshal unmarshals a Empty from a slice of bytes.
 func (m *Empty) Unmarshal(rawBytes []byte) (*Empty, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+type NodePin struct {
+	Node string
+	Pin  string
+}
+
+// GetNode gets the Node of the NodePin.
+func (m *NodePin) GetNode() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Node
+}
+
+// GetPin gets the Pin of the NodePin.
+func (m *NodePin) GetPin() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Pin
+}
+
+// MarshalToWriter marshals NodePin to the provided writer.
+func (m *NodePin) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Node) > 0 {
+		writer.WriteString(1, m.Node)
+	}
+
+	if len(m.Pin) > 0 {
+		writer.WriteString(2, m.Pin)
+	}
+
+	return
+}
+
+// Marshal marshals NodePin to a slice of bytes.
+func (m *NodePin) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a NodePin from the provided reader.
+func (m *NodePin) UnmarshalFromReader(reader jspb.Reader) *NodePin {
+	for reader.Next() {
+		if m == nil {
+			m = &NodePin{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Node = reader.ReadString()
+		case 2:
+			m.Pin = reader.ReadString()
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a NodePin from a slice of bytes.
+func (m *NodePin) Unmarshal(rawBytes []byte) (*NodePin, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+type ChannelConfig struct {
+	Name string
+	Type string
+	Anon bool
+	Cap  uint64
+	Pins []*NodePin
+}
+
+// GetName gets the Name of the ChannelConfig.
+func (m *ChannelConfig) GetName() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Name
+}
+
+// GetType gets the Type of the ChannelConfig.
+func (m *ChannelConfig) GetType() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Type
+}
+
+// GetAnon gets the Anon of the ChannelConfig.
+func (m *ChannelConfig) GetAnon() (x bool) {
+	if m == nil {
+		return x
+	}
+	return m.Anon
+}
+
+// GetCap gets the Cap of the ChannelConfig.
+func (m *ChannelConfig) GetCap() (x uint64) {
+	if m == nil {
+		return x
+	}
+	return m.Cap
+}
+
+// GetPins gets the Pins of the ChannelConfig.
+func (m *ChannelConfig) GetPins() (x []*NodePin) {
+	if m == nil {
+		return x
+	}
+	return m.Pins
+}
+
+// MarshalToWriter marshals ChannelConfig to the provided writer.
+func (m *ChannelConfig) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Name) > 0 {
+		writer.WriteString(1, m.Name)
+	}
+
+	if len(m.Type) > 0 {
+		writer.WriteString(2, m.Type)
+	}
+
+	if m.Anon {
+		writer.WriteBool(3, m.Anon)
+	}
+
+	if m.Cap != 0 {
+		writer.WriteUint64(4, m.Cap)
+	}
+
+	for _, msg := range m.Pins {
+		writer.WriteMessage(5, func() {
+			msg.MarshalToWriter(writer)
+		})
+	}
+
+	return
+}
+
+// Marshal marshals ChannelConfig to a slice of bytes.
+func (m *ChannelConfig) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a ChannelConfig from the provided reader.
+func (m *ChannelConfig) UnmarshalFromReader(reader jspb.Reader) *ChannelConfig {
+	for reader.Next() {
+		if m == nil {
+			m = &ChannelConfig{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Name = reader.ReadString()
+		case 2:
+			m.Type = reader.ReadString()
+		case 3:
+			m.Anon = reader.ReadBool()
+		case 4:
+			m.Cap = reader.ReadUint64()
+		case 5:
+			reader.ReadMessage(func() {
+				m.Pins = append(m.Pins, new(NodePin).UnmarshalFromReader(reader))
+			})
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a ChannelConfig from a slice of bytes.
+func (m *ChannelConfig) Unmarshal(rawBytes []byte) (*ChannelConfig, error) {
 	reader := jspb.NewReader(rawBytes)
 
 	m = m.UnmarshalFromReader(reader)
@@ -252,665 +453,6 @@ func (m *NodeConfig) Unmarshal(rawBytes []byte) (*NodeConfig, error) {
 	return m, nil
 }
 
-type NodePin struct {
-	Node string
-	Pin  string
-}
-
-// GetNode gets the Node of the NodePin.
-func (m *NodePin) GetNode() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Node
-}
-
-// GetPin gets the Pin of the NodePin.
-func (m *NodePin) GetPin() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Pin
-}
-
-// MarshalToWriter marshals NodePin to the provided writer.
-func (m *NodePin) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Node) > 0 {
-		writer.WriteString(1, m.Node)
-	}
-
-	if len(m.Pin) > 0 {
-		writer.WriteString(2, m.Pin)
-	}
-
-	return
-}
-
-// Marshal marshals NodePin to a slice of bytes.
-func (m *NodePin) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a NodePin from the provided reader.
-func (m *NodePin) UnmarshalFromReader(reader jspb.Reader) *NodePin {
-	for reader.Next() {
-		if m == nil {
-			m = &NodePin{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Node = reader.ReadString()
-		case 2:
-			m.Pin = reader.ReadString()
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a NodePin from a slice of bytes.
-func (m *NodePin) Unmarshal(rawBytes []byte) (*NodePin, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-type CreateChannelRequest struct {
-	Graph string
-	Name  string
-	Type  string
-	Anon  bool
-	Cap   uint64
-	Pins  []*NodePin
-}
-
-// GetGraph gets the Graph of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetGraph() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Graph
-}
-
-// GetName gets the Name of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetName() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Name
-}
-
-// GetType gets the Type of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetType() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Type
-}
-
-// GetAnon gets the Anon of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetAnon() (x bool) {
-	if m == nil {
-		return x
-	}
-	return m.Anon
-}
-
-// GetCap gets the Cap of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetCap() (x uint64) {
-	if m == nil {
-		return x
-	}
-	return m.Cap
-}
-
-// GetPins gets the Pins of the CreateChannelRequest.
-func (m *CreateChannelRequest) GetPins() (x []*NodePin) {
-	if m == nil {
-		return x
-	}
-	return m.Pins
-}
-
-// MarshalToWriter marshals CreateChannelRequest to the provided writer.
-func (m *CreateChannelRequest) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Graph) > 0 {
-		writer.WriteString(1, m.Graph)
-	}
-
-	if len(m.Name) > 0 {
-		writer.WriteString(2, m.Name)
-	}
-
-	if len(m.Type) > 0 {
-		writer.WriteString(3, m.Type)
-	}
-
-	if m.Anon {
-		writer.WriteBool(4, m.Anon)
-	}
-
-	if m.Cap != 0 {
-		writer.WriteUint64(5, m.Cap)
-	}
-
-	for _, msg := range m.Pins {
-		writer.WriteMessage(6, func() {
-			msg.MarshalToWriter(writer)
-		})
-	}
-
-	return
-}
-
-// Marshal marshals CreateChannelRequest to a slice of bytes.
-func (m *CreateChannelRequest) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a CreateChannelRequest from the provided reader.
-func (m *CreateChannelRequest) UnmarshalFromReader(reader jspb.Reader) *CreateChannelRequest {
-	for reader.Next() {
-		if m == nil {
-			m = &CreateChannelRequest{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Graph = reader.ReadString()
-		case 2:
-			m.Name = reader.ReadString()
-		case 3:
-			m.Type = reader.ReadString()
-		case 4:
-			m.Anon = reader.ReadBool()
-		case 5:
-			m.Cap = reader.ReadUint64()
-		case 6:
-			reader.ReadMessage(func() {
-				m.Pins = append(m.Pins, new(NodePin).UnmarshalFromReader(reader))
-			})
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a CreateChannelRequest from a slice of bytes.
-func (m *CreateChannelRequest) Unmarshal(rawBytes []byte) (*CreateChannelRequest, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-type CreateNodeRequest struct {
-	Graph string
-	Props *NodeConfig
-}
-
-// GetGraph gets the Graph of the CreateNodeRequest.
-func (m *CreateNodeRequest) GetGraph() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Graph
-}
-
-// GetProps gets the Props of the CreateNodeRequest.
-func (m *CreateNodeRequest) GetProps() (x *NodeConfig) {
-	if m == nil {
-		return x
-	}
-	return m.Props
-}
-
-// MarshalToWriter marshals CreateNodeRequest to the provided writer.
-func (m *CreateNodeRequest) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Graph) > 0 {
-		writer.WriteString(1, m.Graph)
-	}
-
-	if m.Props != nil {
-		writer.WriteMessage(2, func() {
-			m.Props.MarshalToWriter(writer)
-		})
-	}
-
-	return
-}
-
-// Marshal marshals CreateNodeRequest to a slice of bytes.
-func (m *CreateNodeRequest) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a CreateNodeRequest from the provided reader.
-func (m *CreateNodeRequest) UnmarshalFromReader(reader jspb.Reader) *CreateNodeRequest {
-	for reader.Next() {
-		if m == nil {
-			m = &CreateNodeRequest{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Graph = reader.ReadString()
-		case 2:
-			reader.ReadMessage(func() {
-				m.Props = m.Props.UnmarshalFromReader(reader)
-			})
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a CreateNodeRequest from a slice of bytes.
-func (m *CreateNodeRequest) Unmarshal(rawBytes []byte) (*CreateNodeRequest, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-type ConnectPinRequest struct {
-	Graph   string
-	Node    string
-	Pin     string
-	Channel string
-}
-
-// GetGraph gets the Graph of the ConnectPinRequest.
-func (m *ConnectPinRequest) GetGraph() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Graph
-}
-
-// GetNode gets the Node of the ConnectPinRequest.
-func (m *ConnectPinRequest) GetNode() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Node
-}
-
-// GetPin gets the Pin of the ConnectPinRequest.
-func (m *ConnectPinRequest) GetPin() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Pin
-}
-
-// GetChannel gets the Channel of the ConnectPinRequest.
-func (m *ConnectPinRequest) GetChannel() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Channel
-}
-
-// MarshalToWriter marshals ConnectPinRequest to the provided writer.
-func (m *ConnectPinRequest) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Graph) > 0 {
-		writer.WriteString(1, m.Graph)
-	}
-
-	if len(m.Node) > 0 {
-		writer.WriteString(2, m.Node)
-	}
-
-	if len(m.Pin) > 0 {
-		writer.WriteString(3, m.Pin)
-	}
-
-	if len(m.Channel) > 0 {
-		writer.WriteString(4, m.Channel)
-	}
-
-	return
-}
-
-// Marshal marshals ConnectPinRequest to a slice of bytes.
-func (m *ConnectPinRequest) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a ConnectPinRequest from the provided reader.
-func (m *ConnectPinRequest) UnmarshalFromReader(reader jspb.Reader) *ConnectPinRequest {
-	for reader.Next() {
-		if m == nil {
-			m = &ConnectPinRequest{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Graph = reader.ReadString()
-		case 2:
-			m.Node = reader.ReadString()
-		case 3:
-			m.Pin = reader.ReadString()
-		case 4:
-			m.Channel = reader.ReadString()
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a ConnectPinRequest from a slice of bytes.
-func (m *ConnectPinRequest) Unmarshal(rawBytes []byte) (*ConnectPinRequest, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-type DeleteChannelRequest struct {
-	Graph   string
-	Channel string
-}
-
-// GetGraph gets the Graph of the DeleteChannelRequest.
-func (m *DeleteChannelRequest) GetGraph() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Graph
-}
-
-// GetChannel gets the Channel of the DeleteChannelRequest.
-func (m *DeleteChannelRequest) GetChannel() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Channel
-}
-
-// MarshalToWriter marshals DeleteChannelRequest to the provided writer.
-func (m *DeleteChannelRequest) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Graph) > 0 {
-		writer.WriteString(1, m.Graph)
-	}
-
-	if len(m.Channel) > 0 {
-		writer.WriteString(2, m.Channel)
-	}
-
-	return
-}
-
-// Marshal marshals DeleteChannelRequest to a slice of bytes.
-func (m *DeleteChannelRequest) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a DeleteChannelRequest from the provided reader.
-func (m *DeleteChannelRequest) UnmarshalFromReader(reader jspb.Reader) *DeleteChannelRequest {
-	for reader.Next() {
-		if m == nil {
-			m = &DeleteChannelRequest{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Graph = reader.ReadString()
-		case 2:
-			m.Channel = reader.ReadString()
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a DeleteChannelRequest from a slice of bytes.
-func (m *DeleteChannelRequest) Unmarshal(rawBytes []byte) (*DeleteChannelRequest, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-type DeleteNodeRequest struct {
-	Graph string
-	Node  string
-}
-
-// GetGraph gets the Graph of the DeleteNodeRequest.
-func (m *DeleteNodeRequest) GetGraph() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Graph
-}
-
-// GetNode gets the Node of the DeleteNodeRequest.
-func (m *DeleteNodeRequest) GetNode() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Node
-}
-
-// MarshalToWriter marshals DeleteNodeRequest to the provided writer.
-func (m *DeleteNodeRequest) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Graph) > 0 {
-		writer.WriteString(1, m.Graph)
-	}
-
-	if len(m.Node) > 0 {
-		writer.WriteString(2, m.Node)
-	}
-
-	return
-}
-
-// Marshal marshals DeleteNodeRequest to a slice of bytes.
-func (m *DeleteNodeRequest) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a DeleteNodeRequest from the provided reader.
-func (m *DeleteNodeRequest) UnmarshalFromReader(reader jspb.Reader) *DeleteNodeRequest {
-	for reader.Next() {
-		if m == nil {
-			m = &DeleteNodeRequest{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Graph = reader.ReadString()
-		case 2:
-			m.Node = reader.ReadString()
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a DeleteNodeRequest from a slice of bytes.
-func (m *DeleteNodeRequest) Unmarshal(rawBytes []byte) (*DeleteNodeRequest, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-type DisconnectPinRequest struct {
-	Graph string
-	Node  string
-	Pin   string
-}
-
-// GetGraph gets the Graph of the DisconnectPinRequest.
-func (m *DisconnectPinRequest) GetGraph() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Graph
-}
-
-// GetNode gets the Node of the DisconnectPinRequest.
-func (m *DisconnectPinRequest) GetNode() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Node
-}
-
-// GetPin gets the Pin of the DisconnectPinRequest.
-func (m *DisconnectPinRequest) GetPin() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Pin
-}
-
-// MarshalToWriter marshals DisconnectPinRequest to the provided writer.
-func (m *DisconnectPinRequest) MarshalToWriter(writer jspb.Writer) {
-	if m == nil {
-		return
-	}
-
-	if len(m.Graph) > 0 {
-		writer.WriteString(1, m.Graph)
-	}
-
-	if len(m.Node) > 0 {
-		writer.WriteString(2, m.Node)
-	}
-
-	if len(m.Pin) > 0 {
-		writer.WriteString(3, m.Pin)
-	}
-
-	return
-}
-
-// Marshal marshals DisconnectPinRequest to a slice of bytes.
-func (m *DisconnectPinRequest) Marshal() []byte {
-	writer := jspb.NewWriter()
-	m.MarshalToWriter(writer)
-	return writer.GetResult()
-}
-
-// UnmarshalFromReader unmarshals a DisconnectPinRequest from the provided reader.
-func (m *DisconnectPinRequest) UnmarshalFromReader(reader jspb.Reader) *DisconnectPinRequest {
-	for reader.Next() {
-		if m == nil {
-			m = &DisconnectPinRequest{}
-		}
-
-		switch reader.GetFieldNumber() {
-		case 1:
-			m.Graph = reader.ReadString()
-		case 2:
-			m.Node = reader.ReadString()
-		case 3:
-			m.Pin = reader.ReadString()
-		default:
-			reader.SkipField()
-		}
-	}
-
-	return m
-}
-
-// Unmarshal unmarshals a DisconnectPinRequest from a slice of bytes.
-func (m *DisconnectPinRequest) Unmarshal(rawBytes []byte) (*DisconnectPinRequest, error) {
-	reader := jspb.NewReader(rawBytes)
-
-	m = m.UnmarshalFromReader(reader)
-
-	if err := reader.Err(); err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
 type SaveRequest struct {
 	Graph string
 }
@@ -963,6 +505,103 @@ func (m *SaveRequest) UnmarshalFromReader(reader jspb.Reader) *SaveRequest {
 
 // Unmarshal unmarshals a SaveRequest from a slice of bytes.
 func (m *SaveRequest) Unmarshal(rawBytes []byte) (*SaveRequest, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+type SetChannelRequest struct {
+	Graph   string
+	Channel string
+	Config  *ChannelConfig
+}
+
+// GetGraph gets the Graph of the SetChannelRequest.
+func (m *SetChannelRequest) GetGraph() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Graph
+}
+
+// GetChannel gets the Channel of the SetChannelRequest.
+func (m *SetChannelRequest) GetChannel() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Channel
+}
+
+// GetConfig gets the Config of the SetChannelRequest.
+func (m *SetChannelRequest) GetConfig() (x *ChannelConfig) {
+	if m == nil {
+		return x
+	}
+	return m.Config
+}
+
+// MarshalToWriter marshals SetChannelRequest to the provided writer.
+func (m *SetChannelRequest) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Graph) > 0 {
+		writer.WriteString(1, m.Graph)
+	}
+
+	if len(m.Channel) > 0 {
+		writer.WriteString(2, m.Channel)
+	}
+
+	if m.Config != nil {
+		writer.WriteMessage(3, func() {
+			m.Config.MarshalToWriter(writer)
+		})
+	}
+
+	return
+}
+
+// Marshal marshals SetChannelRequest to a slice of bytes.
+func (m *SetChannelRequest) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a SetChannelRequest from the provided reader.
+func (m *SetChannelRequest) UnmarshalFromReader(reader jspb.Reader) *SetChannelRequest {
+	for reader.Next() {
+		if m == nil {
+			m = &SetChannelRequest{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Graph = reader.ReadString()
+		case 2:
+			m.Channel = reader.ReadString()
+		case 3:
+			reader.ReadMessage(func() {
+				m.Config = m.Config.UnmarshalFromReader(reader)
+			})
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a SetChannelRequest from a slice of bytes.
+func (m *SetChannelRequest) Unmarshal(rawBytes []byte) (*SetChannelRequest, error) {
 	reader := jspb.NewReader(rawBytes)
 
 	m = m.UnmarshalFromReader(reader)
@@ -1082,38 +721,38 @@ func (m *SetGraphPropertiesRequest) Unmarshal(rawBytes []byte) (*SetGraphPropert
 	return m, nil
 }
 
-type SetNodePropertiesRequest struct {
-	Graph string
-	Node  string
-	Props *NodeConfig
+type SetNodeRequest struct {
+	Graph  string
+	Node   string
+	Config *NodeConfig
 }
 
-// GetGraph gets the Graph of the SetNodePropertiesRequest.
-func (m *SetNodePropertiesRequest) GetGraph() (x string) {
+// GetGraph gets the Graph of the SetNodeRequest.
+func (m *SetNodeRequest) GetGraph() (x string) {
 	if m == nil {
 		return x
 	}
 	return m.Graph
 }
 
-// GetNode gets the Node of the SetNodePropertiesRequest.
-func (m *SetNodePropertiesRequest) GetNode() (x string) {
+// GetNode gets the Node of the SetNodeRequest.
+func (m *SetNodeRequest) GetNode() (x string) {
 	if m == nil {
 		return x
 	}
 	return m.Node
 }
 
-// GetProps gets the Props of the SetNodePropertiesRequest.
-func (m *SetNodePropertiesRequest) GetProps() (x *NodeConfig) {
+// GetConfig gets the Config of the SetNodeRequest.
+func (m *SetNodeRequest) GetConfig() (x *NodeConfig) {
 	if m == nil {
 		return x
 	}
-	return m.Props
+	return m.Config
 }
 
-// MarshalToWriter marshals SetNodePropertiesRequest to the provided writer.
-func (m *SetNodePropertiesRequest) MarshalToWriter(writer jspb.Writer) {
+// MarshalToWriter marshals SetNodeRequest to the provided writer.
+func (m *SetNodeRequest) MarshalToWriter(writer jspb.Writer) {
 	if m == nil {
 		return
 	}
@@ -1126,27 +765,27 @@ func (m *SetNodePropertiesRequest) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteString(2, m.Node)
 	}
 
-	if m.Props != nil {
+	if m.Config != nil {
 		writer.WriteMessage(3, func() {
-			m.Props.MarshalToWriter(writer)
+			m.Config.MarshalToWriter(writer)
 		})
 	}
 
 	return
 }
 
-// Marshal marshals SetNodePropertiesRequest to a slice of bytes.
-func (m *SetNodePropertiesRequest) Marshal() []byte {
+// Marshal marshals SetNodeRequest to a slice of bytes.
+func (m *SetNodeRequest) Marshal() []byte {
 	writer := jspb.NewWriter()
 	m.MarshalToWriter(writer)
 	return writer.GetResult()
 }
 
-// UnmarshalFromReader unmarshals a SetNodePropertiesRequest from the provided reader.
-func (m *SetNodePropertiesRequest) UnmarshalFromReader(reader jspb.Reader) *SetNodePropertiesRequest {
+// UnmarshalFromReader unmarshals a SetNodeRequest from the provided reader.
+func (m *SetNodeRequest) UnmarshalFromReader(reader jspb.Reader) *SetNodeRequest {
 	for reader.Next() {
 		if m == nil {
-			m = &SetNodePropertiesRequest{}
+			m = &SetNodeRequest{}
 		}
 
 		switch reader.GetFieldNumber() {
@@ -1156,7 +795,7 @@ func (m *SetNodePropertiesRequest) UnmarshalFromReader(reader jspb.Reader) *SetN
 			m.Node = reader.ReadString()
 		case 3:
 			reader.ReadMessage(func() {
-				m.Props = m.Props.UnmarshalFromReader(reader)
+				m.Config = m.Config.UnmarshalFromReader(reader)
 			})
 		default:
 			reader.SkipField()
@@ -1166,8 +805,8 @@ func (m *SetNodePropertiesRequest) UnmarshalFromReader(reader jspb.Reader) *SetN
 	return m
 }
 
-// Unmarshal unmarshals a SetNodePropertiesRequest from a slice of bytes.
-func (m *SetNodePropertiesRequest) Unmarshal(rawBytes []byte) (*SetNodePropertiesRequest, error) {
+// Unmarshal unmarshals a SetNodeRequest from a slice of bytes.
+func (m *SetNodeRequest) Unmarshal(rawBytes []byte) (*SetNodeRequest, error) {
 	reader := jspb.NewReader(rawBytes)
 
 	m = m.UnmarshalFromReader(reader)
@@ -1298,24 +937,18 @@ const _ = grpcweb.GrpcWebPackageIsVersion3
 // Client API for ShenzhenGo service
 
 type ShenzhenGoClient interface {
-	// CreateChannel makes a new channel.
-	CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpcweb.CallOption) (*Empty, error)
-	// CreateNode makes a new node.
-	CreateNode(ctx context.Context, in *CreateNodeRequest, opts ...grpcweb.CallOption) (*Empty, error)
-	// ConnectPin connects a pin to a channel.
-	ConnectPin(ctx context.Context, in *ConnectPinRequest, opts ...grpcweb.CallOption) (*Empty, error)
-	// DeleteChannel deletes a channel (and all connections).
-	DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpcweb.CallOption) (*Empty, error)
-	// DeleteNode deletes a node (and all connections).
-	DeleteNode(ctx context.Context, in *DeleteNodeRequest, opts ...grpcweb.CallOption) (*Empty, error)
-	// DisconnectPin deletes the connection from a pin to a channel.
-	DisconnectPin(ctx context.Context, in *DisconnectPinRequest, opts ...grpcweb.CallOption) (*Empty, error)
 	// Save saves the graph to disk.
 	Save(ctx context.Context, in *SaveRequest, opts ...grpcweb.CallOption) (*Empty, error)
+	// SetNode either creates a new channel (name == "", config != nil)
+	// changes existing channel data such as name and attached pins (name is found, config != nil),
+	// or deletes a channel (name is found, config == nil).
+	SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpcweb.CallOption) (*Empty, error)
 	// SetGraphProperties changes metdata such as name and package path.
 	SetGraphProperties(ctx context.Context, in *SetGraphPropertiesRequest, opts ...grpcweb.CallOption) (*Empty, error)
-	// SetNodeProperties changes node metadata such as name and multiplicity.
-	SetNodeProperties(ctx context.Context, in *SetNodePropertiesRequest, opts ...grpcweb.CallOption) (*Empty, error)
+	// SetNode either creates a new node (name == "", config != nil)
+	// changes existing node such as name and multiplicity (name is found, config != nil),
+	// or deletes a node (name is found, config == nil).
+	SetNode(ctx context.Context, in *SetNodeRequest, opts ...grpcweb.CallOption) (*Empty, error)
 	// SetPosition changes the node position in the diagram.
 	SetPosition(ctx context.Context, in *SetPositionRequest, opts ...grpcweb.CallOption) (*Empty, error)
 }
@@ -1331,62 +964,17 @@ func NewShenzhenGoClient(hostname string, opts ...grpcweb.DialOption) ShenzhenGo
 	}
 }
 
-func (c *shenzhenGoClient) CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "CreateChannel", in.Marshal(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return new(Empty).Unmarshal(resp)
-}
-
-func (c *shenzhenGoClient) CreateNode(ctx context.Context, in *CreateNodeRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "CreateNode", in.Marshal(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return new(Empty).Unmarshal(resp)
-}
-
-func (c *shenzhenGoClient) ConnectPin(ctx context.Context, in *ConnectPinRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "ConnectPin", in.Marshal(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return new(Empty).Unmarshal(resp)
-}
-
-func (c *shenzhenGoClient) DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "DeleteChannel", in.Marshal(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return new(Empty).Unmarshal(resp)
-}
-
-func (c *shenzhenGoClient) DeleteNode(ctx context.Context, in *DeleteNodeRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "DeleteNode", in.Marshal(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return new(Empty).Unmarshal(resp)
-}
-
-func (c *shenzhenGoClient) DisconnectPin(ctx context.Context, in *DisconnectPinRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "DisconnectPin", in.Marshal(), opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return new(Empty).Unmarshal(resp)
-}
-
 func (c *shenzhenGoClient) Save(ctx context.Context, in *SaveRequest, opts ...grpcweb.CallOption) (*Empty, error) {
 	resp, err := c.client.RPCCall(ctx, "Save", in.Marshal(), opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(Empty).Unmarshal(resp)
+}
+
+func (c *shenzhenGoClient) SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {
+	resp, err := c.client.RPCCall(ctx, "SetChannel", in.Marshal(), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1403,8 +991,8 @@ func (c *shenzhenGoClient) SetGraphProperties(ctx context.Context, in *SetGraphP
 	return new(Empty).Unmarshal(resp)
 }
 
-func (c *shenzhenGoClient) SetNodeProperties(ctx context.Context, in *SetNodePropertiesRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "SetNodeProperties", in.Marshal(), opts...)
+func (c *shenzhenGoClient) SetNode(ctx context.Context, in *SetNodeRequest, opts ...grpcweb.CallOption) (*Empty, error) {
+	resp, err := c.client.RPCCall(ctx, "SetNode", in.Marshal(), opts...)
 	if err != nil {
 		return nil, err
 	}

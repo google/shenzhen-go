@@ -43,13 +43,26 @@ func (c *channelController) Pins(f func(view.PinController)) {
 }
 
 func (c *channelController) Commit(ctx context.Context) error {
-	if c.created {
-		// TODO: implement update
-		return errNotImplemented
+	np := make([]*pb.NodePin, 0, len(c.channel.Pins))
+	for x := range c.channel.Pins {
+		np = append(np, &pb.NodePin{
+			Node: x.Node,
+			Pin:  x.Pin,
+		})
 	}
-
-	if err := c.create(ctx); err != nil {
-		return err
+	req := &pb.SetChannelRequest{
+		Graph: c.graph.FilePath,
+		Config: &pb.ChannelConfig{
+			Name: c.channel.Name,
+			Type: c.channel.Type,
+			Cap:  uint64(c.channel.Capacity),
+			Anon: c.channel.Anonymous,
+			Pins: np,
+		},
+	}
+	_, err := c.client.SetChannel(ctx, req)
+	if err != nil {
+		return err // TODO: contextualise
 	}
 	c.graph.Channels[c.channel.Name] = c.channel
 	c.created = true
@@ -60,29 +73,35 @@ func (c *channelController) Delete(ctx context.Context) error {
 	if !c.created {
 		return nil
 	}
-	_, err := c.client.DeleteChannel(ctx, &pb.DeleteChannelRequest{
+	_, err := c.client.SetChannel(ctx, &pb.SetChannelRequest{
 		Graph:   c.graph.FilePath,
 		Channel: c.channel.Name,
 	})
 	return err
 }
 
-func (c *channelController) create(ctx context.Context) error {
-	np := make([]*pb.NodePin, 0, len(c.channel.Pins))
-	for x := range c.channel.Pins {
-		np = append(np, &pb.NodePin{
-			Node: x.Node,
-			Pin:  x.Pin,
-		})
+func (c *channelController) Attach(pc view.PinController) {
+	n, found := c.graph.Nodes[pc.NodeName()]
+	if !found {
+		// TODO: return an error
+		return
 	}
-	req := &pb.CreateChannelRequest{
-		Graph: c.graph.FilePath,
-		Name:  c.channel.Name,
-		Type:  c.channel.Type,
-		Cap:   uint64(c.channel.Capacity),
-		Anon:  c.channel.Anonymous,
-		Pins:  np,
+	if _, found := n.Connections[pc.Name()]; !found {
+		// TODO: return an error
 	}
-	_, err := c.client.CreateChannel(ctx, req)
-	return err
+	n.Connections[pc.Name()] = c.Name()
+	c.channel.AddPin(pc.NodeName(), pc.Name())
+}
+
+func (c *channelController) Detach(pc view.PinController) {
+	n, found := c.graph.Nodes[pc.NodeName()]
+	if !found {
+		// TODO: return an error
+		return
+	}
+	if _, found := n.Connections[pc.Name()]; !found {
+		// TODO: return an error
+	}
+	n.Connections[pc.Name()] = "nil"
+	c.channel.RemovePin(pc.NodeName(), pc.Name())
 }

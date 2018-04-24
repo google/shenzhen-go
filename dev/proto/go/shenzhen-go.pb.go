@@ -9,17 +9,13 @@ It is generated from these files:
 
 It has these top-level messages:
 	Empty
-	NodeConfig
 	NodePin
-	CreateChannelRequest
-	CreateNodeRequest
-	ConnectPinRequest
-	DeleteChannelRequest
-	DeleteNodeRequest
-	DisconnectPinRequest
+	ChannelConfig
+	NodeConfig
 	SaveRequest
+	SetChannelRequest
 	SetGraphPropertiesRequest
-	SetNodePropertiesRequest
+	SetNodeRequest
 	SetPositionRequest
 */
 package proto
@@ -52,6 +48,78 @@ func (m *Empty) String() string            { return proto1.CompactTextString(m) 
 func (*Empty) ProtoMessage()               {}
 func (*Empty) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
+type NodePin struct {
+	Node string `protobuf:"bytes,1,opt,name=node" json:"node,omitempty"`
+	Pin  string `protobuf:"bytes,2,opt,name=pin" json:"pin,omitempty"`
+}
+
+func (m *NodePin) Reset()                    { *m = NodePin{} }
+func (m *NodePin) String() string            { return proto1.CompactTextString(m) }
+func (*NodePin) ProtoMessage()               {}
+func (*NodePin) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+func (m *NodePin) GetNode() string {
+	if m != nil {
+		return m.Node
+	}
+	return ""
+}
+
+func (m *NodePin) GetPin() string {
+	if m != nil {
+		return m.Pin
+	}
+	return ""
+}
+
+type ChannelConfig struct {
+	Name string     `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Type string     `protobuf:"bytes,2,opt,name=type" json:"type,omitempty"`
+	Anon bool       `protobuf:"varint,3,opt,name=anon" json:"anon,omitempty"`
+	Cap  uint64     `protobuf:"varint,4,opt,name=cap" json:"cap,omitempty"`
+	Pins []*NodePin `protobuf:"bytes,5,rep,name=pins" json:"pins,omitempty"`
+}
+
+func (m *ChannelConfig) Reset()                    { *m = ChannelConfig{} }
+func (m *ChannelConfig) String() string            { return proto1.CompactTextString(m) }
+func (*ChannelConfig) ProtoMessage()               {}
+func (*ChannelConfig) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *ChannelConfig) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *ChannelConfig) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *ChannelConfig) GetAnon() bool {
+	if m != nil {
+		return m.Anon
+	}
+	return false
+}
+
+func (m *ChannelConfig) GetCap() uint64 {
+	if m != nil {
+		return m.Cap
+	}
+	return 0
+}
+
+func (m *ChannelConfig) GetPins() []*NodePin {
+	if m != nil {
+		return m.Pins
+	}
+	return nil
+}
+
 type NodeConfig struct {
 	Name         string  `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
 	Enabled      bool    `protobuf:"varint,2,opt,name=enabled" json:"enabled,omitempty"`
@@ -66,7 +134,7 @@ type NodeConfig struct {
 func (m *NodeConfig) Reset()                    { *m = NodeConfig{} }
 func (m *NodeConfig) String() string            { return proto1.CompactTextString(m) }
 func (*NodeConfig) ProtoMessage()               {}
-func (*NodeConfig) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (*NodeConfig) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
 
 func (m *NodeConfig) GetName() string {
 	if m != nil {
@@ -124,230 +192,6 @@ func (m *NodeConfig) GetY() float64 {
 	return 0
 }
 
-type NodePin struct {
-	Node string `protobuf:"bytes,1,opt,name=node" json:"node,omitempty"`
-	Pin  string `protobuf:"bytes,2,opt,name=pin" json:"pin,omitempty"`
-}
-
-func (m *NodePin) Reset()                    { *m = NodePin{} }
-func (m *NodePin) String() string            { return proto1.CompactTextString(m) }
-func (*NodePin) ProtoMessage()               {}
-func (*NodePin) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
-
-func (m *NodePin) GetNode() string {
-	if m != nil {
-		return m.Node
-	}
-	return ""
-}
-
-func (m *NodePin) GetPin() string {
-	if m != nil {
-		return m.Pin
-	}
-	return ""
-}
-
-type CreateChannelRequest struct {
-	Graph string     `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Name  string     `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	Type  string     `protobuf:"bytes,3,opt,name=type" json:"type,omitempty"`
-	Anon  bool       `protobuf:"varint,4,opt,name=anon" json:"anon,omitempty"`
-	Cap   uint64     `protobuf:"varint,5,opt,name=cap" json:"cap,omitempty"`
-	Pins  []*NodePin `protobuf:"bytes,6,rep,name=pins" json:"pins,omitempty"`
-}
-
-func (m *CreateChannelRequest) Reset()                    { *m = CreateChannelRequest{} }
-func (m *CreateChannelRequest) String() string            { return proto1.CompactTextString(m) }
-func (*CreateChannelRequest) ProtoMessage()               {}
-func (*CreateChannelRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
-
-func (m *CreateChannelRequest) GetGraph() string {
-	if m != nil {
-		return m.Graph
-	}
-	return ""
-}
-
-func (m *CreateChannelRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *CreateChannelRequest) GetType() string {
-	if m != nil {
-		return m.Type
-	}
-	return ""
-}
-
-func (m *CreateChannelRequest) GetAnon() bool {
-	if m != nil {
-		return m.Anon
-	}
-	return false
-}
-
-func (m *CreateChannelRequest) GetCap() uint64 {
-	if m != nil {
-		return m.Cap
-	}
-	return 0
-}
-
-func (m *CreateChannelRequest) GetPins() []*NodePin {
-	if m != nil {
-		return m.Pins
-	}
-	return nil
-}
-
-type CreateNodeRequest struct {
-	Graph string      `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Props *NodeConfig `protobuf:"bytes,2,opt,name=props" json:"props,omitempty"`
-}
-
-func (m *CreateNodeRequest) Reset()                    { *m = CreateNodeRequest{} }
-func (m *CreateNodeRequest) String() string            { return proto1.CompactTextString(m) }
-func (*CreateNodeRequest) ProtoMessage()               {}
-func (*CreateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
-
-func (m *CreateNodeRequest) GetGraph() string {
-	if m != nil {
-		return m.Graph
-	}
-	return ""
-}
-
-func (m *CreateNodeRequest) GetProps() *NodeConfig {
-	if m != nil {
-		return m.Props
-	}
-	return nil
-}
-
-type ConnectPinRequest struct {
-	Graph   string `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Node    string `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
-	Pin     string `protobuf:"bytes,3,opt,name=pin" json:"pin,omitempty"`
-	Channel string `protobuf:"bytes,4,opt,name=channel" json:"channel,omitempty"`
-}
-
-func (m *ConnectPinRequest) Reset()                    { *m = ConnectPinRequest{} }
-func (m *ConnectPinRequest) String() string            { return proto1.CompactTextString(m) }
-func (*ConnectPinRequest) ProtoMessage()               {}
-func (*ConnectPinRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
-
-func (m *ConnectPinRequest) GetGraph() string {
-	if m != nil {
-		return m.Graph
-	}
-	return ""
-}
-
-func (m *ConnectPinRequest) GetNode() string {
-	if m != nil {
-		return m.Node
-	}
-	return ""
-}
-
-func (m *ConnectPinRequest) GetPin() string {
-	if m != nil {
-		return m.Pin
-	}
-	return ""
-}
-
-func (m *ConnectPinRequest) GetChannel() string {
-	if m != nil {
-		return m.Channel
-	}
-	return ""
-}
-
-type DeleteChannelRequest struct {
-	Graph   string `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Channel string `protobuf:"bytes,2,opt,name=channel" json:"channel,omitempty"`
-}
-
-func (m *DeleteChannelRequest) Reset()                    { *m = DeleteChannelRequest{} }
-func (m *DeleteChannelRequest) String() string            { return proto1.CompactTextString(m) }
-func (*DeleteChannelRequest) ProtoMessage()               {}
-func (*DeleteChannelRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
-
-func (m *DeleteChannelRequest) GetGraph() string {
-	if m != nil {
-		return m.Graph
-	}
-	return ""
-}
-
-func (m *DeleteChannelRequest) GetChannel() string {
-	if m != nil {
-		return m.Channel
-	}
-	return ""
-}
-
-type DeleteNodeRequest struct {
-	Graph string `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Node  string `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
-}
-
-func (m *DeleteNodeRequest) Reset()                    { *m = DeleteNodeRequest{} }
-func (m *DeleteNodeRequest) String() string            { return proto1.CompactTextString(m) }
-func (*DeleteNodeRequest) ProtoMessage()               {}
-func (*DeleteNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
-
-func (m *DeleteNodeRequest) GetGraph() string {
-	if m != nil {
-		return m.Graph
-	}
-	return ""
-}
-
-func (m *DeleteNodeRequest) GetNode() string {
-	if m != nil {
-		return m.Node
-	}
-	return ""
-}
-
-type DisconnectPinRequest struct {
-	Graph string `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Node  string `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
-	Pin   string `protobuf:"bytes,3,opt,name=pin" json:"pin,omitempty"`
-}
-
-func (m *DisconnectPinRequest) Reset()                    { *m = DisconnectPinRequest{} }
-func (m *DisconnectPinRequest) String() string            { return proto1.CompactTextString(m) }
-func (*DisconnectPinRequest) ProtoMessage()               {}
-func (*DisconnectPinRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
-
-func (m *DisconnectPinRequest) GetGraph() string {
-	if m != nil {
-		return m.Graph
-	}
-	return ""
-}
-
-func (m *DisconnectPinRequest) GetNode() string {
-	if m != nil {
-		return m.Node
-	}
-	return ""
-}
-
-func (m *DisconnectPinRequest) GetPin() string {
-	if m != nil {
-		return m.Pin
-	}
-	return ""
-}
-
 type SaveRequest struct {
 	Graph string `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
 }
@@ -355,13 +199,45 @@ type SaveRequest struct {
 func (m *SaveRequest) Reset()                    { *m = SaveRequest{} }
 func (m *SaveRequest) String() string            { return proto1.CompactTextString(m) }
 func (*SaveRequest) ProtoMessage()               {}
-func (*SaveRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
+func (*SaveRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
 
 func (m *SaveRequest) GetGraph() string {
 	if m != nil {
 		return m.Graph
 	}
 	return ""
+}
+
+type SetChannelRequest struct {
+	Graph   string         `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
+	Channel string         `protobuf:"bytes,2,opt,name=channel" json:"channel,omitempty"`
+	Config  *ChannelConfig `protobuf:"bytes,3,opt,name=config" json:"config,omitempty"`
+}
+
+func (m *SetChannelRequest) Reset()                    { *m = SetChannelRequest{} }
+func (m *SetChannelRequest) String() string            { return proto1.CompactTextString(m) }
+func (*SetChannelRequest) ProtoMessage()               {}
+func (*SetChannelRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+
+func (m *SetChannelRequest) GetGraph() string {
+	if m != nil {
+		return m.Graph
+	}
+	return ""
+}
+
+func (m *SetChannelRequest) GetChannel() string {
+	if m != nil {
+		return m.Channel
+	}
+	return ""
+}
+
+func (m *SetChannelRequest) GetConfig() *ChannelConfig {
+	if m != nil {
+		return m.Config
+	}
+	return nil
 }
 
 type SetGraphPropertiesRequest struct {
@@ -374,7 +250,7 @@ type SetGraphPropertiesRequest struct {
 func (m *SetGraphPropertiesRequest) Reset()                    { *m = SetGraphPropertiesRequest{} }
 func (m *SetGraphPropertiesRequest) String() string            { return proto1.CompactTextString(m) }
 func (*SetGraphPropertiesRequest) ProtoMessage()               {}
-func (*SetGraphPropertiesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+func (*SetGraphPropertiesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
 
 func (m *SetGraphPropertiesRequest) GetGraph() string {
 	if m != nil {
@@ -404,34 +280,34 @@ func (m *SetGraphPropertiesRequest) GetIsCommand() bool {
 	return false
 }
 
-type SetNodePropertiesRequest struct {
-	Graph string      `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Node  string      `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
-	Props *NodeConfig `protobuf:"bytes,3,opt,name=props" json:"props,omitempty"`
+type SetNodeRequest struct {
+	Graph  string      `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
+	Node   string      `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
+	Config *NodeConfig `protobuf:"bytes,3,opt,name=config" json:"config,omitempty"`
 }
 
-func (m *SetNodePropertiesRequest) Reset()                    { *m = SetNodePropertiesRequest{} }
-func (m *SetNodePropertiesRequest) String() string            { return proto1.CompactTextString(m) }
-func (*SetNodePropertiesRequest) ProtoMessage()               {}
-func (*SetNodePropertiesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+func (m *SetNodeRequest) Reset()                    { *m = SetNodeRequest{} }
+func (m *SetNodeRequest) String() string            { return proto1.CompactTextString(m) }
+func (*SetNodeRequest) ProtoMessage()               {}
+func (*SetNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
 
-func (m *SetNodePropertiesRequest) GetGraph() string {
+func (m *SetNodeRequest) GetGraph() string {
 	if m != nil {
 		return m.Graph
 	}
 	return ""
 }
 
-func (m *SetNodePropertiesRequest) GetNode() string {
+func (m *SetNodeRequest) GetNode() string {
 	if m != nil {
 		return m.Node
 	}
 	return ""
 }
 
-func (m *SetNodePropertiesRequest) GetProps() *NodeConfig {
+func (m *SetNodeRequest) GetConfig() *NodeConfig {
 	if m != nil {
-		return m.Props
+		return m.Config
 	}
 	return nil
 }
@@ -446,7 +322,7 @@ type SetPositionRequest struct {
 func (m *SetPositionRequest) Reset()                    { *m = SetPositionRequest{} }
 func (m *SetPositionRequest) String() string            { return proto1.CompactTextString(m) }
 func (*SetPositionRequest) ProtoMessage()               {}
-func (*SetPositionRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{12} }
+func (*SetPositionRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
 
 func (m *SetPositionRequest) GetGraph() string {
 	if m != nil {
@@ -478,17 +354,13 @@ func (m *SetPositionRequest) GetY() float64 {
 
 func init() {
 	proto1.RegisterType((*Empty)(nil), "proto.Empty")
-	proto1.RegisterType((*NodeConfig)(nil), "proto.NodeConfig")
 	proto1.RegisterType((*NodePin)(nil), "proto.NodePin")
-	proto1.RegisterType((*CreateChannelRequest)(nil), "proto.CreateChannelRequest")
-	proto1.RegisterType((*CreateNodeRequest)(nil), "proto.CreateNodeRequest")
-	proto1.RegisterType((*ConnectPinRequest)(nil), "proto.ConnectPinRequest")
-	proto1.RegisterType((*DeleteChannelRequest)(nil), "proto.DeleteChannelRequest")
-	proto1.RegisterType((*DeleteNodeRequest)(nil), "proto.DeleteNodeRequest")
-	proto1.RegisterType((*DisconnectPinRequest)(nil), "proto.DisconnectPinRequest")
+	proto1.RegisterType((*ChannelConfig)(nil), "proto.ChannelConfig")
+	proto1.RegisterType((*NodeConfig)(nil), "proto.NodeConfig")
 	proto1.RegisterType((*SaveRequest)(nil), "proto.SaveRequest")
+	proto1.RegisterType((*SetChannelRequest)(nil), "proto.SetChannelRequest")
 	proto1.RegisterType((*SetGraphPropertiesRequest)(nil), "proto.SetGraphPropertiesRequest")
-	proto1.RegisterType((*SetNodePropertiesRequest)(nil), "proto.SetNodePropertiesRequest")
+	proto1.RegisterType((*SetNodeRequest)(nil), "proto.SetNodeRequest")
 	proto1.RegisterType((*SetPositionRequest)(nil), "proto.SetPositionRequest")
 }
 
@@ -503,24 +375,18 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for ShenzhenGo service
 
 type ShenzhenGoClient interface {
-	// CreateChannel makes a new channel.
-	CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpc.CallOption) (*Empty, error)
-	// CreateNode makes a new node.
-	CreateNode(ctx context.Context, in *CreateNodeRequest, opts ...grpc.CallOption) (*Empty, error)
-	// ConnectPin connects a pin to a channel.
-	ConnectPin(ctx context.Context, in *ConnectPinRequest, opts ...grpc.CallOption) (*Empty, error)
-	// DeleteChannel deletes a channel (and all connections).
-	DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*Empty, error)
-	// DeleteNode deletes a node (and all connections).
-	DeleteNode(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*Empty, error)
-	// DisconnectPin deletes the connection from a pin to a channel.
-	DisconnectPin(ctx context.Context, in *DisconnectPinRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Save saves the graph to disk.
 	Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*Empty, error)
+	// SetNode either creates a new channel (name == "", config != nil)
+	// changes existing channel data such as name and attached pins (name is found, config != nil),
+	// or deletes a channel (name is found, config == nil).
+	SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpc.CallOption) (*Empty, error)
 	// SetGraphProperties changes metdata such as name and package path.
 	SetGraphProperties(ctx context.Context, in *SetGraphPropertiesRequest, opts ...grpc.CallOption) (*Empty, error)
-	// SetNodeProperties changes node metadata such as name and multiplicity.
-	SetNodeProperties(ctx context.Context, in *SetNodePropertiesRequest, opts ...grpc.CallOption) (*Empty, error)
+	// SetNode either creates a new node (name == "", config != nil)
+	// changes existing node such as name and multiplicity (name is found, config != nil),
+	// or deletes a node (name is found, config == nil).
+	SetNode(ctx context.Context, in *SetNodeRequest, opts ...grpc.CallOption) (*Empty, error)
 	// SetPosition changes the node position in the diagram.
 	SetPosition(ctx context.Context, in *SetPositionRequest, opts ...grpc.CallOption) (*Empty, error)
 }
@@ -533,63 +399,18 @@ func NewShenzhenGoClient(cc *grpc.ClientConn) ShenzhenGoClient {
 	return &shenzhenGoClient{cc}
 }
 
-func (c *shenzhenGoClient) CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/CreateChannel", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shenzhenGoClient) CreateNode(ctx context.Context, in *CreateNodeRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/CreateNode", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shenzhenGoClient) ConnectPin(ctx context.Context, in *ConnectPinRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/ConnectPin", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shenzhenGoClient) DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/DeleteChannel", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shenzhenGoClient) DeleteNode(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/DeleteNode", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shenzhenGoClient) DisconnectPin(ctx context.Context, in *DisconnectPinRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/DisconnectPin", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *shenzhenGoClient) Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/Save", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shenzhenGoClient) SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/SetChannel", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -605,9 +426,9 @@ func (c *shenzhenGoClient) SetGraphProperties(ctx context.Context, in *SetGraphP
 	return out, nil
 }
 
-func (c *shenzhenGoClient) SetNodeProperties(ctx context.Context, in *SetNodePropertiesRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *shenzhenGoClient) SetNode(ctx context.Context, in *SetNodeRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/SetNodeProperties", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/proto.ShenzhenGo/SetNode", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -626,138 +447,24 @@ func (c *shenzhenGoClient) SetPosition(ctx context.Context, in *SetPositionReque
 // Server API for ShenzhenGo service
 
 type ShenzhenGoServer interface {
-	// CreateChannel makes a new channel.
-	CreateChannel(context.Context, *CreateChannelRequest) (*Empty, error)
-	// CreateNode makes a new node.
-	CreateNode(context.Context, *CreateNodeRequest) (*Empty, error)
-	// ConnectPin connects a pin to a channel.
-	ConnectPin(context.Context, *ConnectPinRequest) (*Empty, error)
-	// DeleteChannel deletes a channel (and all connections).
-	DeleteChannel(context.Context, *DeleteChannelRequest) (*Empty, error)
-	// DeleteNode deletes a node (and all connections).
-	DeleteNode(context.Context, *DeleteNodeRequest) (*Empty, error)
-	// DisconnectPin deletes the connection from a pin to a channel.
-	DisconnectPin(context.Context, *DisconnectPinRequest) (*Empty, error)
 	// Save saves the graph to disk.
 	Save(context.Context, *SaveRequest) (*Empty, error)
+	// SetNode either creates a new channel (name == "", config != nil)
+	// changes existing channel data such as name and attached pins (name is found, config != nil),
+	// or deletes a channel (name is found, config == nil).
+	SetChannel(context.Context, *SetChannelRequest) (*Empty, error)
 	// SetGraphProperties changes metdata such as name and package path.
 	SetGraphProperties(context.Context, *SetGraphPropertiesRequest) (*Empty, error)
-	// SetNodeProperties changes node metadata such as name and multiplicity.
-	SetNodeProperties(context.Context, *SetNodePropertiesRequest) (*Empty, error)
+	// SetNode either creates a new node (name == "", config != nil)
+	// changes existing node such as name and multiplicity (name is found, config != nil),
+	// or deletes a node (name is found, config == nil).
+	SetNode(context.Context, *SetNodeRequest) (*Empty, error)
 	// SetPosition changes the node position in the diagram.
 	SetPosition(context.Context, *SetPositionRequest) (*Empty, error)
 }
 
 func RegisterShenzhenGoServer(s *grpc.Server, srv ShenzhenGoServer) {
 	s.RegisterService(&_ShenzhenGo_serviceDesc, srv)
-}
-
-func _ShenzhenGo_CreateChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateChannelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShenzhenGoServer).CreateChannel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/CreateChannel",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).CreateChannel(ctx, req.(*CreateChannelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShenzhenGo_CreateNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateNodeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShenzhenGoServer).CreateNode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/CreateNode",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).CreateNode(ctx, req.(*CreateNodeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShenzhenGo_ConnectPin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConnectPinRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShenzhenGoServer).ConnectPin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/ConnectPin",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).ConnectPin(ctx, req.(*ConnectPinRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShenzhenGo_DeleteChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteChannelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShenzhenGoServer).DeleteChannel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/DeleteChannel",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).DeleteChannel(ctx, req.(*DeleteChannelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShenzhenGo_DeleteNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteNodeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShenzhenGoServer).DeleteNode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/DeleteNode",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).DeleteNode(ctx, req.(*DeleteNodeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShenzhenGo_DisconnectPin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DisconnectPinRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShenzhenGoServer).DisconnectPin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/DisconnectPin",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).DisconnectPin(ctx, req.(*DisconnectPinRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _ShenzhenGo_Save_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -774,6 +481,24 @@ func _ShenzhenGo_Save_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShenzhenGoServer).Save(ctx, req.(*SaveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShenzhenGo_SetChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShenzhenGoServer).SetChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.ShenzhenGo/SetChannel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShenzhenGoServer).SetChannel(ctx, req.(*SetChannelRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -796,20 +521,20 @@ func _ShenzhenGo_SetGraphProperties_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShenzhenGo_SetNodeProperties_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetNodePropertiesRequest)
+func _ShenzhenGo_SetNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetNodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShenzhenGoServer).SetNodeProperties(ctx, in)
+		return srv.(ShenzhenGoServer).SetNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/SetNodeProperties",
+		FullMethod: "/proto.ShenzhenGo/SetNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).SetNodeProperties(ctx, req.(*SetNodePropertiesRequest))
+		return srv.(ShenzhenGoServer).SetNode(ctx, req.(*SetNodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -837,40 +562,20 @@ var _ShenzhenGo_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*ShenzhenGoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateChannel",
-			Handler:    _ShenzhenGo_CreateChannel_Handler,
-		},
-		{
-			MethodName: "CreateNode",
-			Handler:    _ShenzhenGo_CreateNode_Handler,
-		},
-		{
-			MethodName: "ConnectPin",
-			Handler:    _ShenzhenGo_ConnectPin_Handler,
-		},
-		{
-			MethodName: "DeleteChannel",
-			Handler:    _ShenzhenGo_DeleteChannel_Handler,
-		},
-		{
-			MethodName: "DeleteNode",
-			Handler:    _ShenzhenGo_DeleteNode_Handler,
-		},
-		{
-			MethodName: "DisconnectPin",
-			Handler:    _ShenzhenGo_DisconnectPin_Handler,
-		},
-		{
 			MethodName: "Save",
 			Handler:    _ShenzhenGo_Save_Handler,
+		},
+		{
+			MethodName: "SetChannel",
+			Handler:    _ShenzhenGo_SetChannel_Handler,
 		},
 		{
 			MethodName: "SetGraphProperties",
 			Handler:    _ShenzhenGo_SetGraphProperties_Handler,
 		},
 		{
-			MethodName: "SetNodeProperties",
-			Handler:    _ShenzhenGo_SetNodeProperties_Handler,
+			MethodName: "SetNode",
+			Handler:    _ShenzhenGo_SetNode_Handler,
 		},
 		{
 			MethodName: "SetPosition",
@@ -884,46 +589,39 @@ var _ShenzhenGo_serviceDesc = grpc.ServiceDesc{
 func init() { proto1.RegisterFile("shenzhen-go.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 656 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xc1, 0x6e, 0x13, 0x31,
-	0x10, 0xc5, 0xd9, 0x4d, 0xd3, 0x4c, 0x52, 0x44, 0xac, 0x1c, 0x5c, 0x2a, 0xc4, 0x62, 0x0e, 0x44,
-	0x48, 0x14, 0xa9, 0x48, 0x88, 0x43, 0x39, 0xa5, 0xb4, 0x37, 0x14, 0x39, 0x9c, 0xb8, 0x54, 0xee,
-	0xc6, 0x4d, 0x2c, 0x12, 0xdb, 0x64, 0x5d, 0x68, 0xf8, 0x01, 0xfe, 0x82, 0xcf, 0xe1, 0x43, 0xf8,
-	0x12, 0x64, 0xef, 0x26, 0xbb, 0x9b, 0x5d, 0x5a, 0x8a, 0x38, 0xed, 0xcc, 0x78, 0x67, 0xe6, 0xcd,
-	0xf8, 0x3d, 0x43, 0x2f, 0x99, 0x09, 0xf5, 0x6d, 0x26, 0xd4, 0x8b, 0xa9, 0x3e, 0x34, 0x4b, 0x6d,
-	0x35, 0x6e, 0xfa, 0x0f, 0x6d, 0x41, 0xf3, 0xdd, 0xc2, 0xd8, 0x15, 0xfd, 0x89, 0x00, 0xde, 0xeb,
-	0x89, 0x18, 0x6a, 0x75, 0x29, 0xa7, 0x18, 0x43, 0xa8, 0xf8, 0x42, 0x10, 0x14, 0xa1, 0x41, 0x9b,
-	0x79, 0x1b, 0x13, 0x68, 0x09, 0xc5, 0x2f, 0xe6, 0x62, 0x42, 0x1a, 0x11, 0x1a, 0xec, 0xb2, 0xb5,
-	0x8b, 0x29, 0x74, 0x17, 0x57, 0x73, 0x2b, 0xcd, 0x5c, 0xc6, 0xd2, 0xae, 0x48, 0x10, 0xa1, 0xc1,
-	0x1e, 0x2b, 0xc5, 0x5c, 0xc5, 0xaf, 0x5c, 0x5a, 0x12, 0xfa, 0x54, 0x6f, 0xe3, 0x7d, 0xd8, 0x35,
-	0x7c, 0x69, 0xcf, 0xe3, 0xcb, 0x29, 0x69, 0x46, 0x68, 0xd0, 0x65, 0x2d, 0xe7, 0x0f, 0x2f, 0xa7,
-	0xf8, 0x00, 0xda, 0xfe, 0xc8, 0xae, 0x8c, 0x20, 0x3b, 0x1e, 0x85, 0xff, 0xf7, 0xc3, 0xca, 0x08,
-	0xdc, 0x05, 0x74, 0x4d, 0x5a, 0x11, 0x1a, 0x20, 0x86, 0xae, 0x9d, 0xb7, 0x22, 0xbb, 0xa9, 0xb7,
-	0xa2, 0x2f, 0xa1, 0xe5, 0xe6, 0x18, 0x49, 0xe5, 0x87, 0xd0, 0x93, 0x7c, 0x08, 0x3d, 0x11, 0xf8,
-	0x01, 0x04, 0x46, 0x2a, 0x3f, 0x40, 0x9b, 0x39, 0x93, 0xfe, 0x40, 0xd0, 0x1f, 0x2e, 0x05, 0xb7,
-	0x62, 0x38, 0xe3, 0x4a, 0x89, 0x39, 0x13, 0x9f, 0xaf, 0x44, 0x62, 0x71, 0x1f, 0x9a, 0xd3, 0x25,
-	0x37, 0xb3, 0x2c, 0x3f, 0x75, 0x36, 0x9b, 0x69, 0x14, 0x36, 0x83, 0x21, 0xf4, 0x38, 0x83, 0x34,
-	0xe6, 0x6c, 0x17, 0xe3, 0x4a, 0xab, 0xf5, 0xbc, 0xce, 0x76, 0xcd, 0x63, 0x6e, 0xfc, 0xa8, 0x21,
-	0x73, 0x26, 0xa6, 0x10, 0x1a, 0xa9, 0x12, 0xb2, 0x13, 0x05, 0x83, 0xce, 0xd1, 0xfd, 0xf4, 0x72,
-	0x0e, 0xb3, 0x01, 0x98, 0x3f, 0xa3, 0x0c, 0x7a, 0x29, 0x3e, 0x17, 0xbe, 0x19, 0xdc, 0x33, 0x70,
-	0xf7, 0x6a, 0x12, 0x8f, 0xae, 0x73, 0xd4, 0x2b, 0xd4, 0x4b, 0x2f, 0x96, 0xa5, 0xe7, 0x54, 0x42,
-	0x6f, 0xa8, 0x95, 0x12, 0xb1, 0x75, 0x7d, 0x6e, 0x1d, 0xd8, 0x6d, 0xb1, 0x51, 0xdd, 0x62, 0xb0,
-	0xd9, 0xa2, 0x23, 0x47, 0x9c, 0xae, 0xcf, 0x4f, 0xdc, 0x66, 0x6b, 0x97, 0x9e, 0x42, 0xff, 0x44,
-	0xcc, 0xc5, 0x5f, 0xae, 0xb7, 0x50, 0xa7, 0x51, 0xae, 0xf3, 0x16, 0x7a, 0x69, 0x9d, 0xdb, 0xd7,
-	0x50, 0x03, 0x99, 0x32, 0xe8, 0x9f, 0xc8, 0x24, 0xfe, 0x9f, 0x43, 0xd3, 0xa7, 0xd0, 0x19, 0xf3,
-	0x2f, 0x37, 0x83, 0xa1, 0xdf, 0x11, 0xec, 0x8f, 0x85, 0x3d, 0x73, 0xce, 0x68, 0xa9, 0x8d, 0x58,
-	0x5a, 0x29, 0x92, 0xbb, 0x93, 0xec, 0x09, 0x74, 0x0d, 0x8f, 0x3f, 0xf1, 0xa9, 0x38, 0x37, 0xdc,
-	0xce, 0x32, 0x1c, 0x9d, 0x2c, 0x36, 0xe2, 0x76, 0x86, 0x1f, 0x01, 0xc8, 0xe4, 0x3c, 0xd6, 0x8b,
-	0x05, 0x57, 0x93, 0x8c, 0x79, 0x6d, 0x99, 0x0c, 0xd3, 0x00, 0x5d, 0x00, 0x19, 0x0b, 0xeb, 0xc9,
-	0x75, 0x07, 0x1c, 0xdb, 0x6b, 0xd8, 0x70, 0x2c, 0xb8, 0x85, 0x63, 0x1f, 0x01, 0x8f, 0x85, 0x1d,
-	0xe9, 0x44, 0x5a, 0xa9, 0xff, 0x61, 0xdf, 0x5e, 0xe5, 0x41, 0x49, 0xe5, 0x61, 0xa6, 0xf2, 0xa3,
-	0x5f, 0x21, 0xc0, 0x38, 0x7b, 0xd4, 0xce, 0x34, 0x3e, 0x86, 0xbd, 0x92, 0x84, 0xf1, 0x41, 0x86,
-	0xaa, 0x4e, 0xd8, 0x0f, 0xbb, 0xd9, 0x61, 0xfa, 0xf2, 0xdd, 0xc3, 0xaf, 0x01, 0x72, 0x81, 0x61,
-	0x52, 0x4a, 0x2d, 0x90, 0xad, 0x36, 0x6f, 0xc3, 0xa7, 0x3c, 0x6f, 0x9b, 0x62, 0x95, 0xbc, 0x63,
-	0xd8, 0x2b, 0x29, 0x62, 0x83, 0xb6, 0x4e, 0x27, 0x75, 0x5d, 0x73, 0x1d, 0x6c, 0xba, 0x56, 0xa4,
-	0x51, 0xdb, 0xb5, 0x28, 0x80, 0xbc, 0x6b, 0x8d, 0x2c, 0x2a, 0xd9, 0xcf, 0x21, 0x74, 0x54, 0xc7,
-	0x38, 0x8b, 0x17, 0x78, 0x5f, 0xf9, 0xf7, 0xd4, 0x5f, 0xfc, 0x16, 0xe1, 0x71, 0xb4, 0xce, 0xfc,
-	0x93, 0x16, 0x2a, 0x75, 0x4e, 0xa0, 0x57, 0xe1, 0x2b, 0x7e, 0x9c, 0x97, 0xa9, 0x65, 0x72, 0xa5,
-	0xca, 0x1b, 0xe8, 0x14, 0x68, 0x88, 0xf7, 0xf3, 0xfc, 0x2d, 0x6a, 0x6e, 0x67, 0x5e, 0xec, 0x78,
-	0xf7, 0xd5, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd8, 0xd9, 0x10, 0xf2, 0x3f, 0x07, 0x00, 0x00,
+	// 543 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0xc1, 0x8e, 0xd3, 0x30,
+	0x10, 0xc5, 0x6d, 0xda, 0xb4, 0xd3, 0xee, 0x8a, 0x5a, 0x8b, 0x94, 0x82, 0x90, 0x42, 0xb8, 0x04,
+	0x04, 0x0b, 0x2a, 0x12, 0xe2, 0x5e, 0xc1, 0xde, 0x50, 0xe5, 0x70, 0xe2, 0x52, 0x79, 0x53, 0x37,
+	0xb1, 0x68, 0x6c, 0x6f, 0xe3, 0x85, 0x2d, 0x37, 0x4e, 0xfc, 0x08, 0xdf, 0xc2, 0x77, 0x21, 0x3b,
+	0xae, 0x92, 0xa6, 0xa8, 0x88, 0x53, 0x66, 0x26, 0x7e, 0x9e, 0x79, 0xef, 0x8d, 0x61, 0x52, 0xe6,
+	0x4c, 0x7c, 0xcf, 0x99, 0x78, 0x99, 0xc9, 0x4b, 0xb5, 0x95, 0x5a, 0xe2, 0x9e, 0xfd, 0x44, 0x3e,
+	0xf4, 0xde, 0x17, 0x4a, 0xef, 0xa2, 0x57, 0xe0, 0x7f, 0x94, 0x2b, 0xb6, 0xe0, 0x02, 0x63, 0xf0,
+	0x84, 0x5c, 0xb1, 0x00, 0x85, 0x28, 0x1e, 0x12, 0x1b, 0xe3, 0xfb, 0xd0, 0x55, 0x5c, 0x04, 0x1d,
+	0x5b, 0x32, 0x61, 0xf4, 0x03, 0xc1, 0xd9, 0x3c, 0xa7, 0x42, 0xb0, 0xcd, 0x5c, 0x8a, 0x35, 0xcf,
+	0x2c, 0x8e, 0x16, 0x35, 0x8e, 0x16, 0xcc, 0xd4, 0xf4, 0x4e, 0x31, 0x07, 0xb4, 0xb1, 0xa9, 0x51,
+	0x21, 0x45, 0xd0, 0x0d, 0x51, 0x3c, 0x20, 0x36, 0x36, 0xf7, 0xa7, 0x54, 0x05, 0x5e, 0x88, 0x62,
+	0x8f, 0x98, 0x10, 0x47, 0xe0, 0x29, 0x2e, 0xca, 0xa0, 0x17, 0x76, 0xe3, 0xd1, 0xec, 0xbc, 0x1a,
+	0xfb, 0xd2, 0xcd, 0x48, 0xec, 0xbf, 0xe8, 0x37, 0x02, 0x30, 0x95, 0x13, 0x03, 0x04, 0xe0, 0x33,
+	0x41, 0xaf, 0x37, 0x6c, 0x65, 0x67, 0x18, 0x90, 0x7d, 0x8a, 0x23, 0x18, 0x17, 0xb7, 0x1b, 0xcd,
+	0xd5, 0x86, 0xa7, 0x5c, 0xef, 0xec, 0x38, 0x67, 0xe4, 0xa0, 0x66, 0x6e, 0xfc, 0x46, 0xb9, 0xb6,
+	0x73, 0x0d, 0x88, 0x8d, 0xf1, 0x14, 0x06, 0x8a, 0x6e, 0xf5, 0x32, 0x5d, 0x67, 0x41, 0x2f, 0x44,
+	0xf1, 0x98, 0xf8, 0x26, 0x9f, 0xaf, 0x33, 0xfc, 0x08, 0x86, 0xf6, 0x97, 0xa5, 0xdc, 0xb7, 0x53,
+	0xd8, 0xb3, 0x9f, 0x0c, 0xed, 0x31, 0xa0, 0xbb, 0xc0, 0x0f, 0x51, 0x8c, 0x08, 0xba, 0x33, 0xd9,
+	0x2e, 0x18, 0x54, 0xd9, 0x2e, 0x7a, 0x0a, 0xa3, 0x84, 0x7e, 0x65, 0x84, 0xdd, 0xdc, 0xb2, 0x52,
+	0xe3, 0x0b, 0xe8, 0x65, 0x5b, 0xaa, 0x72, 0xc7, 0xa4, 0x4a, 0xa2, 0x1b, 0x98, 0x24, 0x4c, 0x3b,
+	0xcd, 0x4f, 0x1e, 0x35, 0xac, 0xd3, 0xea, 0x9c, 0x53, 0x7e, 0x9f, 0xe2, 0x17, 0xd0, 0x4f, 0xad,
+	0x5a, 0x96, 0xef, 0x68, 0x76, 0xe1, 0x84, 0x3d, 0xb0, 0x92, 0xb8, 0x33, 0xd1, 0x4f, 0x04, 0xd3,
+	0x84, 0xe9, 0x2b, 0x73, 0xe9, 0x62, 0x2b, 0x15, 0xdb, 0x6a, 0xce, 0xca, 0xd3, 0xbd, 0xf7, 0x2e,
+	0x74, 0x1a, 0x2e, 0x3c, 0x81, 0xb1, 0xa2, 0xe9, 0x17, 0x9a, 0xb1, 0xa5, 0xa2, 0x3a, 0xb7, 0xbd,
+	0x87, 0x64, 0xe4, 0x6a, 0x0b, 0xaa, 0x73, 0xfc, 0x18, 0x80, 0x97, 0xcb, 0x54, 0x16, 0x05, 0x15,
+	0x2b, 0x27, 0xf8, 0x90, 0x97, 0xf3, 0xaa, 0x10, 0x31, 0x38, 0x4f, 0x98, 0x36, 0x66, 0xff, 0xbb,
+	0xbb, 0x59, 0xde, 0x4e, 0x63, 0x79, 0x9f, 0xb5, 0x38, 0x4f, 0x1a, 0xcb, 0xd4, 0x22, 0xfc, 0x19,
+	0x70, 0xc2, 0xf4, 0x42, 0x96, 0x5c, 0x73, 0x29, 0xfe, 0xbf, 0x95, 0x35, 0xb9, 0x7b, 0x60, 0xb2,
+	0xe7, 0x4c, 0x9e, 0xfd, 0xea, 0x00, 0x24, 0xee, 0x21, 0x5e, 0x49, 0xfc, 0x1c, 0x3c, 0xe3, 0x39,
+	0xc6, 0x6e, 0x9a, 0xc6, 0x02, 0x3c, 0x1c, 0xbb, 0x5a, 0xf5, 0x36, 0xef, 0xe1, 0xb7, 0x00, 0xb5,
+	0xf5, 0x38, 0xd8, 0x23, 0xda, 0xdb, 0x70, 0x84, 0xfb, 0x60, 0xe9, 0xb4, 0xec, 0xc3, 0x61, 0x8d,
+	0xff, 0xbb, 0xb3, 0x47, 0xf7, 0xbc, 0x06, 0xdf, 0xa9, 0x8f, 0x1f, 0xd4, 0xe0, 0x86, 0x1b, 0x47,
+	0x88, 0x77, 0x30, 0x6a, 0x08, 0x89, 0xa7, 0x35, 0xaa, 0x25, 0x6e, 0x1b, 0x79, 0xdd, 0xb7, 0xe9,
+	0x9b, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x6d, 0x78, 0x25, 0x90, 0xb5, 0x04, 0x00, 0x00,
 }

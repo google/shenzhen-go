@@ -37,7 +37,7 @@ func code(err error) codes.Code {
 	return codes.Unknown
 }
 
-func TestCreateChannel(t *testing.T) {
+func TestSetChannelCreate(t *testing.T) {
 	bar := &model.Channel{Name: "bar"}
 	node1 := &model.Node{
 		Name: "node1",
@@ -64,131 +64,63 @@ func TestCreateChannel(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		req  *pb.CreateChannelRequest
+		req  *pb.SetChannelRequest
 		code codes.Code
 	}{
 		{
-			name: "no such graph",
-			req: &pb.CreateChannelRequest{
-				Graph: "nope",
-				Name:  "baz",
-				Pins: []*pb.NodePin{
-					{
-						Node: "node1",
-						Pin:  "pin1",
-					},
-					{
-						Node: "node2",
-						Pin:  "pin2",
+			name: "graph 'nope' doesn't exist",
+			req: &pb.SetChannelRequest{
+				Graph:  "nope",
+				Config: &pb.ChannelConfig{},
+			},
+			code: codes.NotFound,
+		},
+		{
+			name: "channel 'bar' already exists",
+			req: &pb.SetChannelRequest{
+				Graph: "foo",
+				Config: &pb.ChannelConfig{
+					Name: "bar",
+				},
+			},
+			code: codes.AlreadyExists,
+		},
+		{
+			name: "node 'nope' doesn't exist",
+			req: &pb.SetChannelRequest{
+				Graph: "foo",
+				Config: &pb.ChannelConfig{
+					Name: "baz",
+					Pins: []*pb.NodePin{
+						{Node: "nope", Pin: "pin1"},
 					},
 				},
 			},
 			code: codes.NotFound,
 		},
 		{
-			name: "channel already exists",
-			req: &pb.CreateChannelRequest{
+			name: "pin 'pine' doesn't exist",
+			req: &pb.SetChannelRequest{
 				Graph: "foo",
-				Name:  "bar",
-				Pins: []*pb.NodePin{
-					{
-						Node: "node1",
-						Pin:  "pin1",
-					},
-					{
-						Node: "node2",
-						Pin:  "pin2",
-					},
-				},
-			},
-			code: codes.FailedPrecondition,
-		},
-		{
-			name: "node1 doesn't exist",
-			req: &pb.CreateChannelRequest{
-				Graph: "foo",
-				Name:  "baz",
-				Pins: []*pb.NodePin{
-					{
-						Node: "nope",
-						Pin:  "pin1",
-					},
-					{
-						Node: "node2",
-						Pin:  "pin2",
+				Config: &pb.ChannelConfig{
+					Name: "baz",
+					Pins: []*pb.NodePin{
+						{Node: "node1", Pin: "pine"},
 					},
 				},
 			},
 			code: codes.NotFound,
-		},
-		{
-			name: "node2 doesn't exist",
-			req: &pb.CreateChannelRequest{
-				Graph: "foo",
-				Name:  "baz",
-				Pins: []*pb.NodePin{
-					{
-						Node: "node1",
-						Pin:  "pin1",
-					},
-					{
-						Node: "noop",
-						Pin:  "pin2",
-					},
-				},
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "pin1 doesn't exist",
-			req: &pb.CreateChannelRequest{
-				Graph: "foo",
-				Name:  "baz",
-				Pins: []*pb.NodePin{
-					{
-						Node: "node1",
-						Pin:  "pine",
-					},
-					{
-						Node: "node2",
-						Pin:  "pin2",
-					},
-				},
-			},
-			code: codes.FailedPrecondition,
-		},
-		{
-			name: "pin2 doesn't exist",
-			req: &pb.CreateChannelRequest{
-				Graph: "foo",
-				Name:  "baz",
-				Pins: []*pb.NodePin{
-					{
-						Node: "node1",
-						Pin:  "pin1",
-					},
-					{
-						Node: "node2",
-						Pin:  "pint",
-					},
-				},
-			},
-			code: codes.FailedPrecondition,
 		},
 		{
 			name: "ok",
-			req: &pb.CreateChannelRequest{
+			req: &pb.SetChannelRequest{
 				Graph: "foo",
-				Name:  "baz",
-				Type:  "int",
-				Pins: []*pb.NodePin{
-					{
-						Node: "node1",
-						Pin:  "pin1",
-					},
-					{
-						Node: "node2",
-						Pin:  "pin2",
+				Config: &pb.ChannelConfig{
+					Name: "baz",
+					Type: "int",
+					Pins: []*pb.NodePin{
+						{Node: "node1", Pin: "pin1"},
+						{Node: "node2", Pin: "pin2"},
 					},
 				},
 			},
@@ -197,9 +129,9 @@ func TestCreateChannel(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := c.CreateChannel(context.Background(), test.req)
+			_, err := c.SetChannel(context.Background(), test.req)
 			if got, want := code(err), test.code; got != want {
-				t.Fatalf("c.CreateChannel(%v) = error %v, want %v", test.req, err, want)
+				t.Fatalf("c.SetChannel(%v) = error %v, want %v", test.req, err, want)
 			}
 			wantBaz, wantCon := true, "baz"
 			if err != nil {
@@ -207,19 +139,19 @@ func TestCreateChannel(t *testing.T) {
 			}
 			_, got := foo.Channels["baz"]
 			if want := wantBaz; got != want {
-				t.Errorf("after c.CreateChannel(%v): foo.Channels[baz] = _, %t, want %t", test.req, got, want)
+				t.Errorf("after c.SetChannel(%v): foo.Channels[baz] = _, %t, want %t", test.req, got, want)
 			}
 			if got, want := node1.Connections["pin1"], wantCon; got != want {
-				t.Errorf("after c.CreateChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
+				t.Errorf("after c.SetChannel(%v): node1.Connections[pin1] = %q, want %q", test.req, got, want)
 			}
 			if got, want := node2.Connections["pin2"], wantCon; got != want {
-				t.Errorf("after c.CreateChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
+				t.Errorf("after c.SetChannel(%v): node2.Connections[pin2] = %q, want %q", test.req, got, want)
 			}
 		})
 	}
 }
 
-func TestCreateNode(t *testing.T) {
+func TestSetNodeCreate(t *testing.T) {
 	baz := &model.Node{Name: "baz"}
 	foo := &model.Graph{
 		Name: "foo",
@@ -232,22 +164,22 @@ func TestCreateNode(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		req  *pb.CreateNodeRequest
+		req  *pb.SetNodeRequest
 		code codes.Code
 	}{
 		{
 			name: "no such graph",
-			req: &pb.CreateNodeRequest{
-				Graph: "nope",
-				Props: &pb.NodeConfig{},
+			req: &pb.SetNodeRequest{
+				Graph:  "nope",
+				Config: &pb.NodeConfig{},
 			},
 			code: codes.NotFound,
 		},
 		{
 			name: "can't unmarshal",
-			req: &pb.CreateNodeRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
-				Props: &pb.NodeConfig{
+				Config: &pb.NodeConfig{
 					PartType: "Not a part key",
 				},
 			},
@@ -255,21 +187,21 @@ func TestCreateNode(t *testing.T) {
 		},
 		{
 			name: "existing name",
-			req: &pb.CreateNodeRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
-				Props: &pb.NodeConfig{
+				Config: &pb.NodeConfig{
 					Name:     "baz",
 					PartCfg:  []byte("{}"),
 					PartType: "Code",
 				},
 			},
-			code: codes.FailedPrecondition,
+			code: codes.AlreadyExists,
 		},
 		{
 			name: "Ok",
-			req: &pb.CreateNodeRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
-				Props: &pb.NodeConfig{
+				Config: &pb.NodeConfig{
 					Name:         "bax",
 					PartCfg:      []byte("{}"),
 					PartType:     "Code",
@@ -283,9 +215,9 @@ func TestCreateNode(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := c.CreateNode(context.Background(), test.req)
+			_, err := c.SetNode(context.Background(), test.req)
 			if got, want := code(err), test.code; got != want {
-				t.Errorf("c.CreateNode(%v) = error %v, want %v", test.req, err, want)
+				t.Errorf("c.SetNode(%v) = error %v, want %v", test.req, err, want)
 			}
 		})
 	}
@@ -310,104 +242,7 @@ func TestCreateNode(t *testing.T) {
 	}
 }
 
-func TestConnectPin(t *testing.T) {
-	baz := &model.Node{
-		Name: "baz",
-		Part: parts.NewCode(nil, "", "", "", pin.Map{
-			"qux": &pin.Definition{
-				Type: "int",
-			},
-		}),
-		Connections: make(map[string]string),
-	}
-	bar := &model.Channel{
-		Name: "bar",
-		Type: "int",
-		Pins: make(map[model.NodePin]struct{}),
-	}
-	tuz := &model.Channel{
-		Name: "tuz",
-		Type: "string",
-		Pins: make(map[model.NodePin]struct{}),
-	}
-	foo := &model.Graph{
-		Name:     "foo",
-		Channels: map[string]*model.Channel{"bar": bar, "tuz": tuz},
-		Nodes:    map[string]*model.Node{"baz": baz},
-	}
-	c := &server{
-		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
-	}
-	tests := []struct {
-		name string
-		req  *pb.ConnectPinRequest
-		code codes.Code
-	}{
-		{
-			name: "no such graph",
-			req: &pb.ConnectPinRequest{
-				Graph:   "nope",
-				Node:    "baz",
-				Channel: "bar",
-				Pin:     "qux",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "no such node",
-			req: &pb.ConnectPinRequest{
-				Graph:   "foo",
-				Node:    "barz",
-				Channel: "bar",
-				Pin:     "qux",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "no such channel",
-			req: &pb.ConnectPinRequest{
-				Graph:   "foo",
-				Node:    "baz",
-				Channel: "buz",
-				Pin:     "qux",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "No such pin",
-			req: &pb.ConnectPinRequest{
-				Graph:   "foo",
-				Node:    "baz",
-				Channel: "bar",
-				Pin:     "wux",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "It works",
-			req: &pb.ConnectPinRequest{
-				Graph:   "foo",
-				Node:    "baz",
-				Channel: "bar",
-				Pin:     "qux",
-			},
-			code: codes.OK,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			_, err := c.ConnectPin(context.Background(), test.req)
-			if got, want := code(err), test.code; got != want {
-				t.Errorf("c.ConnectPin(%v) = code %v, want %v", test.req, got, want)
-			}
-		})
-	}
-	if got, want := baz.Connections["qux"], "bar"; got != want {
-		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
-	}
-}
-
-func TestDeleteChannel(t *testing.T) {
+func TestSetChannelDelete(t *testing.T) {
 	baz := &model.Node{
 		Name: "baz",
 		Part: parts.NewCode(nil, "", "", "", pin.Map{
@@ -436,39 +271,42 @@ func TestDeleteChannel(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		req  *pb.DeleteChannelRequest
+		req  *pb.SetChannelRequest
 		code codes.Code
 	}{
 		{
 			name: "No such graph",
-			req: &pb.DeleteChannelRequest{
+			req: &pb.SetChannelRequest{
 				Graph:   "nope",
 				Channel: "bar",
+				// Config: nil,
 			},
 			code: codes.NotFound,
 		},
 		{
 			name: "No such channel",
-			req: &pb.DeleteChannelRequest{
+			req: &pb.SetChannelRequest{
 				Graph:   "foo",
 				Channel: "baz",
+				// Config: nil,
 			},
 			code: codes.NotFound,
 		},
 		{
 			name: "Ok",
-			req: &pb.DeleteChannelRequest{
+			req: &pb.SetChannelRequest{
 				Graph:   "foo",
 				Channel: "bar",
+				// Config: nil,
 			},
 			code: codes.OK,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := c.DeleteChannel(context.Background(), test.req)
+			_, err := c.SetChannel(context.Background(), test.req)
 			if got, want := code(err), test.code; got != want {
-				t.Errorf("c.DeleteChannel(%v) = code %v, want %v", test.req, got, want)
+				t.Errorf("c.SetChannel(%v) = code %v, want %v", test.req, got, want)
 			}
 		})
 	}
@@ -482,7 +320,7 @@ func TestDeleteChannel(t *testing.T) {
 	}
 }
 
-func TestDeleteNode(t *testing.T) {
+func TestSetNodeDelete(t *testing.T) {
 	baz := &model.Node{
 		Name: "baz",
 		Part: parts.NewCode(nil, "", "", "", pin.Map{
@@ -511,53 +349,48 @@ func TestDeleteNode(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		req  *pb.DeleteNodeRequest
+		req  *pb.SetNodeRequest
 		code codes.Code
 	}{
 		{
 			name: "No such graph",
-			req: &pb.DeleteNodeRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "nope",
 				Node:  "baz",
+				// Config: nil,
 			},
 			code: codes.NotFound,
 		},
 		{
 			name: "No such channel",
-			req: &pb.DeleteNodeRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
 				Node:  "bar",
+				// Config: nil,
 			},
 			code: codes.NotFound,
 		},
 		{
 			name: "Ok",
-			req: &pb.DeleteNodeRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
 				Node:  "baz",
+				// Config: nil,
 			},
 			code: codes.OK,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := c.DeleteNode(context.Background(), test.req)
+			_, err := c.SetNode(context.Background(), test.req)
 			if got, want := code(err), test.code; got != want {
-				t.Errorf("c.DeleteNode(%v) = code %v, want %v", test.req, got, want)
+				t.Errorf("c.SetNode(%v) = code %v, want %v", test.req, got, want)
 			}
 		})
-	}
-	// Channel should be gone
-	if _, found := foo.Channels["bar"]; found {
-		t.Error("channel 'bar' still exists in graph")
 	}
 	// Node should be gone
 	if _, found := foo.Nodes["baz"]; found {
 		t.Error("node 'baz' still exists in graph")
-	}
-	// Reference from node should be gone
-	if got, want := baz.Connections["qux"], "nil"; got != want {
-		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
 	}
 	// Reference from channel should be gone
 	if bar.HasPin("baz", "qux") {
@@ -565,95 +398,8 @@ func TestDeleteNode(t *testing.T) {
 	}
 }
 
-func TestDisconnectPin(t *testing.T) {
-	baz := &model.Node{
-		Name: "baz",
-		Part: parts.NewCode(nil, "", "", "", pin.Map{
-			"qux": &pin.Definition{
-				Type: "int",
-			},
-		}),
-		Connections: map[string]string{
-			"qux": "bar",
-		},
-	}
-	bar := &model.Channel{
-		Name: "bar",
-		Type: "int",
-		Pins: map[model.NodePin]struct{}{
-			{Node: "baz", Pin: "qux"}: {},
-		},
-	}
-	foo := &model.Graph{
-		Name:     "foo",
-		Channels: map[string]*model.Channel{"bar": bar},
-		Nodes:    map[string]*model.Node{"baz": baz},
-	}
-	c := &server{
-		loadedGraphs: map[string]*serveGraph{"foo": {Graph: foo}},
-	}
-	tests := []struct {
-		name string
-		req  *pb.DisconnectPinRequest
-		code codes.Code
-	}{
-		{
-			name: "No such graph",
-			req: &pb.DisconnectPinRequest{
-				Graph: "nope",
-				Node:  "baz",
-				Pin:   "qux",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "No such node",
-			req: &pb.DisconnectPinRequest{
-				Graph: "foo",
-				Node:  "bar",
-				Pin:   "qux",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "No such pin",
-			req: &pb.DisconnectPinRequest{
-				Graph: "foo",
-				Node:  "baz",
-				Pin:   "tuz",
-			},
-			code: codes.NotFound,
-		},
-		{
-			name: "Ok",
-			req: &pb.DisconnectPinRequest{
-				Graph: "foo",
-				Node:  "baz",
-				Pin:   "qux",
-			},
-			code: codes.OK,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			_, err := c.DisconnectPin(context.Background(), test.req)
-			if got, want := code(err), test.code; got != want {
-				t.Errorf("c.DisconnectPin(%v) = code %v, want %v", test.req, got, want)
-			}
-		})
-	}
-	// Reference from node should be gone
-	if got, want := baz.Connections["qux"], "nil"; got != want {
-		t.Errorf("baz.Connections[qux] = %q, want %q", got, want)
-	}
-	// Channel should be gone
-	if _, found := foo.Channels["bar"]; found {
-		t.Error("channel 'bar' still exists in graph")
-	}
-}
-
 func TestSave(t *testing.T) {
-	// TODO
+	// TODO: implement tests for saving
 }
 
 func TestSetGraphProperties(t *testing.T) {
@@ -705,7 +451,7 @@ func TestSetGraphProperties(t *testing.T) {
 	}
 }
 
-func TestSetNodeProperties(t *testing.T) {
+func TestSetNode(t *testing.T) {
 	bar := &model.Node{Name: "bar"}
 	baz := &model.Node{Name: "baz"}
 	foo := &model.Graph{
@@ -720,33 +466,36 @@ func TestSetNodeProperties(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		req  *pb.SetNodePropertiesRequest
+		req  *pb.SetNodeRequest
 		code codes.Code
 	}{
 		{
 			name: "no such graph",
-			req: &pb.SetNodePropertiesRequest{
-				Graph: "nope",
-				Node:  "bar",
-				Props: &pb.NodeConfig{},
+			req: &pb.SetNodeRequest{
+				Graph:  "nope",
+				Node:   "bar",
+				Config: &pb.NodeConfig{},
 			},
 			code: codes.NotFound,
 		},
 		{
 			name: "no such node",
-			req: &pb.SetNodePropertiesRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
 				Node:  "bak",
-				Props: &pb.NodeConfig{},
+				Config: &pb.NodeConfig{
+					PartCfg:  []byte("{}"),
+					PartType: "Code",
+				},
 			},
 			code: codes.NotFound,
 		},
 		{
-			name: "can't unmarshal",
-			req: &pb.SetNodePropertiesRequest{
+			name: "can't unmarshal part",
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
 				Node:  "bar",
-				Props: &pb.NodeConfig{
+				Config: &pb.NodeConfig{
 					PartType: "Not a part key",
 				},
 			},
@@ -754,23 +503,23 @@ func TestSetNodeProperties(t *testing.T) {
 		},
 		{
 			name: "rename to existing name",
-			req: &pb.SetNodePropertiesRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
 				Node:  "bar",
-				Props: &pb.NodeConfig{
+				Config: &pb.NodeConfig{
 					Name:     "baz",
 					PartCfg:  []byte("{}"),
 					PartType: "Code",
 				},
 			},
-			code: codes.FailedPrecondition,
+			code: codes.AlreadyExists,
 		},
 		{
 			name: "Ok",
-			req: &pb.SetNodePropertiesRequest{
+			req: &pb.SetNodeRequest{
 				Graph: "foo",
 				Node:  "bar",
-				Props: &pb.NodeConfig{
+				Config: &pb.NodeConfig{
 					Name:         "bax",
 					PartCfg:      []byte("{}"),
 					PartType:     "Code",
@@ -784,18 +533,18 @@ func TestSetNodeProperties(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := c.SetNodeProperties(context.Background(), test.req)
+			_, err := c.SetNode(context.Background(), test.req)
 			if got, want := code(err), test.code; got != want {
-				t.Errorf("c.SetNodeProperties(%v) = code %v, want %v", test.req, got, want)
+				t.Errorf("c.SetNodeProperties(%v) = error %v, want code %v", test.req, err, want)
 			}
 		})
 	}
 	if _, found := foo.Nodes["bar"]; found {
 		t.Error("foo.Nodes[bar] is found, want not found")
 	}
-	bax := bar
-	if got, want := foo.Nodes["bax"], bax; got != want {
-		t.Errorf("foo.Nodes[bax] = %v, want %v", got, want)
+	bax := foo.Nodes["bax"]
+	if bax == nil {
+		t.Error("foo.Nodes[bax] = nil, want new node")
 	}
 	if got, want := bax.Name, "bax"; got != want {
 		t.Errorf("bax.Name = %q, want %q", got, want)

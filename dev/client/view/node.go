@@ -160,13 +160,12 @@ func (n *Node) delete() {
 }
 
 func (n *Node) reallyDelete() {
-	// Chatty, but cleans everything up.
-	for _, p := range n.AllPins {
-		p.reallyDisconnect()
-	}
 	if err := n.nc.Delete(context.TODO()); err != nil {
 		n.errors.setError("Couldn't delete: " + err.Error())
 		return
+	}
+	for _, p := range n.AllPins {
+		p.channel.removePin(p)
 	}
 	delete(n.graph.Nodes, n.nc.Name())
 	n.Remove()

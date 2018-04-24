@@ -15,9 +15,6 @@
 package controller
 
 import (
-	"golang.org/x/net/context"
-
-	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
@@ -45,23 +42,4 @@ func (c *pinController) IsInput() bool {
 
 func (c *pinController) NodeName() string {
 	return c.node.Name
-}
-
-func (c *pinController) Attach(ctx context.Context, cc view.ChannelController) error {
-	_, err := c.client.ConnectPin(ctx, &pb.ConnectPinRequest{
-		Graph:   c.graph.FilePath,
-		Node:    c.node.Name,
-		Pin:     c.name,
-		Channel: cc.Name(),
-	})
-	return err
-}
-
-func (c *pinController) Detach(ctx context.Context) error {
-	_, err := c.client.DisconnectPin(context.Background(), &pb.DisconnectPinRequest{
-		Graph: c.graph.FilePath,
-		Node:  c.node.Name,
-		Pin:   c.name,
-	})
-	return err
 }

@@ -25,38 +25,13 @@ var _ ShenzhenGoClient = UnimplementedShenzhenGoClient{}
 // UnimplementedShenzhenGoClient is for embedding in test fakes.
 type UnimplementedShenzhenGoClient struct{}
 
-// CreateChannel does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	return nil, nil
-}
-
-// CreateNode does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) CreateNode(ctx context.Context, in *CreateNodeRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	return nil, nil
-}
-
-// ConnectPin does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) ConnectPin(ctx context.Context, in *ConnectPinRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	return nil, nil
-}
-
-// DeleteChannel does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	return nil, nil
-}
-
-// DeleteNode does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) DeleteNode(ctx context.Context, in *DeleteNodeRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	return nil, nil
-}
-
-// DisconnectPin does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) DisconnectPin(ctx context.Context, in *DisconnectPinRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	return nil, nil
-}
-
 // Save does nothing and returns nil, nil.
 func (UnimplementedShenzhenGoClient) Save(ctx context.Context, in *SaveRequest, opts ...grpcweb.CallOption) (*Empty, error) {
+	return nil, nil
+}
+
+// SetChannel does nothing and returns nil, nil.
+func (UnimplementedShenzhenGoClient) SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {
 	return nil, nil
 }
 
@@ -65,8 +40,8 @@ func (UnimplementedShenzhenGoClient) SetGraphProperties(ctx context.Context, in 
 	return nil, nil
 }
 
-// SetNodeProperties does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) SetNodeProperties(ctx context.Context, in *SetNodePropertiesRequest, opts ...grpcweb.CallOption) (*Empty, error) {
+// SetNode does nothing and returns nil, nil.
+func (UnimplementedShenzhenGoClient) SetNode(ctx context.Context, in *SetNodeRequest, opts ...grpcweb.CallOption) (*Empty, error) {
 	return nil, nil
 }
 

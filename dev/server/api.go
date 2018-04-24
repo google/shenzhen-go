@@ -26,182 +26,6 @@ import (
 	pb "github.com/google/shenzhen-go/dev/proto/go"
 )
 
-func (c *server) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.Empty, error) {
-	log.Printf("api: CreateChannel(%s)", proto.MarshalTextString(req))
-	g, err := c.lookupGraph(req.Graph)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.Lock()
-	defer g.Unlock()
-
-	np := make(map[model.NodePin]struct{}, len(req.Pins))
-	for _, x := range req.Pins {
-		n, err := g.lookupNode(x.Node)
-		if err != nil {
-			return &pb.Empty{}, err
-		}
-		if co := n.Connections[x.Pin]; co != "nil" {
-			return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q pin %q either does not exist or is already connected (%q)", x.Node, x.Pin, co)
-		}
-	}
-	// TODO: better validation
-	if req.Name == "nil" {
-		return &pb.Empty{}, status.Errorf(codes.InvalidArgument, "channels may not be named %q", req.Name)
-	}
-	if _, found := g.Channels[req.Name]; found {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "channel %q already exists", req.Name)
-	}
-	// TODO: validate the name isn't silly, the type isn't silly...
-	g.Channels[req.Name] = &model.Channel{
-		Name:      req.Name,
-		Type:      req.Type,
-		Anonymous: req.Anon,
-		Capacity:  int(req.Cap),
-		Pins:      np,
-	}
-	for _, x := range req.Pins {
-		g.Nodes[x.Node].Connections[x.Pin] = req.Name
-	}
-	return &pb.Empty{}, nil
-}
-
-func (c *server) CreateNode(ctx context.Context, req *pb.CreateNodeRequest) (*pb.Empty, error) {
-	log.Printf("api: CreateNode(%s)", proto.MarshalTextString(req))
-	g, err := c.lookupGraph(req.Graph)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.Lock()
-	defer g.Unlock()
-
-	if _, found := g.Nodes[req.Props.Name]; found {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q already exists", req.Props.Name)
-	}
-	p, err := (&model.PartJSON{
-		Part: req.Props.PartCfg,
-		Type: req.Props.PartType,
-	}).Unmarshal()
-	if err != nil {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "part unmarshal: %v", err)
-	}
-	n := &model.Node{
-		Name:         req.Props.Name,
-		Multiplicity: uint(req.Props.Multiplicity),
-		Enabled:      req.Props.Enabled,
-		Wait:         req.Props.Wait,
-		Part:         p,
-		X:            req.Props.X,
-		Y:            req.Props.Y,
-		Connections:  make(map[string]string),
-	}
-	for _, d := range p.Pins() {
-		n.Connections[d.Name] = "nil"
-	}
-	g.Nodes[req.Props.Name] = n
-	return &pb.Empty{}, nil
-}
-
-func (c *server) ConnectPin(ctx context.Context, req *pb.ConnectPinRequest) (*pb.Empty, error) {
-	log.Printf("api: ConnectPin(%s)", proto.MarshalTextString(req))
-	g, err := c.lookupGraph(req.Graph)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.Lock()
-	defer g.Unlock()
-
-	n, err := g.lookupNode(req.Node)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	ch, err := g.lookupChannel(req.Channel)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if _, found := n.Pins()[req.Pin]; !found {
-		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
-	}
-	// TODO: Report type mismatches later on.
-	n.Connections[req.Pin] = req.Channel
-	ch.AddPin(req.Node, req.Pin)
-	return &pb.Empty{}, nil
-}
-
-func (c *server) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.Empty, error) {
-	log.Printf("api: DeleteChannel(%s)", proto.MarshalTextString(req))
-	g, err := c.lookupGraph(req.Graph)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.Lock()
-	defer g.Unlock()
-	ch, err := g.lookupChannel(req.Channel)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.DeleteChannel(ch)
-	return &pb.Empty{}, nil
-}
-
-func (c *server) DeleteNode(ctx context.Context, req *pb.DeleteNodeRequest) (*pb.Empty, error) {
-	log.Printf("api: DeleteNode(%s)", proto.MarshalTextString(req))
-	g, err := c.lookupGraph(req.Graph)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.Lock()
-	defer g.Unlock()
-	n, err := g.lookupNode(req.Node)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	delete(g.Nodes, req.Node)
-	// Also clean up channel connections.
-	for p, cn := range n.Connections {
-		if cn == "nil" {
-			continue
-		}
-		n.Connections[p] = "nil"
-		ch := g.Channels[cn]
-		if ch == nil {
-			continue
-		}
-		delete(ch.Pins, model.NodePin{Node: req.Node, Pin: p})
-		if len(ch.Pins) < 2 {
-			g.DeleteChannel(ch)
-		}
-	}
-	return &pb.Empty{}, nil
-}
-
-func (c *server) DisconnectPin(ctx context.Context, req *pb.DisconnectPinRequest) (*pb.Empty, error) {
-	log.Printf("api: DisconnectPin(%s)", proto.MarshalTextString(req))
-	g, err := c.lookupGraph(req.Graph)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	g.Lock()
-	defer g.Unlock()
-	n, err := g.lookupNode(req.Node)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	cn, found := n.Connections[req.Pin]
-	if !found {
-		return &pb.Empty{}, status.Errorf(codes.NotFound, "no pin %q on node %q", req.Pin, req.Node)
-	}
-	n.Connections[req.Pin] = "nil"
-	// Clean up channel if unneccessary while we're at it.
-	if ch := g.Channels[cn]; ch != nil {
-		delete(ch.Pins, model.NodePin{Node: req.Node, Pin: req.Pin})
-		if len(ch.Pins) < 2 {
-			g.DeleteChannel(ch)
-		}
-	}
-	return &pb.Empty{}, nil
-}
-
 func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
 	log.Printf("api: Save(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
@@ -211,6 +35,81 @@ func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, erro
 	g.Lock()
 	defer g.Unlock()
 	return &pb.Empty{}, SaveJSONFile(g.Graph)
+}
+
+func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb.Empty, error) {
+	log.Printf("api: SetChannel(%s)", proto.MarshalTextString(req))
+
+	if req.Channel == "" && req.Config == nil {
+		return &pb.Empty{}, status.Error(codes.InvalidArgument, "must provide existing channel or new config")
+	}
+
+	g, err := c.lookupGraph(req.Graph)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	g.Lock()
+	defer g.Unlock()
+
+	var nps map[model.NodePin]struct{}
+
+	if req.Config != nil {
+		// TODO: More validation (name, type, etc)
+		if req.Config.Name == "nil" {
+			return &pb.Empty{}, status.Errorf(codes.InvalidArgument, "channels may not be named %q", req.Config.Name)
+		}
+
+		if req.Channel != req.Config.Name {
+			// Check that the new name is available...
+			if _, found := g.Channels[req.Config.Name]; found {
+				return &pb.Empty{}, status.Errorf(codes.AlreadyExists, "target name %q already exists", req.Config.Name)
+			}
+		}
+
+		// Convert the []pb.NodePin into a set of model.NodePin, and validate
+		// that the pins exist at the same time.
+		nps = make(map[model.NodePin]struct{}, len(req.Config.Pins))
+		for _, np := range req.Config.Pins {
+			n, err := g.lookupNode(np.Node)
+			if err != nil {
+				return &pb.Empty{}, err
+			}
+			if _, found := n.Connections[np.Pin]; !found {
+				return &pb.Empty{}, status.Errorf(codes.NotFound, "node %q pin %q does not exist", np.Node, np.Pin)
+			}
+			nps[model.NodePin{Node: np.Node, Pin: np.Pin}] = struct{}{}
+		}
+	}
+
+	if req.Channel != "" {
+		old, err := g.lookupChannel(req.Channel)
+		if err != nil {
+			return &pb.Empty{}, err
+		}
+
+		// Update existing channel data by deleting the old one from the map
+		// and any connections, then setting the new one below.
+		g.DeleteChannel(old)
+
+		if req.Config == nil {
+			// Deletion was intended, job complete.
+			return &pb.Empty{}, nil
+		}
+
+	}
+
+	// Set entry in map, update connections on node side.
+	g.Channels[req.Config.Name] = &model.Channel{
+		Name:      req.Config.Name,
+		Type:      req.Config.Type,
+		Anonymous: req.Config.Anon,
+		Capacity:  int(req.Config.Cap),
+		Pins:      nps,
+	}
+	for np := range nps {
+		g.Nodes[np.Node].Connections[np.Pin] = req.Config.Name
+	}
+	return &pb.Empty{}, nil
 }
 
 func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropertiesRequest) (*pb.Empty, error) {
@@ -225,40 +124,63 @@ func (c *server) SetGraphProperties(ctx context.Context, req *pb.SetGraphPropert
 	return &pb.Empty{}, nil
 }
 
-func (c *server) SetNodeProperties(ctx context.Context, req *pb.SetNodePropertiesRequest) (*pb.Empty, error) {
-	log.Printf("api: SetNodeProperties(%s)", proto.MarshalTextString(req))
+func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty, error) {
+	log.Printf("api: SetNode(%s)", proto.MarshalTextString(req))
+
+	if req.Node == "" && req.Config == nil {
+		return &pb.Empty{}, status.Error(codes.InvalidArgument, "must provide existing node or new config")
+	}
+
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
 		return &pb.Empty{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
-	n, err := g.lookupNode(req.Node)
-	if err != nil {
-		return &pb.Empty{}, err
+
+	var part model.Part
+	if req.Config != nil {
+		if req.Node != req.Config.Name {
+			// Check the new name is available...
+			if _, exists := g.Nodes[req.Config.Name]; exists {
+				return &pb.Empty{}, status.Errorf(codes.AlreadyExists, "node %q already exists", req.Config.Name)
+			}
+		}
+
+		p, err := (&model.PartJSON{
+			Part: req.Config.PartCfg,
+			Type: req.Config.PartType,
+		}).Unmarshal()
+		if err != nil {
+			return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "part unmarshal: %v", err)
+		}
+		part = p
 	}
 
-	// TODO: refactor; this is extremely similar to the file unmarshaling code...
-	p, err := (&model.PartJSON{
-		Part: req.Props.PartCfg,
-		Type: req.Props.PartType,
-	}).Unmarshal()
-	if err != nil {
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "part unmarshal: %v", err)
-	}
-	if n.Name != req.Props.Name {
-		if _, exists := g.Nodes[req.Props.Name]; exists {
-			return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "node %q already exists", req.Props.Name)
+	if req.Node != "" {
+		old, err := g.lookupNode(req.Node)
+		if err != nil {
+			return &pb.Empty{}, err
 		}
-		delete(g.Nodes, n.Name)
-		n.Name = req.Props.Name
-		g.Nodes[n.Name] = n
+
+		g.DeleteNode(old)
+
+		if req.Config == nil {
+			// Deletion was intended, job complete.
+			return &pb.Empty{}, nil
+		}
 	}
-	n.Multiplicity = uint(req.Props.Multiplicity)
-	n.Enabled = req.Props.Enabled
-	n.Wait = req.Props.Wait
-	n.Part = p
-	n.X, n.Y = req.Props.X, req.Props.Y
+
+	n := &model.Node{
+		Name:         req.Config.Name,
+		Multiplicity: uint(req.Config.Multiplicity),
+		Enabled:      req.Config.Enabled,
+		Wait:         req.Config.Wait,
+		Part:         part,
+		X:            req.Config.X,
+		Y:            req.Config.Y,
+	}
+	g.Nodes[req.Config.Name] = n
 	n.RefreshConnections()
 	g.RefreshChannelsPins() // Changing the part might have changed available pins.
 	return &pb.Empty{}, nil

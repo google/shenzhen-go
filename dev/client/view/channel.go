@@ -125,7 +125,6 @@ func (c *Channel) drag(x, y float64) {
 	// different pin or to nothing?
 	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
 		c.removePin(c.potentialPin)
-		c.potentialPin.disconnect()
 		c.potentialPin.SetColour(normalColour)
 		c.potentialPin = nil
 	}
@@ -182,12 +181,14 @@ func (c *Channel) drop() {
 func (c *Channel) addPin(p *Pin) {
 	p.channel = c
 	c.Pins[p] = NewRoute(c.view.doc, c.Group, &c.visual, p)
+	c.cc.Attach(p.pc)
 }
 
 func (c *Channel) removePin(p *Pin) {
 	p.channel = nil
 	c.Pins[p].Remove()
 	delete(c.Pins, p)
+	c.cc.Detach(p.pc)
 }
 
 func (c *Channel) gainFocus() {

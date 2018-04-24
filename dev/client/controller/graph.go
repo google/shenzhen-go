@@ -209,9 +209,9 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 		Y: 150,
 	}
 
-	_, err = c.client.CreateNode(ctx, &pb.CreateNodeRequest{
+	_, err = c.client.SetNode(ctx, &pb.SetNodeRequest{
 		Graph: c.graph.FilePath,
-		Props: &pb.NodeConfig{
+		Config: &pb.NodeConfig{
 			Name:         n.Name,
 			Enabled:      n.Enabled,
 			Wait:         n.Wait,

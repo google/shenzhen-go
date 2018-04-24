@@ -18,7 +18,6 @@ import (
 	"log"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -46,31 +45,6 @@ type Pin struct {
 	channel *Channel // attached to this channel, is often nil
 }
 
-func (p *Pin) reallyConnect() {
-	// Attach to the existing channel
-	if err := p.pc.Attach(context.TODO(), p.channel.cc); err != nil {
-		p.errors.setError("Couldn't connect: " + err.Error())
-	}
-}
-
-func (p *Pin) disconnect() {
-	if p.channel == nil {
-		return
-	}
-	go p.reallyDisconnect() // Don't block handler.
-}
-
-func (p *Pin) reallyDisconnect() {
-	if err := p.pc.Detach(context.TODO()); err != nil {
-		p.errors.setError("Couldn't disconnect: " + err.Error())
-		return
-	}
-	if p.channel == nil {
-		return
-	}
-	p.channel.removePin(p)
-}
-
 // MoveTo moves the pin (relatively).
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
@@ -87,16 +61,18 @@ func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 func (p *Pin) dragStart(x, y float64) {
 	log.Print("*Pin.dragStart")
 
-	if p.channel == nil {
+	ch := p.channel
+	if ch == nil {
 		if err := p.view.createChannel(p); err != nil {
 			p.errors.setError("Couldn't create channel: " + err.Error())
 			return
 		}
+		ch = p.channel
 	} else {
-		p.disconnect()
+		ch.removePin(p) // sets p.channel = nil
 	}
-	p.view.dragItem = p.channel
-	p.channel.dragStart(x, y)
+	p.view.dragItem = ch
+	ch.dragStart(x, y)
 }
 
 func (p *Pin) mouseEnter(dom.Object) {

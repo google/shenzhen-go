@@ -42,6 +42,7 @@ func (c *Channel) HasPin(node, pin string) bool {
 
 // RemovePin is sugar for `delete(c.Pins, NodePin{Node: node, Pin: pin})`.
 // It doesn't update the node.
+// If the channel now has fewer than 2 pins, it can be deleted.
 func (c *Channel) RemovePin(node, pin string) {
 	delete(c.Pins, NodePin{Node: node, Pin: pin})
 }

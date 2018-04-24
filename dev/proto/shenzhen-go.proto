@@ -18,6 +18,19 @@ package proto;
 
 message Empty {}
 
+message NodePin {
+	string node = 1;
+	string pin = 2;
+}
+
+message ChannelConfig {
+	string name = 1;
+	string type = 2;
+    bool anon = 3;
+    uint64 cap = 4;
+	repeated NodePin pins = 5;
+}
+
 message NodeConfig {
 	string name = 1;
     bool enabled = 2;
@@ -29,50 +42,14 @@ message NodeConfig {
     double y = 8;
 }
 
-message NodePin {
-	string node = 1;
-	string pin = 2;
-}
-
-message CreateChannelRequest {
-	string graph = 1;
-	string name = 2;
-	string type = 3;
-    bool anon = 4;
-    uint64 cap = 5;
-	repeated NodePin pins = 6;
-}
-
-message CreateNodeRequest {
-	string graph = 1;
-	NodeConfig props = 2;
-}
-
-message ConnectPinRequest {
-	string graph = 1;
-	string node = 2;
-	string pin = 3;
-	string channel = 4;
-}
-
-message DeleteChannelRequest {
-	string graph = 1;
-	string channel = 2;
-}
-
-message DeleteNodeRequest {
-	string graph = 1;
-	string node = 2;
-}
-
-message DisconnectPinRequest {
-	string graph = 1;
-	string node = 2;
-	string pin = 3;
-}
-
 message SaveRequest {
 	string graph = 1;
+}
+
+message SetChannelRequest {
+	string graph = 1;
+	string channel = 2;
+	ChannelConfig config = 3;
 }
 
 message SetGraphPropertiesRequest {
@@ -82,10 +59,10 @@ message SetGraphPropertiesRequest {
 	bool is_command = 4;
 }
 
-message SetNodePropertiesRequest {
+message SetNodeRequest {
 	string graph = 1;
 	string node = 2;
-	NodeConfig props = 3;
+	NodeConfig config = 3;
 }
 
 message SetPositionRequest {
@@ -96,32 +73,21 @@ message SetPositionRequest {
 }
 
 service ShenzhenGo {
-	// CreateChannel makes a new channel.
-	rpc CreateChannel(CreateChannelRequest) returns (Empty) {}
-
-	// CreateNode makes a new node.
-	rpc CreateNode(CreateNodeRequest) returns (Empty) {}
-
-	// ConnectPin connects a pin to a channel.
-	rpc ConnectPin(ConnectPinRequest) returns (Empty) {}
-
-	// DeleteChannel deletes a channel (and all connections).
-	rpc DeleteChannel(DeleteChannelRequest) returns (Empty) {}
-
-	// DeleteNode deletes a node (and all connections).
-	rpc DeleteNode(DeleteNodeRequest) returns (Empty) {}
-		
-	// DisconnectPin deletes the connection from a pin to a channel.
-	rpc DisconnectPin(DisconnectPinRequest) returns (Empty) {}
-
 	// Save saves the graph to disk.
 	rpc Save(SaveRequest) returns (Empty) {}
+
+	// SetNode either creates a new channel (name == "", config != nil)
+	// changes existing channel data such as name and attached pins (name is found, config != nil),
+	// or deletes a channel (name is found, config == nil).
+	rpc SetChannel(SetChannelRequest) returns (Empty) {}
 
 	// SetGraphProperties changes metdata such as name and package path.
 	rpc SetGraphProperties(SetGraphPropertiesRequest) returns (Empty) {}
 
-	// SetNodeProperties changes node metadata such as name and multiplicity.
-	rpc SetNodeProperties(SetNodePropertiesRequest) returns (Empty) {}
+	// SetNode either creates a new node (name == "", config != nil)
+	// changes existing node such as name and multiplicity (name is found, config != nil),
+	// or deletes a node (name is found, config == nil).
+	rpc SetNode(SetNodeRequest) returns (Empty) {}
 
 	// SetPosition changes the node position in the diagram.
 	rpc SetPosition(SetPositionRequest) returns (Empty) {}

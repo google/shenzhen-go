@@ -98,6 +98,15 @@ func (g *Graph) DeleteChannel(ch *Channel) {
 	delete(g.Channels, ch.Name)
 }
 
+// DeleteNode cleans up any connections and then deletes a node.
+// This will not result in deleting channels that are no longer valid.
+func (g *Graph) DeleteNode(n *Node) {
+	for p, cn := range n.Connections {
+		g.Channels[cn].RemovePin(n.Name, p)
+	}
+	delete(g.Nodes, n.Name)
+}
+
 // Check checks over the graph for any errors.
 func (g *Graph) Check() error {
 	// TODO: implement

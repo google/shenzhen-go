@@ -42,28 +42,6 @@ type Channel struct {
 	potentialPin       *Pin        // considering attaching to this pin
 }
 
-func (v *View) createChannel(p, q *Pin) error {
-	cc, err := v.graph.gc.CreateChannel(p.pc, q.pc)
-	if err != nil {
-		return err
-	}
-	ch := &Channel{
-		cc:      cc,
-		view:    v,
-		errors:  v,
-		graph:   v.graph,
-		Pins:    make(map[*Pin]*Route),
-		created: false,
-	}
-	ch.MakeElements(v.doc, v.diagram)
-	p.channel, q.channel = ch, ch
-	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
-	ch.Pins[q] = NewRoute(v.doc, ch.Group, &ch.visual, q)
-	v.graph.Channels[cc.Name()] = ch
-	ch.reposition(nil)
-	return nil
-}
-
 func (c *Channel) reallyCreate() {
 	if err := c.cc.Commit(context.TODO()); err != nil {
 		c.errors.setError("Couldn't create a channel: " + err.Error())

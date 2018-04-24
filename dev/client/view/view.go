@@ -103,6 +103,27 @@ func (v *View) clearError() {
 	// TODO
 }
 
+func (v *View) createChannel(p *Pin) error {
+	cc, err := v.graph.gc.CreateChannel(p.pc)
+	if err != nil {
+		return err
+	}
+	ch := &Channel{
+		cc:      cc,
+		view:    v,
+		errors:  v,
+		graph:   v.graph,
+		Pins:    make(map[*Pin]*Route),
+		created: false,
+	}
+	ch.MakeElements(v.doc, v.diagram)
+	p.channel = ch
+	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
+	v.graph.Channels[cc.Name()] = ch
+	ch.reposition(nil)
+	return nil
+}
+
 func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 	bcr := v.diagram.Call("getBoundingClientRect")
 	x = e.Get("clientX").Float() - bcr.Get("left").Float()
@@ -110,9 +131,11 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 	return x, y
 }
 
-func (v *View) dragStarter(d draggable) func(dom.Object) {
+func (v *View) dragStarter(d dragStarter) func(dom.Object) {
 	return func(e dom.Object) {
-		v.dragItem = d
+		if dr, ok := d.(draggable); ok {
+			v.dragItem = dr
+		}
 		d.dragStart(v.diagramCursorPos(e))
 		e.Call("stopPropagation")
 	}
@@ -171,9 +194,13 @@ func (v *View) deleteSelected(e dom.Object) {
 	v.selectedItem.delete()
 }
 
+type dragStarter interface {
+	dragStart(diagramX, diagramY float64)
+}
+
 // draggable is anything that can be dragged on the canvas/SVG.
 type draggable interface {
-	dragStart(diagramX, diagramY float64)
+	dragStarter
 	drag(diagramX, diagramY float64)
 	drop()
 }

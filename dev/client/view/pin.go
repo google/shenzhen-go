@@ -91,6 +91,7 @@ func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
 
 func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 
+/*
 func (p *Pin) connectTo(q Pointer) {
 	switch q := q.(type) {
 	case *Pin:
@@ -124,11 +125,18 @@ func (p *Pin) connectTo(q Pointer) {
 		q.reposition(nil)
 	}
 }
+*/
 
-func (p *Pin) dragStart(float64, float64) {
-	p.SetColour(activeColour)
+func (p *Pin) dragStart(x, y float64) {
+	if err := p.view.createChannel(p); err != nil {
+		p.errors.setError("Couldn't create channel: " + err.Error())
+		return
+	}
+	p.view.dragItem = p.channel
+	p.channel.dragStart(x, y)
 }
 
+/*
 func (p *Pin) drag(x, y float64) {
 	d, q := p.graph.nearestPoint(x, y)
 
@@ -150,7 +158,8 @@ func (p *Pin) drag(x, y float64) {
 	p.channel.SetColour(activeColour)
 	p.hideDrag()
 }
-
+*/
+/*
 func (p *Pin) drop() {
 	p.errors.clearError()
 	p.SetColour(normalColour)
@@ -165,6 +174,7 @@ func (p *Pin) drop() {
 	p.channel.SetColour(normalColour)
 	p.channel.commit()
 }
+*/
 
 // Show the temporary drag elements with a specific colour.
 // Coordinates are pin relative.

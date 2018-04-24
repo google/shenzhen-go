@@ -83,6 +83,7 @@ func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
 	p.x, p.y = rx+p.node.x, ry+p.node.y
 	p.channel.reposition(nil)
+	p.channel.commit()
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.

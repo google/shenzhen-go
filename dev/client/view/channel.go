@@ -103,10 +103,26 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 func (c *Channel) Pt() (x, y float64) { return c.logical.Pt() }
 
 func (c *Channel) commit() {
+	if c == nil {
+		return
+	}
 	c.logical = c.visual
 	if !c.created {
 		go c.reallyCreate()
 	}
+}
+
+// Show the temporary drag elements.
+func (c *Channel) dragTo(x, y float64) {
+	c.dragLine.
+		SetAttribute("x1", x).
+		SetAttribute("y1", y).
+		Show()
+
+	c.dragCirc.
+		SetAttribute("cx", x).
+		SetAttribute("cy", y).
+		Show()
 }
 
 func (c *Channel) dragStart(x, y float64) {
@@ -118,34 +134,22 @@ func (c *Channel) dragStart(x, y float64) {
 	c.SetColour(activeColour)
 
 	c.reposition(Point{x, y})
-	c.dragLine.
-		SetAttribute("x1", x).
-		SetAttribute("y1", y).
-		SetAttribute("x2", c.visual.x).
-		SetAttribute("y2", c.visual.y).
-		Show()
-
-	c.dragCirc.
-		SetAttribute("cx", x).
-		SetAttribute("cy", y).
-		Show()
+	c.dragTo(x, y)
 }
 
 func (c *Channel) drag(x, y float64) {
 	c.steiner.Show()
-	c.dragLine.
-		SetAttribute("x1", x).
-		SetAttribute("y1", y)
-	c.dragCirc.
-		SetAttribute("cx", x).
-		SetAttribute("cy", y)
+	c.dragTo(x, y)
 	d, q := c.graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
+	// Already connected to this pin?
 	if p != nil && p == c.potentialPin && d < snapQuad {
 		return
 	}
 
+	// Was considering connecting to a pin, but now connecting to a
+	// different pin?
 	if c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
 		c.potentialPin.disconnect()
 		c.potentialPin.SetColour(normalColour)
@@ -158,6 +162,9 @@ func (c *Channel) drag(x, y float64) {
 		c.reposition(Point{x, y})
 	}
 
+	// Too far from something to snap to?
+	// Trying to snap to itself?
+	// Don't snap, but not an error.
 	if d >= snapQuad || q == c || (p != nil && p.channel == c) {
 		c.errors.clearError()
 		noSnap()
@@ -165,6 +172,7 @@ func (c *Channel) drag(x, y float64) {
 		return
 	}
 
+	// Trying to snap to a different channel.
 	if p == nil || p.channel != nil {
 		c.errors.setError("Can't connect different channels together (use another goroutine)")
 		noSnap()
@@ -172,7 +180,7 @@ func (c *Channel) drag(x, y float64) {
 		return
 	}
 
-	// Let's snap!
+	// Snap to pin p!
 	c.errors.clearError()
 	c.potentialPin = p
 	c.SetColour(activeColour)

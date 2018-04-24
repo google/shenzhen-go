@@ -69,8 +69,6 @@ func (p *Pin) reallyDisconnect() {
 		return
 	}
 	p.channel.removePin(p)
-	p.channel = nil
-
 }
 
 // MoveTo moves the pin (relatively).

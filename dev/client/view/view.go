@@ -120,8 +120,7 @@ func (v *View) createChannel(p *Pin) error {
 		created: false,
 	}
 	ch.MakeElements(v.doc, v.diagram)
-	p.channel = ch
-	ch.Pins[p] = NewRoute(v.doc, ch.Group, &ch.visual, p)
+	ch.addPin(p)
 	v.graph.Channels[cc.Name()] = ch
 	return nil
 }

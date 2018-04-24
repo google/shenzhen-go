@@ -54,19 +54,14 @@ func (c *Channel) reallyCreate() {
 func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	c.Group.Remove()
 	c.Group = NewGroup(doc, parent)
-
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.view.dragStarter(c))
-
 	c.dragLine = doc.MakeSVGElement("line").
-		SetAttribute("stroke-width", lineWidth).
-		Hide()
-
+		SetAttribute("stroke-width", lineWidth)
 	c.dragCirc = doc.MakeSVGElement("circle").
-		SetAttribute("r", pinRadius).
-		Hide()
-
+		SetAttribute("r", pinRadius)
+	c.hideDrag()
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
 }
 
@@ -175,24 +170,22 @@ func (c *Channel) drop() {
 		go c.reallyDelete()
 		return
 	}
+	c.potentialPin = nil
 	c.layout(nil)
 	c.commit()
-	if c.potentialPin != nil {
-		c.potentialPin = nil
-		return
-	}
-	c.dragCirc.Hide()
-	c.dragLine.Hide()
+	c.hideDrag()
 	if len(c.Pins) < 3 {
 		c.steiner.Hide()
 	}
 }
 
 func (c *Channel) addPin(p *Pin) {
+	p.channel = c
 	c.Pins[p] = NewRoute(c.view.doc, c.Group, &c.visual, p)
 }
 
 func (c *Channel) removePin(p *Pin) {
+	p.channel = nil
 	c.Pins[p].Remove()
 	delete(c.Pins, p)
 }

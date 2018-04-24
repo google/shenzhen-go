@@ -39,7 +39,7 @@ type Channel struct {
 	logical            Point       // centre of steiner point, for snapping
 	visual             Point       // temporary centre of steiner point, for display
 	dragLine, dragCirc dom.Element // temporarily visible, for dragging to more pins
-	p                  *Pin        // considering attaching to this pin
+	potentialPin       *Pin        // considering attaching to this pin
 }
 
 func (v *View) createChannel(p, q *Pin) error {
@@ -93,8 +93,6 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	if c.dragCirc == nil {
 		c.dragCirc = doc.MakeSVGElement("circle").
 			SetAttribute("r", pinRadius).
-			SetAttribute("fill", "transparent").
-			SetAttribute("stroke-width", lineWidth).
 			Hide()
 	}
 
@@ -144,14 +142,14 @@ func (c *Channel) drag(x, y float64) {
 	d, q := c.graph.nearestPoint(x, y)
 	p, _ := q.(*Pin)
 
-	if p != nil && p == c.p && d < snapQuad {
+	if p != nil && p == c.potentialPin && d < snapQuad {
 		return
 	}
 
-	if c.p != nil && (c.p != p || d >= snapQuad) {
-		c.p.disconnect()
-		c.p.SetColour(normalColour)
-		c.p = nil
+	if c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
+		c.potentialPin.disconnect()
+		c.potentialPin.SetColour(normalColour)
+		c.potentialPin = nil
 	}
 
 	noSnap := func() {
@@ -176,7 +174,7 @@ func (c *Channel) drag(x, y float64) {
 
 	// Let's snap!
 	c.errors.clearError()
-	c.p = p
+	c.potentialPin = p
 	c.SetColour(activeColour)
 	c.dragLine.Hide()
 	c.dragCirc.Hide()
@@ -187,8 +185,8 @@ func (c *Channel) drop() {
 	c.reposition(nil)
 	c.commit()
 	c.SetColour(normalColour)
-	if c.p != nil {
-		c.p = nil
+	if c.potentialPin != nil {
+		c.potentialPin = nil
 		return
 	}
 	c.dragCirc.Hide()
@@ -267,7 +265,7 @@ func (c *Channel) reposition(additional Pointer) {
 // SetColour changes the colour of the whole channel.
 func (c *Channel) SetColour(col string) {
 	c.steiner.SetAttribute("fill", col)
-	c.dragCirc.SetAttribute("stroke", col)
+	c.dragCirc.SetAttribute("fill", col)
 	c.dragLine.SetAttribute("stroke", col)
 	for p, r := range c.Pins {
 		p.SetColour(col)

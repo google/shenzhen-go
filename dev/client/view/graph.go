@@ -53,6 +53,7 @@ func (g *Graph) reallyCreateNode(partType string) {
 		graph:  g,
 		nc:     nc,
 	}
+	n.x, n.y = nc.Position()
 	n.MakeElements(g.doc, g.Group)
 	g.Nodes[nc.Name()] = n
 }

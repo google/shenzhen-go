@@ -156,3 +156,6 @@ svg text {
 	cursor: default;
 	user-select: none;
 }
+svg text::selection {
+    background: none;
+}

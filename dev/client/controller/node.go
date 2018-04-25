@@ -135,9 +135,6 @@ func (c *nodeController) GainFocus() {
 	c.sharedOutlets.nodeWaitInput.Set("checked", c.node.Wait)
 	c.sharedOutlets.nodePartEditors[c.node.Part.TypeKey()].Links.Show()
 	c.showSubpanel(c.subpanel)
-	if f := c.node.Part.(focusable); f != nil {
-		f.GainFocus()
-	}
 }
 
 func (c *nodeController) LoseFocus() {
@@ -153,6 +150,11 @@ func (c *nodeController) ShowPartSubpanel(name string) {
 }
 
 func (c *nodeController) showSubpanel(p dom.Element) {
+	if f := c.node.Part.(focusable); f != nil {
+		// Wait until after panel is shown in case of display weirdness.
+		defer f.GainFocus()
+	}
+
 	c.subpanel = p
 	if c.sharedOutlets.nodeCurrentSubpanel == p {
 		return

@@ -183,15 +183,11 @@ svg#diagram g.textbox text {
 	font-family: Go; 
 	font-size: 16; 
 	user-select: none; 
-	cursor: default;
 	pointer-events: none;
 
 	alignment-baseline: middle;
 	dominant-baseline: middle;
 	text-anchor: middle;
-	
-	user-select: none;
-	pointer-events: none;
 }
 
 svg#diagram g.textbox text::selection {

@@ -140,20 +140,36 @@ fieldset#pathtemplate {
 svg#diagram {
 	background: #f8f8ff;
 }
-svg#diagram text {
+svg#diagram g.textbox text {
+	font-family: Go; 
+	font-size: 16; 
+	user-select: none; 
 	cursor: default;
+	pointer-events: none;
+
+	unselectable: on;
+	alignment-baseline: middle;
+	dominant-baseline: middle;
+	text-anchor: middle;
+	pointer-events: none;
 	user-select: none;
 }
-svg#diagram text::selection {
+svg#diagram g.textbox text::selection {
     background: none;
 }
-svg#diagram g.node rect {
+svg#diagram g.node g.textbox rect {
 	fill: #eff; 
 	stroke: #355; 
 	stroke-width: 1;
 }
-svg#diagram g.node.selected rect {
+svg#diagram g.node.selected g.textbox rect {
 	fill: #cef; 
 	stroke: #145; 
 	stroke-width: 2;
+}
+svg#diagram g.node g.pin g.textbox rect {
+	fill: #efe; 
+	stroke: #353; 
+	stroke-width: 1;
+
 }

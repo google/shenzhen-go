@@ -54,6 +54,7 @@ func (c *Channel) reallyCreate() {
 func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	c.Group.Remove()
 	c.Group = NewGroup(doc, parent)
+	c.Group.Element.ClassList().Add("channel")
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.view.dragStarter(c))

@@ -22,7 +22,6 @@ import (
 )
 
 const (
-	nodeTextStyle   = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
 	nodeWidthPerPin = 20
 	nodeHeight      = 50
 	nodeBoxMargin   = 20
@@ -64,7 +63,6 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 	}
 	n.TextBox.
 		MakeElements(doc, n.Group).
-		SetTextStyle(nodeTextStyle).
 		SetHeight(nodeHeight).
 		SetText(n.nc.Name()).
 		RecomputeWidth()

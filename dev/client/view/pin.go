@@ -20,11 +20,6 @@ import (
 	"github.com/google/shenzhen-go/dev/dom"
 )
 
-const (
-	nametagRectStyle = "fill: #efe; stroke: #353; stroke-width:1"
-	nametagTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
-)
-
 // Pin represents a node pin visually, and has enough information to know
 // if it is validly connected.
 type Pin struct {
@@ -92,6 +87,7 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	// Container for the pin elements.
 	p.Group.Remove()
 	p.Group = NewGroup(doc, parent)
+	p.Group.Element.ClassList().Add("pin")
 
 	// The pin itself, visually.
 	p.Shape = doc.MakeSVGElement("circle").
@@ -105,8 +101,6 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	p.Nametag.
 		MakeElements(doc, p.Group).
 		SetHeight(30).
-		SetTextStyle(nametagTextStyle).
-		SetRectStyle(nametagRectStyle).
 		SetText(p.pc.Name() + " (" + p.pc.Type() + ")")
 	p.Nametag.RecomputeWidth()
 	p.Nametag.Hide()

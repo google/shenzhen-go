@@ -34,18 +34,13 @@ type TextBox struct {
 // and sets default attributes. The return is the main group.
 func (b *TextBox) MakeElements(doc dom.Document, parent dom.Element) *TextBox {
 	b.Group = NewGroup(doc, parent)
+	b.Group.Element.ClassList().Add("textbox")
 	b.Rect = doc.MakeSVGElement("rect")
 	b.Text = doc.MakeSVGElement("text")
 	b.TextNode = doc.MakeTextNode("")
 	b.Group.
 		AddChildren(b.Rect, b.Text)
 	b.Text.
-		SetAttribute("alignment-baseline", "middle").
-		SetAttribute("dominant-baseline", "middle").
-		SetAttribute("text-anchor", "middle").
-		SetAttribute("unselectable", "on").
-		SetAttribute("pointer-events", "none").
-		SetAttribute("user-select", "none").
 		AddChildren(b.TextNode)
 	return b
 }
@@ -54,12 +49,6 @@ func (b *TextBox) MakeElements(doc dom.Document, parent dom.Element) *TextBox {
 func (b *TextBox) SetHeight(height float64) *TextBox {
 	b.Rect.SetAttribute("height", height)
 	b.Text.SetAttribute("y", height/2)
-	return b
-}
-
-// SetRectStyle sets the style of the rectangle.
-func (b *TextBox) SetRectStyle(style string) *TextBox {
-	b.Rect.SetAttribute("style", style)
 	return b
 }
 
@@ -73,12 +62,6 @@ func (b *TextBox) SetText(text string) *TextBox {
 	b.TextNode.Set("nodeValue", text)
 	//b.RecomputeWidth()
 	b.currentText = text
-	return b
-}
-
-// SetTextStyle sets the style attribute of the text.
-func (b *TextBox) SetTextStyle(style string) *TextBox {
-	b.Text.SetAttribute("style", style)
 	return b
 }
 

@@ -164,6 +164,7 @@ func (c *Channel) drag(x, y float64) {
 	c.addPin(p)
 	c.SetColour(activeColour)
 	c.hideDrag()
+	c.layout(nil)
 }
 
 func (c *Channel) drop() {

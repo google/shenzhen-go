@@ -7,63 +7,78 @@ body {
 	height: 100%;
 	max-height: 100%;
 }
+
 a:link, a:visited {
 	color: #05d;
 	text-decoration: none;
 }
+
 a:hover {
 	color: #07f;
 	text-decoration: underline;
 }
+
 a.destructive:link, a.destructive:visited {
     color: #d03;
 }
+
 a.destructive:hover {
     color: #f04;
 }
+
 code {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	color: #066;
 }
+
 form {
 	float: none;
 	max-width: 800px;
 	margin: 0 auto;
 }
+
 div.formfield {
 	margin-top: 12px;
 	margin-bottom: 12px;
 }
+
 table {
 	table-layout: fixed;
 	margin-top: 12px;
 	margin-bottom: 12px;
 }
+
 div.formfield label {
 	float: left;
 	text-align: right;
 	margin-right: 15px;
 	width: 30%;
 }
+
 input {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;
 }
+
 div.formfield input[type=text] {
 	width: 65%;
 }
+
 div.browse-container {
 	margin: 0 auto 8px;
 	min-width: 800px;
 }
+
 select {
 	font-family: Go,'San Francisco','Helvetica Neue',Helvetica,Arial,sans-serif;
 	font-size: 12pt;
 }
+
 textarea {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;
 }
+
 div.head {
 	padding: 6px;
 	flex: 0 1 auto;
@@ -71,6 +86,7 @@ div.head {
 	border-bottom-color: #aaa;
 	border-bottom-width: 1px;
 }
+
 div.box {
 	display: flex;
 	flex-flow: row;
@@ -79,42 +95,52 @@ div.box {
 div.container {
 	flex: 1 1 50%;
 }
+
 div#diagram-container {
 	overflow: scroll;
 }
+
 div#panels-container {
 	padding: 6px;
 	display: flex;
 	flex-flow: column;
 }
+
 div#node-properties {
 	display: flex;
 	flex-flow: column;
 	flex: auto;
 }
+
 div.node-panel {
 	display: flex;
 	flex-flow: column;
 	flex: auto;
 }
+
 div.hcentre {
 	text-align: center;
 }
+
 table.browse {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;
 	margin-top: 16pt;
 }
+
 fieldset {
 	margin: 4px;
 }
+
 fieldset#pathtemplate {
 	display: none;
 }
+
 .dropdown {
     position: relative;
     display: inline-block;
 }
+
 .dropdown-content {
     display: none;
     position: absolute;
@@ -123,23 +149,36 @@ fieldset#pathtemplate {
     padding: 4px 4px;
     z-index: 1;
 }
+
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
 .dropdown-content ul {
 	list-style-type: none;
    	margin: 0;
    	padding: 0;
    	overflow: hidden;
 }
+
 .codeedit {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 14px;
 	flex: auto;
 }
+
 svg#diagram {
 	background: #f8f8ff;
 }
+
+svg#diagram .draggable {
+	cursor: grab;
+}
+
+svg#diagram .draggable.dragging {
+	cursor: grabbing;
+}
+
 svg#diagram g.textbox text {
 	font-family: Go; 
 	font-size: 16; 
@@ -147,29 +186,31 @@ svg#diagram g.textbox text {
 	cursor: default;
 	pointer-events: none;
 
-	unselectable: on;
 	alignment-baseline: middle;
 	dominant-baseline: middle;
 	text-anchor: middle;
-	pointer-events: none;
+	
 	user-select: none;
+	pointer-events: none;
 }
+
 svg#diagram g.textbox text::selection {
     background: none;
 }
+
 svg#diagram g.node g.textbox rect {
 	fill: #eff; 
-	stroke: #355; 
+	stroke: #577; 
 	stroke-width: 1;
 }
+
 svg#diagram g.node.selected g.textbox rect {
 	fill: #cef; 
-	stroke: #145; 
 	stroke-width: 2;
 }
+
 svg#diagram g.node g.pin g.textbox rect {
 	fill: #efe; 
-	stroke: #353; 
+	stroke: #575; 
 	stroke-width: 1;
-
 }

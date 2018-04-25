@@ -134,6 +134,7 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 
 func (v *View) dragStarter(d dragStarter) func(dom.Object) {
 	return func(e dom.Object) {
+		e.Call("preventDefault")
 		if dr, ok := d.(draggable); ok {
 			v.dragItem = dr
 		}

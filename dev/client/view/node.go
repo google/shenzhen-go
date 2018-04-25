@@ -66,6 +66,7 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 		SetHeight(nodeHeight).
 		SetText(n.nc.Name()).
 		RecomputeWidth()
+	n.TextBox.Group.Element.ClassList().Add("draggable")
 
 	n.TextBox.Rect.
 		AddEventListener("mousedown", n.view.dragStarter(n)).
@@ -103,6 +104,7 @@ func (n *Node) dragStart(x, y float64) {
 
 	// Bring to front
 	n.Group.Parent().AddChildren(n.Group)
+	n.TextBox.Group.Element.ClassList().Add("dragging")
 }
 
 func (n *Node) drag(x, y float64) {
@@ -112,6 +114,8 @@ func (n *Node) drag(x, y float64) {
 }
 
 func (n *Node) drop() {
+	n.TextBox.Group.Element.ClassList().Remove("dragging")
+
 	go func() { // cannot block in callback
 		if err := n.nc.SetPosition(context.TODO(), n.x, n.y); err != nil {
 			n.errors.setError("Couldn't set the position: " + err.Error())

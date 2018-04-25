@@ -96,6 +96,8 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
 
+	p.Shape.ClassList().Add("draggable")
+
 	// Nametag textbox.
 	p.Nametag = &TextBox{Margin: 20}
 	p.Nametag.

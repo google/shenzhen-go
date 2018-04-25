@@ -16,8 +16,8 @@ package dom
 
 // ClassList abstracts the DOMTokenList returned by element.classList.
 type ClassList interface {
-	Add(class string)
-	Remove(class string)
+	Add(classes ...string)
+	Remove(classes ...string)
 	Toggle(class string)
 	Contains(class string) bool
 	Replace(oldClass, newClass string)
@@ -27,8 +27,34 @@ type classList struct {
 	Object
 }
 
-func (c classList) Add(class string)                  { c.Object.Call("add", class) }
-func (c classList) Remove(class string)               { c.Object.Call("remove", class) }
+// Probably premature optimisation.
+func (c classList) oneTwoMany(f string, cs ...string) {
+	switch len(cs) {
+	case 0:
+		return
+	case 1:
+		c.Object.Call(f, cs[0])
+	case 2:
+		c.Object.Call(f, cs[0], cs[1])
+	case 3:
+		c.Object.Call(f, cs[0], cs[1], cs[2])
+	default:
+		args := make([]interface{}, 0, len(cs))
+		for _, c := range cs {
+			args = append(args, c)
+		}
+		c.Object.Call(f, args...)
+	}
+}
+
+func (c classList) Add(classes ...string) {
+	c.oneTwoMany("add", classes...)
+}
+
+func (c classList) Remove(classes ...string) {
+	c.oneTwoMany("remove", classes...)
+}
+
 func (c classList) Toggle(class string)               { c.Object.Call("toggle", class) }
 func (c classList) Contains(class string) bool        { return c.Object.Call("contains", class).Bool() }
 func (c classList) Replace(oldClass, newClass string) { c.Object.Call("replace", oldClass, newClass) }

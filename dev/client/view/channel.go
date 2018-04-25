@@ -58,10 +58,13 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.view.dragStarter(c))
+	c.steiner.ClassList().Add("draggable")
 	c.dragLine = doc.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth)
 	c.dragCirc = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius)
+	c.dragCirc.ClassList().Add("draggable")
+
 	c.hideDrag()
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
 }
@@ -92,11 +95,13 @@ func (c *Channel) dragTo(x, y float64) {
 func (c *Channel) showDrag() {
 	c.dragLine.Show()
 	c.dragCirc.Show()
+	c.dragCirc.ClassList().Add("dragging")
 }
 
 func (c *Channel) hideDrag() {
 	c.dragLine.Hide()
 	c.dragCirc.Hide()
+	c.dragCirc.ClassList().Remove("dragging")
 }
 
 func (c *Channel) dragStart(x, y float64) {

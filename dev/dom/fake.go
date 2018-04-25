@@ -115,10 +115,18 @@ func (o *FakeObject) Unsafe() uintptr { return o.Value.(uintptr) }
 type FakeClassList map[string]struct{}
 
 // Add adds a class to the classlist.
-func (c FakeClassList) Add(class string) { c[class] = struct{}{} }
+func (c FakeClassList) Add(classes ...string) {
+	for _, cl := range classes {
+		c[cl] = struct{}{}
+	}
+}
 
 // Remove removes a class from the classlist.
-func (c FakeClassList) Remove(class string) { delete(c, class) }
+func (c FakeClassList) Remove(classes ...string) {
+	for _, cl := range classes {
+		delete(c, cl)
+	}
+}
 
 // Toggle adds if the class is not present, and removes if it is.
 func (c FakeClassList) Toggle(class string) {

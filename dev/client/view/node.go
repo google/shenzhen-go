@@ -22,12 +22,10 @@ import (
 )
 
 const (
-	nodeNormalRectStyle   = "fill: #eff; stroke: #355; stroke-width:1"
-	nodeSelectedRectStyle = "fill: #cef; stroke: #145; stroke-width:2"
-	nodeTextStyle         = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
-	nodeWidthPerPin       = 20
-	nodeHeight            = 50
-	nodeBoxMargin         = 20
+	nodeTextStyle   = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
+	nodeWidthPerPin = 20
+	nodeHeight      = 50
+	nodeBoxMargin   = 20
 )
 
 // Node is the view's model of a node.
@@ -57,6 +55,7 @@ func max(a, b int) int {
 // MakeElements makes the elements that are part of this node.
 func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 	n.Group = NewGroup(doc, parent).MoveTo(n.nc.Position())
+	n.Group.Element.ClassList().Add("node")
 
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.TextBox = &TextBox{
@@ -66,7 +65,6 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 	n.TextBox.
 		MakeElements(doc, n.Group).
 		SetTextStyle(nodeTextStyle).
-		SetRectStyle(nodeNormalRectStyle).
 		SetHeight(nodeHeight).
 		SetText(n.nc.Name()).
 		RecomputeWidth()
@@ -124,12 +122,12 @@ func (n *Node) drop() {
 }
 
 func (n *Node) gainFocus() {
-	n.TextBox.Rect.SetAttribute("style", nodeSelectedRectStyle)
+	n.Group.Element.ClassList().Add("selected")
 	n.nc.GainFocus()
 }
 
 func (n *Node) loseFocus() {
-	n.TextBox.Rect.SetAttribute("style", nodeNormalRectStyle)
+	n.Group.Element.ClassList().Remove("selected")
 	n.nc.LoseFocus()
 }
 

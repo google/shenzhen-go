@@ -39,18 +39,6 @@ table {
 	margin-top: 12px;
 	margin-bottom: 12px;
 }
-.pin-col-1 {
-	width: 15%;
-}
-.pin-col-2 {
-	width: 35%;
-}
-.pin-col-3 {
-	width: 35%;
-}
-.pin-col-4 {
-	width: 15%;
-}
 div.formfield label {
 	float: left;
 	text-align: right;
@@ -112,9 +100,6 @@ div.node-panel {
 div.hcentre {
 	text-align: center;
 }
-svg#diagram {
-	background: #f8f8ff;
-}
 table.browse {
 	font-family: 'Go Mono','Fira Code',Menlo,sans-serif;
 	font-size: 12pt;
@@ -152,10 +137,23 @@ fieldset#pathtemplate {
 	font-size: 14px;
 	flex: auto;
 }
-svg text {
+svg#diagram {
+	background: #f8f8ff;
+}
+svg#diagram text {
 	cursor: default;
 	user-select: none;
 }
-svg text::selection {
+svg#diagram text::selection {
     background: none;
+}
+svg#diagram g.node rect {
+	fill: #eff; 
+	stroke: #355; 
+	stroke-width: 1;
+}
+svg#diagram g.node.selected rect {
+	fill: #cef; 
+	stroke: #145; 
+	stroke-width: 2;
 }

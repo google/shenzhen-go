@@ -64,7 +64,7 @@ func (p *Pin) dragStart(x, y float64) {
 		}
 		ch = p.channel
 	} else {
-		ch.removePin(p) // sets p.channel = nil
+		ch.potentialPin = p
 	}
 	p.view.dragItem = ch
 	ch.dragStart(x, y)

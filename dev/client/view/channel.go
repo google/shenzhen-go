@@ -107,37 +107,37 @@ func (c *Channel) hideDrag() {
 func (c *Channel) dragStart(x, y float64) {
 	log.Print("*Channel.dragStart")
 
-	c.steiner.Show()
 	c.SetColour(activeColour)
-
-	c.layout(Point{x, y})
 	c.dragTo(x, y)
-	c.showDrag()
 }
 
 func (c *Channel) drag(x, y float64) {
 	log.Print("*Channel.drag")
 
-	c.dragTo(x, y)
 	d, q := c.graph.nearestPoint(x, y)
 	p, pin := q.(*Pin)
 
 	// Already connected to this pin?
-	if pin && p == c.potentialPin && d < snapQuad {
+	if pin && c.hasPin(p) && d < snapQuad {
 		return
 	}
 
-	// Was considering connecting to a pin, but now connecting to a
-	// different pin or to nothing?
-	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
-		c.removePin(c.potentialPin)
-		c.potentialPin.SetColour(normalColour)
-		c.potentialPin = nil
-	}
-
 	noSnap := func() {
+		c.dragTo(x, y)
 		c.showDrag()
 		c.layout(Point{x, y})
+		if c.potentialPin != nil {
+			c.removePin(c.potentialPin)
+			c.potentialPin.SetColour(normalColour)
+			c.potentialPin = nil
+		}
+	}
+
+	// Was considering connecting to a pin, but now connecting to a
+	// different pin or too far away?
+	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
+		noSnap()
+		return
 	}
 
 	// Too far from something to snap to?
@@ -180,9 +180,6 @@ func (c *Channel) drop() {
 	c.layout(nil)
 	c.commit()
 	c.hideDrag()
-	if len(c.Pins) < 3 {
-		c.steiner.Hide()
-	}
 }
 
 func (c *Channel) addPin(p *Pin) {
@@ -196,6 +193,11 @@ func (c *Channel) removePin(p *Pin) {
 	c.Pins[p].Remove()
 	delete(c.Pins, p)
 	c.cc.Detach(p.pc)
+}
+
+func (c *Channel) hasPin(p *Pin) bool {
+	_, found := c.Pins[p]
+	return found
 }
 
 func (c *Channel) gainFocus() {

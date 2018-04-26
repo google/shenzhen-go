@@ -122,6 +122,7 @@ func (v *View) createChannel(p *Pin) error {
 	ch.MakeElements(v.doc, v.diagram)
 	ch.addPin(p)
 	v.graph.Channels[cc.Name()] = ch
+	ch.layout(nil)
 	return nil
 }
 

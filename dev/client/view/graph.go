@@ -63,8 +63,7 @@ func (g *Graph) nearestPoint(x, y float64) (dist float64, pt Pointer) {
 	dist = math.MaxFloat64
 	q := complex(x, y)
 	test := func(p Pointer) {
-		r := complex128(p.Pt())
-		if t := cmplx.Abs(q - r); t < dist {
+		if t := cmplx.Abs(q - C(p)); t < dist {
 			dist, pt = t, p
 		}
 	}

@@ -26,10 +26,9 @@ type Pin struct {
 	Group               // Container for all the pin elements.
 	Shape   dom.Element // The pin itself.
 	Nametag *TextBox    // Temporarily visible on hover.
-	//dragLine, dragCirc dom.Element // Temporary elements when dragging from unattached pin.
 
 	// Computed, absolute coordinates (not relative to node).
-	x, y float64
+	point Point
 
 	pc PinController
 
@@ -43,13 +42,13 @@ type Pin struct {
 // MoveTo moves the pin (relatively).
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
-	p.x, p.y = rx+p.node.x, ry+p.node.y
+	p.point = Pt(rx+p.node.x, ry+p.node.y)
 	p.channel.layout(nil)
 	p.channel.commit()
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
-func (p *Pin) Pt() Point { return Point(complex(p.x, p.y)) }
+func (p *Pin) Pt() Point { return p.point }
 
 func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 

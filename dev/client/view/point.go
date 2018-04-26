@@ -24,3 +24,9 @@ type Point complex128
 
 // Pt implements Pointer.
 func (p Point) Pt() Point { return p }
+
+// C translates any Pointer into a complex128.
+func C(p Pointer) complex128 { return complex128(p.Pt()) }
+
+// Pt translates any x and y into a Point.
+func Pt(x, y float64) Point { return Point(complex(x, y)) }

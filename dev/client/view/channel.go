@@ -125,7 +125,7 @@ func (c *Channel) drag(x, y float64) {
 	noSnap := func() {
 		c.dragTo(x, y)
 		c.showDrag()
-		c.layout(Point(complex(x, y)))
+		c.layout(Pt(x, y))
 		if c.potentialPin != nil {
 			c.removePin(c.potentialPin)
 			c.potentialPin.SetColour(normalColour)
@@ -258,7 +258,7 @@ func (c *Channel) layout(additional Pointer) {
 	for p := range c.Pins {
 		c.visual += p.Pt()
 	}
-	c.visual /= Point(complex(float64(np), 0))
+	c.visual /= Pt(float64(np), 0)
 	c.steiner.
 		SetAttribute("cx", real(c.visual)).
 		SetAttribute("cy", imag(c.visual))

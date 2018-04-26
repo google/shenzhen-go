@@ -49,7 +49,7 @@ func (p *Pin) MoveTo(rx, ry float64) {
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.
-func (p *Pin) Pt() (x, y float64) { return p.x, p.y }
+func (p *Pin) Pt() Point { return Point(complex(p.x, p.y)) }
 
 func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 

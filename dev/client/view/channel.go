@@ -70,7 +70,7 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 }
 
 // Pt implements Pointer.
-func (c *Channel) Pt() (x, y float64) { return c.logical.Pt() }
+func (c *Channel) Pt() Point { return c.logical.Pt() }
 
 func (c *Channel) commit() {
 	if c == nil {
@@ -118,14 +118,14 @@ func (c *Channel) drag(x, y float64) {
 	p, pin := q.(*Pin)
 
 	// Already connected to this pin?
-	if pin && c.hasPin(p) && d < snapQuad {
+	if pin && c.hasPin(p) && d < snapDist {
 		return
 	}
 
 	noSnap := func() {
 		c.dragTo(x, y)
 		c.showDrag()
-		c.layout(Point{x, y})
+		c.layout(Point(complex(x, y)))
 		if c.potentialPin != nil {
 			c.removePin(c.potentialPin)
 			c.potentialPin.SetColour(normalColour)
@@ -135,7 +135,7 @@ func (c *Channel) drag(x, y float64) {
 
 	// Was considering connecting to a pin, but now connecting to a
 	// different pin or too far away?
-	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapQuad) {
+	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapDist) {
 		noSnap()
 		return
 	}
@@ -143,7 +143,7 @@ func (c *Channel) drag(x, y float64) {
 	// Too far from something to snap to?
 	// Trying to snap to itself?
 	// Don't snap, but not an error.
-	if d >= snapQuad || q == c || (pin && p.channel == c) {
+	if d >= snapDist || q == c || (pin && p.channel == c) {
 		c.errors.clearError()
 		noSnap()
 		c.SetColour(activeColour)
@@ -251,20 +251,20 @@ func (c *Channel) layout(additional Pointer) {
 		c.steiner.Show()
 	}
 
-	c.visual = Point{0, 0}
+	c.visual = Point(0)
 	if additional != nil {
-		c.visual.Set(additional.Pt())
+		c.visual = additional.Pt()
 	}
 	for p := range c.Pins {
-		c.visual.Add(p.Pt())
+		c.visual += p.Pt()
 	}
-	c.visual.Scale(1.0 / float64(np))
+	c.visual /= Point(complex(float64(np), 0))
 	c.steiner.
-		SetAttribute("cx", c.visual.x).
-		SetAttribute("cy", c.visual.y)
+		SetAttribute("cx", real(c.visual)).
+		SetAttribute("cy", imag(c.visual))
 	c.dragLine.
-		SetAttribute("x2", c.visual.x).
-		SetAttribute("y2", c.visual.y)
+		SetAttribute("x2", real(c.visual)).
+		SetAttribute("y2", imag(c.visual))
 	for _, r := range c.Pins {
 		r.Reroute()
 	}

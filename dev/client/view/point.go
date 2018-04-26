@@ -16,20 +16,11 @@ package view
 
 // Pointer is anything that has a position on the canvas.
 type Pointer interface {
-	Pt() (x, y float64)
+	Pt() Point
 }
 
 // Point is a basic implementation of Point.
-type Point struct{ x, y float64 }
+type Point complex128
 
 // Pt implements Pointer.
-func (p Point) Pt() (x, y float64) { return p.x, p.y }
-
-// Set changes the point's value.
-func (p *Point) Set(x, y float64) { p.x, p.y = x, y }
-
-// Add performs 2D vector addition.
-func (p *Point) Add(x, y float64) { p.x += x; p.y += y }
-
-// Scale performs scalar multiplication.
-func (p *Point) Scale(k float64) { p.x *= k; p.y *= k }
+func (p Point) Pt() Point { return p }

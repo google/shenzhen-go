@@ -16,6 +16,7 @@ package view
 
 import (
 	"math"
+	"math/cmplx"
 
 	"golang.org/x/net/context"
 
@@ -58,13 +59,13 @@ func (g *Graph) reallyCreateNode(partType string) {
 	g.Nodes[nc.Name()] = n
 }
 
-func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Pointer) {
-	quad = math.MaxFloat64
+func (g *Graph) nearestPoint(x, y float64) (dist float64, pt Pointer) {
+	dist = math.MaxFloat64
+	q := complex(x, y)
 	test := func(p Pointer) {
-		px, py := p.Pt()
-		dx, dy := x-px, y-py
-		if t := dx*dx + dy*dy; t < quad {
-			quad, pt = t, p
+		r := complex128(p.Pt())
+		if t := cmplx.Abs(q - r); t < dist {
+			dist, pt = t, p
 		}
 	}
 	for _, n := range g.Nodes {
@@ -75,7 +76,7 @@ func (g *Graph) nearestPoint(x, y float64) (quad float64, pt Pointer) {
 	for _, c := range g.Channels {
 		test(c)
 	}
-	return quad, pt
+	return dist, pt
 }
 
 func (g *Graph) save(dom.Object) {

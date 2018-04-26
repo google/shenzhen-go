@@ -33,7 +33,7 @@ const (
 
 	pinRadius = 5
 	lineWidth = 2
-	snapQuad  = 144
+	snapDist  = 12
 )
 
 // View caches the top-level objects for managing the UI.

@@ -53,13 +53,12 @@ func (r *Route) Remove() {
 
 // Reroute repositions the route. Call after moving either the channel or the pin.
 func (r *Route) Reroute() {
-	x1, y1 := r.src.Pt()
-	x2, y2 := r.dst.Pt()
+	a, b := r.src.Pt(), r.dst.Pt()
 	r.line.
-		SetAttribute("x1", x1).
-		SetAttribute("y1", y1).
-		SetAttribute("x2", x2).
-		SetAttribute("y2", y2)
+		SetAttribute("x1", real(a)).
+		SetAttribute("y1", imag(a)).
+		SetAttribute("x2", real(b)).
+		SetAttribute("y2", imag(b))
 }
 
 // SetStroke sets the stroke colour.

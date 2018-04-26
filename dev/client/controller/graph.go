@@ -92,11 +92,12 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 	}
 }
 
-func (c *graphController) newChannelController(channel *model.Channel) *channelController {
+func (c *graphController) newChannelController(channel *model.Channel, existingName string) *channelController {
 	return &channelController{
-		client:  c.client,
-		graph:   c.graph,
-		channel: channel,
+		client:       c.client,
+		graph:        c.graph,
+		channel:      channel,
+		existingName: existingName,
 	}
 }
 
@@ -131,7 +132,7 @@ func (c *graphController) NumNodes() int {
 
 func (c *graphController) Channels(f func(view.ChannelController)) {
 	for _, ch := range c.graph.Channels {
-		f(c.newChannelController(ch))
+		f(c.newChannelController(ch, ch.Name))
 	}
 }
 
@@ -176,11 +177,7 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 	}
 	ch.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
 
-	return &channelController{
-		client:  c.client,
-		graph:   c.graph,
-		channel: ch,
-	}, nil
+	return c.newChannelController(ch, ""), nil
 }
 
 func (c *graphController) CreateNode(ctx context.Context, partType string) (view.NodeController, error) {

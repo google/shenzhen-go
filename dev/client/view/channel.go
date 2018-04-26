@@ -33,21 +33,13 @@ type Channel struct {
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]*Route
 
-	created bool // create operation sent to server?
-
 	steiner            dom.Element // symbol representing the channel itself, not used if channel is simple
 	logical            Point       // centre of steiner point, for snapping
 	visual             Point       // temporary centre of steiner point, for display
 	dragLine, dragCirc dom.Element // temporarily visible, for dragging to more pins
 	potentialPin       *Pin        // considering attaching to this pin
-}
-
-func (c *Channel) reallyCreate() {
-	if err := c.cc.Commit(context.TODO()); err != nil {
-		c.errors.setError("Couldn't create a channel: " + err.Error())
-		return
-	}
-	c.created = true
+	subsumeInto        *Channel    // considering merging with this channel
+	presubsumption     map[*Pin]struct{}
 }
 
 // MakeElements recreates elements for this channel and adds them to the parent.
@@ -76,9 +68,15 @@ func (c *Channel) commit() {
 	if c == nil {
 		return
 	}
+	c.layout(nil)
 	c.logical = c.visual
-	if !c.created {
-		go c.reallyCreate()
+	go c.reallyCommit()
+}
+
+func (c *Channel) reallyCommit() {
+	if err := c.cc.Commit(context.TODO()); err != nil {
+		c.errors.setError("Couldn't create a channel: " + err.Error())
+		return
 	}
 }
 
@@ -108,82 +106,114 @@ func (c *Channel) dragStart(x, y float64) {
 	log.Print("*Channel.dragStart")
 
 	c.SetColour(activeColour)
+}
+
+func (c *Channel) noSnap(x, y float64) {
+	c.errors.clearError()
 	c.dragTo(x, y)
+	c.showDrag()
+	c.SetColour(activeColour)
+	c.layout(Pt(x, y))
+	if c.potentialPin != nil {
+		c.removePin(c.potentialPin)
+		c.potentialPin.SetColour(normalColour)
+		c.potentialPin = nil
+	}
+	if c.subsumeInto != nil {
+		c.unsubsume()
+	}
 }
 
 func (c *Channel) drag(x, y float64) {
 	log.Print("*Channel.drag")
 
 	d, q := c.graph.nearestPoint(x, y)
-	p, pin := q.(*Pin)
 
-	// Already connected to this pin?
-	if pin && c.hasPin(p) && d < snapDist {
+	// If the distance is too far, no snap in all cases.
+	if d >= snapDist {
+		c.noSnap(x, y)
 		return
 	}
 
-	noSnap := func() {
-		c.dragTo(x, y)
-		c.showDrag()
-		c.layout(Pt(x, y))
-		if c.potentialPin != nil {
+	switch z := q.(type) {
+	case *Pin:
+		// Already considering connecting to this pin?
+		if c.potentialPin == z {
+			return
+		}
+
+		// ..., or subsuming into its channel?
+		if c.subsumeInto != nil && c.subsumeInto == z.channel {
+			return
+		}
+
+		// Already connected to this pin?
+		if c.hasPin(z) {
+			c.noSnap(x, y)
+			return
+		}
+
+		// Trying to snap to a different channel via a pin.
+		if z.channel != nil && z.channel != c {
+			z.channel.subsume(c)
+			return
+		}
+
+		// Was considering connecting to a pin, but now connecting to a different pin.
+		if c.potentialPin != nil && c.potentialPin != z {
 			c.removePin(c.potentialPin)
 			c.potentialPin.SetColour(normalColour)
-			c.potentialPin = nil
 		}
-	}
 
-	// Was considering connecting to a pin, but now connecting to a
-	// different pin or too far away?
-	if pin && c.potentialPin != nil && (c.potentialPin != p || d >= snapDist) {
-		noSnap()
-		return
-	}
-
-	// Too far from something to snap to?
-	// Trying to snap to itself?
-	// Don't snap, but not an error.
-	if d >= snapDist || q == c || (pin && p.channel == c) {
+		// Snap to pin z! This means add it and hide the drag elements.
 		c.errors.clearError()
-		noSnap()
+		c.potentialPin = z
+		c.addPin(z)
 		c.SetColour(activeColour)
-		return
-	}
+		c.hideDrag()
+		c.layout(nil)
 
-	// Trying to snap to a different channel, either directly or via a pin.
-	if !pin || p.channel != nil {
-		c.errors.setError("Can't connect different channels together (use another goroutine)")
-		noSnap()
-		c.SetColour(errorColour)
-		return
-	}
+	case *Channel:
+		// TODO: handle case where we jump from potentialPin != nil to a subsumption
 
-	// Snap to pin p!
-	c.errors.clearError()
-	c.potentialPin = p
-	c.addPin(p)
-	c.SetColour(activeColour)
-	c.hideDrag()
-	c.layout(nil)
+		// Already subsuming into this channel?
+		if c.subsumeInto == z {
+			return
+		}
+
+		// Connecting to itself somehow?
+		if c == z {
+			c.noSnap(x, y)
+			return
+		}
+
+		// Trying to snap to a different channel directly.
+		z.subsume(c)
+	}
 }
 
 func (c *Channel) drop() {
 	log.Print("*Channel.drop")
-	c.SetColour(normalColour)
-	c.errors.clearError()
 
-	if len(c.Pins) < 2 {
+	c.errors.clearError()
+	c.SetColour(normalColour)
+
+	if c.subsumeInto != nil {
+		c.subsumeInto.SetColour(normalColour)
+		c.subsumeInto.commit()
+	}
+	if len(c.Pins) < 2 { // includes subsumption case
 		go c.reallyDelete()
 		return
 	}
 	c.potentialPin = nil
-	c.layout(nil)
 	c.commit()
 	c.hideDrag()
 }
 
 func (c *Channel) addPin(p *Pin) {
 	p.channel = c
+	c.Pins[p].Remove()
 	c.Pins[p] = NewRoute(c.view.doc, c.Group, &c.visual, p)
 	c.cc.Attach(p.pc)
 }
@@ -200,6 +230,33 @@ func (c *Channel) hasPin(p *Pin) bool {
 	return found
 }
 
+func (c *Channel) subsume(ch *Channel) {
+	ch.subsumeInto = c
+	ch.presubsumption = make(map[*Pin]struct{})
+	for p := range ch.Pins {
+		ch.presubsumption[p] = struct{}{}
+		ch.removePin(p)
+		c.addPin(p)
+	}
+	c.SetColour(activeColour)
+	c.layout(nil)
+	ch.SetColour(activeColour)
+	ch.layout(nil)
+}
+
+func (c *Channel) unsubsume() {
+	for p := range c.presubsumption {
+		c.subsumeInto.removePin(p)
+		c.addPin(p)
+	}
+	c.subsumeInto.SetColour(normalColour)
+	c.subsumeInto.layout(nil)
+	c.SetColour(normalColour)
+	c.layout(nil)
+	c.subsumeInto = nil
+	c.presubsumption = nil
+}
+
 func (c *Channel) gainFocus() {
 	log.Print("TODO(josh): implement Channel.gainFocus")
 }
@@ -213,11 +270,9 @@ func (c *Channel) save() {
 }
 
 func (c *Channel) reallyDelete() {
-	if c.created {
-		if err := c.cc.Delete(context.TODO()); err != nil {
-			c.errors.setError("Couldn't delete channel: " + err.Error())
-			return
-		}
+	if err := c.cc.Delete(context.TODO()); err != nil {
+		c.errors.setError("Couldn't delete channel: " + err.Error())
+		return
 	}
 
 	// Reset all attached pins, remove all the elements, delete from graph.

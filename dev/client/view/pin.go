@@ -43,8 +43,10 @@ type Pin struct {
 func (p *Pin) MoveTo(rx, ry float64) {
 	p.Group.MoveTo(rx, ry)
 	p.point = Pt(rx+p.node.x, ry+p.node.y)
-	p.channel.layout(nil)
-	p.channel.commit()
+	if p.channel != nil {
+		p.channel.layout(nil)
+		p.channel.logical = p.channel.visual
+	}
 }
 
 // Pt returns the diagram coordinate of the pin, for nearest-neighbor purposes.

@@ -113,12 +113,11 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 	g.gc.Channels(func(cc ChannelController) {
 		// Add the channel.
 		ch := &Channel{
-			view:    g.view,
-			errors:  g.errors,
-			graph:   g,
-			cc:      cc,
-			Pins:    make(map[*Pin]*Route),
-			created: true,
+			view:   g.view,
+			errors: g.errors,
+			graph:  g,
+			cc:     cc,
+			Pins:   make(map[*Pin]*Route),
 		}
 		g.Channels[cc.Name()] = ch
 		ch.MakeElements(g.doc, g.Group)

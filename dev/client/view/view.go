@@ -112,12 +112,11 @@ func (v *View) createChannel(p *Pin) error {
 		return err
 	}
 	ch := &Channel{
-		cc:      cc,
-		view:    v,
-		errors:  v,
-		graph:   v.graph,
-		Pins:    make(map[*Pin]*Route),
-		created: false,
+		cc:     cc,
+		view:   v,
+		errors: v,
+		graph:  v.graph,
+		Pins:   make(map[*Pin]*Route),
 	}
 	ch.MakeElements(v.doc, v.diagram)
 	ch.addPin(p)

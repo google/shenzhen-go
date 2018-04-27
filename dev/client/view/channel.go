@@ -142,9 +142,14 @@ func (c *Channel) drag(x, y float64) {
 			return
 		}
 
-		// ..., or subsuming into its channel?
-		if c.subsumeInto != nil && c.subsumeInto == z.channel {
-			return
+		// Already subsumed into a channel?
+		if c.subsumeInto != nil {
+			// ...into this channel?
+			if c.subsumeInto == z.channel {
+				return
+			}
+			// Subsumed into another channel?
+			c.unsubsume()
 		}
 
 		// Already connected to this pin?
@@ -153,16 +158,16 @@ func (c *Channel) drag(x, y float64) {
 			return
 		}
 
-		// Trying to snap to a different channel via a pin.
-		if z.channel != nil && z.channel != c {
-			z.channel.subsume(c)
-			return
-		}
-
 		// Was considering connecting to a pin, but now connecting to a different pin.
 		if c.potentialPin != nil && c.potentialPin != z {
 			c.removePin(c.potentialPin)
 			c.potentialPin.SetColour(normalColour)
+		}
+
+		// Trying to snap to a different channel via a pin.
+		if z.channel != nil && z.channel != c {
+			z.channel.subsume(c)
+			return
 		}
 
 		// Snap to pin z! This means add it and hide the drag elements.
@@ -174,8 +179,6 @@ func (c *Channel) drag(x, y float64) {
 		c.layout(nil)
 
 	case *Channel:
-		// TODO: handle case where we jump from potentialPin != nil to a subsumption
-
 		// Already subsuming into this channel?
 		if c.subsumeInto == z {
 			return
@@ -185,6 +188,18 @@ func (c *Channel) drag(x, y float64) {
 		if c == z {
 			c.noSnap(x, y)
 			return
+		}
+
+		// Was connecting to a pin before?
+		if c.potentialPin != nil {
+			c.removePin(c.potentialPin)
+			c.potentialPin.SetColour(normalColour)
+			c.potentialPin = nil
+		}
+
+		// Was subsumed into another channel?
+		if c.subsumeInto != nil && c.subsumeInto != z {
+			c.unsubsume()
 		}
 
 		// Trying to snap to a different channel directly.
@@ -231,6 +246,7 @@ func (c *Channel) hasPin(p *Pin) bool {
 }
 
 func (c *Channel) subsume(ch *Channel) {
+	ch.potentialPin = nil
 	ch.subsumeInto = c
 	ch.presubsumption = make(map[*Pin]struct{})
 	for p := range ch.Pins {

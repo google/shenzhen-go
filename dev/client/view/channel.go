@@ -116,8 +116,6 @@ func (c *Channel) noSnap(x, y float64) {
 	c.layout(Pt(x, y))
 	if c.potentialPin != nil {
 		c.removePin(c.potentialPin)
-		c.potentialPin.SetColour(normalColour)
-		c.potentialPin = nil
 	}
 	if c.subsumeInto != nil {
 		c.unsubsume()
@@ -161,7 +159,6 @@ func (c *Channel) drag(x, y float64) {
 		// Was considering connecting to a pin, but now connecting to a different pin.
 		if c.potentialPin != nil && c.potentialPin != z {
 			c.removePin(c.potentialPin)
-			c.potentialPin.SetColour(normalColour)
 		}
 
 		// Trying to snap to a different channel via a pin.
@@ -193,8 +190,6 @@ func (c *Channel) drag(x, y float64) {
 		// Was connecting to a pin before?
 		if c.potentialPin != nil {
 			c.removePin(c.potentialPin)
-			c.potentialPin.SetColour(normalColour)
-			c.potentialPin = nil
 		}
 
 		// Was subsumed into another channel?
@@ -234,6 +229,14 @@ func (c *Channel) addPin(p *Pin) {
 }
 
 func (c *Channel) removePin(p *Pin) {
+	if p.channel != c {
+		log.Print("c.removePin(p) but p.channel != c")
+		return
+	}
+	if p == c.potentialPin {
+		c.potentialPin = nil
+	}
+	p.SetColour(normalColour)
 	p.channel = nil
 	c.Pins[p].Remove()
 	delete(c.Pins, p)
@@ -246,7 +249,6 @@ func (c *Channel) hasPin(p *Pin) bool {
 }
 
 func (c *Channel) subsume(ch *Channel) {
-	ch.potentialPin = nil
 	ch.subsumeInto = c
 	ch.presubsumption = make(map[*Pin]struct{})
 	for p := range ch.Pins {

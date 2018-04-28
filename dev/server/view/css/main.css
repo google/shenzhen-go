@@ -195,13 +195,13 @@ svg#diagram g.textbox text::selection {
 }
 
 svg#diagram g.node g.textbox rect {
-	fill: #eff; 
-	stroke: #577; 
+	fill: #eff;
+	stroke: #577;
 	stroke-width: 1;
 }
 
 svg#diagram g.node.selected g.textbox rect {
-	fill: #cef; 
+	fill: #cef;
 	stroke-width: 2;
 }
 

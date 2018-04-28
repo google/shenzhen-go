@@ -16,6 +16,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -62,8 +63,8 @@ func webviewOpen(url string) error {
 	return webview.Open("SHENZHEN GO", url, 1152, 720, true)
 }
 
-func isUp(base string) bool {
-	resp, err := http.Get(base + "ping")
+func isUp(url string) bool {
+	resp, err := http.Get(url)
 	if err != nil {
 		return false
 	}
@@ -75,36 +76,56 @@ func isUp(base string) bool {
 	return string(msg) == pingMsg
 }
 
-func openWhenUp(addr net.Addr, useBrowser bool) {
-	base := fmt.Sprintf(`http://%s/`, addr)
+func waitForUp(addr net.Addr) error {
+	url := fmt.Sprintf(`http://%s/ping`, addr)
 	try := time.NewTicker(100 * time.Millisecond)
 	defer try.Stop()
 	timeout := time.NewTimer(5 * time.Second)
 	defer timeout.Stop()
-checkLoop:
 	for {
 		select {
 		case <-try.C:
-			if isUp(base) {
-				break checkLoop
+			if isUp(url) {
+				return nil
 			}
 		case <-timeout.C:
-			fmt.Fprintf(os.Stderr, "Couldn't find server after 5 seconds, giving up")
-			os.Exit(1)
+			return errors.New("timed out waiting 5s for server")
 		}
 	}
-	open := systemOpen
+}
+
+func open(addr net.Addr, path string, useBrowser bool) {
+	url := fmt.Sprintf(`http://%s/%s`, addr, path)
+	opener := systemOpen
 	if !useBrowser {
-		open = webviewOpen
+		opener = webviewOpen
 	}
-	if err := open(base); err != nil {
+	if err := opener(url); err != nil {
 		fmt.Fprintf(os.Stderr, "Couldn't automatically open: %v\n", err)
-		fmt.Printf("Ready to open %s\n", base)
+		fmt.Printf("Ready to open %s\n", url)
 	}
 }
 
 func main() {
 	flag.Parse()
+
+	args := flag.Args()
+	if len(args) > 0 {
+		switch args[0] {
+		case "generate":
+			log.Fatalf("TODO: generate is not yet implemented")
+		case "build":
+			log.Fatalf("TODO: build is not yet implemented")
+		case "install":
+			log.Fatalf("TODO: install is not yet implemented")
+		case "run":
+			log.Fatalf("TODO: run is not yet implemented")
+		case "edit":
+			args = args[1:]
+		default:
+			// Edit but every arg is a file.
+		}
+	}
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(pingMsg)) })
 	http.Handle("/favicon.ico", view.Favicon)
@@ -132,11 +153,18 @@ func main() {
 		close(wait)
 	}()
 
-	// As soon as we're serving, launch "open" which should launch a browser,
-	// or ask the user to do so.
-	// This must be called from the main thread to avoid
-	// https://github.com/zserge/webview/issues/29.
-	openWhenUp(ln.Addr(), *useDefaultBrowser)
+	// Wait until properly serving.
+	if err := waitForUp(ln.Addr()); err != nil {
+		log.Fatalf("Couldn't reach server: %v", err)
+	}
+
+	for _, a := range args {
+		// Launch "open" which should launch a browser,
+		// or ask the user to do so.
+		// This must be called from the main thread to avoid
+		// https://github.com/zserge/webview/issues/29.
+		open(ln.Addr(), a, *useDefaultBrowser)
+	}
 
 	// Job done.
 	<-wait

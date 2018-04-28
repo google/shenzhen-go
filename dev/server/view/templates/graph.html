@@ -55,6 +55,9 @@
 					<input id="graph-prop-is-command" name="IsCommand" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
 				</div>
 			</div>
+			<div id="channel-properties" style="display:none">
+				<!-- TODO: Add this. -->
+			</div>
 			<div id="node-properties" style="display:none">
 				<div id="node-actions" class="head">
 					<a id="node-save-link" href="javascript:void(0);" title="Save changes to this goroutine.">Save</a> |

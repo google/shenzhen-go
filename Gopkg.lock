@@ -38,6 +38,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/zserge/webview"
+  packages = ["."]
+  revision = "02aa1dcf62a15f2c1e2197a07642e9c474ac32fa"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/image"
   packages = [
     "font/gofont/gobold",
@@ -127,6 +133,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9ba00d032ef5473fce87515e3ccdd34e487ef492cc9a18a28d63944f86e78643"
+  inputs-digest = "2c8799036ebdced8a9795a21148c34b7d82375513a280dbec7723d38a91ea8b4"
   solver-name = "gps-cdcl"
   solver-version = 1

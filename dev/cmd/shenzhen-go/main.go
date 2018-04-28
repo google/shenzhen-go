@@ -123,8 +123,11 @@ func main() {
 		case "edit":
 			args = args[1:]
 		default:
-			// Edit but every arg is a file.
+			// Edit, but every arg is a file.
 		}
+	} else {
+		// Opens the browser at the root.
+		args = []string{""}
 	}
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(pingMsg)) })

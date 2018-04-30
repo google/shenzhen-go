@@ -135,7 +135,7 @@ func serve(addr chan<- net.Addr) error {
 }
 
 func usage() {
-	fmt.Fprintf(flag.CommandLine.Output(), `Shenzhen Go is a tool for managing Shenzhen Go source code.
+	fmt.Fprintf(os.Stderr, `Shenzhen Go is a tool for managing Shenzhen Go source code.
 	
 Usage:
 

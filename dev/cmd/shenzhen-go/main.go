@@ -40,7 +40,7 @@ import (
 const pingMsg = "Pong!"
 
 var (
-	uiAddr            = flag.String("ui_addr", "localhost:0", "Address to bind UI server to")
+	uiAddr            = flag.String("ui_addr", "localhost:0", "`address` to bind UI server to")
 	useDefaultBrowser = flag.Bool("use_browser", true, "Load in the system's default web browser instead of the inbuilt webview")
 )
 
@@ -60,7 +60,7 @@ func systemOpen(url string) error {
 }
 
 func webviewOpen(url string) error {
-	return webview.Open("SHENZHEN GO", url, 1152, 720, true)
+	return webview.Open("Shenzhen Go", url, 1152, 720, true)
 }
 
 func isUp(url string) bool {
@@ -106,28 +106,15 @@ func open(addr net.Addr, path string, useBrowser bool) {
 	}
 }
 
-func main() {
-	flag.Parse()
+func serve(addr chan<- net.Addr) error {
+	ln, err := net.Listen("tcp", *uiAddr)
+	if err != nil {
+		return fmt.Errorf("net.Listen: %v", err)
+	}
+	defer ln.Close()
 
-	args := flag.Args()
-	if len(args) > 0 {
-		switch args[0] {
-		case "generate":
-			log.Fatalf("TODO: generate is not yet implemented")
-		case "build":
-			log.Fatalf("TODO: build is not yet implemented")
-		case "install":
-			log.Fatalf("TODO: install is not yet implemented")
-		case "run":
-			log.Fatalf("TODO: run is not yet implemented")
-		case "edit":
-			args = args[1:]
-		default:
-			// Edit, but every arg is a file.
-		}
-	} else {
-		// Opens the browser at the root.
-		args = []string{""}
+	if addr != nil {
+		addr <- ln.Addr()
 	}
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(pingMsg)) })
@@ -141,32 +128,92 @@ func main() {
 
 	// Finally, all unknown paths are assumed to be files.
 	http.Handle("/", server.S)
-
-	ln, err := net.Listen("tcp", *uiAddr)
-	if err != nil {
-		log.Fatalf("net.Listen failed: %v", err)
+	if err := http.Serve(ln, nil); err != nil {
+		return fmt.Errorf("http.Serve: %v", err)
 	}
-	defer ln.Close()
+	return nil
+}
 
+func usage() {
+	fmt.Fprintf(flag.CommandLine.Output(), `Shenzhen Go is a tool for managing Shenzhen Go source code.
+	
+Usage:
+
+  %s [command] [files]
+  
+The (optional) commands are:
+  
+  build     generate and build Go packages
+  edit      launch a Shenzhen Go server and open the editor interface
+  generate  generate Go packages
+  install   generate and install Go packages
+  run       generate Go package and run binaries
+  serve     launch a Shenzhen Go server
+  
+"edit" is the default command.
+
+Flags:`, os.Args[0])
+	// TODO: Add per-command help. `shenzhen-go help [command]`
+
+	flag.PrintDefaults()
+}
+
+func main() {
+	flag.Usage = usage
+	flag.Parse()
+
+	openUI := true
+	args := flag.Args()
+	if len(args) > 0 {
+		switch args[0] {
+		case "build":
+			log.Fatalf("TODO: build is not yet implemented")
+		case "edit":
+			args = args[1:]
+		case "generate":
+			log.Fatalf("TODO: generate is not yet implemented")
+		case "help":
+			usage()
+			return
+		case "install":
+			log.Fatalf("TODO: install is not yet implemented")
+		case "run":
+			log.Fatalf("TODO: run is not yet implemented")
+		case "serve":
+			if len(args) > 1 {
+				log.Print(`Note: extra arguments to "serve" command are ignored`)
+			}
+			openUI = false
+		default:
+			// Edit, but every arg is a file.
+		}
+	} else {
+		// Opens the browser at the root.
+		args = []string{""}
+	}
+
+	adch := make(chan net.Addr)
 	wait := make(chan struct{})
 	go func() {
-		if err := http.Serve(ln, nil); err != nil {
-			log.Fatalf("http.Serve failed: %v", err)
-		}
+		serve(adch)
 		close(wait)
 	}()
 
 	// Wait until properly serving.
-	if err := waitForUp(ln.Addr()); err != nil {
+	addr := <-adch
+	if err := waitForUp(addr); err != nil {
 		log.Fatalf("Couldn't reach server: %v", err)
 	}
+	log.Printf("Serving HTTP on %v", addr)
 
-	for _, a := range args {
-		// Launch "open" which should launch a browser,
-		// or ask the user to do so.
-		// This must be called from the main thread to avoid
-		// https://github.com/zserge/webview/issues/29.
-		open(ln.Addr(), a, *useDefaultBrowser)
+	if openUI {
+		for _, a := range args {
+			// Launch "open" which should launch a browser,
+			// or ask the user to do so.
+			// This must be called from the main thread to avoid
+			// https://github.com/zserge/webview/issues/29.
+			open(addr, a, *useDefaultBrowser)
+		}
 	}
 
 	// Job done.

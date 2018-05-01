@@ -152,7 +152,9 @@ The (optional) commands are:
   
 "edit" is the default command.
 
-Flags:`, os.Args[0])
+Flags:
+
+`, os.Args[0])
 	// TODO: Add per-command help. `shenzhen-go help [command]`
 
 	flag.PrintDefaults()

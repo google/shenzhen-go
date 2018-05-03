@@ -56,10 +56,24 @@
 				</div>
 			</div>
 			<div id="channel-properties" style="display:none">
-				<!-- TODO: Add this. -->
-				<h3>Channel Properties (TODO)</h3>
+				<h3>Channel Properties</h3>
+				<div id="channel-actions" class="head">
+					<a id="channel-save-link" href="javascript:void(0);" title="Save changes to this channel.">Save</a> |
+					<a id="channel-delete-link" href="javascript:void(0);" class="destructive" title="Delete this channel">Delete</a>
+				</div>
+				<div id="channel-properties-panel">
+					<div class="formfield">
+						<label for="Name">Name</label>
+						<input id="channel-name" name="Name" type="text" required value="{.Name}">
+					</div>
+					<div class="formfield">
+						<label for="Capacity">Capacity</label>
+						<input id="channel-capacity" name="Capacity" type="number" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="0">
+					</div>
+				</div>
 			</div>
 			<div id="node-properties" style="display:none">
+				<h3>Node Properties</h3>
 				<div id="node-actions" class="head">
 					<a id="node-save-link" href="javascript:void(0);" title="Save changes to this goroutine.">Save</a> |
 					<a id="node-clone-link" href="javascript:void(0);" title="Make a copy of this goroutine.">Clone</a> | 

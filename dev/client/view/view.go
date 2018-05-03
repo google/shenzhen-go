@@ -18,9 +18,8 @@ package view
 import (
 	"log"
 
-	"github.com/google/shenzhen-go/dev/model"
-
 	"github.com/google/shenzhen-go/dev/dom"
+	"github.com/google/shenzhen-go/dev/model"
 )
 
 const (

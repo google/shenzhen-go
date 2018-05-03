@@ -108,7 +108,7 @@ func (r *TextFileReader) Impl() (head, body, tail string) {
 // Imports returns any extra import lines needed.
 func (*TextFileReader) Imports() []string {
 	return []string{
-		`"github.com/google/shenzhen-go/parts/partlib"`,
+		`"github.com/google/shenzhen-go/v0/parts/partlib"`,
 	}
 }
 

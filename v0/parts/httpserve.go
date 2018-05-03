@@ -168,7 +168,7 @@ func (p *HTTPServer) Impl() (head, body, tail string) {
 func (*HTTPServer) Imports() []string {
 	return []string{
 		`"net/http"`,
-		`"github.com/google/shenzhen-go/parts/partlib"`,
+		`"github.com/google/shenzhen-go/v0/parts/partlib"`,
 	}
 }
 

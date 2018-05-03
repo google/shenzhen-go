@@ -1,6 +1,6 @@
 {
 	"name": "Word counter",
-	"package_path": "github.com/google/shenzhen-go/examples/wc",
+	"package_path": "github.com/google/shenzhen-go/v0/examples/wc",
 	"imports": [
 		"\"fmt\"",
 		"\"strings\"",

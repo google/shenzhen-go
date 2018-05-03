@@ -1,6 +1,6 @@
 {
 	"name": "Prime number generator",
-	"package_path": "github.com/google/shenzhen-go/examples/primes",
+	"package_path": "github.com/google/shenzhen-go/v0/examples/primes",
 	"imports": [
 		"\"fmt\""
 	],

@@ -1,6 +1,6 @@
 {
 	"name": "Mandelbrot renderer",
-	"package_path": "github.com/google/shenzhen-go/examples/mandelbrot",
+	"package_path": "github.com/google/shenzhen-go/v0/examples/mandelbrot",
 	"imports": [
 		"\"fmt\"",
 		"\"image\"",
@@ -11,7 +11,7 @@
 		"\"os\"",
 		"\"strings\"",
 		"\"strconv\"",
-		"\"github.com/google/shenzhen-go/parts/partlib\""
+		"\"github.com/google/shenzhen-go/v0/parts/partlib\""
 	],
 	"is_command": true,
 	"nodes": {

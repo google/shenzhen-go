@@ -38,10 +38,10 @@ type graphController struct {
 	client pb.ShenzhenGoClient
 
 	// RHS panels
-	CurrentRHSPanel      dom.Element
-	GraphPropertiesPanel dom.Element
-	NodePropertiesPanel  dom.Element
-	// ChannelPropertiesPanel dom.Element
+	CurrentRHSPanel        dom.Element
+	ChannelPropertiesPanel dom.Element
+	GraphPropertiesPanel   dom.Element
+	NodePropertiesPanel    dom.Element
 
 	// Graph properties panel inputs
 	graphNameTextInput        dom.Element
@@ -80,9 +80,10 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 		client: client,
 		graph:  graph,
 
-		GraphPropertiesPanel: doc.ElementByID("graph-properties"),
-		NodePropertiesPanel:  doc.ElementByID("node-properties"),
-		CurrentRHSPanel:      doc.ElementByID("graph-properties"),
+		GraphPropertiesPanel:   doc.ElementByID("graph-properties"),
+		NodePropertiesPanel:    doc.ElementByID("node-properties"),
+		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
+		CurrentRHSPanel:        doc.ElementByID("graph-properties"),
 
 		graphNameTextInput:        doc.ElementByID("graph-prop-name"),
 		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
@@ -98,6 +99,7 @@ func (c *graphController) newChannelController(channel *model.Channel, existingN
 		graph:        c.graph,
 		channel:      channel,
 		existingName: existingName,
+		gc:           c,
 	}
 }
 

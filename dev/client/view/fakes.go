@@ -55,7 +55,7 @@ func (f fakeNodeController) GainFocus() {}
 func (f fakeNodeController) LoseFocus() {}
 
 func (f fakeNodeController) Delete(context.Context) error                        { return nil }
-func (f fakeNodeController) Save(context.Context) error                          { return nil }
+func (f fakeNodeController) Commit(context.Context) error                        { return nil }
 func (f fakeNodeController) SetPosition(context.Context, float64, float64) error { return nil }
 func (f fakeNodeController) ShowMetadataSubpanel()                               {}
 func (f fakeNodeController) ShowPartSubpanel(string)                             {}

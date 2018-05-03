@@ -27,6 +27,8 @@ type channelController struct {
 	graph        *model.Graph
 	channel      *model.Channel
 	existingName string
+
+	gc *graphController
 }
 
 func (c *channelController) Name() string { return c.channel.Name }
@@ -105,4 +107,12 @@ func (c *channelController) Detach(pc view.PinController) {
 	}
 	n.Connections[pc.Name()] = "nil"
 	c.channel.RemovePin(pc.NodeName(), pc.Name())
+}
+
+func (c *channelController) GainFocus() {
+	c.gc.showRHSPanel(c.gc.ChannelPropertiesPanel)
+}
+
+func (c *channelController) LoseFocus() {
+	// Nop.
 }

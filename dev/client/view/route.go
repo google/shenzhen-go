@@ -34,6 +34,7 @@ func NewRoute(doc dom.Document, parent Group, src, dst Pointer) *Route {
 		src: src,
 		dst: dst,
 	}
+	r.line.ClassList().Add("route")
 	r.Reroute()
 	parent.AddChildren(r.line)
 	return r

@@ -40,10 +40,10 @@ type ChannelController interface {
 	Name() string
 	Pins(func(PinController)) // input called for all currently attached pins
 
-	// Bind(*Channel)
-
 	Attach(PinController)
 	Detach(PinController)
+	GainFocus()
+	LoseFocus()
 
 	Commit(ctx context.Context) error
 	Delete(ctx context.Context) error
@@ -55,14 +55,13 @@ type NodeController interface {
 	Position() (x, y float64)
 	Pins(func(pc PinController, channel string)) // input called for all pins on this node
 
-	// Bind(*Node)
 	GainFocus()
 	LoseFocus()
 	ShowMetadataSubpanel()
 	ShowPartSubpanel(name string)
 
+	Commit(ctx context.Context) error
 	Delete(ctx context.Context) error
-	Save(ctx context.Context) error
 	SetPosition(ctx context.Context, x, y float64) error
 }
 
@@ -72,6 +71,4 @@ type PinController interface {
 	Type() string
 	IsInput() bool
 	NodeName() string
-
-	// Bind(*Pin)
 }

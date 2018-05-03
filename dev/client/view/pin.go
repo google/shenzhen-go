@@ -94,6 +94,7 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	p.Shape = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", p.view.dragStarter(p)).
+		// AddEventListener("mousedown", p.view.selecter(p)).
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
 
@@ -115,5 +116,6 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 
 // SetColour sets the colour of the pin (and dragging elements).
 func (p *Pin) SetColour(colour string) {
+	// TODO: replace with CSS
 	p.Shape.SetAttribute("fill", colour)
 }

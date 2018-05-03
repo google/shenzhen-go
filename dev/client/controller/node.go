@@ -74,7 +74,7 @@ func (c *nodeController) Delete(ctx context.Context) error {
 	return err // TODO: contextualise
 }
 
-func (c *nodeController) Save(ctx context.Context) error {
+func (c *nodeController) Commit(ctx context.Context) error {
 	pj, err := model.MarshalPart(c.node.Part)
 	if err != nil {
 		return err // TODO: contextualise

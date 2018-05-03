@@ -139,7 +139,7 @@ func (n *Node) save() {
 
 func (n *Node) reallySave() {
 	oldName := n.nc.Name()
-	if err := n.nc.Save(context.TODO()); err != nil {
+	if err := n.nc.Commit(context.TODO()); err != nil {
 		n.errors.setError("Couldn't update node properties: " + err.Error())
 		return
 	}

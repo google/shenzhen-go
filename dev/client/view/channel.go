@@ -47,17 +47,20 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	c.Group.Remove()
 	c.Group = NewGroup(doc, parent)
 	c.Group.Element.ClassList().Add("channel")
+
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
-		AddEventListener("mousedown", c.view.dragStarter(c))
+		AddEventListener("mousedown", c.view.dragStarter(c)).
+		AddEventListener("mousedown", c.view.selecter(c))
 	c.steiner.ClassList().Add("draggable")
+
 	c.dragLine = doc.MakeSVGElement("line").
 		SetAttribute("stroke-width", lineWidth)
 	c.dragCirc = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius)
 	c.dragCirc.ClassList().Add("draggable")
-
 	c.hideDrag()
+
 	c.Group.AddChildren(c.steiner, c.dragLine, c.dragCirc)
 }
 
@@ -276,15 +279,21 @@ func (c *Channel) unsubsume() {
 }
 
 func (c *Channel) gainFocus() {
-	log.Print("TODO(josh): implement Channel.gainFocus")
+	c.SetColour(activeColour)
+	c.cc.GainFocus()
 }
 
 func (c *Channel) loseFocus() {
-	log.Print("TODO(josh): implement Channel.loseFocus")
+	c.SetColour(normalColour)
+	c.cc.LoseFocus()
 }
 
 func (c *Channel) save() {
 	log.Print("TODO(josh): implement Channel.save")
+}
+
+func (c *Channel) delete() {
+	log.Print("TODO(josh): implement Channel.delete")
 }
 
 func (c *Channel) reallyDelete() {

@@ -54,8 +54,7 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 		AddEventListener("mousedown", c.view.selecter(c))
 	c.steiner.ClassList().Add("draggable")
 
-	c.dragLine = doc.MakeSVGElement("line").
-		SetAttribute("stroke-width", lineWidth)
+	c.dragLine = doc.MakeSVGElement("line")
 	c.dragCirc = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius)
 	c.dragCirc.ClassList().Add("draggable")
@@ -108,14 +107,14 @@ func (c *Channel) hideDrag() {
 func (c *Channel) dragStart(x, y float64) {
 	log.Print("*Channel.dragStart")
 
-	c.SetColour(activeColour)
+	c.selected()
 }
 
 func (c *Channel) noSnap(x, y float64) {
 	c.errors.clearError()
 	c.dragTo(x, y)
 	c.showDrag()
-	c.SetColour(activeColour)
+	c.selected()
 	c.layout(Pt(x, y))
 	if c.potentialPin != nil {
 		c.removePin(c.potentialPin)
@@ -174,7 +173,7 @@ func (c *Channel) drag(x, y float64) {
 		c.errors.clearError()
 		c.potentialPin = z
 		c.addPin(z)
-		c.SetColour(activeColour)
+		c.selected()
 		c.hideDrag()
 		c.layout(nil)
 
@@ -209,10 +208,10 @@ func (c *Channel) drop() {
 	log.Print("*Channel.drop")
 
 	c.errors.clearError()
-	c.SetColour(normalColour)
+	c.unselected()
 
 	if c.subsumeInto != nil {
-		c.subsumeInto.SetColour(normalColour)
+		c.subsumeInto.unselected()
 		c.subsumeInto.commit()
 	}
 	if len(c.Pins) < 2 { // includes subsumption case
@@ -239,7 +238,7 @@ func (c *Channel) removePin(p *Pin) {
 	if p == c.potentialPin {
 		c.potentialPin = nil
 	}
-	p.SetColour(normalColour)
+	p.Group.ClassList().Remove("selected")
 	p.channel = nil
 	c.Pins[p].Remove()
 	delete(c.Pins, p)
@@ -259,9 +258,9 @@ func (c *Channel) subsume(ch *Channel) {
 		ch.removePin(p)
 		c.addPin(p)
 	}
-	c.SetColour(activeColour)
+	c.selected()
 	c.layout(nil)
-	ch.SetColour(activeColour)
+	ch.selected()
 	ch.layout(nil)
 }
 
@@ -270,21 +269,21 @@ func (c *Channel) unsubsume() {
 		c.subsumeInto.removePin(p)
 		c.addPin(p)
 	}
-	c.subsumeInto.SetColour(normalColour)
+	c.subsumeInto.unselected()
 	c.subsumeInto.layout(nil)
-	c.SetColour(normalColour)
+	c.unselected()
 	c.layout(nil)
 	c.subsumeInto = nil
 	c.presubsumption = nil
 }
 
 func (c *Channel) gainFocus() {
-	c.SetColour(activeColour)
+	c.Group.ClassList().Add("selected")
 	c.cc.GainFocus()
 }
 
 func (c *Channel) loseFocus() {
-	c.SetColour(normalColour)
+	c.Group.ClassList().Remove("selected")
 	c.cc.LoseFocus()
 }
 
@@ -352,13 +351,16 @@ func (c *Channel) layout(additional Pointer) {
 	}
 }
 
-// SetColour changes the colour of the whole channel.
-func (c *Channel) SetColour(col string) {
-	c.steiner.SetAttribute("fill", col)
-	c.dragCirc.SetAttribute("fill", col)
-	c.dragLine.SetAttribute("stroke", col)
-	for p, r := range c.Pins {
-		p.SetColour(col)
-		r.SetStroke(col)
+func (c *Channel) selected() {
+	c.Group.ClassList().Add("selected")
+	for p := range c.Pins {
+		p.selected()
+	}
+}
+
+func (c *Channel) unselected() {
+	c.Group.ClassList().Remove("selected")
+	for p := range c.Pins {
+		p.unselected()
 	}
 }

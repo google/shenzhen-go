@@ -23,15 +23,7 @@ import (
 )
 
 const (
-	activeColour = "#09f"
-	normalColour = "#000"
-	errorColour  = "#f06"
-
-	errRectStyle = "fill: #fee; stroke: #533; stroke-width:1"
-	errTextStyle = "font-family:Go; font-size:16; user-select:none; pointer-events:none"
-
 	pinRadius = 5
-	lineWidth = 2
 	snapDist  = 12
 )
 

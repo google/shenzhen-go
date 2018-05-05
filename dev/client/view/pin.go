@@ -110,12 +110,14 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	p.Nametag.Hide()
 
 	p.Group.AddChildren(p.Shape)
-	p.SetColour(normalColour)
+	p.unselected()
 	return p
 }
 
-// SetColour sets the colour of the pin (and dragging elements).
-func (p *Pin) SetColour(colour string) {
-	// TODO: replace with CSS
-	p.Shape.SetAttribute("fill", colour)
+func (p *Pin) selected() {
+	p.Group.ClassList().Add("selected")
+}
+
+func (p *Pin) unselected() {
+	p.Group.ClassList().Remove("selected")
 }

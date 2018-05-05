@@ -28,11 +28,9 @@ type Route struct {
 // as a child of the channel's group.
 func NewRoute(doc dom.Document, parent Group, src, dst Pointer) *Route {
 	r := &Route{
-		line: doc.MakeSVGElement("line").
-			SetAttribute("stroke", normalColour).
-			SetAttribute("stroke-width", lineWidth),
-		src: src,
-		dst: dst,
+		line: doc.MakeSVGElement("line"),
+		src:  src,
+		dst:  dst,
 	}
 	r.line.ClassList().Add("route")
 	r.Reroute()
@@ -61,9 +59,6 @@ func (r *Route) Reroute() {
 		SetAttribute("x2", real(b)).
 		SetAttribute("y2", imag(b))
 }
-
-// SetStroke sets the stroke colour.
-func (r *Route) SetStroke(colour string) { r.line.SetAttribute("stroke", colour) }
 
 // Show shows the route.
 func (r *Route) Show() { r.line.Show() }

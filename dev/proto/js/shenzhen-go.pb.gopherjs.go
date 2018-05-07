@@ -161,7 +161,6 @@ func (m *NodePin) Unmarshal(rawBytes []byte) (*NodePin, error) {
 type ChannelConfig struct {
 	Name string
 	Type string
-	Anon bool
 	Cap  uint64
 	Pins []*NodePin
 }
@@ -180,14 +179,6 @@ func (m *ChannelConfig) GetType() (x string) {
 		return x
 	}
 	return m.Type
-}
-
-// GetAnon gets the Anon of the ChannelConfig.
-func (m *ChannelConfig) GetAnon() (x bool) {
-	if m == nil {
-		return x
-	}
-	return m.Anon
 }
 
 // GetCap gets the Cap of the ChannelConfig.
@@ -220,16 +211,12 @@ func (m *ChannelConfig) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteString(2, m.Type)
 	}
 
-	if m.Anon {
-		writer.WriteBool(3, m.Anon)
-	}
-
 	if m.Cap != 0 {
-		writer.WriteUint64(4, m.Cap)
+		writer.WriteUint64(3, m.Cap)
 	}
 
 	for _, msg := range m.Pins {
-		writer.WriteMessage(5, func() {
+		writer.WriteMessage(4, func() {
 			msg.MarshalToWriter(writer)
 		})
 	}
@@ -257,10 +244,8 @@ func (m *ChannelConfig) UnmarshalFromReader(reader jspb.Reader) *ChannelConfig {
 		case 2:
 			m.Type = reader.ReadString()
 		case 3:
-			m.Anon = reader.ReadBool()
-		case 4:
 			m.Cap = reader.ReadUint64()
-		case 5:
+		case 4:
 			reader.ReadMessage(func() {
 				m.Pins = append(m.Pins, new(NodePin).UnmarshalFromReader(reader))
 			})

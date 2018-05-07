@@ -28,9 +28,9 @@ import (
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
-const anonChannelNamePrefix = "anonymousChannel"
+const defaultChannelNamePrefix = "channel"
 
-var anonChannelNameRE = regexp.MustCompile(`^anonymousChannel\d+$`)
+var defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
 
 type graphController struct {
 	doc    dom.Document
@@ -153,9 +153,8 @@ func (c graphController) PartTypes() map[string]*model.PartType {
 
 func (c *graphController) CreateChannel(pcs ...view.PinController) (view.ChannelController, error) {
 	ch := &model.Channel{
-		Capacity:  0,
-		Anonymous: true,
-		Pins:      make(map[model.NodePin]struct{}, len(pcs)),
+		Capacity: 0,
+		Pins:     make(map[model.NodePin]struct{}, len(pcs)),
 	}
 
 	// Set the type to the first one found.
@@ -170,10 +169,10 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 	// Pick a unique name
 	max := -1
 	for _, ec := range c.graph.Channels {
-		if !anonChannelNameRE.MatchString(ec.Name) {
+		if !defaultChannelNameRE.MatchString(ec.Name) {
 			continue
 		}
-		n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, anonChannelNamePrefix))
+		n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, defaultChannelNamePrefix))
 		if err != nil {
 			// The string just matched \d+ but can't be converted to an int?...
 			panic(err)
@@ -182,7 +181,7 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 			max = n
 		}
 	}
-	ch.Name = anonChannelNamePrefix + strconv.Itoa(max+1)
+	ch.Name = defaultChannelNamePrefix + strconv.Itoa(max+1)
 
 	return c.newChannelController(ch, ""), nil
 }

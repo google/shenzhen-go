@@ -16,10 +16,9 @@ package model
 
 // Channel represents connections between pins.
 type Channel struct {
-	Name      string `json:"-"`
-	Anonymous bool   `json:"anonymous,omitempty"` // Just means hide the "name".
-	Type      string `json:"type"`
-	Capacity  int    `json:"cap"`
+	Name     string `json:"-"`
+	Type     string `json:"type"`
+	Capacity int    `json:"cap"`
 
 	// Cache of pins this channel is attached to
 	Pins map[NodePin]struct{} `json:"-"`

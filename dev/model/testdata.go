@@ -61,10 +61,9 @@ var TestGraphs = map[string]*Graph{
 		},
 		Channels: map[string]*Channel{
 			"bar": {
-				Name:      "bar",
-				Anonymous: false,
-				Type:      "int",
-				Capacity:  0,
+				Name:     "bar",
+				Type:     "int",
+				Capacity: 0,
 			},
 		},
 	},

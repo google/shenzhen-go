@@ -100,11 +100,10 @@ func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb
 
 	// Set entry in map, update connections on node side.
 	g.Channels[req.Config.Name] = &model.Channel{
-		Name:      req.Config.Name,
-		Type:      req.Config.Type,
-		Anonymous: req.Config.Anon,
-		Capacity:  int(req.Config.Cap),
-		Pins:      nps,
+		Name:     req.Config.Name,
+		Type:     req.Config.Type,
+		Capacity: int(req.Config.Cap),
+		Pins:     nps,
 	}
 	for np := range nps {
 		g.Nodes[np.Node].Connections[np.Pin] = req.Config.Name

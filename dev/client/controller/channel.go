@@ -67,7 +67,6 @@ func (c *channelController) Commit(ctx context.Context) error {
 			Name: c.channel.Name,
 			Type: c.channel.Type,
 			Cap:  uint64(c.channel.Capacity),
-			Anon: c.channel.Anonymous,
 			Pins: np,
 		},
 	}

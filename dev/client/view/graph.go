@@ -98,6 +98,9 @@ func (g *Graph) reallySaveProperties() {
 	}
 }
 
+func (g *Graph) gainFocus() { g.gc.GainFocus() }
+func (g *Graph) loseFocus() { g.gc.LoseFocus() }
+
 // MakeElements drops any existing elements, and then loads new ones
 // from the graph controller.
 func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {

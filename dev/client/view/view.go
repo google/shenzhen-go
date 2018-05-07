@@ -33,8 +33,8 @@ type View struct {
 	diagram dom.Element  // The LHS panel
 	graph   *Graph       // SVG elements in the LHS panel
 
-	dragItem     draggable  // nil if nothing is being dragged
-	selectedItem selectable // nil if nothing is selected
+	dragItem     dragger  // nil if nothing is being dragged
+	selectedItem selecter // nil if nothing is selected
 }
 
 // Setup connects to elements in the DOM.
@@ -52,8 +52,10 @@ func Setup(doc dom.Document, gc GraphController) {
 	}
 	v.graph.MakeElements(doc, v.diagram)
 
+	v.selectedItem = v.graph
+
 	v.diagram.
-		AddEventListener("mousedown", v.diagramMouseDown).
+		AddEventListener("mousedown", v.selecter(v.graph)).
 		AddEventListener("mousemove", v.diagramMouseMove).
 		AddEventListener("mouseup", v.diagramMouseUp)
 
@@ -126,21 +128,12 @@ func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
 func (v *View) dragStarter(d dragStarter) func(dom.Object) {
 	return func(e dom.Object) {
 		e.Call("preventDefault")
-		if dr, ok := d.(draggable); ok {
+		if dr, ok := d.(dragger); ok {
 			v.dragItem = dr
 		}
 		d.dragStart(v.diagramCursorPos(e))
 		e.Call("stopPropagation")
 	}
-}
-
-func (v *View) diagramMouseDown(e dom.Object) {
-	defer e.Call("stopPropagation")
-	if v.selectedItem == nil {
-		return
-	}
-	v.selectedItem.loseFocus()
-	v.graph.gc.GainFocus()
 }
 
 func (v *View) diagramMouseMove(e dom.Object) {
@@ -161,46 +154,57 @@ func (v *View) diagramMouseUp(e dom.Object) {
 	v.dragItem = nil
 }
 
+// changeSelection switches the selected item, calling loseFocus and gainFocus
+// as necessary.
+func (v *View) changeSelection(s selecter) {
+	v.selectedItem.loseFocus()
+	v.selectedItem = s
+	s.gainFocus()
+}
+
 // selecter makes an onclick handler for a selectable.
-func (v *View) selecter(s selectable) func(dom.Object) {
+func (v *View) selecter(s selecter) func(dom.Object) {
 	return func(e dom.Object) {
-		defer e.Call("stopPropagation")
-		if v.selectedItem != nil {
-			v.selectedItem.loseFocus()
-		}
-		v.selectedItem = s
-		s.gainFocus()
+		v.changeSelection(s)
+		e.Call("stopPropagation")
 	}
 }
 
 func (v *View) saveSelected(e dom.Object) {
-	if v.selectedItem == nil {
+	s, _ := v.selectedItem.(saveDeleter)
+	if s == nil {
 		return
 	}
-	v.selectedItem.save()
+	s.save()
 }
 
 func (v *View) deleteSelected(e dom.Object) {
-	if v.selectedItem == nil {
+	s, _ := v.selectedItem.(saveDeleter)
+	if s == nil {
 		return
 	}
-	v.selectedItem.delete()
+	s.delete()
 }
 
+// dragStarter is anything that can start a drag action
 type dragStarter interface {
 	dragStart(diagramX, diagramY float64)
 }
 
-// draggable is anything that can be dragged on the canvas/SVG.
-type draggable interface {
+// dragger is anything that can be dragged on the canvas/SVG.
+type dragger interface {
 	drag(diagramX, diagramY float64)
 	drop()
 }
 
-// selectable is anything that can be selected on the canvas/SVG.
-type selectable interface {
+// selecter is anything that can be selected on the canvas/SVG.
+type selecter interface {
 	gainFocus()
 	loseFocus()
+}
+
+// saveDeleter is anything that can be "saved" or "deleted".
+type saveDeleter interface {
 	delete()
 	save()
 }

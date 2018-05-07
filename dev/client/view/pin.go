@@ -94,7 +94,7 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 	p.Shape = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", p.view.dragStarter(p)).
-		// AddEventListener("mousedown", p.view.selecter(p)).
+		AddEventListener("mousedown", p.view.selecter(p)).
 		AddEventListener("mouseenter", p.mouseEnter).
 		AddEventListener("mouseleave", p.mouseLeave)
 
@@ -120,4 +120,15 @@ func (p *Pin) selected() {
 
 func (p *Pin) unselected() {
 	p.Group.ClassList().Remove("selected")
+}
+
+func (p *Pin) gainFocus() {
+	if p.channel == nil {
+		return
+	}
+	p.view.changeSelection(p.channel)
+}
+
+func (p *Pin) loseFocus() {
+	// Nop.
 }

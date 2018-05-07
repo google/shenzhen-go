@@ -106,15 +106,12 @@ func (c *Channel) hideDrag() {
 
 func (c *Channel) dragStart(x, y float64) {
 	log.Print("*Channel.dragStart")
-
-	c.selected()
 }
 
 func (c *Channel) noSnap(x, y float64) {
 	c.errors.clearError()
 	c.dragTo(x, y)
 	c.showDrag()
-	c.selected()
 	c.layout(Pt(x, y))
 	if c.potentialPin != nil {
 		c.removePin(c.potentialPin)
@@ -173,7 +170,7 @@ func (c *Channel) drag(x, y float64) {
 		c.errors.clearError()
 		c.potentialPin = z
 		c.addPin(z)
-		c.selected()
+		z.selected()
 		c.hideDrag()
 		c.layout(nil)
 
@@ -208,13 +205,13 @@ func (c *Channel) drop() {
 	log.Print("*Channel.drop")
 
 	c.errors.clearError()
-	c.unselected()
 
 	if c.subsumeInto != nil {
-		c.subsumeInto.unselected()
+		c.view.changeSelection(c.subsumeInto)
 		c.subsumeInto.commit()
 	}
 	if len(c.Pins) < 2 { // includes subsumption case
+		c.view.changeSelection(c.graph)
 		go c.reallyDelete()
 		return
 	}
@@ -238,7 +235,7 @@ func (c *Channel) removePin(p *Pin) {
 	if p == c.potentialPin {
 		c.potentialPin = nil
 	}
-	p.Group.ClassList().Remove("selected")
+	p.unselected()
 	p.channel = nil
 	c.Pins[p].Remove()
 	delete(c.Pins, p)
@@ -258,10 +255,9 @@ func (c *Channel) subsume(ch *Channel) {
 		ch.removePin(p)
 		c.addPin(p)
 	}
-	c.selected()
 	c.layout(nil)
-	ch.selected()
 	ch.layout(nil)
+	c.view.changeSelection(c)
 }
 
 func (c *Channel) unsubsume() {
@@ -269,21 +265,26 @@ func (c *Channel) unsubsume() {
 		c.subsumeInto.removePin(p)
 		c.addPin(p)
 	}
-	c.subsumeInto.unselected()
 	c.subsumeInto.layout(nil)
-	c.unselected()
 	c.layout(nil)
+	c.view.changeSelection(c)
 	c.subsumeInto = nil
 	c.presubsumption = nil
 }
 
 func (c *Channel) gainFocus() {
 	c.Group.ClassList().Add("selected")
+	for p := range c.Pins {
+		p.selected()
+	}
 	c.cc.GainFocus()
 }
 
 func (c *Channel) loseFocus() {
 	c.Group.ClassList().Remove("selected")
+	for p := range c.Pins {
+		p.unselected()
+	}
 	c.cc.LoseFocus()
 }
 
@@ -348,19 +349,5 @@ func (c *Channel) layout(additional Pointer) {
 		SetAttribute("y2", imag(c.visual))
 	for _, r := range c.Pins {
 		r.Reroute()
-	}
-}
-
-func (c *Channel) selected() {
-	c.Group.ClassList().Add("selected")
-	for p := range c.Pins {
-		p.selected()
-	}
-}
-
-func (c *Channel) unselected() {
-	c.Group.ClassList().Remove("selected")
-	for p := range c.Pins {
-		p.unselected()
 	}
 }

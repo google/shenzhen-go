@@ -18,15 +18,23 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/client/view"
+	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 
+type channelSharedOutlets struct {
+	// Channel properties inputs
+	inputName     dom.Element
+	inputCapacity dom.Element
+}
+
 type channelController struct {
-	client       pb.ShenzhenGoClient
-	graph        *model.Graph
-	channel      *model.Channel
-	existingName string
+	client        pb.ShenzhenGoClient
+	graph         *model.Graph
+	channel       *model.Channel
+	sharedOutlets *channelSharedOutlets
+	existingName  string
 
 	gc *graphController
 }
@@ -111,6 +119,9 @@ func (c *channelController) Detach(pc view.PinController) {
 
 func (c *channelController) GainFocus() {
 	c.gc.showRHSPanel(c.gc.ChannelPropertiesPanel)
+
+	c.sharedOutlets.inputName.Set("value", c.channel.Name)
+	c.sharedOutlets.inputCapacity.Set("value", c.channel.Capacity)
 }
 
 func (c *channelController) LoseFocus() {

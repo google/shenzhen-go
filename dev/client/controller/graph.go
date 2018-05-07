@@ -48,28 +48,20 @@ type graphController struct {
 	graphPackagePathTextInput dom.Element
 	graphIsCommandCheckbox    dom.Element
 
-	// Shared outlets for nodes, stored here for passing to new nodeControllers
-	nodeSharedOutlets *nodeSharedOutlets
+	// Components that are connected to whatever is selected.
+	channelSharedOutlets *channelSharedOutlets
+	nodeSharedOutlets    *nodeSharedOutlets
 }
 
 // NewGraphController returns a new controller for a graph, and binds outlets.
 func NewGraphController(doc dom.Document, graph *model.Graph, client pb.ShenzhenGoClient) view.GraphController {
-	nso := &nodeSharedOutlets{
-		nodeMetadataSubpanel:  doc.ElementByID("node-metadata-panel"),
-		nodeCurrentSubpanel:   doc.ElementByID("node-metadata-panel"),
-		nodeNameInput:         doc.ElementByID("node-name"),
-		nodeEnabledInput:      doc.ElementByID("node-enabled"),
-		nodeMultiplicityInput: doc.ElementByID("node-multiplicity"),
-		nodeWaitInput:         doc.ElementByID("node-wait"),
-		nodePartEditors:       make(map[string]*partEditor, len(model.PartTypes)),
-	}
-
+	pes := make(map[string]*partEditor, len(model.PartTypes))
 	for n, t := range model.PartTypes {
 		p := make(map[string]dom.Element, len(t.Panels))
 		for _, d := range t.Panels {
 			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
 		}
-		nso.nodePartEditors[n] = &partEditor{
+		pes[n] = &partEditor{
 			Links:  doc.ElementByID("node-" + n + "-links"),
 			Panels: p,
 		}
@@ -89,17 +81,30 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
 		graphIsCommandCheckbox:    doc.ElementByID("graph-prop-is-command"),
 
-		nodeSharedOutlets: nso,
+		channelSharedOutlets: &channelSharedOutlets{
+			inputName:     doc.ElementByID("channel-name"),
+			inputCapacity: doc.ElementByID("channel-capacity"),
+		},
+		nodeSharedOutlets: &nodeSharedOutlets{
+			subpanelMetadata:  doc.ElementByID("node-metadata-panel"),
+			subpanelCurrent:   doc.ElementByID("node-metadata-panel"),
+			inputName:         doc.ElementByID("node-name"),
+			inputEnabled:      doc.ElementByID("node-enabled"),
+			inputMultiplicity: doc.ElementByID("node-multiplicity"),
+			inputWait:         doc.ElementByID("node-wait"),
+			partEditors:       pes,
+		},
 	}
 }
 
 func (c *graphController) newChannelController(channel *model.Channel, existingName string) *channelController {
 	return &channelController{
-		client:       c.client,
-		graph:        c.graph,
-		channel:      channel,
-		existingName: existingName,
-		gc:           c,
+		client:        c.client,
+		graph:         c.graph,
+		channel:       channel,
+		sharedOutlets: c.channelSharedOutlets,
+		existingName:  existingName,
+		gc:            c,
 	}
 }
 
@@ -110,7 +115,7 @@ func (c *graphController) newNodeController(node *model.Node) *nodeController {
 		node:          node,
 		sharedOutlets: c.nodeSharedOutlets,
 		gc:            c,
-		subpanel:      c.nodeSharedOutlets.nodeMetadataSubpanel,
+		subpanel:      c.nodeSharedOutlets.subpanelMetadata,
 	}
 }
 

@@ -30,13 +30,13 @@ type partEditor struct {
 
 type nodeSharedOutlets struct {
 	// Node properties subpanels and inputs
-	nodeMetadataSubpanel  dom.Element
-	nodeCurrentSubpanel   dom.Element
-	nodeNameInput         dom.Element
-	nodeEnabledInput      dom.Element
-	nodeMultiplicityInput dom.Element
-	nodeWaitInput         dom.Element
-	nodePartEditors       map[string]*partEditor
+	subpanelMetadata  dom.Element
+	subpanelCurrent   dom.Element
+	inputName         dom.Element
+	inputEnabled      dom.Element
+	inputMultiplicity dom.Element
+	inputWait         dom.Element
+	partEditors       map[string]*partEditor
 }
 
 type nodeController struct {
@@ -80,10 +80,10 @@ func (c *nodeController) Commit(ctx context.Context) error {
 		return err // TODO: contextualise
 	}
 	cfg := &pb.NodeConfig{
-		Name:         c.sharedOutlets.nodeNameInput.Get("value").String(),
-		Enabled:      c.sharedOutlets.nodeEnabledInput.Get("checked").Bool(),
-		Multiplicity: uint32(c.sharedOutlets.nodeMultiplicityInput.Get("value").Int()),
-		Wait:         c.sharedOutlets.nodeWaitInput.Get("checked").Bool(),
+		Name:         c.sharedOutlets.inputName.Get("value").String(),
+		Enabled:      c.sharedOutlets.inputEnabled.Get("checked").Bool(),
+		Multiplicity: uint32(c.sharedOutlets.inputMultiplicity.Get("value").Int()),
+		Wait:         c.sharedOutlets.inputWait.Get("checked").Bool(),
 		PartCfg:      pj.Part,
 		PartType:     pj.Type,
 		X:            c.node.X,
@@ -129,11 +129,11 @@ type focusable interface {
 func (c *nodeController) GainFocus() {
 	c.gc.showRHSPanel(c.gc.NodePropertiesPanel)
 
-	c.sharedOutlets.nodeNameInput.Set("value", c.node.Name)
-	c.sharedOutlets.nodeEnabledInput.Set("checked", c.node.Enabled)
-	c.sharedOutlets.nodeMultiplicityInput.Set("value", c.node.Multiplicity)
-	c.sharedOutlets.nodeWaitInput.Set("checked", c.node.Wait)
-	c.sharedOutlets.nodePartEditors[c.node.Part.TypeKey()].Links.Show()
+	c.sharedOutlets.inputName.Set("value", c.node.Name)
+	c.sharedOutlets.inputEnabled.Set("checked", c.node.Enabled)
+	c.sharedOutlets.inputMultiplicity.Set("value", c.node.Multiplicity)
+	c.sharedOutlets.inputWait.Set("checked", c.node.Wait)
+	c.sharedOutlets.partEditors[c.node.Part.TypeKey()].Links.Show()
 	c.showSubpanel(c.subpanel)
 }
 
@@ -142,11 +142,11 @@ func (c *nodeController) LoseFocus() {
 }
 
 func (c *nodeController) ShowMetadataSubpanel() {
-	c.showSubpanel(c.sharedOutlets.nodeMetadataSubpanel)
+	c.showSubpanel(c.sharedOutlets.subpanelMetadata)
 }
 
 func (c *nodeController) ShowPartSubpanel(name string) {
-	c.showSubpanel(c.sharedOutlets.nodePartEditors[c.node.Part.TypeKey()].Panels[name])
+	c.showSubpanel(c.sharedOutlets.partEditors[c.node.Part.TypeKey()].Panels[name])
 }
 
 func (c *nodeController) showSubpanel(p dom.Element) {
@@ -156,9 +156,9 @@ func (c *nodeController) showSubpanel(p dom.Element) {
 	}
 
 	c.subpanel = p
-	if c.sharedOutlets.nodeCurrentSubpanel == p {
+	if c.sharedOutlets.subpanelCurrent == p {
 		return
 	}
-	c.sharedOutlets.nodeCurrentSubpanel.Hide()
-	c.sharedOutlets.nodeCurrentSubpanel = p.Show()
+	c.sharedOutlets.subpanelCurrent.Hide()
+	c.sharedOutlets.subpanelCurrent = p.Show()
 }

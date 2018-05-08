@@ -83,6 +83,7 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 
 		channelSharedOutlets: &channelSharedOutlets{
 			inputName:     doc.ElementByID("channel-name"),
+			spanType:      doc.ElementByID("channel-type"),
 			inputCapacity: doc.ElementByID("channel-capacity"),
 		},
 		nodeSharedOutlets: &nodeSharedOutlets{

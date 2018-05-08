@@ -36,10 +36,6 @@ type Graph struct {
 	Channels map[string]*Channel
 }
 
-func (g *Graph) createNode(partType string) {
-	go g.reallyCreateNode(partType) // don't block in callback
-}
-
 func (g *Graph) reallyCreateNode(partType string) {
 	nc, err := g.gc.CreateNode(context.TODO(), partType)
 	if err != nil {

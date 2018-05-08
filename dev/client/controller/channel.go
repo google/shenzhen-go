@@ -24,8 +24,9 @@ import (
 )
 
 type channelSharedOutlets struct {
-	// Channel properties inputs
+	// Channel properties inputs & outputs
 	inputName     dom.Element
+	spanType      dom.Element
 	inputCapacity dom.Element
 }
 
@@ -60,15 +61,16 @@ func (c *channelController) Commit(ctx context.Context) error {
 			Pin:  x.Pin,
 		})
 	}
+	cfg := &pb.ChannelConfig{
+		Name: c.channel.Name,
+		Type: c.channel.Type,
+		Cap:  uint64(c.channel.Capacity),
+		Pins: np,
+	}
 	req := &pb.SetChannelRequest{
 		Graph:   c.graph.FilePath,
 		Channel: c.existingName,
-		Config: &pb.ChannelConfig{
-			Name: c.channel.Name,
-			Type: c.channel.Type,
-			Cap:  uint64(c.channel.Capacity),
-			Pins: np,
-		},
+		Config:  cfg,
 	}
 	_, err := c.client.SetChannel(ctx, req)
 	if err != nil {
@@ -121,6 +123,7 @@ func (c *channelController) GainFocus() {
 
 	c.sharedOutlets.inputName.Set("value", c.channel.Name)
 	c.sharedOutlets.inputCapacity.Set("value", c.channel.Capacity)
+	c.sharedOutlets.spanType.Set("innerText", c.channel.Type)
 }
 
 func (c *channelController) LoseFocus() {

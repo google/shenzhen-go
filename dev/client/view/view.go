@@ -76,7 +76,7 @@ func Setup(doc dom.Document, gc GraphController) {
 
 	for n, t := range model.PartTypes {
 		doc.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(dom.Object) { v.graph.createNode(n) })
+			AddEventListener("click", func(dom.Object) { go v.graph.reallyCreateNode(n) }) // Don't block in callback
 
 		for _, p := range t.Panels {
 			m := p.Name

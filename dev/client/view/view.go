@@ -77,9 +77,14 @@ func Setup(doc dom.Document, gc GraphController) {
 	doc.ElementByID("channel-delete-link").
 		AddEventListener("click", v.deleteSelected)
 
-	// TODO: use change events
-	doc.ElementByID("node-save-link").
-		AddEventListener("click", v.commitSelected)
+	doc.ElementByID("node-name").
+		AddEventListener("change", v.commitSelected)
+	doc.ElementByID("node-enabled").
+		AddEventListener("change", v.commitSelected)
+	doc.ElementByID("node-multiplicity").
+		AddEventListener("change", v.commitSelected)
+	doc.ElementByID("node-wait").
+		AddEventListener("change", v.commitSelected)
 
 	doc.ElementByID("node-delete-link").
 		AddEventListener("click", v.deleteSelected)

@@ -19,7 +19,6 @@ import "golang.org/x/net/context"
 // GraphController is implemented by the controller of a whole graph.
 type GraphController interface {
 	GainFocus()
-	LoseFocus()
 
 	// Sub-controllers
 	Nodes(func(NodeController)) // input called for all nodes
@@ -47,7 +46,6 @@ type ChannelController interface {
 	Attach(PinController)
 	Detach(PinController)
 	GainFocus()
-	LoseFocus()
 
 	Commit(ctx context.Context) error
 	Delete(ctx context.Context) error
@@ -60,7 +58,6 @@ type NodeController interface {
 	Pins(func(pc PinController, channel string)) // input called for all pins on this node
 
 	GainFocus()
-	LoseFocus()
 	ShowMetadataSubpanel()
 	ShowPartSubpanel(name string)
 

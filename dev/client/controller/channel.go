@@ -130,7 +130,3 @@ func (c *channelController) GainFocus() {
 	c.sharedOutlets.inputCapacity.Set("value", c.channel.Capacity)
 	c.sharedOutlets.codeType.Set("innerText", c.channel.Type)
 }
-
-func (c *channelController) LoseFocus() {
-	// Nop.
-}

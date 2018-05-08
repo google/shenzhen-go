@@ -32,6 +32,8 @@ const defaultChannelNamePrefix = "channel"
 
 var defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
 
+var _ view.GraphController = (*graphController)(nil)
+
 type graphController struct {
 	doc    dom.Document
 	graph  *model.Graph
@@ -122,10 +124,6 @@ func (c *graphController) newNodeController(node *model.Node) *nodeController {
 
 func (c *graphController) GainFocus() {
 	c.showRHSPanel(c.GraphPropertiesPanel)
-}
-
-func (c *graphController) LoseFocus() {
-	// Nop.
 }
 
 func (c *graphController) Nodes(f func(view.NodeController)) {

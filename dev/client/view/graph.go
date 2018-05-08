@@ -95,7 +95,7 @@ func (g *Graph) reallyCommit() {
 }
 
 func (g *Graph) gainFocus() { g.gc.GainFocus() }
-func (g *Graph) loseFocus() { g.gc.LoseFocus() }
+func (g *Graph) loseFocus() { go g.reallyCommit() }
 
 // MakeElements drops any existing elements, and then loads new ones
 // from the graph controller.

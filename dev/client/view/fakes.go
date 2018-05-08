@@ -23,7 +23,6 @@ import (
 type fakeGraphController struct{}
 
 func (c fakeGraphController) GainFocus()                         {}
-func (c fakeGraphController) LoseFocus()                         {}
 func (c fakeGraphController) Nodes(f func(NodeController))       { f(fakeNodeController{}) }
 func (c fakeGraphController) NumNodes() int                      { return 1 }
 func (c fakeGraphController) Channels(f func(ChannelController)) {}
@@ -53,7 +52,6 @@ func (f fakeNodeController) Pins(x func(PinController, string)) {
 }
 
 func (f fakeNodeController) GainFocus() {}
-func (f fakeNodeController) LoseFocus() {}
 
 func (f fakeNodeController) Delete(context.Context) error                        { return nil }
 func (f fakeNodeController) Commit(context.Context) error                        { return nil }

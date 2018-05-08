@@ -273,19 +273,19 @@ func (c *Channel) unsubsume() {
 }
 
 func (c *Channel) gainFocus() {
+	c.cc.GainFocus()
 	c.Group.ClassList().Add("selected")
 	for p := range c.Pins {
 		p.selected()
 	}
-	c.cc.GainFocus()
 }
 
 func (c *Channel) loseFocus() {
+	go c.reallyCommit()
 	c.Group.ClassList().Remove("selected")
 	for p := range c.Pins {
 		p.unselected()
 	}
-	c.cc.LoseFocus()
 }
 
 func (c *Channel) delete() {

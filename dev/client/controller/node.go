@@ -139,10 +139,6 @@ func (c *nodeController) GainFocus() {
 	c.showSubpanel(c.subpanel)
 }
 
-func (c *nodeController) LoseFocus() {
-	// Nop.
-}
-
 func (c *nodeController) ShowMetadataSubpanel() {
 	c.showSubpanel(c.sharedOutlets.subpanelMetadata)
 }

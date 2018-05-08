@@ -124,13 +124,13 @@ func (n *Node) drop() {
 }
 
 func (n *Node) gainFocus() {
-	n.Group.Element.ClassList().Add("selected")
 	n.nc.GainFocus()
+	n.Group.Element.ClassList().Add("selected")
 }
 
 func (n *Node) loseFocus() {
+	go n.reallyCommit()
 	n.Group.Element.ClassList().Remove("selected")
-	n.nc.LoseFocus()
 }
 
 func (n *Node) commit() {

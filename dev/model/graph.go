@@ -93,7 +93,11 @@ func (g *Graph) AllImports() []string {
 // DeleteChannel cleans up any connections and then deletes a channel.
 func (g *Graph) DeleteChannel(ch *Channel) {
 	for np := range ch.Pins {
-		g.Nodes[np.Node].Connections[np.Pin] = "nil"
+		n := g.Nodes[np.Node]
+		if n == nil {
+			panic("node " + np.Node + " should exist")
+		}
+		n.Connections[np.Pin] = "nil"
 	}
 	delete(g.Channels, ch.Name)
 }
@@ -102,7 +106,14 @@ func (g *Graph) DeleteChannel(ch *Channel) {
 // This will not result in deleting channels that are no longer valid.
 func (g *Graph) DeleteNode(n *Node) {
 	for p, cn := range n.Connections {
-		g.Channels[cn].RemovePin(n.Name, p)
+		if cn == "nil" {
+			continue
+		}
+		ch := g.Channels[cn]
+		if ch == nil {
+			panic("channel " + cn + " should exist")
+		}
+		ch.RemovePin(n.Name, p)
 	}
 	delete(g.Nodes, n.Name)
 }

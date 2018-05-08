@@ -100,6 +100,8 @@ func (c *nodeController) Commit(ctx context.Context) error {
 	// Update local copy, since these were read at save time.
 	// TODO: check whether the available pins have changed.
 	if c.node.Name != cfg.Name {
+		delete(c.graph.Nodes, c.node.Name)
+		c.graph.Nodes[cfg.Name] = c.node
 		c.node.Name = cfg.Name
 	}
 	c.node.Enabled = cfg.Enabled

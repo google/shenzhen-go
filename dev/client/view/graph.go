@@ -84,12 +84,12 @@ func (g *Graph) reallySave() {
 	}
 }
 
-func (g *Graph) saveProperties(dom.Object) {
-	go g.reallySaveProperties() // cannot block in callback
+func (g *Graph) commit(dom.Object) {
+	go g.reallyCommit() // cannot block in callback
 }
 
-func (g *Graph) reallySaveProperties() {
-	if err := g.gc.SaveProperties(context.TODO()); err != nil {
+func (g *Graph) reallyCommit() {
+	if err := g.gc.Commit(context.TODO()); err != nil {
 		g.errors.setError("Couldn't save properties: " + err.Error())
 	}
 }

@@ -37,8 +37,9 @@ func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (N
 	return nil, nil
 }
 
-func (c fakeGraphController) Save(ctx context.Context) error           { return nil }
-func (c fakeGraphController) SaveProperties(ctx context.Context) error { return nil }
+func (c fakeGraphController) Commit(ctx context.Context) error { return nil }
+
+func (c fakeGraphController) Save(ctx context.Context) error { return nil }
 
 type fakeNodeController struct{}
 

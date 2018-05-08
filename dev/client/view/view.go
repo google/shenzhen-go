@@ -63,14 +63,24 @@ func Setup(doc dom.Document, gc GraphController) {
 		AddEventListener("click", v.graph.save)
 
 	doc.ElementByID("graph-prop-name").
-		AddEventListener("change", v.graph.saveProperties)
+		AddEventListener("change", v.graph.commit)
 	doc.ElementByID("graph-prop-package-path").
-		AddEventListener("change", v.graph.saveProperties)
+		AddEventListener("change", v.graph.commit)
 	doc.ElementByID("graph-prop-is-command").
-		AddEventListener("change", v.graph.saveProperties)
+		AddEventListener("change", v.graph.commit)
 
+	doc.ElementByID("channel-name").
+		AddEventListener("change", v.commitSelected)
+	doc.ElementByID("channel-capacity").
+		AddEventListener("change", v.commitSelected)
+
+	doc.ElementByID("channel-delete-link").
+		AddEventListener("click", v.deleteSelected)
+
+	// TODO: use change events
 	doc.ElementByID("node-save-link").
-		AddEventListener("click", v.saveSelected)
+		AddEventListener("click", v.commitSelected)
+
 	doc.ElementByID("node-delete-link").
 		AddEventListener("click", v.deleteSelected)
 
@@ -175,16 +185,16 @@ func (v *View) selecter(s selecter) func(dom.Object) {
 	}
 }
 
-func (v *View) saveSelected(e dom.Object) {
-	s, _ := v.selectedItem.(saveDeleter)
+func (v *View) commitSelected(e dom.Object) {
+	s, _ := v.selectedItem.(commitDeleter)
 	if s == nil {
 		return
 	}
-	s.save()
+	s.commit()
 }
 
 func (v *View) deleteSelected(e dom.Object) {
-	s, _ := v.selectedItem.(saveDeleter)
+	s, _ := v.selectedItem.(commitDeleter)
 	if s == nil {
 		return
 	}
@@ -208,10 +218,10 @@ type selecter interface {
 	loseFocus()
 }
 
-// saveDeleter is anything that can be "saved" or "deleted".
-type saveDeleter interface {
+// commitDeleter is anything that can be "saved" or "deleted".
+type commitDeleter interface {
+	commit()
 	delete()
-	save()
 }
 
 type errorViewer interface {

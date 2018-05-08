@@ -29,10 +29,14 @@ type GraphController interface {
 	NumChannels() int
 
 	CreateChannel(pcs ...PinController) (ChannelController, error)
-
 	CreateNode(ctx context.Context, partType string) (NodeController, error)
+
+	// Send properties to server
+	Commit(ctx context.Context) error
+
+	// Action links
 	Save(ctx context.Context) error
-	SaveProperties(ctx context.Context) error
+	// TODO: Revert, Build, Install, Run...
 }
 
 // ChannelController is implemented by the controller of a channel.

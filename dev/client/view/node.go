@@ -133,11 +133,11 @@ func (n *Node) loseFocus() {
 	n.nc.LoseFocus()
 }
 
-func (n *Node) save() {
-	go n.reallySave()
+func (n *Node) commit() {
+	go n.reallyCommit()
 }
 
-func (n *Node) reallySave() {
+func (n *Node) reallyCommit() {
 	oldName := n.nc.Name()
 	if err := n.nc.Commit(context.TODO()); err != nil {
 		n.errors.setError("Couldn't update node properties: " + err.Error())

@@ -236,7 +236,7 @@ func (c *graphController) Save(ctx context.Context) error {
 	return err
 }
 
-func (c *graphController) SaveProperties(ctx context.Context) error {
+func (c *graphController) Commit(ctx context.Context) error {
 	req := &pb.SetGraphPropertiesRequest{
 		Graph:       c.graph.FilePath,
 		Name:        c.graphNameTextInput.Get("value").String(),

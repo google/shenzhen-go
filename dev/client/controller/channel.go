@@ -62,9 +62,9 @@ func (c *channelController) Commit(ctx context.Context) error {
 		})
 	}
 	cfg := &pb.ChannelConfig{
-		Name: c.channel.Name,
+		Name: c.sharedOutlets.inputName.Get("value").String(),
 		Type: c.channel.Type,
-		Cap:  uint64(c.channel.Capacity),
+		Cap:  c.sharedOutlets.inputCapacity.Get("value").Uint64(),
 		Pins: np,
 	}
 	req := &pb.SetChannelRequest{
@@ -76,8 +76,13 @@ func (c *channelController) Commit(ctx context.Context) error {
 	if err != nil {
 		return err // TODO: contextualise
 	}
-	c.existingName = c.channel.Name
-	c.graph.Channels[c.channel.Name] = c.channel
+	if cfg.Name != c.existingName {
+		delete(c.graph.Channels, c.existingName)
+		c.channel.Name = cfg.Name
+		c.existingName = cfg.Name
+		c.graph.Channels[cfg.Name] = c.channel
+	}
+	c.channel.Capacity = int(cfg.Cap)
 	return nil
 }
 

@@ -77,7 +77,7 @@ func (c *Channel) commit() {
 
 func (c *Channel) reallyCommit() {
 	if err := c.cc.Commit(context.TODO()); err != nil {
-		c.errors.setError("Couldn't create a channel: " + err.Error())
+		c.errors.setError("Couldn't commit a channel: " + err.Error())
 		return
 	}
 }
@@ -286,10 +286,6 @@ func (c *Channel) loseFocus() {
 		p.unselected()
 	}
 	c.cc.LoseFocus()
-}
-
-func (c *Channel) save() {
-	log.Print("TODO(josh): implement Channel.save")
 }
 
 func (c *Channel) delete() {

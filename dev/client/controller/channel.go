@@ -26,7 +26,7 @@ import (
 type channelSharedOutlets struct {
 	// Channel properties inputs & outputs
 	inputName     dom.Element
-	spanType      dom.Element
+	codeType      dom.Element
 	inputCapacity dom.Element
 }
 
@@ -128,7 +128,7 @@ func (c *channelController) GainFocus() {
 
 	c.sharedOutlets.inputName.Set("value", c.channel.Name)
 	c.sharedOutlets.inputCapacity.Set("value", c.channel.Capacity)
-	c.sharedOutlets.spanType.Set("innerText", c.channel.Type)
+	c.sharedOutlets.codeType.Set("innerText", c.channel.Type)
 }
 
 func (c *channelController) LoseFocus() {

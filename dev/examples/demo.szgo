@@ -51,8 +51,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 183,
-			"y": 74,
+			"x": 154,
+			"y": 65,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",
@@ -110,8 +110,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 187,
-			"y": 180,
+			"x": 138,
+			"y": 174,
 			"connections": {
 				"bar": "nil",
 				"baz": "nil",

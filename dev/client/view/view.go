@@ -61,8 +61,13 @@ func Setup(doc dom.Document, gc GraphController) {
 
 	doc.ElementByID("graph-save").
 		AddEventListener("click", v.graph.save)
-	doc.ElementByID("graph-properties-save").
-		AddEventListener("click", v.graph.saveProperties)
+
+	doc.ElementByID("graph-prop-name").
+		AddEventListener("change", v.graph.saveProperties)
+	doc.ElementByID("graph-prop-package-path").
+		AddEventListener("change", v.graph.saveProperties)
+	doc.ElementByID("graph-prop-is-command").
+		AddEventListener("change", v.graph.saveProperties)
 
 	doc.ElementByID("node-save-link").
 		AddEventListener("click", v.saveSelected)

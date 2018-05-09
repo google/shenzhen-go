@@ -156,6 +156,7 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 		part = p
 	}
 
+	var conns map[string]string
 	if req.Node != "" {
 		old, err := g.lookupNode(req.Node)
 		if err != nil {
@@ -168,6 +169,9 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 			// Deletion was intended, job complete.
 			return &pb.Empty{}, nil
 		}
+
+		conns = old.Connections
+		log.Printf("old.Connections = %v", conns)
 	}
 
 	n := &model.Node{
@@ -178,6 +182,7 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 		Part:         part,
 		X:            req.Config.X,
 		Y:            req.Config.Y,
+		Connections:  conns,
 	}
 	g.Nodes[req.Config.Name] = n
 	n.RefreshConnections()

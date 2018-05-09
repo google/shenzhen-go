@@ -141,4 +141,10 @@ func (g *Graph) RefreshChannelsPins() {
 			ch.AddPin(n.Name, p)
 		}
 	}
+	// Check for channels with < 2 pins.
+	for _, ch := range g.Channels {
+		if len(ch.Pins) < 2 {
+			g.DeleteChannel(ch)
+		}
+	}
 }

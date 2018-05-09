@@ -125,7 +125,7 @@ func (g *Graph) Check() error {
 }
 
 // RefreshChannelsPins refreshes the Pins cache of all channels.
-// Use this when pin definitions might have changed.
+// Use this when node names or pin definitions might have changed.
 func (g *Graph) RefreshChannelsPins() {
 	// Reset all caches.
 	for _, ch := range g.Channels {

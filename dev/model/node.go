@@ -32,9 +32,9 @@ type Node struct {
 	Connections  map[string]string // Pin name -> channel name
 }
 
-// Copy returns a copy of this node, but with an empty name and a clone of the Part.
+// Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.
 func (n *Node) Copy() *Node {
-	return &Node{
+	n0 := &Node{
 		Name:         "",
 		Enabled:      n.Enabled,
 		Multiplicity: n.Multiplicity,
@@ -44,6 +44,8 @@ func (n *Node) Copy() *Node {
 		X: n.X + 8,
 		Y: n.Y + 100,
 	}
+	n0.RefreshConnections()
+	return n0
 }
 
 // FlatImports returns the imports as a single string.

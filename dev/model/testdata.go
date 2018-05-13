@@ -15,8 +15,8 @@
 package model
 
 import (
-	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/parts"
 )
 
 // TestGraphs contains graphs that are useful for testing.

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/parts"
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be

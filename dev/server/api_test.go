@@ -22,8 +22,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/google/shenzhen-go/dev/model"
-	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/parts"
 	pb "github.com/google/shenzhen-go/dev/proto/go"
 )
 

@@ -19,8 +19,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/shenzhen-go/dev/model/parts"
 	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/parts"
 )
 
 func TestLoadJSON(t *testing.T) {

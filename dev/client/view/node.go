@@ -148,9 +148,9 @@ func (n *Node) reallyCommit() {
 	if name := n.nc.Name(); name != oldName {
 		delete(n.graph.Nodes, oldName)
 		n.graph.Nodes[name] = n
-		n.TextBox.SetText(name)
-		n.updatePinPositions()
+		n.TextBox.SetText(name).RecomputeWidth()
 	}
+	n.updatePinPositions()
 }
 
 func (n *Node) delete() {

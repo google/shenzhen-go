@@ -190,6 +190,12 @@ svg#diagram g.textbox text {
 	text-anchor: middle;
 }
 
+svg#diagram g.textbox rect {
+	fill: #faffee; 
+	stroke: #636e48; 
+	stroke-width: 1;
+}
+
 svg#diagram g.textbox text::selection {
     background: none;
 }
@@ -203,12 +209,6 @@ svg#diagram g.node g.textbox rect {
 svg#diagram g.node.selected g.textbox rect {
 	fill: #bee0ff;
 	stroke-width: 2;
-}
-
-svg#diagram g.node g.pin g.textbox rect {
-	fill: #faffee; 
-	stroke: #636e48; 
-	stroke-width: 1;
 }
 
 svg#diagram g.node g.pin circle {

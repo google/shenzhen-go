@@ -23,9 +23,8 @@ import (
 // Pin represents a node pin visually, and has enough information to know
 // if it is validly connected.
 type Pin struct {
-	Group               // Container for all the pin elements.
-	Shape   dom.Element // The pin itself.
-	Nametag *TextBox    // Temporarily visible on hover.
+	Group             // Container for all the pin elements.
+	Shape dom.Element // The pin itself.
 
 	// Computed, absolute coordinates (not relative to node).
 	point Point
@@ -40,9 +39,9 @@ type Pin struct {
 }
 
 // MoveTo moves the pin (relatively).
-func (p *Pin) MoveTo(rx, ry float64) {
-	p.Group.MoveTo(rx, ry)
-	p.point = Pt(rx+p.node.x, ry+p.node.y)
+func (p *Pin) MoveTo(rel Point) {
+	p.Group.MoveTo(rel)
+	p.point = rel + p.node.abs
 	if p.channel != nil {
 		p.channel.layout(nil)
 		p.channel.logical = p.channel.visual
@@ -54,7 +53,7 @@ func (p *Pin) Pt() Point { return p.point }
 
 func (p *Pin) String() string { return p.node.nc.Name() + "." + p.pc.Name() }
 
-func (p *Pin) dragStart(x, y float64) {
+func (p *Pin) dragStart(pt Point) {
 	log.Print("*Pin.dragStart")
 
 	ch := p.channel
@@ -68,19 +67,17 @@ func (p *Pin) dragStart(x, y float64) {
 		ch.potentialPin = p
 	}
 	p.view.dragItem = ch
-	ch.dragStart(x, y)
+	ch.dragStart(pt)
 }
 
-func (p *Pin) mouseEnter(dom.Object) {
-	x, y := 8.0, 8.0
-	if p.pc.IsInput() {
-		y = -38
-	}
-	p.Nametag.MoveTo(x, y).Show()
+func (p *Pin) hoverText() string { return p.pc.Name() + " (" + p.pc.Type() + ")" }
+
+func (p *Pin) mouseEnter(e dom.Object) {
+	p.view.showHoverTip(e, p.hoverText())
 }
 
 func (p *Pin) mouseLeave(dom.Object) {
-	p.Nametag.Hide()
+	p.view.hoverTip.Hide()
 }
 
 // MakeElements recreates elements associated with this pin.
@@ -99,15 +96,6 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 		AddEventListener("mouseleave", p.mouseLeave)
 
 	p.Shape.ClassList().Add("draggable")
-
-	// Nametag textbox.
-	p.Nametag = &TextBox{Margin: 20}
-	p.Nametag.
-		MakeElements(doc, p.Group).
-		SetHeight(30).
-		SetText(p.pc.Name() + " (" + p.pc.Type() + ")")
-	p.Nametag.RecomputeWidth()
-	p.Nametag.Hide()
 
 	p.Group.AddChildren(p.Shape)
 	p.unselected()

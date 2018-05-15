@@ -40,8 +40,7 @@ type Node struct {
 	errors errorViewer
 	graph  *Graph
 
-	relX, relY float64 // relative client offset for moving around
-	x, y       float64 // cache of actual position
+	rel, abs Point // relative and absolute diagram coordinates
 }
 
 func max(a, b int) int {
@@ -53,7 +52,7 @@ func max(a, b int) int {
 
 // MakeElements makes the elements that are part of this node.
 func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
-	n.Group = NewGroup(doc, parent).MoveTo(n.nc.Position())
+	n.Group = NewGroup(doc, parent).MoveTo(Pt(n.nc.Position()))
 	n.Group.Element.ClassList().Add("node")
 
 	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
@@ -93,23 +92,22 @@ func (n *Node) Remove() {
 }
 
 // MoveTo moves the textbox to have the topleft corner at x, y.
-func (n *Node) MoveTo(x, y float64) *Node {
-	n.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
-	n.x, n.y = x, y
+func (n *Node) MoveTo(p Point) *Node {
+	n.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", real(p), imag(p)))
+	n.abs = p
 	return n
 }
 
-func (n *Node) dragStart(x, y float64) {
-	n.relX, n.relY = x-n.x, y-n.y
+func (n *Node) dragStart(p Point) {
+	n.rel = p - n.abs
 
 	// Bring to front
 	n.Group.Parent().AddChildren(n.Group)
 	n.TextBox.Group.Element.ClassList().Add("dragging")
 }
 
-func (n *Node) drag(x, y float64) {
-	x, y = x-n.relX, y-n.relY
-	n.MoveTo(x, y)
+func (n *Node) drag(p Point) {
+	n.MoveTo(p - n.rel)
 	n.updatePinPositions()
 }
 
@@ -117,7 +115,7 @@ func (n *Node) drop() {
 	n.TextBox.Group.Element.ClassList().Remove("dragging")
 
 	go func() { // cannot block in callback
-		if err := n.nc.SetPosition(context.TODO(), n.x, n.y); err != nil {
+		if err := n.nc.SetPosition(context.TODO(), real(n.abs), imag(n.abs)); err != nil {
 			n.errors.setError("Couldn't set the position: " + err.Error())
 		}
 	}()
@@ -180,11 +178,11 @@ func (n *Node) updatePinPositions() {
 	w := n.TextBox.Width()
 	isp := w / float64(len(n.Inputs)+1)
 	for i, p := range n.Inputs {
-		p.MoveTo(isp*float64(i+1), float64(-pinRadius))
+		p.MoveTo(Pt(isp*float64(i+1), -pinRadius))
 	}
 
 	osp := w / float64(len(n.Outputs)+1)
 	for i, p := range n.Outputs {
-		p.MoveTo(osp*float64(i+1), float64(nodeHeight+pinRadius))
+		p.MoveTo(Pt(osp*float64(i+1), nodeHeight+pinRadius))
 	}
 }

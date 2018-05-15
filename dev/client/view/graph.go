@@ -50,7 +50,7 @@ func (g *Graph) reallyCreateNode(partType string) {
 		graph:  g,
 		nc:     nc,
 	}
-	n.x, n.y = nc.Position()
+	n.abs = Pt(nc.Position())
 	n.MakeElements(g.doc, g.Group)
 	g.Nodes[nc.Name()] = n
 }
@@ -124,7 +124,6 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 
 	// Add any nodes that didn't exist but now do.
 	// Refresh existing nodes.
-	//for k, n := range g.gc.Graph().Nodes {
 	g.gc.Nodes(func(nc NodeController) {
 		m := &Node{
 			view:   g.view,
@@ -132,7 +131,7 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 			graph:  g,
 			nc:     nc,
 		}
-		m.x, m.y = nc.Position()
+		m.abs = Pt(nc.Position())
 		nc.Pins(func(pc PinController, channel string) {
 			q := &Pin{
 				pc:     pc,

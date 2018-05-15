@@ -33,8 +33,8 @@ func NewGroup(doc dom.Document, parent dom.Element) Group {
 }
 
 // MoveTo moves the group to have the topleft corner at x, y.
-func (g Group) MoveTo(x, y float64) Group {
-	g.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", x, y))
+func (g Group) MoveTo(p Point) Group {
+	g.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", real(p), imag(p)))
 	return g
 }
 

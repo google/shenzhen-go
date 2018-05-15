@@ -23,15 +23,18 @@ import (
 )
 
 const (
-	pinRadius = 5
-	snapDist  = 12
+	hoverTipOffset = Point(complex(8, 8))
+	hoverTipHeight = 30
+	pinRadius      = 5
+	snapDist       = 12
 )
 
 // View caches the top-level objects for managing the UI.
 type View struct {
-	doc     dom.Document // Global document object
-	diagram dom.Element  // The LHS panel
-	graph   *Graph       // SVG elements in the LHS panel
+	doc      dom.Document // Global document object
+	diagram  dom.Element  // The LHS panel
+	graph    *Graph       // manages most SVG elements inside diagram
+	hoverTip *TextBox
 
 	dragItem     dragger  // nil if nothing is being dragged
 	selectedItem selecter // nil if nothing is selected
@@ -51,6 +54,10 @@ func Setup(doc dom.Document, gc GraphController) {
 		errors: v,
 	}
 	v.graph.MakeElements(doc, v.diagram)
+	v.hoverTip = (&TextBox{Margin: nodeBoxMargin}).
+		MakeElements(doc, v.diagram).
+		SetHeight(hoverTipHeight)
+	v.hoverTip.Hide()
 
 	v.selectedItem = v.graph
 
@@ -107,6 +114,15 @@ func Setup(doc dom.Document, gc GraphController) {
 	}
 }
 
+func (v *View) showHoverTip(event dom.Object, tip string) {
+	v.hoverTip.
+		SetText(tip).
+		RecomputeWidth().
+		MoveTo(v.diagramCursorPos(event) + hoverTipOffset).
+		Show()
+	event.Call("stopPropagation")
+}
+
 func (v *View) setError(err string) {
 	// TODO
 	log.Print(err)
@@ -138,11 +154,11 @@ func (v *View) createChannel(p *Pin) error {
 	return nil
 }
 
-func (v *View) diagramCursorPos(e dom.Object) (x, y float64) {
+func (v *View) diagramCursorPos(e dom.Object) Point {
 	bcr := v.diagram.Call("getBoundingClientRect")
-	x = e.Get("clientX").Float() - bcr.Get("left").Float()
-	y = e.Get("clientY").Float() - bcr.Get("top").Float()
-	return x, y
+	x := e.Get("clientX").Float() - bcr.Get("left").Float()
+	y := e.Get("clientY").Float() - bcr.Get("top").Float()
+	return Pt(x, y)
 }
 
 func (v *View) dragStarter(d dragStarter) func(dom.Object) {
@@ -208,12 +224,12 @@ func (v *View) deleteSelected(e dom.Object) {
 
 // dragStarter is anything that can start a drag action
 type dragStarter interface {
-	dragStart(diagramX, diagramY float64)
+	dragStart(Point)
 }
 
 // dragger is anything that can be dragged on the canvas/SVG.
 type dragger interface {
-	drag(diagramX, diagramY float64)
+	drag(Point)
 	drop()
 }
 

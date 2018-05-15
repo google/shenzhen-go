@@ -82,7 +82,7 @@ func (b *TextBox) Width() float64 {
 }
 
 // RecomputeWidth resizes the textbox to fit all text (plus a margin).
-func (b *TextBox) RecomputeWidth() {
+func (b *TextBox) RecomputeWidth() *TextBox {
 	// This is kind of ridiculous.
 	// I just want some text centred in a rect.
 	// You can't add the text as a child of the rect, so we add both to a group.
@@ -93,5 +93,5 @@ func (b *TextBox) RecomputeWidth() {
 
 	//b.SetWidth(b.Text.Call("getComputedTextLength").Float() + 2*b.Margin)
 	w := b.Text.Call("getBBox").Get("width").Float()
-	b.SetWidth(w + 2*b.Margin)
+	return b.SetWidth(w + 2*b.Margin)
 }

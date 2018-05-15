@@ -48,6 +48,12 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	c.Group = NewGroup(doc, parent)
 	c.Group.Element.ClassList().Add("channel")
 
+	// This part works so well it's scary.
+	c.Group.Element.
+		AddEventListener("mousedown", c.view.selecter(c)).
+		AddEventListener("mouseenter", c.mouseEnter).
+		AddEventListener("mouseleave", c.mouseLeave)
+
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", c.view.dragStarter(c)).
@@ -82,14 +88,23 @@ func (c *Channel) reallyCommit() {
 	}
 }
 
+func (c *Channel) mouseEnter(e dom.Object) {
+	log.Print("*Channel.mouseEnter")
+	c.view.showHoverTip(e, c.cc.Name())
+}
+
+func (c *Channel) mouseLeave(dom.Object) {
+	c.view.hoverTip.Hide()
+}
+
 // Show the temporary drag elements.
-func (c *Channel) dragTo(x, y float64) {
+func (c *Channel) dragTo(pt Point) {
 	c.dragLine.
-		SetAttribute("x1", x).
-		SetAttribute("y1", y)
+		SetAttribute("x1", real(pt)).
+		SetAttribute("y1", imag(pt))
 	c.dragCirc.
-		SetAttribute("cx", x).
-		SetAttribute("cy", y)
+		SetAttribute("cx", real(pt)).
+		SetAttribute("cy", imag(pt))
 }
 
 func (c *Channel) showDrag() {
@@ -104,15 +119,15 @@ func (c *Channel) hideDrag() {
 	c.dragCirc.ClassList().Remove("dragging")
 }
 
-func (c *Channel) dragStart(x, y float64) {
+func (c *Channel) dragStart(p Point) {
 	log.Print("*Channel.dragStart")
 }
 
-func (c *Channel) noSnap(x, y float64) {
+func (c *Channel) noSnap(pt Point) {
 	c.errors.clearError()
-	c.dragTo(x, y)
+	c.dragTo(pt)
 	c.showDrag()
-	c.layout(Pt(x, y))
+	c.layout(pt)
 	if c.potentialPin != nil {
 		c.removePin(c.potentialPin)
 	}
@@ -121,14 +136,14 @@ func (c *Channel) noSnap(x, y float64) {
 	}
 }
 
-func (c *Channel) drag(x, y float64) {
+func (c *Channel) drag(pt Point) {
 	log.Print("*Channel.drag")
 
-	d, q := c.graph.nearestPoint(x, y)
+	d, q := c.graph.nearestPoint(real(pt), imag(pt))
 
 	// If the distance is too far, no snap in all cases.
 	if d >= snapDist {
-		c.noSnap(x, y)
+		c.noSnap(pt)
 		return
 	}
 
@@ -151,7 +166,7 @@ func (c *Channel) drag(x, y float64) {
 
 		// Already connected to this pin?
 		if c.hasPin(z) {
-			c.noSnap(x, y)
+			c.noSnap(pt)
 			return
 		}
 
@@ -182,7 +197,7 @@ func (c *Channel) drag(x, y float64) {
 
 		// Connecting to itself somehow?
 		if c == z {
-			c.noSnap(x, y)
+			c.noSnap(pt)
 			return
 		}
 

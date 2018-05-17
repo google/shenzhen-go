@@ -16,7 +16,6 @@ package view
 
 import (
 	"fmt"
-	"log"
 	"sort"
 
 	"github.com/google/shenzhen-go/dev/dom"
@@ -166,13 +165,10 @@ func (n *Node) reallyDelete() {
 }
 
 func (n *Node) refresh() {
-
 	// Refresh the collection of pins
-	retain := make([]*Pin, 0, len(n.AllPins))
-	var create []*Pin
+	allPins := make([]*Pin, 0, len(n.AllPins))
 	touch := make([]bool, len(n.AllPins))
 
-	// TODO: Make this faster than O(n log n).
 	n.nc.Pins(func(pc PinController, channel string) {
 		// Do we have this pin already?
 		r := n.Outputs
@@ -181,7 +177,7 @@ func (n *Node) refresh() {
 		}
 		j := sort.Search(len(r), func(i int) bool { return r[i].pc.Name() >= pc.Name() })
 		if j < len(r) && r[j].pc.Name() == pc.Name() {
-			retain = append(retain, r[j])
+			allPins = append(allPins, r[j])
 			// Relies on n.AllPins = concat(n.Inputs, n.Outputs)
 			if !pc.IsInput() {
 				j += len(n.Inputs)
@@ -189,18 +185,23 @@ func (n *Node) refresh() {
 			touch[j] = true
 			return
 		}
-
-		create = append(create, &Pin{
+		q := &Pin{
 			pc:      pc,
 			view:    n.view,
 			errors:  n.errors,
 			graph:   n.graph,
 			node:    n,
 			channel: n.graph.Channels[channel],
-		})
-	})
+		}
+		allPins = append(allPins, q)
 
-	log.Printf("create = %v\nretain = %v\ntouch = %v", create, retain, touch)
+		q.MakeElements(n.view.doc, n.Group)
+		if q.channel == nil {
+			return
+		}
+		// The pin's channel was set above, but the channel needs to know the connection exists.
+		q.channel.addPin(q)
+	})
 
 	// Remove those not found in previous loop.
 	for i, p := range n.AllPins {
@@ -214,24 +215,10 @@ func (n *Node) refresh() {
 		p.Remove()
 	}
 
-	// Create elements for the new ones.
-	for _, p := range create {
-		p.MakeElements(n.view.doc, n.Group)
-		if p.channel == nil {
-			continue
-		}
-		// The pin's channel was set above, but the channel needs to know the connection exists.
-		p.channel.addPin(p)
-
-	}
-
 	// Reset slices with new info.
-	n.AllPins = make([]*Pin, len(retain)+len(create))
-	copy(n.AllPins, retain)
-	copy(n.AllPins[len(retain):], create)
-	sortPins(n.AllPins)
-	j := sort.Search(len(n.AllPins), func(i int) bool { return !n.AllPins[i].pc.IsInput() })
-	n.Inputs, n.Outputs = n.AllPins[:j], n.AllPins[j:]
+	sortPins(allPins)
+	j := sort.Search(len(allPins), func(i int) bool { return !allPins[i].pc.IsInput() })
+	n.AllPins, n.Inputs, n.Outputs = allPins, allPins[:j], allPins[j:]
 
 	// The width might have changed.
 	n.TextBox.MinWidth = float64(nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1))

@@ -16,6 +16,8 @@ package view
 
 import (
 	"fmt"
+	"log"
+	"sort"
 
 	"github.com/google/shenzhen-go/dev/dom"
 	"golang.org/x/net/context"
@@ -55,10 +57,9 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 	n.Group = NewGroup(doc, parent).MoveTo(Pt(n.nc.Position()))
 	n.Group.Element.ClassList().Add("node")
 
-	minWidth := nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)
 	n.TextBox = &TextBox{
 		Margin:   nodeBoxMargin,
-		MinWidth: float64(minWidth),
+		MinWidth: float64(nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)),
 	}
 	n.TextBox.
 		MakeElements(doc, n.Group).
@@ -141,14 +142,11 @@ func (n *Node) reallyCommit() {
 		n.errors.setError("Couldn't update node properties: " + err.Error())
 		return
 	}
-	// Update local copy, since these were read at save time.
-	// TODO: refresh pins
 	if name := n.nc.Name(); name != oldName {
 		delete(n.graph.Nodes, oldName)
 		n.graph.Nodes[name] = n
-		n.TextBox.SetText(name).RecomputeWidth()
 	}
-	n.updatePinPositions()
+	n.refresh()
 }
 
 func (n *Node) delete() {
@@ -168,7 +166,78 @@ func (n *Node) reallyDelete() {
 }
 
 func (n *Node) refresh() {
-	// TODO: implement
+
+	// Refresh the collection of pins
+	retain := make([]*Pin, 0, len(n.AllPins))
+	var create []*Pin
+	touch := make([]bool, len(n.AllPins))
+
+	// TODO: Make this faster than O(n log n).
+	n.nc.Pins(func(pc PinController, channel string) {
+		// Do we have this pin already?
+		r := n.Outputs
+		if pc.IsInput() {
+			r = n.Inputs
+		}
+		j := sort.Search(len(r), func(i int) bool { return r[i].pc.Name() >= pc.Name() })
+		if j < len(r) && r[j].pc.Name() == pc.Name() {
+			retain = append(retain, r[j])
+			// Relies on n.AllPins = concat(n.Inputs, n.Outputs)
+			if !pc.IsInput() {
+				j += len(n.Inputs)
+			}
+			touch[j] = true
+			return
+		}
+
+		create = append(create, &Pin{
+			pc:      pc,
+			view:    n.view,
+			errors:  n.errors,
+			graph:   n.graph,
+			node:    n,
+			channel: n.graph.Channels[channel],
+		})
+	})
+
+	log.Printf("create = %v\nretain = %v\ntouch = %v", create, retain, touch)
+
+	// Remove those not found in previous loop.
+	for i, p := range n.AllPins {
+		if touch[i] {
+			continue
+		}
+		// TODO: is this enough?
+		if p.channel != nil {
+			p.channel.removePin(p)
+		}
+		p.Remove()
+	}
+
+	// Create elements for the new ones.
+	for _, p := range create {
+		p.MakeElements(n.view.doc, n.Group)
+		if p.channel == nil {
+			continue
+		}
+		// The pin's channel was set above, but the channel needs to know the connection exists.
+		p.channel.addPin(p)
+
+	}
+
+	// Reset slices with new info.
+	n.AllPins = make([]*Pin, len(retain)+len(create))
+	copy(n.AllPins, retain)
+	copy(n.AllPins[len(retain):], create)
+	sortPins(n.AllPins)
+	j := sort.Search(len(n.AllPins), func(i int) bool { return !n.AllPins[i].pc.IsInput() })
+	n.Inputs, n.Outputs = n.AllPins[:j], n.AllPins[j:]
+
+	// The width might have changed.
+	n.TextBox.MinWidth = float64(nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1))
+	n.TextBox.SetText(n.nc.Name()).RecomputeWidth()
+
+	// Reposition everything.
 	n.updatePinPositions()
 }
 

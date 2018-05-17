@@ -98,7 +98,6 @@ func (c *nodeController) Commit(ctx context.Context) error {
 		return err // TODO: contextualise
 	}
 	// Update local copy, since these were read at save time.
-	// TODO: check whether the available pins have changed.
 	if c.node.Name != cfg.Name {
 		delete(c.graph.Nodes, c.node.Name)
 		c.graph.Nodes[cfg.Name] = c.node
@@ -107,6 +106,7 @@ func (c *nodeController) Commit(ctx context.Context) error {
 	c.node.Enabled = cfg.Enabled
 	c.node.Multiplicity = uint(cfg.Multiplicity)
 	c.node.Wait = cfg.Wait
+	c.node.RefreshConnections()
 	return nil
 }
 

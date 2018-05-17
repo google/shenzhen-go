@@ -15,6 +15,7 @@
 package view
 
 import (
+	"log"
 	"math"
 	"math/cmplx"
 
@@ -130,8 +131,9 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 			errors: g.errors,
 			graph:  g,
 			nc:     nc,
+			abs:    Pt(nc.Position()),
 		}
-		m.abs = Pt(nc.Position())
+		inputs := 0
 		nc.Pins(func(pc PinController, channel string) {
 			q := &Pin{
 				pc:     pc,
@@ -141,20 +143,22 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 				node:   m,
 			}
 			if pc.IsInput() {
-				m.Inputs = append(m.Inputs, q)
-			} else {
-				m.Outputs = append(m.Outputs, q)
+				inputs++
 			}
-			if channel != "" && channel != "nil" {
-				if c := g.Channels[channel]; c != nil {
-					q.channel = c
-					c.addPin(q)
-				}
+			m.AllPins = append(m.AllPins, q)
+			if channel == "" || channel == "nil" {
+				return
 			}
+			c := g.Channels[channel]
+			if c == nil {
+				log.Printf("channel %q not found", channel)
+				return
+			}
+			c.addPin(q)
 		})
 		// Consolidate slices (not that it really matters)
-		m.AllPins = append(m.Inputs, m.Outputs...)
-		m.Inputs, m.Outputs = m.AllPins[:len(m.Inputs)], m.AllPins[len(m.Inputs):]
+		sortPins(m.AllPins)
+		m.Inputs, m.Outputs = m.AllPins[:inputs], m.AllPins[inputs:]
 
 		g.Nodes[nc.Name()] = m
 		m.MakeElements(g.doc, g.Group)

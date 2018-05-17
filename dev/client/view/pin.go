@@ -16,6 +16,7 @@ package view
 
 import (
 	"log"
+	"sort"
 
 	"github.com/google/shenzhen-go/dev/dom"
 )
@@ -119,4 +120,14 @@ func (p *Pin) gainFocus() {
 
 func (p *Pin) loseFocus() {
 	// Nop.
+}
+
+func sortPins(ps []*Pin) {
+	sort.Slice(ps, func(i, j int) bool {
+		pi, pj := ps[i].pc, ps[j].pc
+		if pi.IsInput() == pj.IsInput() {
+			return pi.Name() < pj.Name()
+		}
+		return pi.IsInput()
+	})
 }

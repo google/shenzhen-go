@@ -55,6 +55,7 @@ type ChannelController interface {
 type NodeController interface {
 	Name() string
 	Position() (x, y float64)
+
 	Pins(func(pc PinController, channel string)) // input called for all pins on this node
 
 	GainFocus()

@@ -6,6 +6,8 @@ fi
 
 pushd $GOPATH/src/github.com/google/shenzhen-go/dev
 
+go install github.com/google/shenzhen-go/scripts/embed
+
 # Client JS generation & embedding
 pushd ./client
 go generate

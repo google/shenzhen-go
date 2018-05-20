@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
-	"github.com/zserge/webview"
 	"google.golang.org/grpc"
 
 	pb "github.com/google/shenzhen-go/dev/proto/go"
@@ -40,8 +39,11 @@ import (
 const pingMsg = "Pong!"
 
 var (
-	uiAddr            = flag.String("ui_addr", "localhost:0", "`address` to bind UI server to")
-	useDefaultBrowser = flag.Bool("use_browser", true, "Load in the system's default web browser instead of the inbuilt webview")
+	uiAddr = flag.String("ui_addr", "localhost:0", "`address` to bind UI server to")
+
+	// Set up by webview.go
+	useDefaultBrowser *bool
+	webviewOpen       func(string) error
 )
 
 func systemOpen(url string) error {
@@ -57,10 +59,6 @@ func systemOpen(url string) error {
 		fmt.Printf("Ready to open %s\n", url)
 		return nil
 	}
-}
-
-func webviewOpen(url string) error {
-	return webview.Open("Shenzhen Go", url, 1152, 720, true)
 }
 
 func isUp(url string) bool {
@@ -97,7 +95,7 @@ func waitForUp(addr net.Addr) error {
 func open(addr net.Addr, path string, useBrowser bool) {
 	url := fmt.Sprintf(`http://%s/%s`, addr, path)
 	opener := systemOpen
-	if !useBrowser {
+	if !useBrowser && webviewOpen != nil {
 		opener = webviewOpen
 	}
 	if err := opener(url); err != nil {
@@ -214,7 +212,8 @@ func main() {
 			// or ask the user to do so.
 			// This must be called from the main thread to avoid
 			// https://github.com/zserge/webview/issues/29.
-			open(addr, a, *useDefaultBrowser)
+			ub := useDefaultBrowser != nil && *useDefaultBrowser
+			open(addr, a, ub)
 		}
 	}
 

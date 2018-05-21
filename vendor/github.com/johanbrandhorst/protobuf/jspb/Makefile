@@ -1,10 +1,10 @@
 all: checkout build
 
 checkout:
-	npm install google-protobuf webpack
+	npm install google-protobuf webpack-cli webpack
 
 build:
-	./node_modules/.bin/webpack
+	./node_modules/.bin/webpack-cli
 
 clean:
 	rm jspb.inc.js

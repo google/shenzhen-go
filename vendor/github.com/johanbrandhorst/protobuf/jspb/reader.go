@@ -48,22 +48,83 @@ type Reader interface {
 	ReadMessage(func())
 }
 
+type decoder struct {
+	*js.Object
+}
+
+// ReadInt64 reads a signed 64 bit varint
+func (d decoder) ReadInt64() int64 {
+	d.Call("readSplitVarint64_")
+	high := d.Get("tempHigh_").Uint64()
+	low := d.Get("tempLow_").Uint64()
+	return d.mergeSignedInteger(low, high)
+}
+
+// ReadZigzag64 reads a signed 64 bit Zigzag encoded varint
+func (d decoder) ReadZigzag64() int64 {
+	v := d.ReadUint64()
+	// https://github.com/gogo/protobuf/blob/1ef32a8b9fc3f8ec940126907cedb5998f6318e4/proto/decode.go#L254
+	return int64((v >> 1) ^ uint64((int64(v&1)<<63)>>63))
+}
+
+// ReadUint64 reads a unsigned 64 bit varint
+func (d decoder) ReadUint64() uint64 {
+	d.Call("readSplitVarint64_")
+	high := d.Get("tempHigh_").Uint64()
+	low := d.Get("tempLow_").Uint64()
+	return high<<32 | low
+}
+
+// ReadFixed64 reads a 64 bit unsigned integer
+func (d decoder) ReadFixed64() uint64 {
+	low := d.Call("readUint32").Uint64()
+	high := d.Call("readUint32").Uint64()
+	return high<<32 | low
+}
+
+// ReadSignedFixed64 reads a 64 bit signed integer
+func (d decoder) ReadSignedFixed64() int64 {
+	low := d.Call("readUint32").Uint64()
+	high := d.Call("readUint32").Uint64()
+	return d.mergeSignedInteger(low, high)
+}
+
+func (d decoder) mergeSignedInteger(low, high uint64) int64 {
+	// Adapted from google-protobuf
+	// https://github.com/google/protobuf/blob/25625b956a2f0d432582009c16553a9fd21c3cea/js/binary/utils.js#L521
+	negative := (high&0x8 == 1)
+	if negative {
+		low = (^low + 1)
+		var carry uint64
+		if low == 0 {
+			carry = 1
+		}
+		high = (^high + carry)
+	}
+	return int64(high<<32 | low)
+}
+
 // NewReader returns a new Reader ready for writing
 func NewReader(data []byte) Reader {
-	return &reader{
+	r := &reader{
 		Object: js.Global.Get("BinaryReader").New(data),
 	}
+	r.decoder = &decoder{
+		Object: r.Get("decoder_"),
+	}
+	return r
 }
 
 // reader implements the Reader interface
 type reader struct {
 	*js.Object
-	err error
+	decoder *decoder
+	err     error
 }
 
 // Reads the next field header in the stream if there is one, returns true if
 // we saw a valid field header or false if we've read the whole stream.
-// Sets err if we encountered a deprecated START_GROUP/END_GROUP field.
+// Sets err if we encountered a deprecated START_GROUP/END_GROUP fielr.decoder.
 func (r *reader) Next() bool {
 	defer catchException(&r.err)
 	return r.err == nil && r.Call("nextField").Bool() && !r.Call("isEndGroup").Bool()
@@ -76,7 +137,7 @@ func (r reader) Err() error {
 }
 
 // The field number of the next field in the buffer, or
-// -1 if there is no next field.
+// -1 if there is no next fielr.decoder.
 func (r reader) GetFieldNumber() int {
 	return r.Call("getFieldNumber").Int()
 }
@@ -99,7 +160,7 @@ func (r *reader) ReadInt32() int32 {
 // stream is not of the correct wire type.
 func (r *reader) ReadInt64() int64 {
 	defer catchException(&r.err)
-	return int64(r.Call("readInt64").Int())
+	return r.decoder.ReadInt64()
 }
 
 // ReadUint32 reads an unsigned 32-bit integer field from the binary
@@ -115,7 +176,7 @@ func (r *reader) ReadUint32() uint32 {
 // stream is not of the correct wire type.
 func (r *reader) ReadUint64() uint64 {
 	defer catchException(&r.err)
-	return uint64(r.Call("readUint64").Int())
+	return r.decoder.ReadUint64()
 }
 
 // ReadSint32 reads a signed 32-bit integer field from the binary
@@ -131,7 +192,7 @@ func (r *reader) ReadSint32() int32 {
 // stream is not of the correct wire type.
 func (r *reader) ReadSint64() int64 {
 	defer catchException(&r.err)
-	return int64(r.Call("readSint64").Int())
+	return r.decoder.ReadZigzag64()
 }
 
 // ReadFixed32 reads an unsigned 32-bit integer field from the binary
@@ -147,7 +208,7 @@ func (r *reader) ReadFixed32() uint32 {
 // stream is not of the correct wire type.
 func (r *reader) ReadFixed64() uint64 {
 	defer catchException(&r.err)
-	return uint64(r.Call("readFixed64").Int())
+	return r.decoder.ReadFixed64()
 }
 
 // ReadSfixed32 reads a signed 32-bit integer field from the binary
@@ -163,7 +224,7 @@ func (r *reader) ReadSfixed32() int32 {
 // stream is not of the correct wire type.
 func (r *reader) ReadSfixed64() int64 {
 	defer catchException(&r.err)
-	return int64(r.Call("readSfixed64").Int())
+	return r.decoder.ReadSignedFixed64()
 }
 
 // ReadFloat32 reads a 32-bit floating point field from the binary
@@ -236,10 +297,11 @@ func (r *reader) ReadInt32Slice() (ret []int32) {
 // stream is not of the correct wire type.
 func (r *reader) ReadInt64Slice() (ret []int64) {
 	defer catchException(&r.err)
-	values := r.Call("readPackedInt64").Interface().([]interface{})
-	for _, value := range values {
-		ret = append(ret, int64(value.(float64)))
-	}
+	cb := js.MakeFunc(func(*js.Object, []*js.Object) interface{} {
+		ret = append(ret, r.decoder.ReadInt64())
+		return js.Undefined
+	})
+	r.Call("readPackedField_", cb)
 
 	return ret
 }
@@ -262,10 +324,11 @@ func (r *reader) ReadUint32Slice() (ret []uint32) {
 // stream is not of the correct wire type.
 func (r *reader) ReadUint64Slice() (ret []uint64) {
 	defer catchException(&r.err)
-	values := r.Call("readPackedUint64").Interface().([]interface{})
-	for _, value := range values {
-		ret = append(ret, uint64(value.(float64)))
-	}
+	cb := js.MakeFunc(func(*js.Object, []*js.Object) interface{} {
+		ret = append(ret, r.decoder.ReadUint64())
+		return js.Undefined
+	})
+	r.Call("readPackedField_", cb)
 
 	return ret
 }
@@ -288,10 +351,11 @@ func (r *reader) ReadSint32Slice() (ret []int32) {
 // stream is not of the correct wire type.
 func (r *reader) ReadSint64Slice() (ret []int64) {
 	defer catchException(&r.err)
-	values := r.Call("readPackedSint64").Interface().([]interface{})
-	for _, value := range values {
-		ret = append(ret, int64(value.(float64)))
-	}
+	cb := js.MakeFunc(func(*js.Object, []*js.Object) interface{} {
+		ret = append(ret, r.decoder.ReadZigzag64())
+		return js.Undefined
+	})
+	r.Call("readPackedField_", cb)
 
 	return ret
 }
@@ -314,10 +378,11 @@ func (r *reader) ReadFixed32Slice() (ret []uint32) {
 // stream is not of the correct wire type.
 func (r *reader) ReadFixed64Slice() (ret []uint64) {
 	defer catchException(&r.err)
-	values := r.Call("readPackedFixed64").Interface().([]interface{})
-	for _, value := range values {
-		ret = append(ret, uint64(value.(float64)))
-	}
+	cb := js.MakeFunc(func(*js.Object, []*js.Object) interface{} {
+		ret = append(ret, r.decoder.ReadFixed64())
+		return js.Undefined
+	})
+	r.Call("readPackedField_", cb)
 
 	return ret
 }
@@ -340,10 +405,11 @@ func (r *reader) ReadSfixed32Slice() (ret []int32) {
 // stream is not of the correct wire type.
 func (r *reader) ReadSfixed64Slice() (ret []int64) {
 	defer catchException(&r.err)
-	values := r.Call("readPackedSfixed64").Interface().([]interface{})
-	for _, value := range values {
-		ret = append(ret, int64(value.(float64)))
-	}
+	cb := js.MakeFunc(func(*js.Object, []*js.Object) interface{} {
+		ret = append(ret, r.decoder.ReadSignedFixed64())
+		return js.Undefined
+	})
+	r.Call("readPackedField_", cb)
 
 	return ret
 }

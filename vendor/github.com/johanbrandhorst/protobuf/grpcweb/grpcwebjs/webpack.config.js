@@ -7,6 +7,6 @@ module.exports = {
     libraryTarget: "this",
   },
   plugins: [
-    /*new webpack.optimize.UglifyJsPlugin()*/
+    new webpack.optimize.UglifyJsPlugin()
   ]
 };

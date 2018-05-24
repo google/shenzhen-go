@@ -23,7 +23,7 @@ import (
 )
 
 func init() {
-	useDefaultBrowser = flag.Bool("use_browser", true, "Load in the system's default web browser instead of the inbuilt webview")
+	useDefaultBrowser = flag.Bool("use_browser", false, "Load in the system's default web browser instead of the inbuilt webview")
 	webviewOpen = func(url string) error {
 		return webview.Open("Shenzhen Go", url, 1152, 720, true)
 	}

@@ -257,6 +257,21 @@ func (c *Channel) removePin(p *Pin) {
 	c.cc.Detach(p.pc)
 }
 
+func (c *Channel) pinWasDeleted(p *Pin) {
+	if p.channel != c {
+		log.Print("c.pinWasDeleted(p) but p.channel != c")
+		return
+	}
+	p.channel = nil
+	c.Pins[p].Remove()
+	delete(c.Pins, p)
+	if len(c.Pins) < 2 {
+		c.deleteView()
+		return
+	}
+	c.layout(nil)
+}
+
 func (c *Channel) hasPin(p *Pin) bool {
 	_, found := c.Pins[p]
 	return found
@@ -313,6 +328,10 @@ func (c *Channel) reallyDelete() {
 		return
 	}
 
+	c.deleteView()
+}
+
+func (c *Channel) deleteView() {
 	// Reset all attached pins, remove all the elements, delete from graph.
 	for q := range c.Pins {
 		q.channel = nil

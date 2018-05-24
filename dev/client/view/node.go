@@ -165,12 +165,12 @@ func (n *Node) reallyDelete() {
 }
 
 func (n *Node) refresh() {
-	// Refresh the collection of pins
+	// First, refresh the collections of pins.
 	allPins := make([]*Pin, 0, len(n.AllPins))
 	touch := make([]bool, len(n.AllPins))
 
 	n.nc.Pins(func(pc PinController, channel string) {
-		// Do we have this pin already?
+		// Do we have this pin already? Search either inputs or outputs.
 		r := n.Outputs
 		if pc.IsInput() {
 			r = n.Inputs
@@ -208,9 +208,8 @@ func (n *Node) refresh() {
 		if touch[i] {
 			continue
 		}
-		// TODO: is this enough?
 		if p.channel != nil {
-			p.channel.removePin(p)
+			p.channel.pinWasDeleted(p)
 		}
 		p.Remove()
 	}
@@ -218,7 +217,7 @@ func (n *Node) refresh() {
 	// Reset slices with new info.
 	sortPins(allPins)
 	j := sort.Search(len(allPins), func(i int) bool { return !allPins[i].pc.IsInput() })
-	n.AllPins, n.Inputs, n.Outputs = allPins, allPins[:j], allPins[j:]
+	n.AllPins, n.Inputs, n.Outputs = allPins, allPins[:j], allPins[j:] // guaranteed by sortPins.
 
 	// The width might have changed.
 	n.TextBox.MinWidth = float64(nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1))

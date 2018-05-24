@@ -18,6 +18,6 @@ pushd ./server/view
 go generate
 popd
 
-go install github.com/google/shenzhen-go/dev/cmd/shenzhen-go
+go install -tags webview github.com/google/shenzhen-go/dev/cmd/shenzhen-go
 
 popd

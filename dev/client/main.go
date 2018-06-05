@@ -26,6 +26,7 @@ import (
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
+	_ "github.com/google/shenzhen-go/dev/parts"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
 )
 

@@ -31,6 +31,7 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"google.golang.org/grpc"
 
+	_ "github.com/google/shenzhen-go/dev/parts"
 	pb "github.com/google/shenzhen-go/dev/proto/go"
 	"github.com/google/shenzhen-go/dev/server"
 	"github.com/google/shenzhen-go/dev/server/view"

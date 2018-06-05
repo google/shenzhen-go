@@ -15,6 +15,8 @@
 // Package pin has types for describing pins (connection points).
 package pin
 
+import "encoding/json"
+
 // Direction describes which way information flows in a Pin.
 type Direction string
 
@@ -55,4 +57,16 @@ func (m Map) FillNames() {
 	for n, p := range m {
 		p.Name = n
 	}
+}
+
+// UnmarshalJSON unmarshals the map the usual way, and then
+// calls FillNames.
+func (m *Map) UnmarshalJSON(b []byte) error {
+	var n map[string]*Definition
+	if err := json.Unmarshal(b, &n); err != nil {
+		return err
+	}
+	*m = n
+	m.FillNames()
+	return nil
 }

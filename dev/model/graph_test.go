@@ -15,19 +15,25 @@
 package model
 
 import (
-	"reflect"
 	"strings"
 	"testing"
 
+	"gopkg.in/d4l3k/messagediff.v1"
+
 	"github.com/google/shenzhen-go/dev/model/pin"
-	"github.com/google/shenzhen-go/dev/parts"
 )
+
+func init() {
+	RegisterPartType("Fake", &PartType{
+		New: func() Part { return new(FakePart) },
+	})
+}
 
 func TestLoadJSON(t *testing.T) {
 	json := strings.NewReader(`{
 	"nodes": {
 		"foo": {
-			"part_type": "Code", 
+			"part_type": "Fake", 
 			"part": {
 				"pins": {
 					"output": {
@@ -46,7 +52,7 @@ func TestLoadJSON(t *testing.T) {
 			}
 		},
 		"bar": {
-			"part_type": "Code", 
+			"part_type": "Fake", 
 			"part": {
 				"pins": {
 					"input": {
@@ -87,7 +93,7 @@ func TestLoadJSON(t *testing.T) {
 		"foo": {
 			Name:         "foo",
 			Multiplicity: 1,
-			Part: parts.NewCode(nil, "", "", "", pin.Map{
+			Part: &FakePart{nil, "", "", "", pin.Map{
 				"output": {
 					Name:      "output",
 					Direction: pin.Output,
@@ -98,7 +104,7 @@ func TestLoadJSON(t *testing.T) {
 					Type:      "int",
 					Direction: pin.Input,
 				},
-			}),
+			}},
 			Connections: map[string]string{
 				"output": "baz",
 				"nc":     "nil",
@@ -107,7 +113,7 @@ func TestLoadJSON(t *testing.T) {
 		"bar": {
 			Name:         "bar",
 			Multiplicity: 1,
-			Part: parts.NewCode(nil, "", "", "", pin.Map{
+			Part: &FakePart{nil, "", "", "", pin.Map{
 				"input": {
 					Name:      "input",
 					Direction: pin.Input,
@@ -118,15 +124,15 @@ func TestLoadJSON(t *testing.T) {
 					Type:      "int",
 					Direction: pin.Output,
 				},
-			}),
+			}},
 			Connections: map[string]string{
 				"input": "baz",
 				"nc":    "nil",
 			},
 		},
 	}
-	if got, want := got.Nodes, wantNodes; !reflect.DeepEqual(got, want) {
-		t.Errorf("LoadJSON().Nodes = %#v, want %#v", got, want)
+	if diff, equal := messagediff.PrettyDiff(got.Nodes, wantNodes); !equal {
+		t.Errorf("LoadJSON().Nodes diff (got -> want)\n%v", diff)
 	}
 	wantChans := map[string]*Channel{
 		"baz": {
@@ -138,7 +144,7 @@ func TestLoadJSON(t *testing.T) {
 			},
 		},
 	}
-	if got, want := got.Channels, wantChans; !reflect.DeepEqual(got, want) {
-		t.Errorf("LoadJSON().Channels = %#v, want %#v", got, want)
+	if diff, equal := messagediff.PrettyDiff(got.Channels, wantChans); !equal {
+		t.Errorf("LoadJSON().Channels diff (got -> want)\n%v", diff)
 	}
 }

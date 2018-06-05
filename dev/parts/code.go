@@ -21,6 +21,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
@@ -82,6 +83,13 @@ var (
 		},
 	}
 )
+
+func init() {
+	model.RegisterPartType("Code", &model.PartType{
+		New:    func() model.Part { return new(Code) },
+		Panels: CodePanels,
+	})
+}
 
 // Code is a component containing arbitrary code.
 type Code struct {
@@ -159,7 +167,6 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 	}
 	c.imports = mp.Imports
 	c.pins = mp.Pins
-	c.pins.FillNames()
 	return nil
 }
 

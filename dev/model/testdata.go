@@ -14,10 +14,31 @@
 
 package model
 
-import (
-	"github.com/google/shenzhen-go/dev/model/pin"
-	"github.com/google/shenzhen-go/dev/parts"
-)
+import "github.com/google/shenzhen-go/dev/model/pin"
+
+// FakePart fakes a part type for testing purposes.
+type FakePart struct {
+	Impts []string `json:"imports"`
+	Head  string   `json:"head"`
+	Body  string   `json:"body"`
+	Tail  string   `json:"tail"`
+	Pns   pin.Map  `json:"pins"`
+}
+
+// Clone returns a shallow copy.
+func (f *FakePart) Clone() interface{} { f2 := *f; return &f2 }
+
+// Imports returns Imprts.
+func (f *FakePart) Imports() []string { return f.Impts }
+
+// Impl returns Head, Body, Tail.
+func (f *FakePart) Impl() (h, b, t string) { return f.Head, f.Body, f.Tail }
+
+// Pins returns Pns.
+func (f *FakePart) Pins() pin.Map { return f.Pns }
+
+// TypeKey returns "Fake".
+func (f *FakePart) TypeKey() string { return "Fake" }
 
 // TestGraphs contains graphs that are useful for testing.
 var TestGraphs = map[string]*Graph{
@@ -43,13 +64,14 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", pin.Map{
+				Part: &FakePart{nil, "", "", "", pin.Map{
 					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
 					},
-				}),
+				},
+				},
 				Name:         "foo",
 				Enabled:      true,
 				Multiplicity: 1,
@@ -75,13 +97,14 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", pin.Map{
+				Part: &FakePart{nil, "", "", "", pin.Map{
 					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
 					},
-				}),
+				},
+				},
 				Name:         "foo",
 				Enabled:      false,
 				Multiplicity: 1,
@@ -100,13 +123,13 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", pin.Map{
+				Part: &FakePart{nil, "", "", "", pin.Map{
 					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
 					},
-				}),
+				}},
 				Name:         "foo",
 				Enabled:      true,
 				Multiplicity: 50,
@@ -125,13 +148,13 @@ var TestGraphs = map[string]*Graph{
 		IsCommand:   false,
 		Nodes: map[string]*Node{
 			"foo": {
-				Part: parts.NewCode(nil, "", "", "", pin.Map{
+				Part: &FakePart{nil, "", "", "", pin.Map{
 					"output": {
 						Name:      "output",
 						Type:      "int",
 						Direction: pin.Output,
 					},
-				}),
+				}},
 				Name:         "foo",
 				Enabled:      true,
 				Multiplicity: 1,

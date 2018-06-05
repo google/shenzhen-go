@@ -20,7 +20,6 @@ import (
 	"html/template"
 
 	"github.com/google/shenzhen-go/dev/model/pin"
-	"github.com/google/shenzhen-go/dev/parts"
 )
 
 // Part abstracts the implementation of a node. Concrete implementations should be
@@ -65,18 +64,12 @@ type PartType struct {
 }
 
 // PartTypes translates part type strings into useful information.
-var PartTypes = map[string]*PartType{
-	/*	"Aggregator":     func() Part { return new(parts.Aggregator) },
-		"Broadcast":      func() Part { return new(parts.Broadcast) }, */
-	"Code": {
-		New:    func() Part { return new(parts.Code) },
-		Panels: parts.CodePanels,
-	},
-	/*	"Filter":         func() Part { return new(parts.Filter) },
-		"HTTPServer":     func() Part { return new(parts.HTTPServer) },
-		"StaticSend":     func() Part { return new(parts.StaticSend) },
-		"TextFileReader": func() Part { return new(parts.TextFileReader) },
-		"Unslicer":       func() Part { return new(parts.Unslicer) },*/
+var PartTypes = make(map[string]*PartType)
+
+// RegisterPartType adds a part type to the PartTypes map.
+// This should be used by part types during init.
+func RegisterPartType(name string, pt *PartType) {
+	PartTypes[name] = pt
 }
 
 // PartJSON is a convenient JSON-plus-type-key type.

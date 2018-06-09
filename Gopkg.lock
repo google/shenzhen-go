@@ -57,7 +57,7 @@
     "font/gofont/gomonoitalic",
     "font/gofont/goregular"
   ]
-  revision = "f315e440302883054d0c2bd85486878cb4f8572c"
+  revision = "af66defab954cb421ca110193eed9477c8541e2a"
 
 [[projects]]
   branch = "master"
@@ -71,7 +71,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "9ef9f5bb98a1fdc41f8cf6c250a4404b4085e389"
+  revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -98,7 +98,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "694d95ba50e67b2e363f3483057db5d4910c18f9"
+  revision = "32ee49c4dd805befd833990acba36cb75042378c"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -128,12 +128,18 @@
     "tap",
     "transport"
   ]
-  revision = "41344da2231b913fa3d983840a57a6b1b7b631a1"
-  version = "v1.12.0"
+  revision = "7a6a684ca69eb4cae85ad0a484f2e531598c047b"
+  version = "v1.12.2"
+
+[[projects]]
+  name = "gopkg.in/d4l3k/messagediff.v1"
+  packages = ["."]
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2c8799036ebdced8a9795a21148c34b7d82375513a280dbec7723d38a91ea8b4"
+  inputs-digest = "2d722c05821f44ce9cababc4289b3e4b2eb222bb999c48ab45b10d76c65039a0"
   solver-name = "gps-cdcl"
   solver-version = 1

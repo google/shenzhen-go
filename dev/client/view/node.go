@@ -178,7 +178,7 @@ func (n *Node) refresh() {
 		j := sort.Search(len(r), func(i int) bool { return r[i].pc.Name() >= pc.Name() })
 		if j < len(r) && r[j].pc.Name() == pc.Name() {
 			allPins = append(allPins, r[j])
-			// Relies on n.AllPins = concat(n.Inputs, n.Outputs)
+			// Relies on n.AllPins = append(n.Inputs, n.Outputs...)
 			if !pc.IsInput() {
 				j += len(n.Inputs)
 			}

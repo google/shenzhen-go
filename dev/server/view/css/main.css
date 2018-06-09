@@ -8,6 +8,25 @@ body {
 	max-height: 100%;
 }
 
+span.link {
+	color: #05d;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+span.link:hover {
+	color: #07f;
+	text-decoration: underline;
+}
+
+span.link.destructive {
+    color: #d03;
+}
+
+span.link.destructive:hover {
+    color: #f06;
+}
+
 a:link, a:visited {
 	color: #05d;
 	text-decoration: none;

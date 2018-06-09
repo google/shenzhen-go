@@ -9,10 +9,10 @@
 		<h2>{{$.Base}}</h2>
 		<a href="/{{.Up}}">Up</a> |
 		<div class="dropdown"> 
-			<a href="javascript:void(0)">New</a>
+			<span class="link">New</span>
 			<form method="GET" class="dropdown-content">
 				<input type="text" name="new" required style="width:200px">
-				<a href="javascript:void(0)" onclick="this.parentElement.submit();">Create</a>
+				<span class="link" onclick="this.parentElement.submit();">Create</span>
 			</form>
 		</div>
 		<table class="browse">

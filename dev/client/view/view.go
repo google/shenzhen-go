@@ -70,13 +70,9 @@ func Setup(doc dom.Document, gc GraphController) {
 		AddEventListener("click", v.graph.save)
 
 	doc.ElementByID("preview-go-link").
-		AddEventListener("click", func(dom.Object) {
-			log.Print("preview-go-link")
-		})
+		AddEventListener("click", func(dom.Object) { gc.PreviewGo() })
 	doc.ElementByID("preview-json-link").
-		AddEventListener("click", func(dom.Object) {
-			log.Print("preview-json-link")
-		})
+		AddEventListener("click", func(dom.Object) { gc.PreviewJSON() })
 
 	doc.ElementByID("graph-prop-name").
 		AddEventListener("change", v.graph.commit)

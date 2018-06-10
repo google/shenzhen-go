@@ -26,28 +26,28 @@ import (
 )
 
 var (
-	ace = dom.GlobalACE()
+	ace = dom.GlobalAce()
 
-	pinsSession, importsSession, headSession, bodySession, tailSession *dom.ACESession
+	pinsSession, importsSession, headSession, bodySession, tailSession *dom.AceSession
 
 	focused *Code
 )
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	pinsSession = setupACE("code-pins", dom.ACEJSONMode, pinsChange)
-	importsSession = setupACE("code-imports", dom.ACEGoMode, importsChange)
-	headSession = setupACE("code-head", dom.ACEGoMode, headChange)
-	bodySession = setupACE("code-body", dom.ACEGoMode, bodyChange)
-	tailSession = setupACE("code-tail", dom.ACEGoMode, tailChange)
+	pinsSession = setupAce("code-pins", dom.AceJSONMode, pinsChange)
+	importsSession = setupAce("code-imports", dom.AceGoMode, importsChange)
+	headSession = setupAce("code-head", dom.AceGoMode, headChange)
+	bodySession = setupAce("code-body", dom.AceGoMode, bodyChange)
+	tailSession = setupAce("code-tail", dom.AceGoMode, tailChange)
 }
 
-func setupACE(id, mode string, handler func(dom.Object)) *dom.ACESession {
+func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
 	e := ace.Edit(id)
 	if e == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
-	e.SetTheme(dom.ACEChromeTheme)
+	e.SetTheme(dom.AceChromeTheme)
 	return e.Session().
 		SetMode(mode).
 		SetUseSoftTabs(false).

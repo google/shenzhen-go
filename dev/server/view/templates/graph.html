@@ -39,7 +39,7 @@
 			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" draggable="false" />
 		</div>
 		<div class="container" id="panels-container">
-			<div id="graph-properties">
+			<div id="graph-properties" class="panel">
 				<h3>Graph Properties</h3>
 				<div class="formfield">
 				    <label for="graph-prop-name">Name</label>
@@ -54,13 +54,13 @@
 					<input id="graph-prop-is-command" name="graph-prop-is-command" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library.">
 				</div>
 			</div>
-			<div id="go-preview" style="display:none">
-				<div id="go-preview-ace" class="codeedit"></div>
+			<div id="preview-go" class="panel" style="display:none">
+				<div id="preview-go-ace" class="codeedit"></div>
 			</div>
-			<div id="json-preview" style="display:none">
-				<div id="json-preview-ace" class="codeedit"></div>
+			<div id="preview-json" class="panel" style="display:none">
+				<div id="preview-json-ace" class="codeedit"></div>
 			</div>
-			<div id="channel-properties" style="display:none">
+			<div id="channel-properties" class="panel" style="display:none">
 				<h3>Channel Properties</h3>
 				<div id="channel-actions" class="head">
 					<span id="channel-delete-link" class="link destructive" title="Delete this channel">Delete</a>
@@ -80,7 +80,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="node-properties" style="display:none">
+			<div id="node-properties" class="panel" style="display:none">
 				<h3>Node Properties</h3>
 				<div id="node-actions" class="head">
 					<span id="node-clone-link" class="link" title="Make a copy of this goroutine.">Clone</a> | 

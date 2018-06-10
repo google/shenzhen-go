@@ -125,7 +125,7 @@ div#panels-container {
 	flex-flow: column;
 }
 
-div#node-properties {
+div.panel {
 	display: flex;
 	flex-flow: column;
 	flex: auto;

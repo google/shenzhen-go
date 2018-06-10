@@ -16,6 +16,7 @@ package controller
 
 import (
 	"errors"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -30,9 +31,13 @@ import (
 
 const defaultChannelNamePrefix = "channel"
 
-var defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
+var (
+	defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
 
-var _ view.GraphController = (*graphController)(nil)
+	ace = dom.GlobalAce()
+
+	_ view.GraphController = (*graphController)(nil)
+)
 
 type graphController struct {
 	doc    dom.Document
@@ -44,6 +49,10 @@ type graphController struct {
 	ChannelPropertiesPanel dom.Element
 	GraphPropertiesPanel   dom.Element
 	NodePropertiesPanel    dom.Element
+	PreviewGoPanel         dom.Element
+	PreviewJSONPanel       dom.Element
+	PreviewGoSession       *dom.AceSession
+	PreviewJSONSession     *dom.AceSession
 
 	// Graph properties panel inputs
 	graphNameTextInput        dom.Element
@@ -53,6 +62,16 @@ type graphController struct {
 	// Components that are connected to whatever is selected.
 	channelSharedOutlets *channelSharedOutlets
 	nodeSharedOutlets    *nodeSharedOutlets
+}
+
+func setupAceView(id, mode string) *dom.AceSession {
+	e := ace.Edit(id)
+	if e == nil {
+		log.Fatalf("Couldn't ace.edit(%q)", id)
+	}
+	e.SetTheme(dom.AceChromeTheme)
+	return e.Session().
+		SetMode(mode)
 }
 
 // NewGraphController returns a new controller for a graph, and binds outlets.
@@ -74,10 +93,15 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 		client: client,
 		graph:  graph,
 
+		CurrentRHSPanel: doc.ElementByID("graph-properties"),
+
+		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
 		GraphPropertiesPanel:   doc.ElementByID("graph-properties"),
 		NodePropertiesPanel:    doc.ElementByID("node-properties"),
-		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
-		CurrentRHSPanel:        doc.ElementByID("graph-properties"),
+		PreviewGoPanel:         doc.ElementByID("preview-go"),
+		PreviewJSONPanel:       doc.ElementByID("preview-json"),
+		PreviewGoSession:       setupAceView("preview-go-ace", dom.AceGoMode),
+		PreviewJSONSession:     setupAceView("preview-json-ace", dom.AceJSONMode),
 
 		graphNameTextInput:        doc.ElementByID("graph-prop-name"),
 		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
@@ -248,6 +272,16 @@ func (c *graphController) Commit(ctx context.Context) error {
 	c.graph.PackagePath = req.PackagePath
 	c.graph.IsCommand = req.IsCommand
 	return nil
+}
+
+func (c *graphController) PreviewGo() {
+	c.PreviewGoSession.SetValue("// TODO: Go preview here")
+	c.showRHSPanel(c.PreviewGoPanel)
+}
+
+func (c *graphController) PreviewJSON() {
+	c.PreviewJSONSession.SetValue(`{"todo": "JSON preview here"}`)
+	c.showRHSPanel(c.PreviewJSONPanel)
 }
 
 // showRHSPanel hides any existing panel and shows the given element as the panel.

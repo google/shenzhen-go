@@ -12,17 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package source
 
-import "text/template"
+import (
+	"go/format"
+	"io"
+	"io/ioutil"
+)
 
-const goRunnerTemplateSrc = `package main
-
-	import "{{.PackagePath}}"
-
-	func main() {
-		{{.PackageName}}.Run()
+// GoFmt reads all of src, applies "gofmt" to it, and then writes the result to dst.
+func GoFmt(dst io.Writer, src io.Reader) error {
+	in, err := ioutil.ReadAll(src)
+	if err != nil {
+		return err
 	}
-`
-
-var goRunnerTemplate = template.Must(template.New("golang-runner").Parse(goRunnerTemplateSrc))
+	out, err := format.Source(in)
+	if err != nil {
+		return err
+	}
+	_, err = dst.Write(out)
+	return err
+}

@@ -15,8 +15,6 @@
 package server
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -30,13 +28,14 @@ import (
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/server/view"
+	"github.com/google/shenzhen-go/dev/source"
 )
 
 var identifierRE = regexp.MustCompile(`^[_a-zA-Z][_a-zA-Z0-9]*$`)
 
 // GuessPackagePath attempts to find a sensible package path.
 func GuessPackagePath(srcPath string) (string, error) {
-	gp, err := gopath()
+	gp, err := source.GoPath()
 	if err != nil {
 		return "", err
 	}
@@ -51,21 +50,6 @@ func GuessPackagePath(srcPath string) (string, error) {
 	return strings.TrimSuffix(rel, filepath.Ext(rel)), nil
 }
 
-// Definitions returns the imports and channel var blocks from the Go program.
-// This is useful for advanced parsing and typechecking.
-func Definitions(g *model.Graph) string {
-	b := new(bytes.Buffer)
-	goDefinitionsTemplate.Execute(b, g)
-	return b.String()
-}
-
-// WriteJSONTo writes nicely-formatted JSON to the given Writer.
-func WriteJSONTo(w io.Writer, g *model.Graph) error {
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "\t") // For diffability!
-	return enc.Encode(g)
-}
-
 // SaveJSONFile saves the JSON-encoded Graph to the SourcePath.
 func SaveJSONFile(g *model.Graph) error {
 	f, err := ioutil.TempFile(filepath.Dir(g.FilePath), filepath.Base(g.FilePath))
@@ -73,7 +57,7 @@ func SaveJSONFile(g *model.Graph) error {
 		return err
 	}
 	defer f.Close()
-	if err := WriteJSONTo(f, g); err != nil {
+	if err := g.WriteJSONTo(f); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {
@@ -82,24 +66,10 @@ func SaveJSONFile(g *model.Graph) error {
 	return os.Rename(f.Name(), g.FilePath)
 }
 
-// WriteGoTo writes the Go language view of the graph to the io.Writer.
-func WriteGoTo(w io.Writer, g *model.Graph) error {
-	buf := &bytes.Buffer{}
-	if err := WriteRawGoTo(buf, g); err != nil {
-		return err
-	}
-	return gofmt(w, buf)
-}
-
-// WriteRawGoTo writes the Go language view of the graph to the io.Writer, without formatting.
-func WriteRawGoTo(w io.Writer, g *model.Graph) error {
-	return goTemplate.Execute(w, g)
-}
-
 // GeneratePackage writes the Go view of the graph to a file called generated.go in
 // ${GOPATH}/src/${g.PackagePath}/, returning the full path.
 func GeneratePackage(g *model.Graph) (string, error) {
-	gp, err := gopath()
+	gp, err := source.GoPath()
 	if err != nil {
 		return "", err
 	}
@@ -113,7 +83,7 @@ func GeneratePackage(g *model.Graph) (string, error) {
 		return "", err
 	}
 	defer f.Close()
-	if err := WriteGoTo(f, g); err != nil {
+	if err := g.WriteGoTo(f); err != nil {
 		return "", err
 	}
 	if err := f.Close(); err != nil {
@@ -272,7 +242,7 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "text/plain")
-	if err := WriteGoTo(w, g); err != nil {
+	if err := g.WriteGoTo(w); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
 	}
@@ -281,7 +251,7 @@ func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
 func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "text/plain")
-	if err := WriteRawGoTo(w, g); err != nil {
+	if err := g.WriteRawGoTo(w); err != nil {
 		log.Printf("Could not render to Go: %v", err)
 		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
 	}
@@ -290,7 +260,7 @@ func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
 func outputJSON(g *model.Graph, w http.ResponseWriter) {
 	h := w.Header()
 	h.Set("Content-Type", "application/json")
-	if err := WriteJSONTo(w, g); err != nil {
+	if err := g.WriteJSONTo(w); err != nil {
 		log.Printf("Could not encode JSON: %v", err)
 		http.Error(w, "Could not encode JSON", http.StatusInternalServerError)
 		return

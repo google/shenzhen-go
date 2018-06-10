@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package model
 
-import (
-	"testing"
-
-	"github.com/google/shenzhen-go/dev/model"
-)
+import "testing"
 
 type nopWriter struct{}
 
@@ -26,7 +22,7 @@ func (nopWriter) Write(r []byte) (int, error) { return len(r), nil }
 
 func TestGoTemplate(t *testing.T) {
 	// Smoke-testing the template.
-	for name, g := range model.TestGraphs {
+	for name, g := range TestGraphs {
 		if err := goTemplate.Execute(nopWriter{}, g); err != nil {
 			t.Errorf("goTemplate.Execute(%v) = %v, want nil error", name, err)
 		}

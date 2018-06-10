@@ -12,17 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package source
 
-import "text/template"
+import (
+	"os"
+	"os/user"
+	"path/filepath"
+)
 
-const goRunnerTemplateSrc = `package main
-
-	import "{{.PackagePath}}"
-
-	func main() {
-		{{.PackageName}}.Run()
+// GoPath returns the GOPATH using Go 1.8 and later rules.
+// If the GOPATH environment var is defined, it uses that, otherwise it
+// assumes $HOME/go.
+func GoPath() (string, error) {
+	// TODO: Any implementation of this in the std lib?
+	p, _ := os.LookupEnv("GOPATH")
+	if p != "" {
+		return p, nil
 	}
-`
-
-var goRunnerTemplate = template.Must(template.New("golang-runner").Parse(goRunnerTemplateSrc))
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(u.HomeDir, "go"), nil
+}

@@ -17,6 +17,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"go/format"
 	"io"
 	"text/template"
 
@@ -120,9 +121,18 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 	return source.GoFmt(w, buf)
 }
 
-// WriteRawGoTo writes the Go language view of the graph to the io.Writer, without formatting.
+// WriteRawGoTo writes the Go language view of the graph to the io.Writer, without gofmt-ing.
 func (g *Graph) WriteRawGoTo(w io.Writer) error {
 	return goTemplate.Execute(w, g)
+}
+
+// Go outputs the Go language view of the graph.
+func (g *Graph) Go() ([]byte, error) {
+	buf := &bytes.Buffer{}
+	if err := g.WriteRawGoTo(buf); err != nil {
+		return nil, err
+	}
+	return format.Source(buf.Bytes())
 }
 
 // Definitions returns the imports and channel var blocks from the Go program.
@@ -138,4 +148,9 @@ func (g *Graph) WriteJSONTo(w io.Writer) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "\t") // For diffability!
 	return enc.Encode(g)
+}
+
+// JSON returns the JSON view of the graph.
+func (g *Graph) JSON() ([]byte, error) {
+	return json.MarshalIndent(g, "", "\t")
 }

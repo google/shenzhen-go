@@ -275,12 +275,22 @@ func (c *graphController) Commit(ctx context.Context) error {
 }
 
 func (c *graphController) PreviewGo() {
-	c.PreviewGoSession.SetValue("// TODO: Go preview here")
+	g, err := c.graph.Go()
+	d := string(g)
+	if err != nil {
+		d = `/* Couldn't generate Go: ` + err.Error() + ` */`
+	}
+	c.PreviewGoSession.SetValue(d)
 	c.showRHSPanel(c.PreviewGoPanel)
 }
 
 func (c *graphController) PreviewJSON() {
-	c.PreviewJSONSession.SetValue(`{"todo": "JSON preview here"}`)
+	g, err := c.graph.JSON()
+	d := string(g)
+	if err != nil {
+		d = `{"error": "Couldn't generate JSON: ` + err.Error() + `"}`
+	}
+	c.PreviewJSONSession.SetValue(d)
 	c.showRHSPanel(c.PreviewJSONPanel)
 }
 

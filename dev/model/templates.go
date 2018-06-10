@@ -127,12 +127,13 @@ func (g *Graph) WriteRawGoTo(w io.Writer) error {
 }
 
 // Go outputs the Go language view of the graph.
-func (g *Graph) Go() ([]byte, error) {
+func (g *Graph) Go() (string, error) {
 	buf := &bytes.Buffer{}
 	if err := g.WriteRawGoTo(buf); err != nil {
-		return nil, err
+		return "", err
 	}
-	return format.Source(buf.Bytes())
+	o, err := format.Source(buf.Bytes())
+	return string(o), err
 }
 
 // Definitions returns the imports and channel var blocks from the Go program.
@@ -151,6 +152,7 @@ func (g *Graph) WriteJSONTo(w io.Writer) error {
 }
 
 // JSON returns the JSON view of the graph.
-func (g *Graph) JSON() ([]byte, error) {
-	return json.MarshalIndent(g, "", "\t")
+func (g *Graph) JSON() (string, error) {
+	o, err := json.MarshalIndent(g, "", "\t")
+	return string(o), err
 }

@@ -22,9 +22,11 @@ import (
 
 // ACE editor modes and themes.
 const (
+	// ACE modes.
 	ACEGoMode   = "ace/mode/golang"
 	ACEJSONMode = "ace/mode/json"
 
+	// ACE themes.
 	ACEChromeTheme = "ace/theme/chrome"
 )
 

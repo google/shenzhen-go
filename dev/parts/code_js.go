@@ -28,21 +28,21 @@ import (
 var (
 	ace = dom.GlobalACE()
 
-	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *dom.ACESession
+	pinsSession, importsSession, headSession, bodySession, tailSession *dom.ACESession
 
 	focused *Code
 )
 
-// Needed to resolve initialization cycle. (*Code).handleFoo uses the value loaded here.
+// Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	codePinsSession = setupACE("code-pins", dom.ACEJSONMode, (*Code).handlePinsChange)
-	codeImportsSession = setupACE("code-imports", dom.ACEGoMode, (*Code).handleImportsChange)
-	codeHeadSession = setupACE("code-head", dom.ACEGoMode, (*Code).handleHeadChange)
-	codeBodySession = setupACE("code-body", dom.ACEGoMode, (*Code).handleBodyChange)
-	codeTailSession = setupACE("code-tail", dom.ACEGoMode, (*Code).handleTailChange)
+	pinsSession = setupACE("code-pins", dom.ACEJSONMode, pinsChange)
+	importsSession = setupACE("code-imports", dom.ACEGoMode, importsChange)
+	headSession = setupACE("code-head", dom.ACEGoMode, headChange)
+	bodySession = setupACE("code-body", dom.ACEGoMode, bodyChange)
+	tailSession = setupACE("code-tail", dom.ACEGoMode, tailChange)
 }
 
-func setupACE(id, mode string, handler func(*Code)) *dom.ACESession {
+func setupACE(id, mode string, handler func(dom.Object)) *dom.ACESession {
 	e := ace.Edit(id)
 	if e == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
@@ -51,27 +51,22 @@ func setupACE(id, mode string, handler func(*Code)) *dom.ACESession {
 	return e.Session().
 		SetMode(mode).
 		SetUseSoftTabs(false).
-		On("change", func(dom.Object) {
-			handler(focused)
-		})
+		On("change", handler)
 }
 
-func (c *Code) handlePinsChange() {
+func pinsChange(dom.Object) {
 	var p pin.Map
-	if err := json.Unmarshal([]byte(codePinsSession.Value()), &p); err != nil {
+	if err := json.Unmarshal([]byte(pinsSession.Value()), &p); err != nil {
 		// Ignore
 		return
 	}
-	c.pins = p
+	focused.pins = p
 }
 
-func (c *Code) handleImportsChange() {
-	c.imports = strings.Split(codeImportsSession.Value(), "\n")
-}
-
-func (c *Code) handleHeadChange() { c.head = codeHeadSession.Value() }
-func (c *Code) handleBodyChange() { c.body = codeBodySession.Value() }
-func (c *Code) handleTailChange() { c.tail = codeTailSession.Value() }
+func importsChange(dom.Object) { focused.imports = strings.Split(importsSession.Value(), "\n") }
+func headChange(dom.Object)    { focused.head = headSession.Value() }
+func bodyChange(dom.Object)    { focused.body = bodySession.Value() }
+func tailChange(dom.Object)    { focused.tail = tailSession.Value() }
 
 func (c *Code) GainFocus() {
 	focused = c
@@ -80,9 +75,9 @@ func (c *Code) GainFocus() {
 		// Should have parsed correctly beforehand.
 		panic(err)
 	}
-	codePinsSession.SetValue(string(p))
-	codeImportsSession.SetValue(strings.Join(c.imports, "\n"))
-	codeHeadSession.SetValue(c.head)
-	codeBodySession.SetValue(c.body)
-	codeTailSession.SetValue(c.tail)
+	pinsSession.SetValue(string(p))
+	importsSession.SetValue(strings.Join(c.imports, "\n"))
+	headSession.SetValue(c.head)
+	bodySession.SetValue(c.body)
+	tailSession.SetValue(c.tail)
 }

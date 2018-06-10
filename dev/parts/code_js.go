@@ -19,71 +19,59 @@ package parts
 import (
 	"encoding/json"
 	"log"
-	"math"
 	"strings"
-
-	"github.com/gopherjs/gopherjs/js"
 
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
-const (
-	aceGoMode      = "ace/mode/golang"
-	aceJSONMode    = "ace/mode/json"
-	aceChromeTheme = "ace/theme/chrome"
-)
-
 var (
-	ace = dom.WrapObject(js.Global.Get("ace"))
+	ace = dom.GlobalACE()
 
-	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession dom.Object
+	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *dom.ACESession
 
 	focused *Code
 )
 
 // Needed to resolve initialization cycle. (*Code).handleFoo uses the value loaded here.
 func init() {
-	codePinsSession = aceEdit("code-pins", aceJSONMode, aceChromeTheme, (*Code).handlePinsChange)
-	codeImportsSession = aceEdit("code-imports", aceGoMode, aceChromeTheme, (*Code).handleImportsChange)
-	codeHeadSession = aceEdit("code-head", aceGoMode, aceChromeTheme, (*Code).handleHeadChange)
-	codeBodySession = aceEdit("code-body", aceGoMode, aceChromeTheme, (*Code).handleBodyChange)
-	codeTailSession = aceEdit("code-tail", aceGoMode, aceChromeTheme, (*Code).handleTailChange)
+	codePinsSession = setupACE("code-pins", dom.ACEJSONMode, (*Code).handlePinsChange)
+	codeImportsSession = setupACE("code-imports", dom.ACEGoMode, (*Code).handleImportsChange)
+	codeHeadSession = setupACE("code-head", dom.ACEGoMode, (*Code).handleHeadChange)
+	codeBodySession = setupACE("code-body", dom.ACEGoMode, (*Code).handleBodyChange)
+	codeTailSession = setupACE("code-tail", dom.ACEGoMode, (*Code).handleTailChange)
 }
 
-func aceEdit(id, mode, theme string, handler func(*Code, *js.Object)) dom.Object {
-	r := ace.Call("edit", id)
-	if r == nil {
+func setupACE(id, mode string, handler func(*Code)) *dom.ACESession {
+	e := ace.Edit(id)
+	if e == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
-	r.Call("setTheme", theme)
-	r.Set("$blockScrolling", math.Inf(1)) // Make console warnings shut up
-	s := r.Call("getSession")
-	s.Call("setMode", mode)
-	s.Call("setUseSoftTabs", false)
-	s.Call("on", "change", func(e *js.Object) {
-		handler(focused, e)
-	})
-	return s
+	e.SetTheme(dom.ACEChromeTheme)
+	return e.Session().
+		SetMode(mode).
+		SetUseSoftTabs(false).
+		On("change", func(dom.Object) {
+			handler(focused)
+		})
 }
 
-func (c *Code) handlePinsChange(*js.Object) {
+func (c *Code) handlePinsChange() {
 	var p pin.Map
-	if err := json.Unmarshal([]byte(codePinsSession.Call("getValue").String()), &p); err != nil {
+	if err := json.Unmarshal([]byte(codePinsSession.Value()), &p); err != nil {
 		// Ignore
 		return
 	}
-	p.FillNames()
 	c.pins = p
 }
 
-func (c *Code) handleImportsChange(*js.Object) {
-	c.imports = strings.Split(codeImportsSession.Call("getValue").String(), "\n")
+func (c *Code) handleImportsChange() {
+	c.imports = strings.Split(codeImportsSession.Value(), "\n")
 }
 
-func (c *Code) handleHeadChange(*js.Object) { c.head = codeHeadSession.Call("getValue").String() }
-func (c *Code) handleBodyChange(*js.Object) { c.body = codeBodySession.Call("getValue").String() }
-func (c *Code) handleTailChange(*js.Object) { c.tail = codeTailSession.Call("getValue").String() }
+func (c *Code) handleHeadChange() { c.head = codeHeadSession.Value() }
+func (c *Code) handleBodyChange() { c.body = codeBodySession.Value() }
+func (c *Code) handleTailChange() { c.tail = codeTailSession.Value() }
 
 func (c *Code) GainFocus() {
 	focused = c
@@ -92,9 +80,9 @@ func (c *Code) GainFocus() {
 		// Should have parsed correctly beforehand.
 		panic(err)
 	}
-	codePinsSession.Call("setValue", string(p))
-	codeImportsSession.Call("setValue", strings.Join(c.imports, "\n"))
-	codeHeadSession.Call("setValue", c.head)
-	codeBodySession.Call("setValue", c.body)
-	codeTailSession.Call("setValue", c.tail)
+	codePinsSession.SetValue(string(p))
+	codeImportsSession.SetValue(strings.Join(c.imports, "\n"))
+	codeHeadSession.SetValue(c.head)
+	codeBodySession.SetValue(c.body)
+	codeTailSession.SetValue(c.tail)
 }

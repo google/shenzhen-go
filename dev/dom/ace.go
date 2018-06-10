@@ -20,14 +20,26 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
+// ACE editor modes and themes.
+const (
+	ACEGoMode   = "ace/mode/golang"
+	ACEJSONMode = "ace/mode/json"
+
+	ACEChromeTheme = "ace/theme/chrome"
+)
+
 // ACE wraps an "ace" object (usually global).
 type ACE struct {
 	Object
 }
 
 // GlobalACE returns the global "ace" object.
-func GlobalACE() ACE {
-	return ACE{WrapObject(js.Global.Get("ace"))}
+func GlobalACE() *ACE {
+	o := js.Global.Get("ace")
+	if o == nil {
+		return nil
+	}
+	return &ACE{WrapObject(o)}
 }
 
 // ACEEditor is an ACE editor.
@@ -35,18 +47,60 @@ type ACEEditor struct {
 	Object
 }
 
-// Edit attaches an ACE edit session to an element and returns the
-func (ace ACE) Edit(id string) ACEEditor {
-	return ACEEditor{ace.Call("edit", id)}
+// Edit attaches an ACE edit session to an element and returns the editor object,
+// or nil (if ace.edit returns null).
+func (ace ACE) Edit(id string) *ACEEditor {
+	o := ace.Call("edit", id)
+	if o == nil {
+		return nil
+	}
+	e := &ACEEditor{o}
+	e.Set("$blockScrolling", math.Inf(1)) // Make console warnings shut up
+	return e
 }
 
-func misc(r Object, theme, mode string) Object {
-	r.Call("setTheme", theme)
-	r.Set("$blockScrolling", math.Inf(1)) // Make console warnings shut up
-	s := r.Call("getSession")
+// SetTheme sets the editor theme.
+func (e *ACEEditor) SetTheme(theme string) *ACEEditor {
+	e.Call("setTheme", theme)
+	return e
+}
+
+// ACESession is an ACE editor session.
+type ACESession struct {
+	Object
+}
+
+// Session returns a session for this editor.
+func (e *ACEEditor) Session() *ACESession {
+	return &ACESession{e.Call("getSession")}
+}
+
+// SetMode sets the session mode (language).
+func (s *ACESession) SetMode(mode string) *ACESession {
 	s.Call("setMode", mode)
-	s.Call("setUseSoftTabs", false)
-	s.Call("on", "change", func(e *js.Object) {
+	return s
+}
+
+// SetUseSoftTabs changes the soft-tabs mode of the session.
+func (s *ACESession) SetUseSoftTabs(b bool) *ACESession {
+	s.Call("setUseSoftTabs", b)
+	return s
+}
+
+// On adds a handler (on change, etc).
+func (s *ACESession) On(event string, h func(e Object)) *ACESession {
+	s.Call("on", event, func(e *js.Object) {
+		h(WrapObject(e))
 	})
 	return s
+}
+
+// SetValue puts new contents in the session.
+func (s *ACESession) SetValue(contents string) {
+	s.Call("setValue", contents)
+}
+
+// Value returns the session's current contents.
+func (s *ACESession) Value() string {
+	return s.Call("getValue").String()
 }

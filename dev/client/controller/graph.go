@@ -254,7 +254,10 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 }
 
 func (c *graphController) Save(ctx context.Context) error {
-	_, err := c.client.Save(ctx, &pb.SaveRequest{Graph: c.graph.FilePath})
+	_, err := c.client.Action(ctx, &pb.ActionRequest{
+		Graph:  c.graph.FilePath,
+		Action: pb.ActionRequest_SAVE,
+	})
 	return err
 }
 

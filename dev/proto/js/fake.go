@@ -25,8 +25,13 @@ var _ ShenzhenGoClient = UnimplementedShenzhenGoClient{}
 // UnimplementedShenzhenGoClient is for embedding in test fakes.
 type UnimplementedShenzhenGoClient struct{}
 
-// Save does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) Save(ctx context.Context, in *SaveRequest, opts ...grpcweb.CallOption) (*Empty, error) {
+// Action does nothing and returns nil, nil.
+func (UnimplementedShenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (*ActionResponse, error) {
+	return nil, nil
+}
+
+// Run does nothing and returns nil, nil.
+func (UnimplementedShenzhenGoClient) Run(ctx context.Context, opts ...grpcweb.CallOption) (ShenzhenGo_RunClient, error) {
 	return nil, nil
 }
 

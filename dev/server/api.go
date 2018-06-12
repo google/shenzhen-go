@@ -26,15 +26,27 @@ import (
 	pb "github.com/google/shenzhen-go/dev/proto/go"
 )
 
-func (c *server) Save(ctx context.Context, req *pb.SaveRequest) (*pb.Empty, error) {
-	log.Printf("api: Save(%s)", proto.MarshalTextString(req))
+func (c *server) Action(ctx context.Context, req *pb.ActionRequest) (*pb.ActionResponse, error) {
+	log.Printf("api: Action(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
-		return &pb.Empty{}, err
+		return &pb.ActionResponse{}, err
 	}
 	g.Lock()
 	defer g.Unlock()
-	return &pb.Empty{}, SaveJSONFile(g.Graph)
+
+	switch req.Action {
+	case pb.ActionRequest_SAVE:
+		return &pb.ActionResponse{}, SaveJSONFile(g.Graph)
+	default:
+		// TODO: implement other actions
+		return &pb.ActionResponse{}, status.Errorf(codes.Unimplemented, "action %v not implemented", req.Action)
+	}
+}
+
+func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
+	// TODO: implement running
+	return status.Error(codes.Unimplemented, "run not yet implemented")
 }
 
 func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb.Empty, error) {

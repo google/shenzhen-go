@@ -12,7 +12,10 @@
 		NodePin
 		ChannelConfig
 		NodeConfig
-		SaveRequest
+		ActionRequest
+		ActionResponse
+		Input
+		Output
 		SetChannelRequest
 		SetGraphPropertiesRequest
 		SetNodeRequest
@@ -31,6 +34,35 @@ import (
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the jspb package it is being compiled against.
 const _ = jspb.JspbPackageIsVersion2
+
+type ActionRequest_Action int
+
+const (
+	ActionRequest_SAVE     ActionRequest_Action = 0
+	ActionRequest_REVERT   ActionRequest_Action = 1
+	ActionRequest_GENERATE ActionRequest_Action = 2
+	ActionRequest_BUILD    ActionRequest_Action = 3
+	ActionRequest_INSTALL  ActionRequest_Action = 4
+)
+
+var ActionRequest_Action_name = map[int]string{
+	0: "SAVE",
+	1: "REVERT",
+	2: "GENERATE",
+	3: "BUILD",
+	4: "INSTALL",
+}
+var ActionRequest_Action_value = map[string]int{
+	"SAVE":     0,
+	"REVERT":   1,
+	"GENERATE": 2,
+	"BUILD":    3,
+	"INSTALL":  4,
+}
+
+func (x ActionRequest_Action) String() string {
+	return ActionRequest_Action_name[int(x)]
+}
 
 type Empty struct {
 }
@@ -438,20 +470,29 @@ func (m *NodeConfig) Unmarshal(rawBytes []byte) (*NodeConfig, error) {
 	return m, nil
 }
 
-type SaveRequest struct {
-	Graph string
+type ActionRequest struct {
+	Graph  string
+	Action ActionRequest_Action
 }
 
-// GetGraph gets the Graph of the SaveRequest.
-func (m *SaveRequest) GetGraph() (x string) {
+// GetGraph gets the Graph of the ActionRequest.
+func (m *ActionRequest) GetGraph() (x string) {
 	if m == nil {
 		return x
 	}
 	return m.Graph
 }
 
-// MarshalToWriter marshals SaveRequest to the provided writer.
-func (m *SaveRequest) MarshalToWriter(writer jspb.Writer) {
+// GetAction gets the Action of the ActionRequest.
+func (m *ActionRequest) GetAction() (x ActionRequest_Action) {
+	if m == nil {
+		return x
+	}
+	return m.Action
+}
+
+// MarshalToWriter marshals ActionRequest to the provided writer.
+func (m *ActionRequest) MarshalToWriter(writer jspb.Writer) {
 	if m == nil {
 		return
 	}
@@ -460,26 +501,32 @@ func (m *SaveRequest) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteString(1, m.Graph)
 	}
 
+	if int(m.Action) != 0 {
+		writer.WriteEnum(2, int(m.Action))
+	}
+
 	return
 }
 
-// Marshal marshals SaveRequest to a slice of bytes.
-func (m *SaveRequest) Marshal() []byte {
+// Marshal marshals ActionRequest to a slice of bytes.
+func (m *ActionRequest) Marshal() []byte {
 	writer := jspb.NewWriter()
 	m.MarshalToWriter(writer)
 	return writer.GetResult()
 }
 
-// UnmarshalFromReader unmarshals a SaveRequest from the provided reader.
-func (m *SaveRequest) UnmarshalFromReader(reader jspb.Reader) *SaveRequest {
+// UnmarshalFromReader unmarshals a ActionRequest from the provided reader.
+func (m *ActionRequest) UnmarshalFromReader(reader jspb.Reader) *ActionRequest {
 	for reader.Next() {
 		if m == nil {
-			m = &SaveRequest{}
+			m = &ActionRequest{}
 		}
 
 		switch reader.GetFieldNumber() {
 		case 1:
 			m.Graph = reader.ReadString()
+		case 2:
+			m.Action = ActionRequest_Action(reader.ReadEnum())
 		default:
 			reader.SkipField()
 		}
@@ -488,8 +535,227 @@ func (m *SaveRequest) UnmarshalFromReader(reader jspb.Reader) *SaveRequest {
 	return m
 }
 
-// Unmarshal unmarshals a SaveRequest from a slice of bytes.
-func (m *SaveRequest) Unmarshal(rawBytes []byte) (*SaveRequest, error) {
+// Unmarshal unmarshals a ActionRequest from a slice of bytes.
+func (m *ActionRequest) Unmarshal(rawBytes []byte) (*ActionRequest, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+type ActionResponse struct {
+	Output string
+}
+
+// GetOutput gets the Output of the ActionResponse.
+func (m *ActionResponse) GetOutput() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Output
+}
+
+// MarshalToWriter marshals ActionResponse to the provided writer.
+func (m *ActionResponse) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Output) > 0 {
+		writer.WriteString(1, m.Output)
+	}
+
+	return
+}
+
+// Marshal marshals ActionResponse to a slice of bytes.
+func (m *ActionResponse) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a ActionResponse from the provided reader.
+func (m *ActionResponse) UnmarshalFromReader(reader jspb.Reader) *ActionResponse {
+	for reader.Next() {
+		if m == nil {
+			m = &ActionResponse{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Output = reader.ReadString()
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a ActionResponse from a slice of bytes.
+func (m *ActionResponse) Unmarshal(rawBytes []byte) (*ActionResponse, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+type Input struct {
+	Graph string
+	In    string
+}
+
+// GetGraph gets the Graph of the Input.
+func (m *Input) GetGraph() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Graph
+}
+
+// GetIn gets the In of the Input.
+func (m *Input) GetIn() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.In
+}
+
+// MarshalToWriter marshals Input to the provided writer.
+func (m *Input) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Graph) > 0 {
+		writer.WriteString(1, m.Graph)
+	}
+
+	if len(m.In) > 0 {
+		writer.WriteString(2, m.In)
+	}
+
+	return
+}
+
+// Marshal marshals Input to a slice of bytes.
+func (m *Input) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a Input from the provided reader.
+func (m *Input) UnmarshalFromReader(reader jspb.Reader) *Input {
+	for reader.Next() {
+		if m == nil {
+			m = &Input{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Graph = reader.ReadString()
+		case 2:
+			m.In = reader.ReadString()
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a Input from a slice of bytes.
+func (m *Input) Unmarshal(rawBytes []byte) (*Input, error) {
+	reader := jspb.NewReader(rawBytes)
+
+	m = m.UnmarshalFromReader(reader)
+
+	if err := reader.Err(); err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+type Output struct {
+	Out string
+	Err string
+}
+
+// GetOut gets the Out of the Output.
+func (m *Output) GetOut() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Out
+}
+
+// GetErr gets the Err of the Output.
+func (m *Output) GetErr() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Err
+}
+
+// MarshalToWriter marshals Output to the provided writer.
+func (m *Output) MarshalToWriter(writer jspb.Writer) {
+	if m == nil {
+		return
+	}
+
+	if len(m.Out) > 0 {
+		writer.WriteString(1, m.Out)
+	}
+
+	if len(m.Err) > 0 {
+		writer.WriteString(2, m.Err)
+	}
+
+	return
+}
+
+// Marshal marshals Output to a slice of bytes.
+func (m *Output) Marshal() []byte {
+	writer := jspb.NewWriter()
+	m.MarshalToWriter(writer)
+	return writer.GetResult()
+}
+
+// UnmarshalFromReader unmarshals a Output from the provided reader.
+func (m *Output) UnmarshalFromReader(reader jspb.Reader) *Output {
+	for reader.Next() {
+		if m == nil {
+			m = &Output{}
+		}
+
+		switch reader.GetFieldNumber() {
+		case 1:
+			m.Out = reader.ReadString()
+		case 2:
+			m.Err = reader.ReadString()
+		default:
+			reader.SkipField()
+		}
+	}
+
+	return m
+}
+
+// Unmarshal unmarshals a Output from a slice of bytes.
+func (m *Output) Unmarshal(rawBytes []byte) (*Output, error) {
 	reader := jspb.NewReader(rawBytes)
 
 	m = m.UnmarshalFromReader(reader)
@@ -922,8 +1188,10 @@ const _ = grpcweb.GrpcWebPackageIsVersion3
 // Client API for ShenzhenGo service
 
 type ShenzhenGoClient interface {
-	// Save saves the graph to disk.
-	Save(ctx context.Context, in *SaveRequest, opts ...grpcweb.CallOption) (*Empty, error)
+	// Action performs an action (save, run, etc).
+	Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (*ActionResponse, error)
+	// Run runs the program.
+	Run(ctx context.Context, opts ...grpcweb.CallOption) (ShenzhenGo_RunClient, error)
 	// SetNode either creates a new channel (name == "", config != nil)
 	// changes existing channel data such as name and attached pins (name is found, config != nil),
 	// or deletes a channel (name is found, config == nil).
@@ -949,13 +1217,45 @@ func NewShenzhenGoClient(hostname string, opts ...grpcweb.DialOption) ShenzhenGo
 	}
 }
 
-func (c *shenzhenGoClient) Save(ctx context.Context, in *SaveRequest, opts ...grpcweb.CallOption) (*Empty, error) {
-	resp, err := c.client.RPCCall(ctx, "Save", in.Marshal(), opts...)
+func (c *shenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (*ActionResponse, error) {
+	resp, err := c.client.RPCCall(ctx, "Action", in.Marshal(), opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return new(Empty).Unmarshal(resp)
+	return new(ActionResponse).Unmarshal(resp)
+}
+
+func (c *shenzhenGoClient) Run(ctx context.Context, opts ...grpcweb.CallOption) (ShenzhenGo_RunClient, error) {
+	srv, err := c.client.NewClientStream(ctx, true, true, "Run", opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &shenzhenGoRunClient{srv}, nil
+}
+
+type ShenzhenGo_RunClient interface {
+	Send(*Input) error
+	Recv() (*Output, error)
+	grpcweb.ClientStream
+}
+
+type shenzhenGoRunClient struct {
+	grpcweb.ClientStream
+}
+
+func (x *shenzhenGoRunClient) Send(req *Input) error {
+	return x.SendMsg(req.Marshal())
+}
+
+func (x *shenzhenGoRunClient) Recv() (*Output, error) {
+	resp, err := x.RecvMsg()
+	if err != nil {
+		return nil, err
+	}
+
+	return new(Output).Unmarshal(resp)
 }
 
 func (c *shenzhenGoClient) SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpcweb.CallOption) (*Empty, error) {

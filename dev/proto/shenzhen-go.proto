@@ -41,8 +41,31 @@ message NodeConfig {
     double y = 8;
 }
 
-message SaveRequest {
+message ActionRequest {
+	enum Action {
+		SAVE = 0;
+		REVERT = 1;
+		GENERATE = 2;
+		BUILD = 3;
+		INSTALL = 4;
+	}
+
 	string graph = 1;
+	Action action = 2;
+}
+
+message ActionResponse {
+	string output = 1;
+}
+
+message Input {
+	string graph = 1;
+	string in = 2;  // stdin
+}
+
+message Output {
+	string out = 1;  // stdout
+	string err = 2;  // stderr
 }
 
 message SetChannelRequest {
@@ -72,8 +95,11 @@ message SetPositionRequest {
 }
 
 service ShenzhenGo {
-	// Save saves the graph to disk.
-	rpc Save(SaveRequest) returns (Empty) {}
+	// Action performs an action (save, run, etc).
+	rpc Action(ActionRequest) returns (ActionResponse) {}
+
+	// Run runs the program.
+	rpc Run(stream Input) returns (stream Output) {}
 
 	// SetNode either creates a new channel (name == "", config != nil)
 	// changes existing channel data such as name and attached pins (name is found, config != nil),

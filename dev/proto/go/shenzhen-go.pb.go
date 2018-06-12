@@ -23,6 +23,38 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
+type ActionRequest_Action int32
+
+const (
+	ActionRequest_SAVE     ActionRequest_Action = 0
+	ActionRequest_REVERT   ActionRequest_Action = 1
+	ActionRequest_GENERATE ActionRequest_Action = 2
+	ActionRequest_BUILD    ActionRequest_Action = 3
+	ActionRequest_INSTALL  ActionRequest_Action = 4
+)
+
+var ActionRequest_Action_name = map[int32]string{
+	0: "SAVE",
+	1: "REVERT",
+	2: "GENERATE",
+	3: "BUILD",
+	4: "INSTALL",
+}
+var ActionRequest_Action_value = map[string]int32{
+	"SAVE":     0,
+	"REVERT":   1,
+	"GENERATE": 2,
+	"BUILD":    3,
+	"INSTALL":  4,
+}
+
+func (x ActionRequest_Action) String() string {
+	return proto.EnumName(ActionRequest_Action_name, int32(x))
+}
+func (ActionRequest_Action) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{4, 0}
+}
+
 type Empty struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -33,7 +65,7 @@ func (m *Empty) Reset()         { *m = Empty{} }
 func (m *Empty) String() string { return proto.CompactTextString(m) }
 func (*Empty) ProtoMessage()    {}
 func (*Empty) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{0}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{0}
 }
 func (m *Empty) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Empty.Unmarshal(m, b)
@@ -65,7 +97,7 @@ func (m *NodePin) Reset()         { *m = NodePin{} }
 func (m *NodePin) String() string { return proto.CompactTextString(m) }
 func (*NodePin) ProtoMessage()    {}
 func (*NodePin) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{1}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{1}
 }
 func (m *NodePin) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodePin.Unmarshal(m, b)
@@ -113,7 +145,7 @@ func (m *ChannelConfig) Reset()         { *m = ChannelConfig{} }
 func (m *ChannelConfig) String() string { return proto.CompactTextString(m) }
 func (*ChannelConfig) ProtoMessage()    {}
 func (*ChannelConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{2}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{2}
 }
 func (m *ChannelConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ChannelConfig.Unmarshal(m, b)
@@ -179,7 +211,7 @@ func (m *NodeConfig) Reset()         { *m = NodeConfig{} }
 func (m *NodeConfig) String() string { return proto.CompactTextString(m) }
 func (*NodeConfig) ProtoMessage()    {}
 func (*NodeConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{3}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{3}
 }
 func (m *NodeConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodeConfig.Unmarshal(m, b)
@@ -255,40 +287,178 @@ func (m *NodeConfig) GetY() float64 {
 	return 0
 }
 
-type SaveRequest struct {
-	Graph                string   `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
+type ActionRequest struct {
+	Graph                string               `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
+	Action               ActionRequest_Action `protobuf:"varint,2,opt,name=action,enum=proto.ActionRequest_Action" json:"action,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *ActionRequest) Reset()         { *m = ActionRequest{} }
+func (m *ActionRequest) String() string { return proto.CompactTextString(m) }
+func (*ActionRequest) ProtoMessage()    {}
+func (*ActionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{4}
+}
+func (m *ActionRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ActionRequest.Unmarshal(m, b)
+}
+func (m *ActionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ActionRequest.Marshal(b, m, deterministic)
+}
+func (dst *ActionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ActionRequest.Merge(dst, src)
+}
+func (m *ActionRequest) XXX_Size() int {
+	return xxx_messageInfo_ActionRequest.Size(m)
+}
+func (m *ActionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ActionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ActionRequest proto.InternalMessageInfo
+
+func (m *ActionRequest) GetGraph() string {
+	if m != nil {
+		return m.Graph
+	}
+	return ""
+}
+
+func (m *ActionRequest) GetAction() ActionRequest_Action {
+	if m != nil {
+		return m.Action
+	}
+	return ActionRequest_SAVE
+}
+
+type ActionResponse struct {
+	Output               string   `protobuf:"bytes,1,opt,name=output" json:"output,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SaveRequest) Reset()         { *m = SaveRequest{} }
-func (m *SaveRequest) String() string { return proto.CompactTextString(m) }
-func (*SaveRequest) ProtoMessage()    {}
-func (*SaveRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{4}
+func (m *ActionResponse) Reset()         { *m = ActionResponse{} }
+func (m *ActionResponse) String() string { return proto.CompactTextString(m) }
+func (*ActionResponse) ProtoMessage()    {}
+func (*ActionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{5}
 }
-func (m *SaveRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SaveRequest.Unmarshal(m, b)
+func (m *ActionResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ActionResponse.Unmarshal(m, b)
 }
-func (m *SaveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SaveRequest.Marshal(b, m, deterministic)
+func (m *ActionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ActionResponse.Marshal(b, m, deterministic)
 }
-func (dst *SaveRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SaveRequest.Merge(dst, src)
+func (dst *ActionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ActionResponse.Merge(dst, src)
 }
-func (m *SaveRequest) XXX_Size() int {
-	return xxx_messageInfo_SaveRequest.Size(m)
+func (m *ActionResponse) XXX_Size() int {
+	return xxx_messageInfo_ActionResponse.Size(m)
 }
-func (m *SaveRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_SaveRequest.DiscardUnknown(m)
+func (m *ActionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ActionResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SaveRequest proto.InternalMessageInfo
+var xxx_messageInfo_ActionResponse proto.InternalMessageInfo
 
-func (m *SaveRequest) GetGraph() string {
+func (m *ActionResponse) GetOutput() string {
+	if m != nil {
+		return m.Output
+	}
+	return ""
+}
+
+type Input struct {
+	Graph                string   `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
+	In                   string   `protobuf:"bytes,2,opt,name=in" json:"in,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Input) Reset()         { *m = Input{} }
+func (m *Input) String() string { return proto.CompactTextString(m) }
+func (*Input) ProtoMessage()    {}
+func (*Input) Descriptor() ([]byte, []int) {
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{6}
+}
+func (m *Input) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Input.Unmarshal(m, b)
+}
+func (m *Input) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Input.Marshal(b, m, deterministic)
+}
+func (dst *Input) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Input.Merge(dst, src)
+}
+func (m *Input) XXX_Size() int {
+	return xxx_messageInfo_Input.Size(m)
+}
+func (m *Input) XXX_DiscardUnknown() {
+	xxx_messageInfo_Input.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Input proto.InternalMessageInfo
+
+func (m *Input) GetGraph() string {
 	if m != nil {
 		return m.Graph
+	}
+	return ""
+}
+
+func (m *Input) GetIn() string {
+	if m != nil {
+		return m.In
+	}
+	return ""
+}
+
+type Output struct {
+	Out                  string   `protobuf:"bytes,1,opt,name=out" json:"out,omitempty"`
+	Err                  string   `protobuf:"bytes,2,opt,name=err" json:"err,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Output) Reset()         { *m = Output{} }
+func (m *Output) String() string { return proto.CompactTextString(m) }
+func (*Output) ProtoMessage()    {}
+func (*Output) Descriptor() ([]byte, []int) {
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{7}
+}
+func (m *Output) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Output.Unmarshal(m, b)
+}
+func (m *Output) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Output.Marshal(b, m, deterministic)
+}
+func (dst *Output) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Output.Merge(dst, src)
+}
+func (m *Output) XXX_Size() int {
+	return xxx_messageInfo_Output.Size(m)
+}
+func (m *Output) XXX_DiscardUnknown() {
+	xxx_messageInfo_Output.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Output proto.InternalMessageInfo
+
+func (m *Output) GetOut() string {
+	if m != nil {
+		return m.Out
+	}
+	return ""
+}
+
+func (m *Output) GetErr() string {
+	if m != nil {
+		return m.Err
 	}
 	return ""
 }
@@ -306,7 +476,7 @@ func (m *SetChannelRequest) Reset()         { *m = SetChannelRequest{} }
 func (m *SetChannelRequest) String() string { return proto.CompactTextString(m) }
 func (*SetChannelRequest) ProtoMessage()    {}
 func (*SetChannelRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{5}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{8}
 }
 func (m *SetChannelRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SetChannelRequest.Unmarshal(m, b)
@@ -361,7 +531,7 @@ func (m *SetGraphPropertiesRequest) Reset()         { *m = SetGraphPropertiesReq
 func (m *SetGraphPropertiesRequest) String() string { return proto.CompactTextString(m) }
 func (*SetGraphPropertiesRequest) ProtoMessage()    {}
 func (*SetGraphPropertiesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{6}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{9}
 }
 func (m *SetGraphPropertiesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SetGraphPropertiesRequest.Unmarshal(m, b)
@@ -422,7 +592,7 @@ func (m *SetNodeRequest) Reset()         { *m = SetNodeRequest{} }
 func (m *SetNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetNodeRequest) ProtoMessage()    {}
 func (*SetNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{7}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{10}
 }
 func (m *SetNodeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SetNodeRequest.Unmarshal(m, b)
@@ -477,7 +647,7 @@ func (m *SetPositionRequest) Reset()         { *m = SetPositionRequest{} }
 func (m *SetPositionRequest) String() string { return proto.CompactTextString(m) }
 func (*SetPositionRequest) ProtoMessage()    {}
 func (*SetPositionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_shenzhen_go_141f1eb63c35b948, []int{8}
+	return fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7, []int{11}
 }
 func (m *SetPositionRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SetPositionRequest.Unmarshal(m, b)
@@ -530,11 +700,15 @@ func init() {
 	proto.RegisterType((*NodePin)(nil), "proto.NodePin")
 	proto.RegisterType((*ChannelConfig)(nil), "proto.ChannelConfig")
 	proto.RegisterType((*NodeConfig)(nil), "proto.NodeConfig")
-	proto.RegisterType((*SaveRequest)(nil), "proto.SaveRequest")
+	proto.RegisterType((*ActionRequest)(nil), "proto.ActionRequest")
+	proto.RegisterType((*ActionResponse)(nil), "proto.ActionResponse")
+	proto.RegisterType((*Input)(nil), "proto.Input")
+	proto.RegisterType((*Output)(nil), "proto.Output")
 	proto.RegisterType((*SetChannelRequest)(nil), "proto.SetChannelRequest")
 	proto.RegisterType((*SetGraphPropertiesRequest)(nil), "proto.SetGraphPropertiesRequest")
 	proto.RegisterType((*SetNodeRequest)(nil), "proto.SetNodeRequest")
 	proto.RegisterType((*SetPositionRequest)(nil), "proto.SetPositionRequest")
+	proto.RegisterEnum("proto.ActionRequest_Action", ActionRequest_Action_name, ActionRequest_Action_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -549,8 +723,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ShenzhenGoClient interface {
-	// Save saves the graph to disk.
-	Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Action performs an action (save, run, etc).
+	Action(ctx context.Context, in *ActionRequest, opts ...grpc.CallOption) (*ActionResponse, error)
+	// Run runs the program.
+	Run(ctx context.Context, opts ...grpc.CallOption) (ShenzhenGo_RunClient, error)
 	// SetNode either creates a new channel (name == "", config != nil)
 	// changes existing channel data such as name and attached pins (name is found, config != nil),
 	// or deletes a channel (name is found, config == nil).
@@ -573,13 +749,44 @@ func NewShenzhenGoClient(cc *grpc.ClientConn) ShenzhenGoClient {
 	return &shenzhenGoClient{cc}
 }
 
-func (c *shenzhenGoClient) Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/proto.ShenzhenGo/Save", in, out, opts...)
+func (c *shenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpc.CallOption) (*ActionResponse, error) {
+	out := new(ActionResponse)
+	err := c.cc.Invoke(ctx, "/proto.ShenzhenGo/Action", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *shenzhenGoClient) Run(ctx context.Context, opts ...grpc.CallOption) (ShenzhenGo_RunClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ShenzhenGo_serviceDesc.Streams[0], "/proto.ShenzhenGo/Run", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &shenzhenGoRunClient{stream}
+	return x, nil
+}
+
+type ShenzhenGo_RunClient interface {
+	Send(*Input) error
+	Recv() (*Output, error)
+	grpc.ClientStream
+}
+
+type shenzhenGoRunClient struct {
+	grpc.ClientStream
+}
+
+func (x *shenzhenGoRunClient) Send(m *Input) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *shenzhenGoRunClient) Recv() (*Output, error) {
+	m := new(Output)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *shenzhenGoClient) SetChannel(ctx context.Context, in *SetChannelRequest, opts ...grpc.CallOption) (*Empty, error) {
@@ -620,8 +827,10 @@ func (c *shenzhenGoClient) SetPosition(ctx context.Context, in *SetPositionReque
 
 // ShenzhenGoServer is the server API for ShenzhenGo service.
 type ShenzhenGoServer interface {
-	// Save saves the graph to disk.
-	Save(context.Context, *SaveRequest) (*Empty, error)
+	// Action performs an action (save, run, etc).
+	Action(context.Context, *ActionRequest) (*ActionResponse, error)
+	// Run runs the program.
+	Run(ShenzhenGo_RunServer) error
 	// SetNode either creates a new channel (name == "", config != nil)
 	// changes existing channel data such as name and attached pins (name is found, config != nil),
 	// or deletes a channel (name is found, config == nil).
@@ -640,22 +849,48 @@ func RegisterShenzhenGoServer(s *grpc.Server, srv ShenzhenGoServer) {
 	s.RegisterService(&_ShenzhenGo_serviceDesc, srv)
 }
 
-func _ShenzhenGo_Save_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveRequest)
+func _ShenzhenGo_Action_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShenzhenGoServer).Save(ctx, in)
+		return srv.(ShenzhenGoServer).Action(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.ShenzhenGo/Save",
+		FullMethod: "/proto.ShenzhenGo/Action",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShenzhenGoServer).Save(ctx, req.(*SaveRequest))
+		return srv.(ShenzhenGoServer).Action(ctx, req.(*ActionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ShenzhenGo_Run_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ShenzhenGoServer).Run(&shenzhenGoRunServer{stream})
+}
+
+type ShenzhenGo_RunServer interface {
+	Send(*Output) error
+	Recv() (*Input, error)
+	grpc.ServerStream
+}
+
+type shenzhenGoRunServer struct {
+	grpc.ServerStream
+}
+
+func (x *shenzhenGoRunServer) Send(m *Output) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *shenzhenGoRunServer) Recv() (*Input, error) {
+	m := new(Input)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _ShenzhenGo_SetChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -735,8 +970,8 @@ var _ShenzhenGo_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*ShenzhenGoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Save",
-			Handler:    _ShenzhenGo_Save_Handler,
+			MethodName: "Action",
+			Handler:    _ShenzhenGo_Action_Handler,
 		},
 		{
 			MethodName: "SetChannel",
@@ -755,46 +990,63 @@ var _ShenzhenGo_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ShenzhenGo_SetPosition_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Run",
+			Handler:       _ShenzhenGo_Run_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "shenzhen-go.proto",
 }
 
-func init() { proto.RegisterFile("shenzhen-go.proto", fileDescriptor_shenzhen_go_141f1eb63c35b948) }
+func init() { proto.RegisterFile("shenzhen-go.proto", fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7) }
 
-var fileDescriptor_shenzhen_go_141f1eb63c35b948 = []byte{
-	// 530 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0xc1, 0x8e, 0xd3, 0x30,
-	0x10, 0x25, 0x6d, 0xda, 0xb4, 0xd3, 0xee, 0x8a, 0x5a, 0x8b, 0x94, 0x82, 0x90, 0x42, 0xb8, 0x14,
-	0x04, 0x0b, 0x2a, 0x12, 0xe2, 0x5e, 0xc1, 0xde, 0x50, 0xe5, 0x70, 0xe2, 0x52, 0x79, 0x53, 0x37,
-	0xb1, 0x68, 0x6c, 0x6f, 0xe3, 0x85, 0x2d, 0x3f, 0xc0, 0x8f, 0xf0, 0x2d, 0x7c, 0x17, 0xf2, 0xc4,
-	0x55, 0xd3, 0x14, 0x15, 0xed, 0x29, 0x33, 0x13, 0x3f, 0xcf, 0xbc, 0xf7, 0xc6, 0x30, 0x2a, 0x73,
-	0x2e, 0x7f, 0xe6, 0x5c, 0xbe, 0xce, 0xd4, 0xa5, 0xde, 0x28, 0xa3, 0x48, 0x07, 0x3f, 0x71, 0x00,
-	0x9d, 0x8f, 0x85, 0x36, 0xdb, 0xf8, 0x0d, 0x04, 0x9f, 0xd5, 0x92, 0xcf, 0x85, 0x24, 0x04, 0x7c,
-	0xa9, 0x96, 0x3c, 0xf4, 0x22, 0x6f, 0xd2, 0xa7, 0x18, 0x93, 0x87, 0xd0, 0xd6, 0x42, 0x86, 0x2d,
-	0x2c, 0xd9, 0x30, 0x2e, 0xe0, 0x6c, 0x96, 0x33, 0x29, 0xf9, 0x7a, 0xa6, 0xe4, 0x4a, 0x64, 0x08,
-	0x63, 0xc5, 0x1e, 0xc6, 0x0a, 0x6e, 0x6b, 0x66, 0xab, 0xb9, 0xc3, 0x61, 0x6c, 0xaf, 0x4a, 0x99,
-	0x0e, 0xdb, 0x91, 0x37, 0xf1, 0xa9, 0x0d, 0x49, 0x0c, 0xbe, 0x16, 0xb2, 0x0c, 0xfd, 0xa8, 0x3d,
-	0x19, 0x4c, 0xcf, 0xab, 0x09, 0x2f, 0xdd, 0x38, 0x14, 0xff, 0xc5, 0x7f, 0x3c, 0x00, 0x5b, 0x39,
-	0xd1, 0x2c, 0x84, 0x80, 0x4b, 0x76, 0xbd, 0xe6, 0x4b, 0xec, 0xd7, 0xa3, 0xbb, 0x94, 0xc4, 0x30,
-	0x2c, 0x6e, 0xd7, 0x46, 0xe8, 0xb5, 0x48, 0x85, 0xd9, 0x62, 0xef, 0x33, 0x7a, 0x50, 0xb3, 0x37,
-	0xfe, 0x60, 0xc2, 0x84, 0x3e, 0x42, 0x31, 0x26, 0x63, 0xe8, 0x69, 0xb6, 0x31, 0x8b, 0x74, 0x95,
-	0x85, 0x9d, 0xc8, 0x9b, 0x0c, 0x69, 0x60, 0xf3, 0xd9, 0x2a, 0x23, 0x4f, 0xa0, 0x8f, 0xbf, 0x90,
-	0x5e, 0x17, 0xa7, 0xc0, 0xb3, 0x5f, 0x2c, 0xc5, 0x21, 0x78, 0x77, 0x61, 0x10, 0x79, 0x13, 0x8f,
-	0x7a, 0x77, 0x36, 0xdb, 0x86, 0xbd, 0x2a, 0xdb, 0xc6, 0xcf, 0x61, 0x90, 0xb0, 0xef, 0x9c, 0xf2,
-	0x9b, 0x5b, 0x5e, 0x1a, 0x72, 0x01, 0x9d, 0x6c, 0xc3, 0x74, 0xee, 0x98, 0x54, 0x49, 0x7c, 0x03,
-	0xa3, 0x84, 0x1b, 0xa7, 0xef, 0xc9, 0xa3, 0x96, 0x75, 0x5a, 0x9d, 0x73, 0x2a, 0xef, 0x52, 0xf2,
-	0x0a, 0xba, 0x29, 0xaa, 0x85, 0x7c, 0x07, 0xd3, 0x0b, 0x27, 0xec, 0x81, 0x6d, 0xd4, 0x9d, 0x89,
-	0x7f, 0x79, 0x30, 0x4e, 0xb8, 0xb9, 0xb2, 0x97, 0xce, 0x37, 0x4a, 0xf3, 0x8d, 0x11, 0xbc, 0x3c,
-	0xdd, 0x7b, 0xe7, 0x42, 0xab, 0xe6, 0xc2, 0x33, 0x18, 0x6a, 0x96, 0x7e, 0x63, 0x19, 0x5f, 0x68,
-	0x66, 0x72, 0xec, 0xdd, 0xa7, 0x03, 0x57, 0x9b, 0x33, 0x93, 0x93, 0xa7, 0x00, 0xa2, 0x5c, 0xa4,
-	0xaa, 0x28, 0x98, 0x5c, 0x3a, 0xc1, 0xfb, 0xa2, 0x9c, 0x55, 0x85, 0x98, 0xc3, 0x79, 0xc2, 0x8d,
-	0x35, 0xfb, 0xff, 0xdd, 0xed, 0x9e, 0xb6, 0x6a, 0x7b, 0xfa, 0xa2, 0xc1, 0x79, 0x54, 0x5b, 0xa6,
-	0x06, 0xe1, 0xaf, 0x40, 0x12, 0x6e, 0xe6, 0xaa, 0x14, 0x46, 0x28, 0x79, 0xff, 0x56, 0x68, 0x72,
-	0xfb, 0xc0, 0x64, 0xdf, 0x99, 0x3c, 0xfd, 0xdd, 0x02, 0x48, 0xdc, 0x9b, 0xbb, 0x52, 0xe4, 0x25,
-	0xf8, 0xd6, 0x73, 0x42, 0xdc, 0x34, 0xb5, 0x05, 0x78, 0x3c, 0x74, 0xb5, 0xea, 0x19, 0x3e, 0x20,
-	0xef, 0x01, 0xf6, 0xd6, 0x93, 0x70, 0x87, 0x68, 0x6e, 0xc3, 0x11, 0xee, 0x13, 0xd2, 0x69, 0xd8,
-	0x47, 0xa2, 0x3d, 0xfe, 0xdf, 0xce, 0x1e, 0xdd, 0xf3, 0x16, 0x02, 0xa7, 0x3e, 0x79, 0xb4, 0x07,
-	0xd7, 0xdc, 0x38, 0x42, 0x7c, 0x80, 0x41, 0x4d, 0x48, 0x32, 0xde, 0xa3, 0x1a, 0xe2, 0x36, 0x91,
-	0xd7, 0x5d, 0x4c, 0xdf, 0xfd, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x60, 0x1c, 0xe8, 0x3c, 0xa0, 0x04,
-	0x00, 0x00,
+var fileDescriptor_shenzhen_go_4ffa70ba8bb07cb7 = []byte{
+	// 694 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x94, 0xdd, 0x4e, 0xdb, 0x30,
+	0x14, 0xc7, 0x9b, 0x36, 0x4d, 0xda, 0xd3, 0x0f, 0x95, 0x23, 0x98, 0x02, 0x68, 0x52, 0xe7, 0xab,
+	0x4c, 0x02, 0x86, 0x8a, 0xb4, 0xed, 0xb6, 0x2b, 0x1d, 0x42, 0x42, 0xac, 0x4a, 0x3b, 0x2e, 0x76,
+	0x83, 0x42, 0x6a, 0xda, 0x68, 0xad, 0x6d, 0x12, 0x57, 0xa3, 0x7b, 0x81, 0xbd, 0xc6, 0x9e, 0x66,
+	0x2f, 0xb1, 0x97, 0x99, 0xec, 0xb8, 0xf4, 0x03, 0x06, 0x57, 0x39, 0xe7, 0xf8, 0xfc, 0xcf, 0xf1,
+	0xb1, 0x7f, 0x0e, 0x6c, 0xa5, 0x63, 0xca, 0x7e, 0x8e, 0x29, 0x3b, 0x1c, 0xf1, 0x23, 0x91, 0x70,
+	0xc9, 0xb1, 0xa8, 0x3f, 0xc4, 0x85, 0x62, 0x77, 0x2a, 0xe4, 0x9c, 0xbc, 0x03, 0xf7, 0x92, 0x0f,
+	0x69, 0x2f, 0x66, 0x88, 0x60, 0x33, 0x3e, 0xa4, 0x9e, 0xd5, 0xb4, 0xfc, 0x72, 0xa0, 0x6d, 0x6c,
+	0x40, 0x41, 0xc4, 0xcc, 0xcb, 0xeb, 0x90, 0x32, 0xc9, 0x14, 0x6a, 0x9d, 0x71, 0xc8, 0x18, 0x9d,
+	0x74, 0x38, 0xbb, 0x8d, 0x47, 0x5a, 0x16, 0x4e, 0x97, 0xb2, 0x70, 0x4a, 0x55, 0x4c, 0xce, 0x05,
+	0x35, 0x3a, 0x6d, 0xab, 0x52, 0x51, 0x28, 0xbc, 0x42, 0xd3, 0xf2, 0xed, 0x40, 0x99, 0x48, 0xc0,
+	0x16, 0x31, 0x4b, 0x3d, 0xbb, 0x59, 0xf0, 0x2b, 0xad, 0x7a, 0xb6, 0xc3, 0x23, 0xb3, 0x9d, 0x40,
+	0xaf, 0x91, 0x3f, 0x16, 0x80, 0x8a, 0x3c, 0xd3, 0xcc, 0x03, 0x97, 0xb2, 0xf0, 0x66, 0x42, 0x87,
+	0xba, 0x5f, 0x29, 0x58, 0xb8, 0x48, 0xa0, 0x3a, 0x9d, 0x4d, 0x64, 0x2c, 0x26, 0x71, 0x14, 0xcb,
+	0xb9, 0xee, 0x5d, 0x0b, 0xd6, 0x62, 0xaa, 0xe2, 0x8f, 0x30, 0x96, 0x9e, 0xad, 0xa5, 0xda, 0xc6,
+	0x5d, 0x28, 0x89, 0x30, 0x91, 0xd7, 0xd1, 0xed, 0xc8, 0x2b, 0x36, 0x2d, 0xbf, 0x1a, 0xb8, 0xca,
+	0xef, 0xdc, 0x8e, 0x70, 0x1f, 0xca, 0x7a, 0x49, 0x8f, 0xe7, 0xe8, 0x5d, 0xe8, 0xdc, 0x81, 0x1a,
+	0xb1, 0x0a, 0xd6, 0xbd, 0xe7, 0x36, 0x2d, 0xdf, 0x0a, 0xac, 0x7b, 0xe5, 0xcd, 0xbd, 0x52, 0xe6,
+	0xcd, 0xc9, 0x6f, 0x0b, 0x6a, 0xed, 0x48, 0xc6, 0x9c, 0x05, 0xf4, 0x6e, 0x46, 0x53, 0x89, 0xdb,
+	0x50, 0x1c, 0x25, 0xa1, 0x18, 0x9b, 0x61, 0x32, 0x07, 0x4f, 0xc0, 0x09, 0x75, 0x9a, 0x1e, 0xa6,
+	0xde, 0xda, 0x37, 0xc7, 0xb2, 0xa6, 0x5d, 0x78, 0x26, 0x95, 0x9c, 0x82, 0x93, 0x45, 0xb0, 0x04,
+	0x76, 0xbf, 0x7d, 0xd5, 0x6d, 0xe4, 0x10, 0xc0, 0x09, 0xba, 0x57, 0xdd, 0x60, 0xd0, 0xb0, 0xb0,
+	0x0a, 0xa5, 0xb3, 0xee, 0x65, 0x37, 0x68, 0x0f, 0xba, 0x8d, 0x3c, 0x96, 0xa1, 0xf8, 0xe9, 0xeb,
+	0xf9, 0xc5, 0x69, 0xa3, 0x80, 0x15, 0x70, 0xcf, 0x2f, 0xfb, 0x83, 0xf6, 0xc5, 0x45, 0xc3, 0x26,
+	0x3e, 0xd4, 0x17, 0x5d, 0x52, 0xc1, 0x59, 0x4a, 0xf1, 0x15, 0x38, 0x7c, 0x26, 0xc5, 0x4c, 0x9a,
+	0x3d, 0x1a, 0x8f, 0x1c, 0x42, 0xf1, 0x9c, 0x89, 0xd9, 0xff, 0x66, 0xa8, 0x43, 0xfe, 0x01, 0x9a,
+	0x7c, 0xcc, 0xc8, 0x01, 0x38, 0x5f, 0xb4, 0x50, 0x41, 0xc0, 0x1f, 0xaa, 0x29, 0x53, 0x45, 0x68,
+	0x92, 0x2c, 0x08, 0xa3, 0x49, 0x42, 0xee, 0x60, 0xab, 0x4f, 0xa5, 0x81, 0xec, 0xf9, 0xc3, 0xf2,
+	0xc0, 0x8d, 0xb2, 0x3c, 0x53, 0x60, 0xe1, 0xe2, 0x01, 0x38, 0x91, 0x46, 0x46, 0x5f, 0x7a, 0xa5,
+	0xb5, 0x6d, 0x8e, 0x71, 0x8d, 0xdd, 0xc0, 0xe4, 0x90, 0x5f, 0x16, 0xec, 0xf6, 0xa9, 0x3c, 0x53,
+	0x45, 0x7b, 0x09, 0x17, 0x34, 0x91, 0x31, 0x4d, 0x9f, 0xef, 0xbd, 0x40, 0x31, 0xbf, 0x82, 0xe2,
+	0x1b, 0xa8, 0x8a, 0x30, 0xfa, 0x1e, 0x8e, 0xe8, 0xb5, 0x08, 0xe5, 0x58, 0xf7, 0x2e, 0x07, 0x15,
+	0x13, 0xeb, 0x85, 0x72, 0x8c, 0xaf, 0x01, 0xe2, 0xf4, 0x3a, 0xe2, 0xd3, 0x69, 0xc8, 0x86, 0x86,
+	0xba, 0x72, 0x9c, 0x76, 0xb2, 0x00, 0xa1, 0x50, 0xef, 0x53, 0xa9, 0x88, 0x7f, 0xb9, 0xbb, 0x7a,
+	0xac, 0xf9, 0x95, 0xc7, 0xfa, 0x76, 0x63, 0xe6, 0xad, 0x95, 0x17, 0xb5, 0x31, 0xf0, 0x37, 0xc0,
+	0x3e, 0x95, 0x3d, 0x9e, 0xc6, 0x2f, 0x13, 0xf9, 0x54, 0x2b, 0x4d, 0x7a, 0x61, 0x8d, 0x74, 0xdb,
+	0x90, 0xde, 0xfa, 0x9b, 0x07, 0xe8, 0x9b, 0x1f, 0xcf, 0x19, 0xc7, 0x0f, 0x0f, 0x6c, 0x6e, 0x3f,
+	0x85, 0xf2, 0xde, 0xce, 0x46, 0x34, 0x43, 0x8f, 0xe4, 0xd0, 0x87, 0x42, 0x30, 0x63, 0x58, 0x35,
+	0xeb, 0x1a, 0xb8, 0xbd, 0x9a, 0xf1, 0x32, 0x9e, 0x48, 0xce, 0xb7, 0x8e, 0x2d, 0x7c, 0x0f, 0xb0,
+	0x24, 0x06, 0x3d, 0x93, 0xf2, 0x08, 0xa2, 0xbd, 0x45, 0xa9, 0xec, 0xd7, 0x97, 0xc3, 0xcf, 0xfa,
+	0x14, 0x36, 0x6e, 0x1d, 0x9b, 0x4b, 0xfd, 0xd3, 0x40, 0x3c, 0xaa, 0x73, 0x0c, 0xae, 0xb9, 0x34,
+	0xdc, 0x59, 0x8a, 0x57, 0x2e, 0xf1, 0x91, 0xe2, 0x23, 0x54, 0x56, 0xce, 0x1f, 0x77, 0x97, 0xaa,
+	0x8d, 0x3b, 0xd9, 0x54, 0xde, 0x38, 0xda, 0x3d, 0xf9, 0x17, 0x00, 0x00, 0xff, 0xff, 0x71, 0xa5,
+	0x09, 0xe9, 0xdc, 0x05, 0x00, 0x00,
 }

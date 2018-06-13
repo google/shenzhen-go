@@ -68,6 +68,8 @@ func Setup(doc dom.Document, gc GraphController) {
 
 	doc.ElementByID("graph-save").
 		AddEventListener("click", v.graph.save)
+	doc.ElementByID("graph-run").
+		AddEventListener("click", v.graph.run)
 
 	doc.ElementByID("preview-go-link").
 		AddEventListener("click", func(dom.Object) { gc.PreviewGo() })

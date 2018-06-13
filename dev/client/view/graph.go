@@ -85,6 +85,16 @@ func (g *Graph) reallySave() {
 	}
 }
 
+func (g *Graph) run(dom.Object) {
+	go g.reallyRun() // cannot block in callback
+}
+
+func (g *Graph) reallyRun() {
+	if err := g.gc.Run(context.TODO()); err != nil {
+		g.errors.setError("Couldn't run: " + err.Error())
+	}
+}
+
 func (g *Graph) commit(dom.Object) {
 	go g.reallyCommit() // cannot block in callback
 }

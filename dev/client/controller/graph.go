@@ -27,6 +27,7 @@ import (
 	"github.com/google/shenzhen-go/dev/dom"
 	"github.com/google/shenzhen-go/dev/model"
 	pb "github.com/google/shenzhen-go/dev/proto/js"
+	"github.com/gopherjs/gopherjs/js"
 )
 
 const defaultChannelNamePrefix = "channel"
@@ -34,7 +35,8 @@ const defaultChannelNamePrefix = "channel"
 var (
 	defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
 
-	ace = dom.GlobalAce()
+	ace   = dom.GlobalAce()
+	hterm = js.Global.Get("hterm")
 
 	_ view.GraphController = (*graphController)(nil)
 )
@@ -48,6 +50,8 @@ type graphController struct {
 	CurrentRHSPanel        dom.Element
 	ChannelPropertiesPanel dom.Element
 	GraphPropertiesPanel   dom.Element
+	HtermPanel             dom.Element
+	HtermTerminal          dom.Object
 	NodePropertiesPanel    dom.Element
 	PreviewGoPanel         dom.Element
 	PreviewJSONPanel       dom.Element
@@ -74,6 +78,27 @@ func setupAceView(id, mode string) *dom.AceSession {
 		SetMode(mode)
 }
 
+func setupHterm(el dom.Element) dom.Object {
+	t := hterm.Get("Terminal").New("default")
+	t.Set("onTerminalReady", func() {
+		io := t.Get("io").Call("push")
+
+		io.Set("onVTKeystroke", func(s *js.Object) {
+			log.Printf("onVTKeystroke: %v", s.String())
+		})
+		io.Set("sendString", func(s *js.Object) {
+			log.Printf("sendString: %v", s.String())
+		})
+		io.Set("onTerminalResize", func(cols, rows *js.Object) {
+			log.Printf("onTerminalResize: %v %v", cols.Int(), rows.Int())
+		})
+		io.Call("print", "Finished onTerminalReady!")
+	})
+	t.Call("decorate", el)
+	t.Call("installKeyboard")
+	return dom.WrapObject(t)
+}
+
 // NewGraphController returns a new controller for a graph, and binds outlets.
 func NewGraphController(doc dom.Document, graph *model.Graph, client pb.ShenzhenGoClient) view.GraphController {
 	pes := make(map[string]*partEditor, len(model.PartTypes))
@@ -97,6 +122,8 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 
 		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
 		GraphPropertiesPanel:   doc.ElementByID("graph-properties"),
+		HtermPanel:             doc.ElementByID("hterm-panel"),
+		HtermTerminal:          setupHterm(doc.ElementByID("hterm-terminal")),
 		NodePropertiesPanel:    doc.ElementByID("node-properties"),
 		PreviewGoPanel:         doc.ElementByID("preview-go"),
 		PreviewJSONPanel:       doc.ElementByID("preview-json"),
@@ -259,6 +286,12 @@ func (c *graphController) Save(ctx context.Context) error {
 		Action: pb.ActionRequest_SAVE,
 	})
 	return err
+}
+
+func (c *graphController) Run(ctx context.Context) error {
+	c.showRHSPanel(c.HtermPanel)
+	// TODO: rc, err := c.client.Run(ctx) ...
+	return nil
 }
 
 func (c *graphController) Commit(ctx context.Context) error {

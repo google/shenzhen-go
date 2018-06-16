@@ -81,26 +81,6 @@ func setupAceView(id, mode string) *dom.AceSession {
 
 func setupHterm(el dom.Element) dom.Object {
 	t := hterm.Get("Terminal").New("default")
-	t.Set("onTerminalReady", func() {
-		io := t.Get("io").Call("push")
-		io.Call("print", "Finished onTerminalReady!")
-	})
-	/*
-		t.Set("onTerminalReady", func() {
-			io := t.Get("io").Call("push")
-
-			io.Set("onVTKeystroke", func(s *js.Object) {
-				log.Printf("onVTKeystroke: %v", s.String())
-			})
-			io.Set("sendString", func(s *js.Object) {
-				log.Printf("sendString: %v", s.String())
-			})
-			io.Set("onTerminalResize", func(cols, rows *js.Object) {
-				log.Printf("onTerminalResize: %v %v", cols.Int(), rows.Int())
-			})
-			io.Call("print", "Finished onTerminalReady!")
-		})
-	*/
 	t.Call("decorate", el)
 	t.Call("installKeyboard")
 	return dom.WrapObject(t)
@@ -295,17 +275,44 @@ func (c *graphController) Save(ctx context.Context) error {
 	return err
 }
 
+// Writing just "\n" does... no more than it says on the tin (a line feed).
+// Need to interpret it as "\r\n" for hterm.
+func termOut(s string) string {
+	return strings.Replace(s, "\n", "\r\n", -1)
+}
+
+// Enter key is received as \r.
+func termEcho(s string) string {
+	if s == "\r" {
+		return "\r\n"
+	}
+	return s
+}
+
 func (c *graphController) Run(ctx context.Context) error {
 	c.showRHSPanel(c.HtermPanel)
 
-	tio := c.HtermTerminal.Get("io").Call("push")
-	defer tio.Call("pop")
+	c.HtermTerminal.Call("clear")
 
 	rc, err := c.client.Run(ctx)
 	if err != nil {
 		return err
 	}
 	defer rc.CloseSend()
+	if err := rc.Send(&pb.Input{Graph: c.graph.FilePath}); err != nil {
+		return err
+	}
+
+	tio := c.HtermTerminal.Get("io").Call("push")
+	defer tio.Call("pop")
+	send := func(s *js.Object) {
+		//log.Printf("send(%q)", s.String())
+		rc.Send(&pb.Input{In: s.String()})
+		tio.Call("print", termEcho(s.String()))
+	}
+	tio.Set("onVTKeystroke", send)
+	tio.Set("sendString", send)
+
 	for {
 		out, err := rc.Recv()
 		if err == io.EOF {
@@ -314,8 +321,8 @@ func (c *graphController) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		tio.Call("print", out.Out)
-		tio.Call("print", out.Err)
+		tio.Call("print", termOut(out.Out))
+		tio.Call("print", termOut(out.Err))
 	}
 }
 

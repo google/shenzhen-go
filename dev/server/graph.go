@@ -92,6 +92,20 @@ func GeneratePackage(g *model.Graph) (string, error) {
 	return mp, nil
 }
 
+// GenerateRunner generates a `go run`-able; either the output package itself,
+// or the package together with a temporary runner, returning the full path to
+// the runner.
+func GenerateRunner(g *model.Graph) (string, error) {
+	gp, err := GeneratePackage(g)
+	if err != nil {
+		return "", err
+	}
+	if g.IsCommand {
+		return gp, nil
+	}
+	return writeTempRunner(g)
+}
+
 // Build saves the graph as Go source code and tries to "go build" it.
 func Build(g *model.Graph) error {
 	if _, err := GeneratePackage(g); err != nil {
@@ -135,41 +149,16 @@ func writeTempRunner(g *model.Graph) (string, error) {
 }
 
 // Run saves the graph as Go source code, creates a temporary runner, and tries to run it.
-// The stdout and stderr pipes are copied to the given io.Writers.
-func Run(g *model.Graph, stdout, stderr io.Writer) error {
-	// Don't have to explicitly build, but must at least have the file ready
-	// so that go run can build it.
-	gp, err := GeneratePackage(g)
+func Run(g *model.Graph, stdin io.Reader, stdout, stderr io.Writer) error {
+	gp, err := GenerateRunner(g)
 	if err != nil {
 		return err
-	}
-
-	// TODO: Support stdin?
-
-	if !g.IsCommand {
-		// Since it's a library which needs Run to be called,
-		// generate and run the temporary runner.
-		p, err := writeTempRunner(g)
-		if err != nil {
-			return err
-		}
-		gp = p
 	}
 	cmd := exec.Command(`go`, `run`, gp)
-	o, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	e, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	go io.Copy(stdout, o)
-	go io.Copy(stderr, e)
-	return cmd.Wait()
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	return cmd.Run()
 }
 
 // Graph handles displaying/editing a graph.
@@ -223,7 +212,7 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 	}
 	if _, t := q["run"]; t {
 		w.Header().Set("Content-Type", "text/plain")
-		if err := Run(g.Graph, w, w); err != nil {
+		if err := Run(g.Graph, nil, w, w); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error building or running:\n%v", err)
 		}

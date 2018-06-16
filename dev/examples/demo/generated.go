@@ -10,8 +10,11 @@ func Node_1(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- str
 
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 1: Started.")
-		fmt.Println("Node 1: Now closing qux...")
-		close(qux)
+		fmt.Print("Enter a number: ")
+		var n int
+		fmt.Scanf("%d", &n)
+		fmt.Printf("Node 1: Sending %d on qux...\n", n)
+		qux <- n
 		fmt.Println("Node 1: Finished.")
 	}(0, 1)
 
@@ -22,7 +25,7 @@ func Node_2(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- str
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 2: Started.")
 		fmt.Println("Node 2: Waiting on foo...")
-		<-foo
+		fmt.Printf("Node 2: Got %d on foo\n", <-foo)
 		fmt.Println("Node 2: Finished.")
 	}(0, 1)
 

@@ -15,7 +15,9 @@
 package server
 
 import (
+	"io"
 	"log"
+	"os/exec"
 
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
@@ -44,16 +46,73 @@ func (c *server) Action(ctx context.Context, req *pb.ActionRequest) (*pb.ActionR
 	}
 }
 
+type runSvrInputReader struct {
+	svr      pb.ShenzhenGo_RunServer
+	overflow []byte
+}
+
+func (r *runSvrInputReader) readOverflow(b []byte) (int, error) {
+	if len(r.overflow) > len(b) {
+		copy(b, r.overflow[:len(b)])
+		r.overflow = r.overflow[len(b):]
+		return len(b), nil
+	}
+	copy(b, r.overflow)
+	n := len(r.overflow)
+	r.overflow = nil
+	return n, nil
+}
+
+func (r *runSvrInputReader) Read(b []byte) (int, error) {
+	if len(r.overflow) > 0 {
+		return r.readOverflow(b)
+	}
+	in, err := r.svr.Recv()
+	if err != nil {
+		return 0, err
+	}
+	r.overflow = []byte(in.In)
+	if len(r.overflow) == 0 {
+		return 0, io.EOF
+	}
+	return r.readOverflow(b)
+}
+
+type runSvrWriter struct {
+	svr pb.ShenzhenGo_RunServer
+	fn  func([]byte) *pb.Output
+}
+
+func (w *runSvrWriter) Write(b []byte) (int, error) {
+	if err := w.svr.Send(w.fn(b)); err != nil {
+		return 0, err
+	}
+	return len(b), nil
+}
+
 func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 	log.Print("api: Run()")
 
-	// TODO: implement running
-	if err := svr.Send(&pb.Output{
-		Err: "TODO: Run not yet implemented",
-	}); err != nil {
+	first, err := svr.Recv()
+	if err != nil {
 		return err
 	}
-	return nil
+	g, err := c.lookupGraph(first.Graph)
+	if err != nil {
+		return err
+	}
+	g.Lock()
+	gp, err := GenerateRunner(g.Graph)
+	g.Unlock()
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("go", "run", gp)
+	cmd.Stdin = &runSvrInputReader{svr, nil}
+	cmd.Stdout = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}
+	cmd.Stderr = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Err: string(b)} }}
+	return cmd.Run()
 }
 
 func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb.Empty, error) {

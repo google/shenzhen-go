@@ -13,8 +13,11 @@
 				],
 				"body": [
 					"fmt.Println(\"Node 1: Started.\")",
-					"fmt.Println(\"Node 1: Now closing qux...\")",
-					"close(qux)",
+					"fmt.Print(\"Enter a number: \")",
+					"var n int",
+					"fmt.Scanf(\"%d\", \u0026n)",
+					"fmt.Printf(\"Node 1: Sending %d on qux...\\n\", n)",
+					"qux \u003c- n",
 					"fmt.Println(\"Node 1: Finished.\")"
 				],
 				"tail": [
@@ -73,7 +76,7 @@
 				"body": [
 					"fmt.Println(\"Node 2: Started.\")",
 					"fmt.Println(\"Node 2: Waiting on foo...\")",
-					"\u003c-foo",
+					"fmt.Printf(\"Node 2: Got %d on foo\\n\", \u003c-foo)",
 					"fmt.Println(\"Node 2: Finished.\")"
 				],
 				"tail": [

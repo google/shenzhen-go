@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	apiURL.Path = "/.api"
+	apiURL.Path = ""
 	client := pb.NewShenzhenGoClient(apiURL.String())
 	initial := js.Global.Get("GraphJSON").String()
 	graphPath := js.Global.Get("graphPath").String()

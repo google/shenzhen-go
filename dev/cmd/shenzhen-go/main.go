@@ -119,15 +119,30 @@ func serve(addr chan<- net.Addr) error {
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(pingMsg)) })
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
+	http.Handle("/", server.S)
 
 	gs := grpc.NewServer()
 	pb.RegisterShenzhenGoServer(gs, server.S)
-	ws := grpcweb.WrapServer(gs, grpcweb.WithWebsockets(true))
-	http.Handle("/.api/", http.StripPrefix("/.api/", ws))
+	ws := grpcweb.WrapServer(gs,
+		grpcweb.WithWebsockets(true),
+	)
 
-	// Finally, all unknown paths are assumed to be files.
-	http.Handle("/", server.S)
-	if err := http.Serve(ln, nil); err != nil {
+	svr := &http.Server{
+		ReadHeaderTimeout: 5 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		Addr:              ln.Addr().String(),
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch {
+			case ws.IsGrpcWebRequest(r):
+				ws.HandleGrpcWebRequest(w, r)
+			case ws.IsGrpcWebSocketRequest(r):
+				ws.HandleGrpcWebsocketRequest(w, r)
+			default:
+				http.DefaultServeMux.ServeHTTP(w, r)
+			}
+		}),
+	}
+	if err := svr.Serve(ln); err != nil {
 		return fmt.Errorf("http.Serve: %v", err)
 	}
 	return nil

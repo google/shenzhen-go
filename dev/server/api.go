@@ -45,8 +45,15 @@ func (c *server) Action(ctx context.Context, req *pb.ActionRequest) (*pb.ActionR
 }
 
 func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
+	log.Print("api: Run()")
+
 	// TODO: implement running
-	return status.Error(codes.Unimplemented, "run not yet implemented")
+	if err := svr.Send(&pb.Output{
+		Err: "TODO: Run not yet implemented",
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb.Empty, error) {

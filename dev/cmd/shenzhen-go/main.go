@@ -122,7 +122,7 @@ func serve(addr chan<- net.Addr) error {
 
 	gs := grpc.NewServer()
 	pb.RegisterShenzhenGoServer(gs, server.S)
-	ws := grpcweb.WrapServer(gs)
+	ws := grpcweb.WrapServer(gs, grpcweb.WithWebsockets(true))
 	http.Handle("/.api/", http.StripPrefix("/.api/", ws))
 
 	// Finally, all unknown paths are assumed to be files.

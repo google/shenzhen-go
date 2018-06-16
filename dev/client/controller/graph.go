@@ -16,6 +16,7 @@ package controller
 
 import (
 	"errors"
+	"io"
 	"log"
 	"regexp"
 	"strconv"
@@ -82,18 +83,24 @@ func setupHterm(el dom.Element) dom.Object {
 	t := hterm.Get("Terminal").New("default")
 	t.Set("onTerminalReady", func() {
 		io := t.Get("io").Call("push")
-
-		io.Set("onVTKeystroke", func(s *js.Object) {
-			log.Printf("onVTKeystroke: %v", s.String())
-		})
-		io.Set("sendString", func(s *js.Object) {
-			log.Printf("sendString: %v", s.String())
-		})
-		io.Set("onTerminalResize", func(cols, rows *js.Object) {
-			log.Printf("onTerminalResize: %v %v", cols.Int(), rows.Int())
-		})
 		io.Call("print", "Finished onTerminalReady!")
 	})
+	/*
+		t.Set("onTerminalReady", func() {
+			io := t.Get("io").Call("push")
+
+			io.Set("onVTKeystroke", func(s *js.Object) {
+				log.Printf("onVTKeystroke: %v", s.String())
+			})
+			io.Set("sendString", func(s *js.Object) {
+				log.Printf("sendString: %v", s.String())
+			})
+			io.Set("onTerminalResize", func(cols, rows *js.Object) {
+				log.Printf("onTerminalResize: %v %v", cols.Int(), rows.Int())
+			})
+			io.Call("print", "Finished onTerminalReady!")
+		})
+	*/
 	t.Call("decorate", el)
 	t.Call("installKeyboard")
 	return dom.WrapObject(t)
@@ -290,8 +297,26 @@ func (c *graphController) Save(ctx context.Context) error {
 
 func (c *graphController) Run(ctx context.Context) error {
 	c.showRHSPanel(c.HtermPanel)
-	// TODO: rc, err := c.client.Run(ctx) ...
-	return nil
+
+	tio := c.HtermTerminal.Get("io").Call("push")
+	defer tio.Call("pop")
+
+	rc, err := c.client.Run(ctx)
+	if err != nil {
+		return err
+	}
+	defer rc.CloseSend()
+	for {
+		out, err := rc.Recv()
+		if err == io.EOF {
+			return rc.CloseSend()
+		}
+		if err != nil {
+			return err
+		}
+		tio.Call("print", out.Out)
+		tio.Call("print", out.Err)
+	}
 }
 
 func (c *graphController) Commit(ctx context.Context) error {

@@ -292,7 +292,7 @@ func termEcho(s string) string {
 func (c *graphController) Run(ctx context.Context) error {
 	c.showRHSPanel(c.HtermPanel)
 
-	c.HtermTerminal.Call("clear")
+	c.HtermTerminal.Call("clearHome")
 
 	rc, err := c.client.Run(ctx)
 	if err != nil {
@@ -306,7 +306,6 @@ func (c *graphController) Run(ctx context.Context) error {
 	tio := c.HtermTerminal.Get("io").Call("push")
 	defer tio.Call("pop")
 	send := func(s *js.Object) {
-		//log.Printf("send(%q)", s.String())
 		rc.Send(&pb.Input{In: s.String()})
 		tio.Call("print", termEcho(s.String()))
 	}

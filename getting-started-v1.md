@@ -79,7 +79,12 @@ To speed this process up next time, you can start Shenzhen Go with a path to a f
 
 ## Editing
 
-Once you have `demo.szgo` open, the browser should look like this:
+Once you have opened `demo.szgo`, the browser should look like this:
 
+![Editor](screenshots/editor.jpg)
 
+(Not the most exciting user interface - I know, I'm working on it.)
 
+To test that the demo program works, hover over the Graph menu and click on Run.
+
+![Running](screenshots/run.jpg)

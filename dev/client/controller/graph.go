@@ -36,7 +36,7 @@ var (
 	defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
 
 	ace   = dom.GlobalAce()
-	hterm = js.Global.Get("hterm")
+	hterm = js.Global.Get("hterm") // TODO: abstract hterm in the dom package
 
 	_ view.GraphController = (*graphController)(nil)
 )

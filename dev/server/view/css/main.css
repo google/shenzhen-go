@@ -157,7 +157,8 @@ fieldset#pathtemplate {
 
 .dropdown {
     position: relative;
-    display: inline-block;
+	display: inline-block;
+	margin-left: 2ex;
 }
 
 .dropdown-content {
@@ -178,6 +179,11 @@ fieldset#pathtemplate {
    	margin: 0;
    	padding: 0;
    	overflow: hidden;
+}
+
+.dropdown-content ul li {
+	white-space: nowrap;
+	margin: 4px;
 }
 
 div.codeedit {

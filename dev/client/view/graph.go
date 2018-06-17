@@ -74,9 +74,13 @@ func (g *Graph) nearestPoint(x, y float64) (dist float64, pt Pointer) {
 	return dist, pt
 }
 
-func (g *Graph) save(dom.Object) {
-	go g.reallySave() // cannot block in callback
-}
+// goroutines because cannot block in callback
+func (g *Graph) save(dom.Object)     { go g.reallySave() }
+func (g *Graph) revert(dom.Object)   { go g.reallyRevert() }
+func (g *Graph) generate(dom.Object) { go g.reallyGenerate() }
+func (g *Graph) build(dom.Object)    { go g.reallyBuild() }
+func (g *Graph) install(dom.Object)  { go g.reallyInstall() }
+func (g *Graph) run(dom.Object)      { go g.reallyRun() }
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {
@@ -84,8 +88,28 @@ func (g *Graph) reallySave() {
 	}
 }
 
-func (g *Graph) run(dom.Object) {
-	go g.reallyRun() // cannot block in callback
+func (g *Graph) reallyRevert() {
+	if err := g.gc.Revert(context.TODO()); err != nil {
+		g.errors.setError("Couldn't revert: " + err.Error())
+	}
+}
+
+func (g *Graph) reallyGenerate() {
+	if err := g.gc.Generate(context.TODO()); err != nil {
+		g.errors.setError("Couldn't generate: " + err.Error())
+	}
+}
+
+func (g *Graph) reallyBuild() {
+	if err := g.gc.Build(context.TODO()); err != nil {
+		g.errors.setError("Couldn't build: " + err.Error())
+	}
+}
+
+func (g *Graph) reallyInstall() {
+	if err := g.gc.Install(context.TODO()); err != nil {
+		g.errors.setError("Couldn't install: " + err.Error())
+	}
 }
 
 func (g *Graph) reallyRun() {

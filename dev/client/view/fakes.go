@@ -36,12 +36,15 @@ func (c fakeGraphController) CreateNode(ctx context.Context, partType string) (N
 	return nil, nil
 }
 
-func (c fakeGraphController) Commit(ctx context.Context) error { return nil }
-
-func (c fakeGraphController) Save(ctx context.Context) error { return nil }
-func (c fakeGraphController) Run(ctx context.Context) error  { return nil }
-func (c fakeGraphController) PreviewGo()                     {}
-func (c fakeGraphController) PreviewJSON()                   {}
+func (c fakeGraphController) Commit(ctx context.Context) error   { return nil }
+func (c fakeGraphController) Save(ctx context.Context) error     { return nil }
+func (c fakeGraphController) Revert(ctx context.Context) error   { return nil }
+func (c fakeGraphController) Generate(ctx context.Context) error { return nil }
+func (c fakeGraphController) Build(ctx context.Context) error    { return nil }
+func (c fakeGraphController) Install(ctx context.Context) error  { return nil }
+func (c fakeGraphController) Run(ctx context.Context) error      { return nil }
+func (c fakeGraphController) PreviewGo()                         {}
+func (c fakeGraphController) PreviewJSON()                       {}
 
 type fakeNodeController struct{}
 

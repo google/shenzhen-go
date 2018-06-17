@@ -35,6 +35,10 @@ type GraphController interface {
 
 	// Action links
 	Save(ctx context.Context) error
+	Revert(ctx context.Context) error
+	Generate(ctx context.Context) error
+	Build(ctx context.Context) error
+	Install(ctx context.Context) error
 	Run(ctx context.Context) error
 	PreviewGo()
 	PreviewJSON()

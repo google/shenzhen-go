@@ -261,12 +261,32 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 	return c.newNodeController(n), nil
 }
 
-func (c *graphController) Save(ctx context.Context) error {
+func (c *graphController) action(ctx context.Context, a pb.ActionRequest_Action) error {
 	_, err := c.client.Action(ctx, &pb.ActionRequest{
 		Graph:  c.graph.FilePath,
-		Action: pb.ActionRequest_SAVE,
+		Action: a,
 	})
 	return err
+}
+
+func (c *graphController) Save(ctx context.Context) error {
+	return c.action(ctx, pb.ActionRequest_SAVE)
+}
+
+func (c *graphController) Revert(ctx context.Context) error {
+	return c.action(ctx, pb.ActionRequest_REVERT)
+}
+
+func (c *graphController) Generate(ctx context.Context) error {
+	return c.action(ctx, pb.ActionRequest_GENERATE)
+}
+
+func (c *graphController) Build(ctx context.Context) error {
+	return c.action(ctx, pb.ActionRequest_BUILD)
+}
+
+func (c *graphController) Install(ctx context.Context) error {
+	return c.action(ctx, pb.ActionRequest_INSTALL)
 }
 
 func setupHterm(el dom.Element) dom.Object {

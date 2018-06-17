@@ -31,18 +31,9 @@ func Node_2(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- str
 
 }
 
-func Yolo(input <-chan int, output chan<- int) {
-
-	func(instanceNumber, multiplicity int) {
-		fmt.Println("Yolo")
-	}(0, 1)
-
-}
-
 func main() {
 
 	channel0 := make(chan int, 0)
-	channel1 := make(chan int, 0)
 
 	var wg sync.WaitGroup
 
@@ -54,13 +45,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Node_2(nil, nil, channel0, nil, channel1, nil)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		Yolo(channel1, nil)
+		Node_2(nil, nil, channel0, nil, nil, nil)
 		wg.Done()
 	}()
 

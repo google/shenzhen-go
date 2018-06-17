@@ -68,6 +68,14 @@ func Setup(doc dom.Document, gc GraphController) {
 
 	doc.ElementByID("graph-save").
 		AddEventListener("click", v.graph.save)
+	doc.ElementByID("graph-revert").
+		AddEventListener("click", v.graph.revert)
+	doc.ElementByID("graph-generate").
+		AddEventListener("click", v.graph.generate)
+	doc.ElementByID("graph-build").
+		AddEventListener("click", v.graph.build)
+	doc.ElementByID("graph-install").
+		AddEventListener("click", v.graph.install)
 	doc.ElementByID("graph-run").
 		AddEventListener("click", v.graph.run)
 

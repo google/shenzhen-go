@@ -21,8 +21,6 @@ the [linux.conf.au 2017 Open Source & Games Miniconf](https://linux.conf.au/sche
 
 ![Example Graph](example_graph2.png)
 
-See the [Getting Started](getting-started.md) guide to start using it.
-
 ## Notes
 
 This is not an official Google product.
@@ -30,7 +28,7 @@ This is not an official Google product.
 This is an experimental project - expect plenty of rough edges and bugs, and 
 no support.
 
-For discussions, there is a Slack channel (#shenzhen-go) at gophers.slack.com.
+For discussions, there is [a Google Group](https://groups.google.com/forum/#!forum/szgo) and [a Slack channel](https://gophers.slack.com/messages/shenzhen-go).
 
 ## More notes
 

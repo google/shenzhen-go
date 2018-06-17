@@ -15,7 +15,7 @@
 package controller
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"

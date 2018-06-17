@@ -15,10 +15,10 @@
 package view
 
 import (
+	"context"
 	"log"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"golang.org/x/net/context"
 )
 
 // Channel is the view's model of a channel.

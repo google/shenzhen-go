@@ -15,8 +15,9 @@
 package proto
 
 import (
+	"context"
+
 	"github.com/johanbrandhorst/protobuf/grpcweb"
-	"golang.org/x/net/context"
 )
 
 // Ensure interface is satisfied.

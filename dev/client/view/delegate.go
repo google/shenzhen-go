@@ -14,7 +14,7 @@
 
 package view
 
-import "golang.org/x/net/context"
+import "context"
 
 // GraphController is implemented by the controller of a whole graph.
 type GraphController interface {

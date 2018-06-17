@@ -15,11 +15,11 @@
 package view
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
 	"github.com/google/shenzhen-go/dev/dom"
-	"golang.org/x/net/context"
 )
 
 const (

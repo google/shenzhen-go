@@ -15,14 +15,13 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"

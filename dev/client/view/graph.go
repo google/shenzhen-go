@@ -15,11 +15,10 @@
 package view
 
 import (
+	"context"
 	"log"
 	"math"
 	"math/cmplx"
-
-	"golang.org/x/net/context"
 
 	"github.com/google/shenzhen-go/dev/dom"
 )

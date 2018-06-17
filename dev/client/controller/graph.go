@@ -52,6 +52,7 @@ type graphController struct {
 	ChannelPropertiesPanel dom.Element
 	GraphPropertiesPanel   dom.Element
 	HtermPanel             dom.Element
+	HtermContainer         dom.Element
 	HtermTerminal          dom.Object
 	NodePropertiesPanel    dom.Element
 	PreviewGoPanel         dom.Element
@@ -79,13 +80,6 @@ func setupAceView(id, mode string) *dom.AceSession {
 		SetMode(mode)
 }
 
-func setupHterm(el dom.Element) dom.Object {
-	t := hterm.Get("Terminal").New("default")
-	t.Call("decorate", el)
-	t.Call("installKeyboard")
-	return dom.WrapObject(t)
-}
-
 // NewGraphController returns a new controller for a graph, and binds outlets.
 func NewGraphController(doc dom.Document, graph *model.Graph, client pb.ShenzhenGoClient) view.GraphController {
 	pes := make(map[string]*partEditor, len(model.PartTypes))
@@ -110,7 +104,8 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
 		GraphPropertiesPanel:   doc.ElementByID("graph-properties"),
 		HtermPanel:             doc.ElementByID("hterm-panel"),
-		HtermTerminal:          setupHterm(doc.ElementByID("hterm-terminal")),
+		HtermContainer:         doc.ElementByID("hterm-terminal"),
+		HtermTerminal:          nil, // Late setup
 		NodePropertiesPanel:    doc.ElementByID("node-properties"),
 		PreviewGoPanel:         doc.ElementByID("preview-go"),
 		PreviewJSONPanel:       doc.ElementByID("preview-json"),
@@ -275,12 +270,6 @@ func (c *graphController) Save(ctx context.Context) error {
 	return err
 }
 
-// Writing just "\n" does... no more than it says on the tin (a line feed).
-// Need to interpret it as "\r\n" for hterm.
-func termOut(s string) string {
-	return strings.Replace(s, "\n", "\r\n", -1)
-}
-
 // Enter key is received as \r.
 func termEcho(s string) string {
 	if s == "\r" {
@@ -289,9 +278,23 @@ func termEcho(s string) string {
 	return s
 }
 
-func (c *graphController) Run(ctx context.Context) error {
-	c.showRHSPanel(c.HtermPanel)
+func setupHterm(el dom.Element) dom.Object {
+	t := hterm.Get("Terminal").New("default")
+	t.Call("setAutoCarriageReturn", true)
+	t.Call("decorate", el)
+	t.Call("installKeyboard")
+	return dom.WrapObject(t)
+}
 
+func (c *graphController) ShowHterm() {
+	c.showRHSPanel(c.HtermPanel)
+	if c.HtermTerminal == nil {
+		c.HtermTerminal = setupHterm(c.HtermContainer)
+	}
+}
+
+func (c *graphController) Run(ctx context.Context) error {
+	c.ShowHterm()
 	c.HtermTerminal.Call("clearHome")
 
 	rc, err := c.client.Run(ctx)
@@ -305,6 +308,8 @@ func (c *graphController) Run(ctx context.Context) error {
 
 	tio := c.HtermTerminal.Get("io").Call("push")
 	defer tio.Call("pop")
+
+	// TODO: don't send until the user "enters" - support backspace, etc.
 	send := func(s *js.Object) {
 		rc.Send(&pb.Input{In: s.String()})
 		tio.Call("print", termEcho(s.String()))
@@ -320,8 +325,8 @@ func (c *graphController) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		tio.Call("print", termOut(out.Out))
-		tio.Call("print", termOut(out.Err))
+		tio.Call("print", out.Out)
+		tio.Call("print", out.Err)
 	}
 }
 

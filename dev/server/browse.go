@@ -29,8 +29,7 @@ import (
 func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s browse: %s", r.Method, r.URL)
 
-	_, reload := r.URL.Query()["reload"]
-	if g, err := c.lookupGraph(r.URL.Path); err == nil && !reload {
+	if g, err := c.lookupGraph(r.URL.Path); err == nil {
 		renderGraph(g, w, r)
 		return
 	}

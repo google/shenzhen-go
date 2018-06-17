@@ -16,6 +16,7 @@
 package server
 
 import (
+	"os"
 	"sync"
 
 	"google.golang.org/grpc/codes"
@@ -60,16 +61,30 @@ type serveGraph struct {
 	sync.Mutex
 }
 
-func (g *serveGraph) lookupChannel(channel string) (*model.Channel, error) {
-	ch := g.Channels[channel]
+func (sg *serveGraph) reload() error {
+	f, err := os.Open(sg.Graph.FilePath)
+	if err != nil {
+		return status.Errorf(codes.NotFound, "open: %v", err)
+	}
+	defer f.Close()
+	g, err := model.LoadJSON(f, sg.Graph.FilePath, sg.Graph.URLPath)
+	if err != nil {
+		return status.Errorf(codes.FailedPrecondition, "load from JSON: %v", err)
+	}
+	sg.Graph = g
+	return nil
+}
+
+func (sg *serveGraph) lookupChannel(channel string) (*model.Channel, error) {
+	ch := sg.Channels[channel]
 	if ch == nil {
 		return nil, status.Errorf(codes.NotFound, "no such channel %q", channel)
 	}
 	return ch, nil
 }
 
-func (g *serveGraph) lookupNode(node string) (*model.Node, error) {
-	n := g.Nodes[node]
+func (sg *serveGraph) lookupNode(node string) (*model.Node, error) {
+	n := sg.Nodes[node]
 	if n == nil {
 		return nil, status.Errorf(codes.NotFound, "no such node %q", node)
 	}

@@ -39,8 +39,18 @@ func (c *server) Action(ctx context.Context, req *pb.ActionRequest) (*pb.ActionR
 	switch req.Action {
 	case pb.ActionRequest_SAVE:
 		return &pb.ActionResponse{}, SaveJSONFile(g.Graph)
+	case pb.ActionRequest_REVERT:
+		return &pb.ActionResponse{}, g.reload()
+	case pb.ActionRequest_GENERATE:
+		_, err := GeneratePackage(g.Graph)
+		return &pb.ActionResponse{}, err
+	case pb.ActionRequest_BUILD:
+		// TODO: put build output into the response
+		return &pb.ActionResponse{}, Build(g.Graph)
+	case pb.ActionRequest_INSTALL:
+		// TODO: put install output into the response
+		return &pb.ActionResponse{}, Install(g.Graph)
 	default:
-		// TODO: implement other actions
 		return &pb.ActionResponse{}, status.Errorf(codes.Unimplemented, "action %v not implemented", req.Action)
 	}
 }

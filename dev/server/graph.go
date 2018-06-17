@@ -16,7 +16,6 @@ package server
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -148,19 +147,6 @@ func writeTempRunner(g *model.Graph) (string, error) {
 	return fn, nil
 }
 
-// Run saves the graph as Go source code, creates a temporary runner, and tries to run it.
-func Run(g *model.Graph, stdin io.Reader, stdout, stderr io.Writer) error {
-	gp, err := GenerateRunner(g)
-	if err != nil {
-		return err
-	}
-	cmd := exec.Command(`go`, `run`, gp)
-	cmd.Stdin = stdin
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	return cmd.Run()
-}
-
 // Graph handles displaying/editing a graph.
 func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s graph: %s", r.Method, r.URL)
@@ -174,50 +160,6 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/"+d, http.StatusFound)
 		return
 	}
-	if _, t := q["go"]; t {
-		outputGoSrc(g.Graph, w)
-		return
-	}
-	if _, t := q["rawgo"]; t {
-		outputRawGoSrc(g.Graph, w)
-		return
-	}
-	if _, t := q["json"]; t {
-		outputJSON(g.Graph, w)
-		return
-	}
-	if _, t := q["build"]; t {
-		if err := Build(g.Graph); err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error building:\n%v", err)
-			return
-		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
-		return
-	}
-	if _, t := q["install"]; t {
-		if err := Install(g.Graph); err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error installing:\n%v", err)
-			return
-		}
-		u := *r.URL
-		u.RawQuery = ""
-		http.Redirect(w, r, u.String(), http.StatusFound)
-		return
-	}
-	if _, t := q["run"]; t {
-		w.Header().Set("Content-Type", "text/plain")
-		if err := Run(g.Graph, nil, w, w); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error building or running:\n%v", err)
-		}
-		return
-	}
 
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -226,32 +168,4 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 	}
 
 	view.Graph(w, g.Graph)
-}
-
-func outputGoSrc(g *model.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/plain")
-	if err := g.WriteGoTo(w); err != nil {
-		log.Printf("Could not render to Go: %v", err)
-		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
-	}
-}
-
-func outputRawGoSrc(g *model.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/plain")
-	if err := g.WriteRawGoTo(w); err != nil {
-		log.Printf("Could not render to Go: %v", err)
-		http.Error(w, "Could not render to Go", http.StatusInternalServerError)
-	}
-}
-
-func outputJSON(g *model.Graph, w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "application/json")
-	if err := g.WriteJSONTo(w); err != nil {
-		log.Printf("Could not encode JSON: %v", err)
-		http.Error(w, "Could not encode JSON", http.StatusInternalServerError)
-		return
-	}
 }

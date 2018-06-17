@@ -4,7 +4,7 @@ Contents:
 
 * [Home](index.md)
 * [Getting Started with v1](getting-started-v1.md)
-* [Getting Started](getting-started.md)
+* [Getting Started with v0](getting-started-v0.md)
 * [Roadmap](roadmap.md)
 
 SHENZHEN GO (working title) is an **experimental** visual Go environment, 
@@ -46,5 +46,5 @@ For discussions, there is a Slack channel (#shenzhen-go) at gophers.slack.com.
     SHENZHEN GO builds or runs the design again.
 *   Don't treat the Go output as a virtuous paragon of how to code in Go. It is
     "machine-generated" and therefore held to a lower standard than "hand-made".
-*   The JSON-based file format aims to be *diffable*, or at least *not ugly*, 
+*   The JSON-based file format aims to be *diffable*, or at least *not too ugly*, 
     for the benefit of source control and code review.

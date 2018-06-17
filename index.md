@@ -3,6 +3,7 @@
 Contents:
 
 * [Home](index.md)
+* [Getting Started with v1](getting-started-v1.md)
 * [Getting Started](getting-started.md)
 * [Roadmap](roadmap.md)
 

@@ -3,12 +3,18 @@
 Contents:
 
 * [Home](index.md)
-* [Getting Started](getting-started.md)
+* [Getting Started with v1](getting-started-v1.md)
+* [Getting Started with v0](getting-started-v0.md)
 * [Roadmap](roadmap.md)
+
+## About versions
+
+There are two versions of Shenzhen Go: the prototype that's deprecated, and the new version that isn't ready yet.
+This guide describes the old deprecated prototype (v0).
 
 ## Dependencies
 
-SHENZHEN GO requires:
+Shenzhen Go prototype (v0) requires:
 
 *   [Go 1.7+](https://golang.org/)
 *   [Graphviz](http://graphviz.org/)
@@ -23,7 +29,7 @@ is not necessary to set it (but you can change it to override the default if you
 
 To install, open a terminal and run:
 
-    go get -u github.com/google/shenzhen-go/cmd/shenzhen-go
+    go get -u github.com/google/shenzhen-go/v0/cmd/shenzhen-go
 
 This should automatically download all the needed Go packages,
 and create the `shenzhen-go` binary in your `$GOPATH/bin` directory.

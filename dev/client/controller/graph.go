@@ -274,7 +274,12 @@ func (c *graphController) Save(ctx context.Context) error {
 }
 
 func (c *graphController) Revert(ctx context.Context) error {
-	return c.action(ctx, pb.ActionRequest_REVERT)
+	if err := c.action(ctx, pb.ActionRequest_REVERT); err != nil {
+		return err
+	}
+	// TODO: Less janky reloading. (call into view reload)
+	js.Global.Get("location").Call("reload", true)
+	return nil
 }
 
 func (c *graphController) Generate(ctx context.Context) error {

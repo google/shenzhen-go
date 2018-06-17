@@ -30,6 +30,14 @@ The second version, "v1", is not quite ready yet, so for now it lives in the "de
 
 See the getting-started guides at https://google.github.io/shenzhen-go.
 
+### ...for the impatient gopher
+
+Choose one of:
+
+    go get -u github.com/google/shenzhen-go/v0/cmd/shenzhen-go
+    go get -u github.com/google/shenzhen-go/dev/cmd/shenzhen-go
+    go get -u -tags webview github.com/google/shenzhen-go/dev/cmd/shenzhen-go
+
 ## Notes
 
 This is not an official Google product.

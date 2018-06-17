@@ -269,19 +269,14 @@ func (c *graphController) Save(ctx context.Context) error {
 	return err
 }
 
-// Enter key is received as \r.
-func termEcho(s string) string {
-	if s == "\r" {
-		return "\r\n"
-	}
-	return s
-}
-
 func setupHterm(el dom.Element) dom.Object {
+	wait := make(chan struct{})
 	t := hterm.Get("Terminal").New("default")
+	t.Set("onTerminalReady", func() { close(wait) })
 	t.Call("setAutoCarriageReturn", true)
 	t.Call("decorate", el)
 	t.Call("installKeyboard")
+	<-wait
 	return dom.WrapObject(t)
 }
 
@@ -309,12 +304,29 @@ func (c *graphController) Run(ctx context.Context) error {
 	defer tio.Call("pop")
 
 	// TODO: don't send until the user "enters" - support backspace, etc.
-	send := func(s *js.Object) {
+	var buf []byte
+	tio.Set("onVTKeystroke", func(s *js.Object) {
+		t := s.String()
+		switch t {
+		case "\r":
+			rc.Send(&pb.Input{In: string(buf) + t})
+			tio.Call("print", "\n")
+		case "\b", "\x7f":
+			if len(buf) == 0 {
+				return
+			}
+			buf = buf[:len(buf)-1]
+			// I have no idea what I'm doing, do I
+			tio.Call("print", "\b \b")
+		default:
+			buf = append(buf, t...)
+			tio.Call("print", t)
+		}
+	})
+	tio.Set("sendString", func(s *js.Object) {
 		rc.Send(&pb.Input{In: s.String()})
-		tio.Call("print", termEcho(s.String()))
-	}
-	tio.Set("onVTKeystroke", send)
-	tio.Set("sendString", send)
+		tio.Call("print", s)
+	})
 
 	for {
 		out, err := rc.Recv()

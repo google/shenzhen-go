@@ -16,7 +16,6 @@ package server
 
 import (
 	"context"
-	"io"
 	"log"
 	"os/exec"
 
@@ -67,15 +66,16 @@ func (r *runSvrInputReader) Read(b []byte) (int, error) {
 	if len(r.overflow) > 0 {
 		return r.readOverflow(b)
 	}
-	in, err := r.svr.Recv()
-	if err != nil {
-		return 0, err
+	for {
+		in, err := r.svr.Recv()
+		if err != nil {
+			return 0, err
+		}
+		r.overflow = []byte(in.In)
+		if len(r.overflow) > 0 {
+			return r.readOverflow(b)
+		}
 	}
-	r.overflow = []byte(in.In)
-	if len(r.overflow) == 0 {
-		return 0, io.EOF
-	}
-	return r.readOverflow(b)
 }
 
 type runSvrWriter struct {
@@ -108,10 +108,11 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 		return err
 	}
 
-	cmd := exec.Command("go", "run", gp)
-	cmd.Stdin = &runSvrInputReader{svr, nil}
+	cmd := exec.CommandContext(svr.Context(), "go", "run", gp)
+	cmd.Stdin = &runSvrInputReader{svr: svr}
 	cmd.Stdout = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}
 	cmd.Stderr = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Err: string(b)} }}
+	defer svr.Send(&pb.Output{Err: "(process exited)\n"})
 	return cmd.Run()
 }
 

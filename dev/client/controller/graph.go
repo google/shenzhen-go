@@ -301,15 +301,20 @@ func (c *graphController) Run(ctx context.Context) error {
 	}
 
 	tio := c.HtermTerminal.Get("io").Call("push")
-	defer tio.Call("pop")
+	defer func() {
+		// FIXME: the process exits, but the client doesn't realise until sending another string.
+		tio.Set("onVTKeystroke", func(*js.Object) {})
+		tio.Set("sendString", func(*js.Object) {})
+		tio.Call("pop")
+	}()
 
-	// TODO: don't send until the user "enters" - support backspace, etc.
 	var buf []byte
 	tio.Set("onVTKeystroke", func(s *js.Object) {
 		t := s.String()
 		switch t {
 		case "\r":
-			rc.Send(&pb.Input{In: string(buf) + t})
+			rc.Send(&pb.Input{In: string(buf) + "\n"})
+			buf = buf[:0]
 			tio.Call("print", "\n")
 		case "\b", "\x7f":
 			if len(buf) == 0 {
@@ -324,14 +329,15 @@ func (c *graphController) Run(ctx context.Context) error {
 		}
 	})
 	tio.Set("sendString", func(s *js.Object) {
-		rc.Send(&pb.Input{In: s.String()})
+		rc.Send(&pb.Input{In: string(buf) + s.String()})
+		buf = buf[:0]
 		tio.Call("print", s)
 	})
 
 	for {
 		out, err := rc.Recv()
 		if err == io.EOF {
-			return rc.CloseSend()
+			return nil
 		}
 		if err != nil {
 			return err

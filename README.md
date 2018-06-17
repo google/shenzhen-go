@@ -20,41 +20,15 @@ Read more at https://google.github.io/shenzhen-go.
 
 ## Versions
 
-There are currently TWO versions of Shenzhen Go. The original Graphviz-based
-prototype is "v0", and mostly works. The second version, "v1", is not ready yet,
-so for now it lives in the "dev" directory.
+There are currently TWO versions of Shenzhen Go. 
 
-## Dependencies
+The original Graphviz-based prototype is "v0", and mostly works, but I'm not working on it anymore. 
 
-Shenzhen Go (v0) requires:
+The second version, "v1", is not quite ready yet, so for now it lives in the "dev" directory. But I'm working on it.
 
-*   [Go 1.7+](https://golang.org/)
-*   [Graphviz](http://graphviz.org/)
-*   A web browser (e.g. [Chrome](https://www.google.com/chrome)).
+## Getting started
 
-## Installation
-
-If you are using Go 1.7, you need to have set your `$GOPATH` (common choices are `$HOME` and 
-`$HOME/go`, but it's up to you). 
-[For Go 1.8, the default `$GOPATH` is `$HOME/go`](https://rakyll.org/default-gopath/) so it
-is not necessary to set it (but you can change it to override the default if you want).
-
-To install, open a terminal and run:
-
-    go get -u github.com/google/shenzhen-go/v0/cmd/shenzhen-go
-
-This should create the `shenzhen-go` binary in your `$GOPATH/bin` directory.
-Run it:
-
-    $GOPATH/bin/shenzhen-go
-
-and a web browser should appear with SHENZHEN GO (if not, navigate to 
-http://localhost:8088/ manually). 
-
-The file browser is limited to the directory `shenzhen-go` was started in.
-
-Navigate to the `examples/primes.szgo` file and play around - this demonstrates 
-an example prime number sieve program.
+See the getting-started guides at https://google.github.io/shenzhen-go.
 
 ## Notes
 
@@ -67,4 +41,17 @@ For discussions, there is [a Google Group](https://groups.google.com/forum/#!for
 
 ## Acknowledgements
 
-The dev version embeds the [Ace](https://ace.c9.io/) code editor.
+### v1 / dev
+
+The dev version wouldn't be nearly as good as it is without the following:
+
+* The [Ace](https://ace.c9.io/) code editor.
+* [Chrome Hterm](https://chromium.googlesource.com/apps/libapps/+/master/hterm).
+* [GopherJS](https://github.com/gopherjs/gopherjs).
+* [gRPC](https://grpc.io/).
+* [Improbable's gRPC-Web for Go](https://github.com/improbable-eng/grpc-web).
+* Johan Brandhorst's [GopherJS bindings for gRPC-Web](https://github.com/johanbrandhorst/protobuf).
+
+### v0
+
+The prototype (v0) relies heavily on Graphviz to function, but does not bundle or vendor any Graphviz components.

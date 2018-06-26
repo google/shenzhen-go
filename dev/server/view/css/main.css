@@ -129,6 +129,7 @@ div.panel {
 	display: flex;
 	flex-flow: column;
 	flex: auto;
+	overflow: scroll;
 }
 
 div.node-panel {

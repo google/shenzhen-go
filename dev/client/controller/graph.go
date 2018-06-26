@@ -50,6 +50,8 @@ type graphController struct {
 	CurrentRHSPanel        dom.Element
 	ChannelPropertiesPanel dom.Element
 	GraphPropertiesPanel   dom.Element
+	HelpAboutPanel         dom.Element
+	HelpLicensesPanel      dom.Element
 	HtermPanel             dom.Element
 	HtermContainer         dom.Element
 	HtermTerminal          dom.Object
@@ -102,6 +104,8 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 
 		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
 		GraphPropertiesPanel:   doc.ElementByID("graph-properties"),
+		HelpAboutPanel:         doc.ElementByID("help-about-panel"),
+		HelpLicensesPanel:      doc.ElementByID("help-licenses-panel"),
 		HtermPanel:             doc.ElementByID("hterm-panel"),
 		HtermContainer:         doc.ElementByID("hterm-terminal"),
 		HtermTerminal:          nil, // Late setup
@@ -405,6 +409,9 @@ func (c *graphController) PreviewJSON() {
 	c.PreviewJSONSession.SetValue(g)
 	c.showRHSPanel(c.PreviewJSONPanel)
 }
+
+func (c *graphController) HelpLicenses() { c.showRHSPanel(c.HelpLicensesPanel) }
+func (c *graphController) HelpAbout()    { c.showRHSPanel(c.HelpAboutPanel) }
 
 // showRHSPanel hides any existing panel and shows the given element as the panel.
 func (c *graphController) showRHSPanel(p dom.Element) {

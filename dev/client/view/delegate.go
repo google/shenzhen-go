@@ -42,7 +42,10 @@ type GraphController interface {
 	Run(ctx context.Context) error
 	PreviewGo()
 	PreviewJSON()
-	// TODO: Revert, Build, Install, Run...
+
+	// Misc
+	HelpLicenses()
+	HelpAbout()
 }
 
 // ChannelController is implemented by the controller of a channel.

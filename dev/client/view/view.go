@@ -84,6 +84,11 @@ func Setup(doc dom.Document, gc GraphController) {
 	doc.ElementByID("preview-json-link").
 		AddEventListener("click", func(dom.Object) { gc.PreviewJSON() })
 
+	doc.ElementByID("help-licenses-link").
+		AddEventListener("click", func(dom.Object) { gc.HelpLicenses() })
+	doc.ElementByID("help-about-link").
+		AddEventListener("click", func(dom.Object) { gc.HelpAbout() })
+
 	doc.ElementByID("graph-prop-name").
 		AddEventListener("change", v.graph.commit)
 	doc.ElementByID("graph-prop-package-path").

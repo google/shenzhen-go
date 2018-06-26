@@ -43,6 +43,13 @@
 				<li><span id="preview-json-link" class="link">Preview JSON</span></li>
 			</ul></div>
 		</div>
+		<div class="dropdown">
+			Help 
+			<div class="dropdown-content"><ul>
+				<li><span id="help-licenses-link" class="link">View Licences</span></li>
+				<li><span id="help-about-link" class="link">About</span></li>
+			</ul></div>
+		</div>	
 	</div>
 	<div class="box">
 		<div class="container" id="diagram-container">
@@ -136,6 +143,30 @@
 				</div>
 				{{end}}
 				{{end}}
+			</div>
+			<div id="help-licenses-panel" class="panel" style="display:none">
+				<h3>Licenses</h3>
+				<h4>Shenzhen Go</h4>
+				<pre>{{$.Licenses.ShenzhenGo}}</pre>
+				<h4>Ace (code editor)</h4>
+				<pre>{{$.Licenses.Ace}}</pre>
+				<h4>Chromium Hterm</h4>
+				<pre>{{$.Licenses.Hterm}}</pre>
+			</div>
+			<div id="help-about-panel" class="panel" style="display:none">
+				<h3>Shenzhen Go</h3>
+				(working title)
+				<p>
+					Copyright 2018 Google Inc.
+				</p>
+				<p>
+					Note that this is not an official Google product.
+				</p>
+				<p>
+					<a href="https://github.com/google/shenzhen-go">Get the source code</a><br/>
+					<a href="https://google.github.io/shenzhen-go">Online documentation</a>
+				</p>
+				<!-- TODO: Put build info (git hash, etc) in here via template -->
 			</div>
 		</div>
 	</div>

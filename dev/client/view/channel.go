@@ -318,9 +318,7 @@ func (c *Channel) loseFocus() {
 	}
 }
 
-func (c *Channel) delete() {
-	log.Print("TODO(josh): implement Channel.delete")
-}
+func (c *Channel) delete() { go c.reallyDelete() }
 
 func (c *Channel) reallyDelete() {
 	if err := c.cc.Delete(context.TODO()); err != nil {
@@ -335,6 +333,7 @@ func (c *Channel) deleteView() {
 	// Reset all attached pins, remove all the elements, delete from graph.
 	for q := range c.Pins {
 		q.channel = nil
+		q.unselected()
 	}
 	c.Group.Remove()
 	delete(c.graph.Channels, c.cc.Name())

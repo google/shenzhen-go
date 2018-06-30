@@ -252,7 +252,9 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 			return &pb.Empty{}, err
 		}
 
-		g.DeleteNode(old, false)
+		// Delete old node, only clean up channels if deleting this node
+		// is the intention.
+		g.DeleteNode(old, req.Config == nil)
 
 		if req.Config == nil {
 			// Deletion was intended, job complete.

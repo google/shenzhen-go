@@ -18,6 +18,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -34,7 +35,8 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	base := filepath.Join(".", r.URL.Path)
+	filePath := filepath.FromSlash(r.URL.Path) // remap URL to filesystem separators
+	base := filepath.Join(".", filePath)
 	f, err := os.Open(base)
 	if err != nil {
 		log.Printf("Couldn't open: %v", err)
@@ -73,15 +75,17 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "File already exists", http.StatusNotModified)
 			return
 		}
-		path := filepath.Join(r.URL.Path, nu)
 		pkgp, err := GuessPackagePath(nfp)
 		if err != nil {
 			log.Printf("Guessing a package path: %v", err)
 		}
-		if _, err := c.createGraph(path, model.NewGraph(nfp, path, pkgp)); err != nil {
+		urlPath := path.Join(r.URL.Path, nu)
+		if _, err := c.createGraph(urlPath, model.NewGraph(nfp, urlPath, pkgp)); err != nil {
 			log.Printf("Graph already created in server: %v", err)
+		} else {
+			log.Printf("Created new graph: %v", nfp)
 		}
-		http.Redirect(w, r, path, http.StatusSeeOther)
+		http.Redirect(w, r, urlPath, http.StatusSeeOther)
 		return
 	}
 
@@ -100,7 +104,7 @@ func (c *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		e = append(e, view.DirectoryEntry{
 			IsDir: fi.IsDir(),
 			Name:  fi.Name(),
-			Path:  filepath.Join(r.URL.Path, fi.Name()),
+			Path:  path.Join(r.URL.Path, fi.Name()),
 		})
 	}
 

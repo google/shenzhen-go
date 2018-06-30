@@ -252,7 +252,7 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 			return &pb.Empty{}, err
 		}
 
-		g.DeleteNode(old)
+		g.DeleteNode(old, false)
 
 		if req.Config == nil {
 			// Deletion was intended, job complete.

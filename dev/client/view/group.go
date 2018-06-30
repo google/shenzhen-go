@@ -55,3 +55,8 @@ func (g Group) Remove() {
 	}
 	p.RemoveChildren(g)
 }
+
+// BringToFront re-adds the group to the parent.
+func (g Group) BringToFront() {
+	g.Parent().AddChildren(g)
+}

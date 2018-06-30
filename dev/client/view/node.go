@@ -90,9 +90,7 @@ func (n *Node) MoveTo(p Point) *Node {
 
 func (n *Node) dragStart(p Point) {
 	n.rel = p - n.abs
-
-	// Bring to front
-	n.Group.Parent().AddChildren(n.Group)
+	n.Group.BringToFront()
 	n.TextBox.Group.Element.ClassList().Add("dragging")
 }
 

@@ -94,7 +94,11 @@ func (c *channelController) Delete(ctx context.Context) error {
 		Graph:   c.graph.FilePath,
 		Channel: c.existingName,
 	})
-	return err
+	if err != nil {
+		return err // TODO: contextualise
+	}
+	c.graph.DeleteChannel(c.channel)
+	return nil
 }
 
 func (c *channelController) Attach(pc view.PinController) {

@@ -122,6 +122,7 @@ func (c *Channel) hideDrag() {
 
 func (c *Channel) dragStart(p Point) {
 	log.Print("*Channel.dragStart")
+	c.Group.BringToFront()
 }
 
 func (c *Channel) noSnap(pt Point) {

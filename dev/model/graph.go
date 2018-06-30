@@ -103,9 +103,9 @@ func (g *Graph) DeleteChannel(ch *Channel) {
 }
 
 // DeleteNode cleans up any connections and then deletes a node.
-// It deletes any channels which have less than 2 pins left
-// as a result of deleting the node.
-func (g *Graph) DeleteNode(n *Node) {
+// If cleanupChans is set, it then deletes any channels which have less
+// than 2 pins left as a result of deleting the node.
+func (g *Graph) DeleteNode(n *Node, cleanupChans bool) {
 	// In case the node is connected to the same channel more than
 	// once, first disconnect all the pins, then delete any channels.
 	var rem []*Channel
@@ -118,7 +118,7 @@ func (g *Graph) DeleteNode(n *Node) {
 			continue
 		}
 		ch.RemovePin(n.Name, p)
-		if len(ch.Pins) < 2 {
+		if cleanupChans && len(ch.Pins) < 2 {
 			rem = append(rem, ch)
 		}
 	}

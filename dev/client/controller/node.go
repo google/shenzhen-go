@@ -75,7 +75,7 @@ func (c *nodeController) Delete(ctx context.Context) error {
 		// TODO: contextualise
 		return err
 	}
-	c.graph.DeleteNode(c.node)
+	c.graph.DeleteNode(c.node, true)
 	c.node = nil
 	return nil
 }

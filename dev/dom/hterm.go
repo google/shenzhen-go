@@ -82,16 +82,16 @@ func (io IO) Pop() {
 }
 
 // OnVTKeystroke registers a keystroke handler.
-func (io IO) OnVTKeystroke(h func(Object)) {
+func (io IO) OnVTKeystroke(h func(string)) {
 	io.Set("onVTKeystroke", func(o *js.Object) {
-		h(WrapObject(o))
+		h(o.String())
 	})
 }
 
 // SendString registers a handler for sendString.
-func (io IO) SendString(h func(Object)) {
+func (io IO) SendString(h func(string)) {
 	io.Set("sendString", func(o *js.Object) {
-		h(WrapObject(o))
+		h(o.String())
 	})
 }
 

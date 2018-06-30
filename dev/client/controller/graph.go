@@ -331,15 +331,14 @@ func (c *graphController) Run(ctx context.Context) error {
 	tio := c.htermTerminal.IO().Push()
 	defer func() {
 		// FIXME: the process exits, but the client doesn't realise until sending another string.
-		tio.OnVTKeystroke(func(dom.Object) {})
-		tio.SendString(func(dom.Object) {})
+		tio.OnVTKeystroke(func(string) {})
+		tio.SendString(func(string) {})
 		tio.Pop()
 	}()
 
 	var buf []byte
-	tio.OnVTKeystroke(func(s dom.Object) {
-		t := s.String()
-		switch t {
+	tio.OnVTKeystroke(func(s string) {
+		switch s {
 		case "\r":
 			rc.Send(&pb.Input{In: string(buf) + "\n"})
 			buf = buf[:0]
@@ -352,14 +351,14 @@ func (c *graphController) Run(ctx context.Context) error {
 			// I have no idea what I'm doing, do I
 			tio.Print("\b \b")
 		default:
-			buf = append(buf, t...)
-			tio.Print(t)
+			buf = append(buf, s...)
+			tio.Print(s)
 		}
 	})
-	tio.SendString(func(s dom.Object) {
-		rc.Send(&pb.Input{In: string(buf) + s.String()})
+	tio.SendString(func(s string) {
+		rc.Send(&pb.Input{In: string(buf) + s})
 		buf = buf[:0]
-		tio.Call("print", s)
+		tio.Print(s)
 	})
 
 	for {

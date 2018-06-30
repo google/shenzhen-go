@@ -124,7 +124,7 @@ func (c *channelController) Detach(pc view.PinController) {
 }
 
 func (c *channelController) GainFocus() {
-	c.gc.showRHSPanel(c.gc.ChannelPropertiesPanel)
+	c.gc.showRHSPanel(c.gc.channelPropertiesPanel)
 
 	c.sharedOutlets.inputName.Set("value", c.channel.Name)
 	c.sharedOutlets.inputCapacity.Set("value", c.channel.Capacity)

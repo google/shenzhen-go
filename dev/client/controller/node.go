@@ -138,7 +138,7 @@ type focusable interface {
 }
 
 func (c *nodeController) GainFocus() {
-	c.gc.showRHSPanel(c.gc.NodePropertiesPanel)
+	c.gc.showRHSPanel(c.gc.nodePropertiesPanel)
 
 	c.sharedOutlets.inputName.Set("value", c.node.Name)
 	c.sharedOutlets.inputEnabled.Set("checked", c.node.Enabled)

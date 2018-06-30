@@ -47,19 +47,19 @@ type graphController struct {
 	client pb.ShenzhenGoClient
 
 	// RHS panels
-	CurrentRHSPanel        dom.Element
-	ChannelPropertiesPanel dom.Element
-	GraphPropertiesPanel   dom.Element
-	HelpAboutPanel         dom.Element
-	HelpLicensesPanel      dom.Element
-	HtermPanel             dom.Element
-	HtermContainer         dom.Element
-	HtermTerminal          dom.Object
-	NodePropertiesPanel    dom.Element
-	PreviewGoPanel         dom.Element
-	PreviewJSONPanel       dom.Element
-	PreviewGoSession       *dom.AceSession
-	PreviewJSONSession     *dom.AceSession
+	currentRHSPanel        dom.Element
+	channelPropertiesPanel dom.Element
+	graphPropertiesPanel   dom.Element
+	helpAboutPanel         dom.Element
+	helpLicensesPanel      dom.Element
+	htermPanel             dom.Element
+	htermContainer         dom.Element
+	htermTerminal          dom.Object
+	nodePropertiesPanel    dom.Element
+	previewGoPanel         dom.Element
+	previewJSONPanel       dom.Element
+	previewGoSession       *dom.AceSession
+	previewJSONSession     *dom.AceSession
 
 	// Graph properties panel inputs
 	graphNameTextInput        dom.Element
@@ -100,20 +100,20 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 		client: client,
 		graph:  graph,
 
-		CurrentRHSPanel: doc.ElementByID("graph-properties"),
+		currentRHSPanel: doc.ElementByID("graph-properties"),
 
-		ChannelPropertiesPanel: doc.ElementByID("channel-properties"),
-		GraphPropertiesPanel:   doc.ElementByID("graph-properties"),
-		HelpAboutPanel:         doc.ElementByID("help-about-panel"),
-		HelpLicensesPanel:      doc.ElementByID("help-licenses-panel"),
-		HtermPanel:             doc.ElementByID("hterm-panel"),
-		HtermContainer:         doc.ElementByID("hterm-terminal"),
-		HtermTerminal:          nil, // Late setup
-		NodePropertiesPanel:    doc.ElementByID("node-properties"),
-		PreviewGoPanel:         doc.ElementByID("preview-go"),
-		PreviewJSONPanel:       doc.ElementByID("preview-json"),
-		PreviewGoSession:       setupAceView("preview-go-ace", dom.AceGoMode),
-		PreviewJSONSession:     setupAceView("preview-json-ace", dom.AceJSONMode),
+		channelPropertiesPanel: doc.ElementByID("channel-properties"),
+		graphPropertiesPanel:   doc.ElementByID("graph-properties"),
+		helpAboutPanel:         doc.ElementByID("help-about-panel"),
+		helpLicensesPanel:      doc.ElementByID("help-licenses-panel"),
+		htermPanel:             doc.ElementByID("hterm-panel"),
+		htermContainer:         doc.ElementByID("hterm-terminal"),
+		htermTerminal:          nil, // Late setup
+		nodePropertiesPanel:    doc.ElementByID("node-properties"),
+		previewGoPanel:         doc.ElementByID("preview-go"),
+		previewJSONPanel:       doc.ElementByID("preview-json"),
+		previewGoSession:       setupAceView("preview-go-ace", dom.AceGoMode),
+		previewJSONSession:     setupAceView("preview-json-ace", dom.AceJSONMode),
 
 		graphNameTextInput:        doc.ElementByID("graph-prop-name"),
 		graphPackagePathTextInput: doc.ElementByID("graph-prop-package-path"),
@@ -159,7 +159,7 @@ func (c *graphController) newNodeController(node *model.Node) *nodeController {
 }
 
 func (c *graphController) GainFocus() {
-	c.showRHSPanel(c.GraphPropertiesPanel)
+	c.showRHSPanel(c.graphPropertiesPanel)
 }
 
 func (c *graphController) Nodes(f func(view.NodeController)) {
@@ -310,15 +310,15 @@ func setupHterm(el dom.Element) dom.Object {
 }
 
 func (c *graphController) ShowHterm() {
-	c.showRHSPanel(c.HtermPanel)
-	if c.HtermTerminal == nil {
-		c.HtermTerminal = setupHterm(c.HtermContainer)
+	c.showRHSPanel(c.htermPanel)
+	if c.htermTerminal == nil {
+		c.htermTerminal = setupHterm(c.htermContainer)
 	}
 }
 
 func (c *graphController) Run(ctx context.Context) error {
 	c.ShowHterm()
-	c.HtermTerminal.Call("clearHome")
+	c.htermTerminal.Call("clearHome")
 
 	rc, err := c.client.Run(ctx)
 	if err != nil {
@@ -329,7 +329,7 @@ func (c *graphController) Run(ctx context.Context) error {
 		return err
 	}
 
-	tio := c.HtermTerminal.Get("io").Call("push")
+	tio := c.htermTerminal.Get("io").Call("push")
 	defer func() {
 		// FIXME: the process exits, but the client doesn't realise until sending another string.
 		tio.Set("onVTKeystroke", func(*js.Object) {})
@@ -397,8 +397,8 @@ func (c *graphController) PreviewGo() {
 	if err != nil {
 		g = `/* Couldn't generate Go: ` + err.Error() + ` */`
 	}
-	c.PreviewGoSession.SetValue(g)
-	c.showRHSPanel(c.PreviewGoPanel)
+	c.previewGoSession.SetValue(g)
+	c.showRHSPanel(c.previewGoPanel)
 }
 
 func (c *graphController) PreviewJSON() {
@@ -406,18 +406,18 @@ func (c *graphController) PreviewJSON() {
 	if err != nil {
 		g = `{"error": "Couldn't generate JSON: ` + err.Error() + `"}`
 	}
-	c.PreviewJSONSession.SetValue(g)
-	c.showRHSPanel(c.PreviewJSONPanel)
+	c.previewJSONSession.SetValue(g)
+	c.showRHSPanel(c.previewJSONPanel)
 }
 
-func (c *graphController) HelpLicenses() { c.showRHSPanel(c.HelpLicensesPanel) }
-func (c *graphController) HelpAbout()    { c.showRHSPanel(c.HelpAboutPanel) }
+func (c *graphController) HelpLicenses() { c.showRHSPanel(c.helpLicensesPanel) }
+func (c *graphController) HelpAbout()    { c.showRHSPanel(c.helpAboutPanel) }
 
 // showRHSPanel hides any existing panel and shows the given element as the panel.
 func (c *graphController) showRHSPanel(p dom.Element) {
-	if p == c.CurrentRHSPanel {
+	if p == c.currentRHSPanel {
 		return
 	}
-	c.CurrentRHSPanel.Hide()
-	c.CurrentRHSPanel = p.Show()
+	c.currentRHSPanel.Hide()
+	c.currentRHSPanel = p.Show()
 }

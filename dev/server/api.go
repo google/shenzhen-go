@@ -245,16 +245,17 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 		part = p
 	}
 
+	var old *model.Node
 	var conns map[string]string
 	if req.Node != "" {
-		old, err := g.lookupNode(req.Node)
+		var err error
+		old, err = g.lookupNode(req.Node)
 		if err != nil {
 			return &pb.Empty{}, err
 		}
 
-		g.DeleteNode(old)
-
 		if req.Config == nil {
+			g.DeleteNode(old)
 			// Deletion was intended, job complete.
 			return &pb.Empty{}, nil
 		}
@@ -276,6 +277,10 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 	g.Nodes[req.Config.Name] = n
 	n.RefreshConnections()
 	g.RefreshChannelsPins() // Changing the part might have changed available pins.
+	if old != nil && req.Config.Name != old.Name {
+		g.DeleteNode(old)
+	}
+	// XXX refresh again?
 	return &pb.Empty{}, nil
 }
 

@@ -25,10 +25,11 @@ import (
 type Channel struct {
 	Group // Container for all the channel elements.
 
-	cc     ChannelController
-	view   *View
-	errors errorViewer
-	graph  *Graph
+	cc      ChannelController
+	view    *View
+	errors  errorViewer
+	graph   *Graph
+	deleted bool
 
 	// Cache of raw Pin objects which are connected.
 	Pins map[*Pin]*Route
@@ -243,6 +244,9 @@ func (c *Channel) addPin(p *Pin) {
 }
 
 func (c *Channel) removePin(p *Pin) {
+	if c == nil || p == nil {
+		return
+	}
 	if p.channel != c {
 		log.Print("c.removePin(p) but p.channel != c")
 		return
@@ -258,6 +262,9 @@ func (c *Channel) removePin(p *Pin) {
 }
 
 func (c *Channel) pinWasDeleted(p *Pin) {
+	if c == nil || p == nil {
+		return
+	}
 	if p.channel != c {
 		log.Print("c.pinWasDeleted(p) but p.channel != c")
 		return
@@ -311,6 +318,9 @@ func (c *Channel) gainFocus() {
 }
 
 func (c *Channel) loseFocus() {
+	if c.deleted {
+		return
+	}
 	go c.reallyCommit()
 	c.Group.ClassList().Remove("selected")
 	for p := range c.Pins {
@@ -337,6 +347,7 @@ func (c *Channel) deleteView() {
 	}
 	c.Group.Remove()
 	delete(c.graph.Channels, c.cc.Name())
+	c.deleted = true
 }
 
 func (c *Channel) layout(additional Pointer) {

@@ -153,7 +153,7 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 			Pins:   make(map[*Pin]*Route),
 		}
 		g.Channels[cc.Name()] = ch
-		ch.MakeElements(g.doc, g.Group)
+		ch.MakeElements(doc, g.Group)
 	})
 
 	// Add any nodes that didn't exist but now do.
@@ -194,7 +194,7 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 		m.Inputs, m.Outputs = m.AllPins[:inputs], m.AllPins[inputs:]
 
 		g.Nodes[nc.Name()] = m
-		m.MakeElements(g.doc, g.Group)
+		m.MakeElements(doc, g.Group)
 	})
 
 	// Load connections.

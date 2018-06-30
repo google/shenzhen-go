@@ -240,6 +240,7 @@ func (v *View) deleteSelected(e dom.Object) {
 		return
 	}
 	s.delete()
+	v.graph.gainFocus()
 }
 
 // dragStarter is anything that can start a drag action

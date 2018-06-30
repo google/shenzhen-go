@@ -71,10 +71,19 @@ func (c *nodeController) Delete(ctx context.Context) error {
 		Graph: c.graph.FilePath,
 		Node:  c.node.Name,
 	})
-	return err // TODO: contextualise
+	if err != nil {
+		// TODO: contextualise
+		return err
+	}
+	c.graph.DeleteNode(c.node)
+	c.node = nil
+	return nil
 }
 
 func (c *nodeController) Commit(ctx context.Context) error {
+	if c.node == nil {
+		return nil
+	}
 	pj, err := model.MarshalPart(c.node.Part)
 	if err != nil {
 		return err // TODO: contextualise

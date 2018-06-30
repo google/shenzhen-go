@@ -36,10 +36,11 @@ type Node struct {
 	Outputs []*Pin
 	AllPins []*Pin
 
-	nc     NodeController
-	view   *View
-	errors errorViewer
-	graph  *Graph
+	nc      NodeController
+	view    *View
+	errors  errorViewer
+	graph   *Graph
+	deleted bool
 
 	rel, abs Point // relative and absolute diagram coordinates
 }
@@ -80,17 +81,6 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 	return n
 }
 
-// AddTo adds the node as a child of the given parent.
-func (n *Node) AddTo(parent dom.Element) *Node {
-	parent.AddChildren(n.Group)
-	return n
-}
-
-// Remove removes the node from the group's parent.
-func (n *Node) Remove() {
-	n.Group.Parent().RemoveChildren(n.Group)
-}
-
 // MoveTo moves the textbox to have the topleft corner at x, y.
 func (n *Node) MoveTo(p Point) *Node {
 	n.Group.SetAttribute("transform", fmt.Sprintf("translate(%f, %f)", real(p), imag(p)))
@@ -127,6 +117,9 @@ func (n *Node) gainFocus() {
 }
 
 func (n *Node) loseFocus() {
+	if n.deleted {
+		return
+	}
 	go n.reallyCommit()
 	n.Group.Element.ClassList().Remove("selected")
 }
@@ -153,15 +146,17 @@ func (n *Node) delete() {
 }
 
 func (n *Node) reallyDelete() {
+	name := n.nc.Name()
 	if err := n.nc.Delete(context.TODO()); err != nil {
 		n.errors.setError("Couldn't delete: " + err.Error())
 		return
 	}
 	for _, p := range n.AllPins {
-		p.channel.removePin(p)
+		p.channel.pinWasDeleted(p)
 	}
-	delete(n.graph.Nodes, n.nc.Name())
+	delete(n.graph.Nodes, name)
 	n.Remove()
+	n.deleted = true
 }
 
 func (n *Node) refresh() {

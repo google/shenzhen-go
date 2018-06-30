@@ -36,7 +36,7 @@ var (
 	defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
 
 	ace   = dom.GlobalAce()
-	hterm = js.Global.Get("hterm") // TODO: abstract hterm in the dom package
+	hterm = dom.GlobalHterm()
 
 	_ view.GraphController = (*graphController)(nil)
 )
@@ -54,7 +54,7 @@ type graphController struct {
 	helpLicensesPanel      dom.Element
 	htermPanel             dom.Element
 	htermContainer         dom.Element
-	htermTerminal          dom.Object
+	htermTerminal          dom.Terminal
 	nodePropertiesPanel    dom.Element
 	previewGoPanel         dom.Element
 	previewJSONPanel       dom.Element
@@ -108,7 +108,6 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 		helpLicensesPanel:      doc.ElementByID("help-licenses-panel"),
 		htermPanel:             doc.ElementByID("hterm-panel"),
 		htermContainer:         doc.ElementByID("hterm-terminal"),
-		htermTerminal:          nil, // Late setup
 		nodePropertiesPanel:    doc.ElementByID("node-properties"),
 		previewGoPanel:         doc.ElementByID("preview-go"),
 		previewJSONPanel:       doc.ElementByID("preview-json"),
@@ -298,27 +297,27 @@ func (c *graphController) Install(ctx context.Context) error {
 	return c.action(ctx, pb.ActionRequest_INSTALL)
 }
 
-func setupHterm(el dom.Element) dom.Object {
+func setupHterm(el dom.Element) dom.Terminal {
 	wait := make(chan struct{})
-	t := hterm.Get("Terminal").New("default")
-	t.Set("onTerminalReady", func() { close(wait) })
-	t.Call("setAutoCarriageReturn", true)
-	t.Call("decorate", el)
-	t.Call("installKeyboard")
+	t := hterm.NewTerminal("default")
+	t.OnTerminalReady(func() { close(wait) })
+	t.SetAutoCR(true)
+	t.Decorate(el)
+	t.InstallKeyboard()
 	<-wait
-	return dom.WrapObject(t)
+	return t
 }
 
 func (c *graphController) ShowHterm() {
 	c.showRHSPanel(c.htermPanel)
-	if c.htermTerminal == nil {
+	if c.htermTerminal.Object == nil {
 		c.htermTerminal = setupHterm(c.htermContainer)
 	}
 }
 
 func (c *graphController) Run(ctx context.Context) error {
 	c.ShowHterm()
-	c.htermTerminal.Call("clearHome")
+	c.htermTerminal.ClearHome()
 
 	rc, err := c.client.Run(ctx)
 	if err != nil {
@@ -329,35 +328,35 @@ func (c *graphController) Run(ctx context.Context) error {
 		return err
 	}
 
-	tio := c.htermTerminal.Get("io").Call("push")
+	tio := c.htermTerminal.IO().Push()
 	defer func() {
 		// FIXME: the process exits, but the client doesn't realise until sending another string.
-		tio.Set("onVTKeystroke", func(*js.Object) {})
-		tio.Set("sendString", func(*js.Object) {})
-		tio.Call("pop")
+		tio.OnVTKeystroke(func(dom.Object) {})
+		tio.SendString(func(dom.Object) {})
+		tio.Pop()
 	}()
 
 	var buf []byte
-	tio.Set("onVTKeystroke", func(s *js.Object) {
+	tio.OnVTKeystroke(func(s dom.Object) {
 		t := s.String()
 		switch t {
 		case "\r":
 			rc.Send(&pb.Input{In: string(buf) + "\n"})
 			buf = buf[:0]
-			tio.Call("print", "\n")
+			tio.Print("\n")
 		case "\b", "\x7f":
 			if len(buf) == 0 {
 				return
 			}
 			buf = buf[:len(buf)-1]
 			// I have no idea what I'm doing, do I
-			tio.Call("print", "\b \b")
+			tio.Print("\b \b")
 		default:
 			buf = append(buf, t...)
-			tio.Call("print", t)
+			tio.Print(t)
 		}
 	})
-	tio.Set("sendString", func(s *js.Object) {
+	tio.SendString(func(s dom.Object) {
 		rc.Send(&pb.Input{In: string(buf) + s.String()})
 		buf = buf[:0]
 		tio.Call("print", s)
@@ -371,8 +370,9 @@ func (c *graphController) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		tio.Call("print", out.Out)
-		tio.Call("print", out.Err)
+		// TODO(josh): Format these differently?
+		tio.Print(out.Out)
+		tio.Print(out.Err)
 	}
 }
 

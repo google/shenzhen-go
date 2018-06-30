@@ -2,15 +2,20 @@
 package main
 
 import (
-	"sync"
-
 	"fmt"
+	"sync"
 )
 
-func Code(out chan<- int) {
+func Node_1(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- string, qux chan<- int, tuz <-chan int64) {
 
 	func(instanceNumber, multiplicity int) {
-
+		fmt.Println("Node 1: Started.")
+		fmt.Print("Enter a number: ")
+		var n int
+		fmt.Scanf("%d", &n)
+		fmt.Printf("Node 1: Sending %d on qux...\n", n)
+		qux <- n
+		fmt.Println("Node 1: Finished.")
 	}(0, 1)
 
 }
@@ -28,19 +33,19 @@ func Node_2(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- str
 
 func main() {
 
-	channel1 := make(chan int, 0)
+	channel0 := make(chan int, 0)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		Code(channel1)
+		Node_1(nil, nil, nil, nil, channel0, nil)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Node_2(nil, nil, channel1, nil, nil, nil)
+		Node_2(nil, nil, channel0, nil, nil, nil)
 		wg.Done()
 	}()
 

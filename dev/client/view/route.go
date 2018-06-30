@@ -14,40 +14,39 @@
 
 package view
 
-import "github.com/google/shenzhen-go/dev/dom"
+import (
+	"fmt"
+	"math/cmplx"
+
+	"github.com/google/shenzhen-go/dev/dom"
+)
+
+const arrowSize = 5
 
 // Route is the visual connection between two points
 type Route struct {
-	line dom.Element
+	Group
+	line  dom.Element
+	arrow dom.Element
 
 	src, dst Pointer
-	parent   Group
 }
 
 // NewRoute creates a route connecting a channel and a pin, and adds it
 // as a child of the channel's group.
 func NewRoute(doc dom.Document, parent Group, src, dst Pointer) *Route {
 	r := &Route{
-		line: doc.MakeSVGElement("line"),
-		src:  src,
-		dst:  dst,
+		Group: NewGroup(doc, parent),
+		line:  doc.MakeSVGElement("line"),
+		arrow: doc.MakeSVGElement("path"),
+		src:   src,
+		dst:   dst,
 	}
+	r.Group.AddChildren(r.line, r.arrow)
 	r.line.ClassList().Add("route")
+	r.arrow.ClassList().Add("route", "arrow")
 	r.Reroute()
-	parent.AddChildren(r.line)
 	return r
-}
-
-// Remove removes the route.
-func (r *Route) Remove() {
-	if r == nil || r.line == nil {
-		return
-	}
-	p := r.line.Parent()
-	if p == nil {
-		return
-	}
-	p.RemoveChildren(r.line)
 }
 
 // Reroute repositions the route. Call after moving either the channel or the pin.
@@ -58,10 +57,24 @@ func (r *Route) Reroute() {
 		SetAttribute("y1", imag(a)).
 		SetAttribute("x2", real(b)).
 		SetAttribute("y2", imag(b))
+
+	// Manually-managed arrow symbol.
+	d := complex128(b - a)
+	md := cmplx.Abs(d)
+	// Don't show the symbol if it's too crowded.
+	if md < 3*arrowSize {
+		r.arrow.Hide()
+		return
+	}
+	r.arrow.Show()
+	c := complex128(a+b) / 2.0
+	scale := complex(arrowSize/md, 0)
+	d = scale * d // Scaled unit vector in the direction a -> b
+	p := d * 1i   // Perpendicular to d.
+	c0, c1, c2 := c+d, c-d+p, c-d-p
+	r.arrow.SetAttribute("d", fmt.Sprintf(
+		"M %f %f L %f %f L %f %f z",
+		real(c0), imag(c0),
+		real(c1), imag(c1),
+		real(c2), imag(c2)))
 }
-
-// Show shows the route.
-func (r *Route) Show() { r.line.Show() }
-
-// Hide hides the route.
-func (r *Route) Hide() { r.line.Hide() }

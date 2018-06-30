@@ -238,8 +238,15 @@ func (c *Channel) drop() {
 
 func (c *Channel) addPin(p *Pin) {
 	p.channel = c
-	c.Pins[p].Remove()
-	c.Pins[p] = NewRoute(c.view.doc, c.Group, &c.visual, p)
+	if r := c.Pins[p]; r != nil {
+		r.Remove()
+	}
+	// Routes are src->dst, so put the args the right way around.
+	var a, b Pointer = &c.visual, p
+	if !p.pc.IsInput() {
+		a, b = b, a
+	}
+	c.Pins[p] = NewRoute(c.view.doc, c.Group, a, b)
 	c.cc.Attach(p.pc)
 }
 

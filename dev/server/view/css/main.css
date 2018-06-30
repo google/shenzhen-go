@@ -260,12 +260,20 @@ svg#diagram g.channel line {
 	stroke-width: 2;
 }
 
- svg#diagram g.channel circle {
+svg#diagram g.channel path {
+	fill: #000000;
+}
+
+svg#diagram g.channel circle {
 	fill: #000000;
 }
 
 svg#diagram g.channel.selected line {
 	stroke: #0099ff;
+}
+
+svg#diagram g.channel.selected path {
+	fill: #0099ff;
 }
 
 svg#diagram g.channel.selected circle {
@@ -274,6 +282,10 @@ svg#diagram g.channel.selected circle {
 
 svg#diagram g.channel.error line {
 	stroke: #ff0066;
+}
+
+svg#diagram g.channel.error path {
+	fill: #ff0066;
 }
 
 svg#diagram g.channel.error circle {

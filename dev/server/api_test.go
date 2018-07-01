@@ -117,7 +117,6 @@ func TestSetChannelCreate(t *testing.T) {
 				Graph: "foo",
 				Config: &pb.ChannelConfig{
 					Name: "baz",
-					Type: "int",
 					Pins: []*pb.NodePin{
 						{Node: "node1", Pin: "pin1"},
 						{Node: "node2", Pin: "pin2"},
@@ -256,7 +255,6 @@ func TestSetChannelDelete(t *testing.T) {
 	}
 	bar := &model.Channel{
 		Name: "bar",
-		Type: "int",
 		Pins: map[model.NodePin]struct{}{
 			{Node: "baz", Pin: "qux"}: {},
 		},
@@ -334,7 +332,6 @@ func TestSetNodeDelete(t *testing.T) {
 	}
 	bar := &model.Channel{
 		Name: "bar",
-		Type: "int",
 		Pins: map[model.NodePin]struct{}{
 			{Node: "baz", Pin: "qux"}: {},
 		},

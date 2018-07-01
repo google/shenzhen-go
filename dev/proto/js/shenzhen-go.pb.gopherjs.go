@@ -192,7 +192,6 @@ func (m *NodePin) Unmarshal(rawBytes []byte) (*NodePin, error) {
 
 type ChannelConfig struct {
 	Name string
-	Type string
 	Cap  uint64
 	Pins []*NodePin
 }
@@ -203,14 +202,6 @@ func (m *ChannelConfig) GetName() (x string) {
 		return x
 	}
 	return m.Name
-}
-
-// GetType gets the Type of the ChannelConfig.
-func (m *ChannelConfig) GetType() (x string) {
-	if m == nil {
-		return x
-	}
-	return m.Type
 }
 
 // GetCap gets the Cap of the ChannelConfig.
@@ -239,16 +230,12 @@ func (m *ChannelConfig) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteString(1, m.Name)
 	}
 
-	if len(m.Type) > 0 {
-		writer.WriteString(2, m.Type)
-	}
-
 	if m.Cap != 0 {
-		writer.WriteUint64(3, m.Cap)
+		writer.WriteUint64(2, m.Cap)
 	}
 
 	for _, msg := range m.Pins {
-		writer.WriteMessage(4, func() {
+		writer.WriteMessage(3, func() {
 			msg.MarshalToWriter(writer)
 		})
 	}
@@ -274,10 +261,8 @@ func (m *ChannelConfig) UnmarshalFromReader(reader jspb.Reader) *ChannelConfig {
 		case 1:
 			m.Name = reader.ReadString()
 		case 2:
-			m.Type = reader.ReadString()
-		case 3:
 			m.Cap = reader.ReadUint64()
-		case 4:
+		case 3:
 			reader.ReadMessage(func() {
 				m.Pins = append(m.Pins, new(NodePin).UnmarshalFromReader(reader))
 			})

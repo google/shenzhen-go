@@ -81,6 +81,8 @@ func Setup(doc dom.Document, gc GraphController) {
 
 	doc.ElementByID("preview-go-link").
 		AddEventListener("click", func(dom.Object) { gc.PreviewGo() })
+	doc.ElementByID("preview-raw-go-link").
+		AddEventListener("click", func(dom.Object) { gc.PreviewRawGo() })
 	doc.ElementByID("preview-json-link").
 		AddEventListener("click", func(dom.Object) { gc.PreviewJSON() })
 

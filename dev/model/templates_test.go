@@ -23,8 +23,11 @@ func (nopWriter) Write(r []byte) (int, error) { return len(r), nil }
 func TestGoTemplate(t *testing.T) {
 	// Smoke-testing the template.
 	for name, g := range TestGraphs {
+		if err := g.InferTypes(); err != nil {
+			t.Fatalf("InferTypes() = error %v", err)
+		}
 		if err := goTemplate.Execute(nopWriter{}, g); err != nil {
-			t.Errorf("goTemplate.Execute(%v) = %v, want nil error", name, err)
+			t.Errorf("goTemplate.Execute(%v) = error %v", name, err)
 		}
 	}
 }

@@ -63,7 +63,6 @@ func (c *channelController) Commit(ctx context.Context) error {
 	}
 	cfg := &pb.ChannelConfig{
 		Name: c.sharedOutlets.inputName.Get("value").String(),
-		Type: c.channel.Type,
 		Cap:  c.sharedOutlets.inputCapacity.Get("value").Uint64(),
 		Pins: np,
 	}

@@ -14,7 +14,10 @@
 
 package model
 
-import "github.com/google/shenzhen-go/dev/model/pin"
+import (
+	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/source"
+)
 
 // FakePart fakes a part type for testing purposes.
 type FakePart struct {
@@ -84,7 +87,7 @@ var TestGraphs = map[string]*Graph{
 		Channels: map[string]*Channel{
 			"bar": {
 				Name:     "bar",
-				Type:     "int",
+				Type:     source.NewTypePattern("int"),
 				Capacity: 0,
 			},
 		},

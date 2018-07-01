@@ -14,8 +14,8 @@
 
 package source
 
-// This is a bit crazy. Finding breaking examples is left as an exercise
-// to the reader.
+// This is a bit crazy.
+// Finding breaking examples is left as an exercise to the reader.
 
 import (
 	"fmt"
@@ -46,10 +46,25 @@ func NewTypePattern(spec string) *TypePattern {
 	}
 }
 
-// Match matches the input type against the pattern, and produces a map of
+// Plain is true if the type pattern has no parameters.
+func (p *TypePattern) Plain() bool {
+	return len(p.params) == 0
+}
+
+// Params returns the slice of parameter names.
+func (p *TypePattern) Params() []string {
+	return p.params
+}
+
+// Match tests if the input type matches the pattern.
+func (p *TypePattern) Match(t string) bool {
+	return p.re.MatchString(t)
+}
+
+// FindParams matches the input type against the pattern, and produces a map of
 // type parameters to the matching components, or an error if the
 // type doesn't match the pattern.
-func (p *TypePattern) Match(t string) (map[string][]string, error) {
+func (p *TypePattern) FindParams(t string) (map[string][]string, error) {
 	mt := p.re.FindStringSubmatch(t)
 	if len(mt) == 0 {
 		return nil, fmt.Errorf("type %q did not match pattern %q", t, p.spec)
@@ -67,9 +82,21 @@ func (p *TypePattern) Match(t string) (map[string][]string, error) {
 	return types, nil
 }
 
+func (p *TypePattern) intersectsParams(types map[string]string) bool {
+	for _, param := range p.params {
+		if _, ok := types[param]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // Expand fills the pattern with the provided types. If a parameter is not
 // in the input map, it is left unexpanded.
 func (p *TypePattern) Expand(types map[string]string) string {
+	if !p.intersectsParams(types) {
+		return p.String()
+	}
 	return typeParamRE.ReplaceAllStringFunc(p.spec, func(in string) string {
 		out := types[in]
 		if out == "" {
@@ -79,12 +106,31 @@ func (p *TypePattern) Expand(types map[string]string) string {
 	})
 }
 
+// Curry is the same as Expand, but returns a new pattern.
+// It checks if any of the provided type parameters are parameters of this pattern.
+// If none are, it returns the existing pattern.
+func (p *TypePattern) Curry(types map[string]string) *TypePattern {
+	if !p.intersectsParams(types) {
+		return p
+	}
+	// Do it the lazy way.
+	return NewTypePattern(p.Expand(types))
+}
+
+// Lithify expands all parameters with a default.
+func (p *TypePattern) Lithify(def string) string {
+	if p.Plain() {
+		return p.String()
+	}
+	return typeParamRE.ReplaceAllString(p.spec, def)
+}
+
 // Infer matches the input Go type against the pattern, and produces
 // a map of type parameters to inferred types, or an error if the
 // type doesn't match or there is a conflicting match (e.g.
 // for type pattern `map[$T]$T`, when given `map[int]string`).
 func (p *TypePattern) Infer(t string) (map[string]string, error) {
-	mts, err := p.Match(t)
+	mts, err := p.FindParams(t)
 	if err != nil {
 		return nil, err
 	}

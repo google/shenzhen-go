@@ -191,12 +191,7 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 		Pins:     make(map[model.NodePin]struct{}, len(pcs)),
 	}
 
-	// Set the type to the first one found.
-	// TODO: Mismatches will be reported later.
 	for _, pc := range pcs {
-		if ch.Type == "" {
-			ch.Type = pc.Type()
-		}
 		ch.AddPin(pc.NodeName(), pc.Name())
 	}
 
@@ -391,10 +386,21 @@ func (c *graphController) Commit(ctx context.Context) error {
 	return nil
 }
 
+func (c *graphController) PreviewRawGo() {
+	g, err := c.graph.RawGo()
+	if err != nil {
+		// TODO: better place to put output?
+		g = "/* Couldn't generate raw Go: \n" + err.Error() + " */"
+	}
+	c.previewGoSession.SetValue(g)
+	c.showRHSPanel(c.previewGoPanel)
+}
+
 func (c *graphController) PreviewGo() {
 	g, err := c.graph.Go()
 	if err != nil {
-		g = `/* Couldn't generate Go: ` + err.Error() + ` */`
+		// TODO: better place to put output?
+		g = "/* Couldn't generate Go: \n" + err.Error() + " */"
 	}
 	c.previewGoSession.SetValue(g)
 	c.showRHSPanel(c.previewGoPanel)
@@ -403,6 +409,7 @@ func (c *graphController) PreviewGo() {
 func (c *graphController) PreviewJSON() {
 	g, err := c.graph.JSON()
 	if err != nil {
+		// TODO: better place to put output?
 		g = `{"error": "Couldn't generate JSON: ` + err.Error() + `"}`
 	}
 	c.previewJSONSession.SetValue(g)

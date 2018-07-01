@@ -41,6 +41,7 @@ type GraphController interface {
 	Install(ctx context.Context) error
 	Run(ctx context.Context) error
 	PreviewGo()
+	PreviewRawGo()
 	PreviewJSON()
 
 	// Misc

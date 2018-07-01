@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"strings"
 	"unicode"
+
+	"github.com/google/shenzhen-go/dev/source"
 )
 
 // Node models a goroutine. This is the "real" model type for nodes.
@@ -29,7 +31,9 @@ type Node struct {
 	Multiplicity uint
 	Wait         bool
 	X, Y         float64
-	Connections  map[string]string // Pin name -> channel name
+	Connections  map[string]string              // Pin name -> channel name
+	typeParams   map[string]string              // Type parameter -> inferred values
+	pinTypes     map[string]*source.TypePattern // Pin name -> resolved type
 }
 
 // Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.
@@ -55,20 +59,32 @@ func (n *Node) FlatImports() string {
 
 // ImplHead returns the Head part of the implementation.
 func (n *Node) ImplHead() string {
-	h, _, _ := n.Part.Impl(nil)
+	h, _, _ := n.Part.Impl(n.typeParams)
 	return h
 }
 
 // ImplBody returns the Body part of the implementation.
 func (n *Node) ImplBody() string {
-	_, b, _ := n.Part.Impl(nil)
+	_, b, _ := n.Part.Impl(n.typeParams)
 	return b
 }
 
 // ImplTail returns the Tail part of the implementation.
 func (n *Node) ImplTail() string {
-	_, _, t := n.Part.Impl(nil)
+	_, _, t := n.Part.Impl(n.typeParams)
 	return t
+}
+
+// PinFullTypes is a map from pin names to full resolved types:
+// pinName <-chan someType or pinName chan<- someType.
+// Requires InferTypes to have been called.
+func (n *Node) PinFullTypes() map[string]string {
+	pins := n.Pins()
+	m := make(map[string]string, len(pins))
+	for pn, p := range pins {
+		m[pn] = p.Direction.Type() + " " + n.pinTypes[pn].String()
+	}
+	return m
 }
 
 // Identifier turns the name into a similar-looking identifier.

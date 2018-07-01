@@ -44,6 +44,7 @@ func (c fakeGraphController) Build(ctx context.Context) error    { return nil }
 func (c fakeGraphController) Install(ctx context.Context) error  { return nil }
 func (c fakeGraphController) Run(ctx context.Context) error      { return nil }
 func (c fakeGraphController) PreviewGo()                         {}
+func (c fakeGraphController) PreviewRawGo()                      {}
 func (c fakeGraphController) PreviewJSON()                       {}
 func (c fakeGraphController) HelpLicenses()                      {}
 func (c fakeGraphController) HelpAbout()                         {}

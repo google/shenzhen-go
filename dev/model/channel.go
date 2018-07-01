@@ -14,11 +14,13 @@
 
 package model
 
+import "github.com/google/shenzhen-go/dev/source"
+
 // Channel represents connections between pins.
 type Channel struct {
-	Name     string `json:"-"`
-	Type     string `json:"type"`
-	Capacity int    `json:"cap"`
+	Name     string              `json:"-"`
+	Type     *source.TypePattern `json:"-"`
+	Capacity int                 `json:"cap"`
 
 	// Cache of pins this channel is attached to
 	Pins map[NodePin]struct{} `json:"-"`

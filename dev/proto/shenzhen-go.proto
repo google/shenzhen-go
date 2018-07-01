@@ -25,9 +25,8 @@ message NodePin {
 
 message ChannelConfig {
 	string name = 1;
-	string type = 2;
-    uint64 cap = 3;
-	repeated NodePin pins = 4;
+    uint64 cap = 2;
+	repeated NodePin pins = 3;
 }
 
 message NodeConfig {

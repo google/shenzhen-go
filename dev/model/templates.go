@@ -34,10 +34,15 @@ package main
 package {{.PackageName}}{{if ne .PackagePath .PackageName}} // import "{{.PackagePath}}"{{end}}
 {{end}}
 
-{{template "golang-defs" .}}
+import (
+	{{range .AllImports}}
+	{{.}}
+	{{- end}}
+)
 
 {{range .Nodes}}
-func {{.Identifier}}({{range $pin := .Pins}}{{$pin.Name}} {{$pin.FullType}},{{end}}) {
+func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},
+	{{end}}) {
 	{{.ImplHead}}
 	{{if eq .Multiplicity 1 -}}
 	func(instanceNumber, multiplicity int) {
@@ -88,29 +93,26 @@ func Run() {
 	// Wait for the end
 	wg.Wait()
 }`
-
-	goDefinitionsTemplateSrc = `import (
-	{{range .AllImports}}
-	{{.}}
-	{{- end}}
 )
-`
 
-	goRunnerTemplateSrc = `package main
+var goTemplate = template.Must(template.New("golang").Parse(goTemplateSrc))
 
-	import "{{.PackagePath}}"
-
-	func main() {
-		{{.PackageName}}.Run()
+// WriteRawGoTo writes the Go language view of the graph to the io.Writer, without gofmt-ing.
+func (g *Graph) WriteRawGoTo(w io.Writer) error {
+	if err := g.InferTypes(); err != nil {
+		return err
 	}
-`
-)
+	return goTemplate.Execute(w, g)
+}
 
-var (
-	goTemplate            = template.Must(template.New("golang").Parse(goTemplateSrc))
-	goRunnerTemplate      = template.Must(template.New("golang-runner").Parse(goRunnerTemplateSrc))
-	goDefinitionsTemplate = template.Must(goTemplate.New("golang-defs").Parse(goDefinitionsTemplateSrc))
-)
+// RawGo outputs the unformatted Go language view of the graph.
+func (g *Graph) RawGo() (string, error) {
+	buf := &bytes.Buffer{}
+	if err := g.WriteRawGoTo(buf); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
 
 // WriteGoTo writes the Go language view of the graph to the io.Writer.
 func (g *Graph) WriteGoTo(w io.Writer) error {
@@ -121,11 +123,6 @@ func (g *Graph) WriteGoTo(w io.Writer) error {
 	return source.GoFmt(w, buf)
 }
 
-// WriteRawGoTo writes the Go language view of the graph to the io.Writer, without gofmt-ing.
-func (g *Graph) WriteRawGoTo(w io.Writer) error {
-	return goTemplate.Execute(w, g)
-}
-
 // Go outputs the Go language view of the graph.
 func (g *Graph) Go() (string, error) {
 	buf := &bytes.Buffer{}
@@ -134,14 +131,6 @@ func (g *Graph) Go() (string, error) {
 	}
 	o, err := format.Source(buf.Bytes())
 	return string(o), err
-}
-
-// Definitions returns the imports and channel var blocks from the Go program.
-// This is useful for advanced parsing and typechecking.
-func (g *Graph) Definitions() string {
-	b := new(bytes.Buffer)
-	goDefinitionsTemplate.Execute(b, g)
-	return b.String()
 }
 
 // WriteJSONTo writes nicely-formatted JSON to the given Writer.

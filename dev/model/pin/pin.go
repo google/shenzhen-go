@@ -15,7 +15,11 @@
 // Package pin has types for describing pins (connection points).
 package pin
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/google/shenzhen-go/dev/source"
+)
 
 // Direction describes which way information flows in a Pin.
 type Direction string
@@ -42,31 +46,32 @@ type Definition struct {
 	Name      string    `json:"-"`
 	Type      string    `json:"type"`
 	Direction Direction `json:"dir"`
+
+	typePattern *source.TypePattern // lazy-loaded
 }
 
-// FullType returns the full pin type, including the <-chan / chan<-.
-func (d *Definition) FullType() string {
-	return d.Direction.Type() + " " + d.Type
+// TypePattern returns a TypePattern for the Type of this pin definition.
+func (d *Definition) TypePattern() *source.TypePattern {
+	if d.typePattern != nil && d.typePattern.String() == d.Type {
+		return d.typePattern
+	}
+	d.typePattern = source.NewTypePattern(d.Type)
+	return d.typePattern
 }
 
 // Map is a map from pin names to pin definitions.
 type Map map[string]*Definition
 
-// FillNames copies map keys into name fields.
-func (m Map) FillNames() {
-	for n, p := range m {
-		p.Name = n
-	}
-}
-
 // UnmarshalJSON unmarshals the map the usual way, and then
 // calls FillNames.
 func (m *Map) UnmarshalJSON(b []byte) error {
-	var n map[string]*Definition
-	if err := json.Unmarshal(b, &n); err != nil {
+	var m0 map[string]*Definition
+	if err := json.Unmarshal(b, &m0); err != nil {
 		return err
 	}
-	*m = n
-	m.FillNames()
+	*m = m0
+	for n, p := range m0 {
+		p.Name = n
+	}
 	return nil
 }

@@ -158,3 +158,174 @@ func (g *Graph) RefreshChannelsPins() {
 		}
 	}
 }
+
+// TypeIncompatibilityError is used when
+type TypeIncompatibilityError struct {
+	Summary string
+	Source  error
+}
+
+func (e *TypeIncompatibilityError) Error() string {
+	return e.Summary
+}
+
+// InferTypes resolves the types of channels and generic pins.
+func (g *Graph) InferTypes() error {
+	// All nodes start with no inferred type parameters, and all pin types
+	// begin as their basic definition.
+	for _, n := range g.Nodes {
+		pins := n.Pins()
+		n.typeParams = make(map[string]string)
+		n.pinTypes = make(map[string]*source.TypePattern, len(pins))
+		for pn, p := range pins {
+			n.pinTypes[pn] = p.TypePattern()
+		}
+	}
+
+	// Construct a queue of channels to resolve, and reset channel types.
+	q := make([]*Channel, 0, len(g.Channels))
+	for _, c := range g.Channels {
+		c.Type = nil
+		q = append(q, c)
+	}
+
+	// Flood fill inference.
+	for len(q) > 0 {
+		c := q[0]
+		q = q[1:]
+		//log.Printf("InferTypes: popping %s", c.Name)
+
+		next, err := g.inferChannelType(c)
+		if err != nil {
+			return err
+		}
+		//log.Printf("InferTypes: pushing %d more", len(next))
+		for c := range next {
+			q = append(q, c)
+		}
+	}
+
+	// Force all unresolved channel type parameters to interface{}.
+	for _, c := range g.Channels {
+		if c.Type == nil || c.Type.Plain() {
+			continue
+		}
+		c.Type = source.NewTypePattern(c.Type.Lithify("interface{}"))
+	}
+	// Force all unresolved node type parameters to interface{}.
+	for _, n := range g.Nodes {
+		n.lithifyRemainingTypeParams()
+	}
+	return nil
+}
+
+// next contains any channels that might be inferrable
+// as a result of making improvement on this channel's type.
+func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err error) {
+	next = make(map[*Channel]struct{})
+
+	// Look at c's pins.
+	for np := range c.Pins {
+		n := g.Nodes[np.Node]
+		tp := n.pinTypes[np.Pin]
+
+		// Use it if we don't have one already.
+		if c.Type == nil {
+			//log.Printf("inferChannelType: adopting %s immediately", tp)
+			c.Type = tp
+			next[c] = struct{}{}
+			continue
+		}
+
+		// Resolve to plain types, and as a minor optimisation, don't use
+		// regex match if they're both plain.
+		// TODO: implement a real parser!!!!!
+		switch {
+		case c.Type.Plain() && tp.Plain():
+			if c.Type.String() != tp.String() {
+				return nil, &TypeIncompatibilityError{
+					Summary: "channel connected between unequal plain types",
+				}
+			}
+			//log.Print("inferChannelType: plain-plain match")
+
+		case tp.Plain(): // but c.Type isn't.
+			if !c.Type.Match(tp.String()) {
+				return nil, &TypeIncompatibilityError{
+					Summary: "channel connected to incompatible types",
+				}
+			}
+			// tp is plain, so just adopt it.
+			//log.Printf("inferChannelType: adopting %s which matched", tp)
+			c.Type = tp
+			next[c] = struct{}{}
+
+		case c.Type.Plain(): // but tp isn't.
+			// We can simultaneously match, and infer new type parameters for n.
+			inf, err := tp.Infer(c.Type.String())
+			if err != nil {
+				return nil, &TypeIncompatibilityError{
+					Summary: "channel connected to incompatible types",
+					Source:  err,
+				}
+			}
+			//log.Printf("inferChannelType: for pin %v inferred %v", np, inf)
+			// Apply inferred type parameters back to node n.
+			nxcn, err := n.applyTypeParams(inf)
+			if err != nil {
+				return nil, err
+			}
+			for cn := range nxcn {
+				next[g.Channels[cn]] = struct{}{}
+			}
+
+		default:
+			// TODO: Try to infer parameters both ways.
+			// This is already super disgusting, so skip for now, but potentially
+			// worth doing in future.
+			// Example pseudorealistic case:
+			//  Match map[$K]something against map[something]$V.
+		}
+	}
+	return next, nil
+}
+
+// next is the names of channels that might be inferrable as a result of this apply.
+func (n *Node) applyTypeParams(types map[string]string) (next source.StringSet, err error) {
+
+	// Merge the new map into n.typeParams, checking for mismatches.
+	for par, typ := range types {
+		old := n.typeParams[par]
+		if old != "" && old != typ {
+			// Whoops, the type was already inferred as something else.
+			return nil, &TypeIncompatibilityError{
+				Summary: "inferred type mismatch",
+			}
+		}
+		n.typeParams[par] = typ
+	}
+	// Curry all pins with non-plain types.
+	next = make(source.StringSet)
+	for pn, pt := range n.pinTypes {
+		after := pt.Curry(types)
+		if pt == after { // Curry had no effect, not worth investigating channel.
+			continue
+		}
+		n.pinTypes[pn] = after
+		ch := n.Connections[pn]
+		if ch == "" || ch == "nil" {
+			continue
+		}
+		next.Add(ch)
+	}
+	return next, nil
+}
+
+func (n *Node) lithifyRemainingTypeParams() {
+	for pn, pt := range n.pinTypes {
+		for _, param := range pt.Params() {
+			n.typeParams[param] = "interface{}"
+		}
+		n.pinTypes[pn] = pt.Curry(n.typeParams)
+	}
+}

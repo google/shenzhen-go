@@ -137,7 +137,6 @@ func TestLoadJSON(t *testing.T) {
 	wantChans := map[string]*Channel{
 		"baz": {
 			Name: "baz",
-			Type: "int",
 			Pins: map[NodePin]struct{}{
 				{Node: "foo", Pin: "output"}: {},
 				{Node: "bar", Pin: "input"}:  {},

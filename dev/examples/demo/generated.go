@@ -6,7 +6,13 @@ import (
 	"sync"
 )
 
-func Node_1(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- string, qux chan<- int, tuz <-chan int64) {
+func Node_1(bar <-chan rune,
+	baz chan<- float64,
+	foo <-chan int,
+	quux chan<- string,
+	qux chan<- int,
+	tuz <-chan int64,
+) {
 
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 1: Started.")
@@ -20,7 +26,13 @@ func Node_1(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- str
 
 }
 
-func Node_2(bar <-chan rune, baz chan<- float64, foo <-chan int, quux chan<- string, qux chan<- int, tuz <-chan int64) {
+func Node_2(bar <-chan rune,
+	baz chan<- float64,
+	foo <-chan int,
+	quux chan<- string,
+	qux chan<- int,
+	tuz <-chan int64,
+) {
 
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 2: Started.")

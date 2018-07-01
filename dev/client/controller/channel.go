@@ -131,5 +131,5 @@ func (c *channelController) GainFocus() {
 
 	c.sharedOutlets.inputName.Set("value", c.channel.Name)
 	c.sharedOutlets.inputCapacity.Set("value", c.channel.Capacity)
-	c.sharedOutlets.codeType.Set("innerText", c.channel.Type)
+	c.sharedOutlets.codeType.Set("innerText", c.channel.Type.String())
 }

@@ -151,4 +151,9 @@ func (p *TypePattern) Infer(t string) (map[string]string, error) {
 	return types, nil
 }
 
-func (p *TypePattern) String() string { return p.spec }
+func (p *TypePattern) String() string {
+	if p == nil {
+		return "<unspecified>"
+	}
+	return p.spec
+}

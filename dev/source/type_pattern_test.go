@@ -22,11 +22,21 @@ import (
 	"gopkg.in/d4l3k/messagediff.v1"
 )
 
-func ExampleTypePattern() {
+func ExampleTypePattern_Infer() {
 	mp := NewTypePattern("map[$K]$V")
 	types, _ := mp.Infer("map[string]int")
 	fmt.Printf("$K = %s, $V = %s", types["$K"], types["$V"])
 	// Output: $K = string, $V = int
+}
+
+func ExampleTypePattern_Expand() {
+	mp := NewTypePattern("map[$K]$V")
+	types := map[string]string{
+		"$K": "string",
+		"$V": "int",
+	}
+	fmt.Print(mp.Expand(types))
+	// Output: map[string]int
 }
 
 func TestNewTypePattern(t *testing.T) {

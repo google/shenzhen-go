@@ -55,19 +55,19 @@ func (n *Node) FlatImports() string {
 
 // ImplHead returns the Head part of the implementation.
 func (n *Node) ImplHead() string {
-	h, _, _ := n.Part.Impl()
+	h, _, _ := n.Part.Impl(nil)
 	return h
 }
 
 // ImplBody returns the Body part of the implementation.
 func (n *Node) ImplBody() string {
-	_, b, _ := n.Part.Impl()
+	_, b, _ := n.Part.Impl(nil)
 	return b
 }
 
 // ImplTail returns the Tail part of the implementation.
 func (n *Node) ImplTail() string {
-	_, _, t := n.Part.Impl()
+	_, _, t := n.Part.Impl(nil)
 	return t
 }
 

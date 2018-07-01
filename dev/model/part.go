@@ -38,7 +38,10 @@ type Part interface {
 	// This allows cleanly closing channels for nodes with Multiplicity > 1.
 	// The tail is deferred so that the body can use "return" and it is still
 	// executed.
-	Impl() (head, body, tail string)
+	//
+	// The types map indicates inferred types which the part is responsible
+	// for interpolating into the output as needed.
+	Impl(types map[string]string) (head, body, tail string)
 
 	// Imports returns any extra import lines needed for the Part.
 	Imports() []string

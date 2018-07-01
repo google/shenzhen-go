@@ -190,7 +190,7 @@ func (c *Code) Clone() interface{} {
 }
 
 // Impl returns the implementation of the goroutine.
-func (c *Code) Impl() (Head, Body, Tail string) {
+func (c *Code) Impl(map[string]string) (Head, Body, Tail string) {
 	return c.head, c.body, c.tail
 }
 

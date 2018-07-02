@@ -55,39 +55,6 @@ func (c *server) Action(ctx context.Context, req *pb.ActionRequest) (*pb.ActionR
 	}
 }
 
-type runSvrInputReader struct {
-	svr      pb.ShenzhenGo_RunServer
-	overflow []byte
-}
-
-func (r *runSvrInputReader) readOverflow(b []byte) (int, error) {
-	if len(r.overflow) > len(b) {
-		copy(b, r.overflow[:len(b)])
-		r.overflow = r.overflow[len(b):]
-		return len(b), nil
-	}
-	copy(b, r.overflow)
-	n := len(r.overflow)
-	r.overflow = nil
-	return n, nil
-}
-
-func (r *runSvrInputReader) Read(b []byte) (int, error) {
-	if len(r.overflow) > 0 {
-		return r.readOverflow(b)
-	}
-	for {
-		in, err := r.svr.Recv()
-		if err != nil {
-			return 0, err
-		}
-		r.overflow = []byte(in.In)
-		if len(r.overflow) > 0 {
-			return r.readOverflow(b)
-		}
-	}
-}
-
 type runSvrWriter struct {
 	svr pb.ShenzhenGo_RunServer
 	fn  func([]byte) *pb.Output
@@ -119,7 +86,24 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 	}
 
 	cmd := exec.CommandContext(svr.Context(), "go", "run", gp)
-	cmd.Stdin = &runSvrInputReader{svr: svr}
+
+	// A pipe is better for input; managing a buffer is fiddly, and cmd.Wait
+	// will wait until read returns, which doesn't mesh well with the
+	// behaviour of svr.Recv.
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return status.Errorf(codes.Internal, "attaching stdin pipe: %v", err)
+	}
+	go func() {
+		for {
+			in, err := svr.Recv()
+			if err != nil {
+				stdin.Close()
+				return
+			}
+			stdin.Write([]byte(in.In))
+		}
+	}()
 	cmd.Stdout = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}
 	cmd.Stderr = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Err: string(b)} }}
 	defer svr.Send(&pb.Output{Err: "(process exited)\n"})

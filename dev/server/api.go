@@ -101,7 +101,9 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 				stdin.Close()
 				return
 			}
-			stdin.Write([]byte(in.In))
+			if _, err := stdin.Write([]byte(in.In)); err != nil {
+				return
+			}
 		}
 	}()
 	cmd.Stdout = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}

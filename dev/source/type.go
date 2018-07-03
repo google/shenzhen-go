@@ -173,6 +173,7 @@ func (p *Type) Refine(in map[TypeParam]*Type) {
 			}
 			id.refine(subt.expr)
 			delete(p.identToParam, id.ident)
+			// TODO: adopt subt's params.
 		}
 		delete(p.paramToIdents, tp)
 	}
@@ -268,6 +269,7 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 
 		// Great! The whole qn can refine p in parameter tp.
 		// It's a "type" per the above, so it fits in ast.Expr.
+		// TODO: check for existing value in M[tp], if so, must match qn.
 		M[tp] = q.subtype(qn.(ast.Expr))
 
 		pnext <- false

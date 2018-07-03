@@ -108,8 +108,10 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 	}()
 	cmd.Stdout = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}
 	cmd.Stderr = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Err: string(b)} }}
-	defer svr.Send(&pb.Output{Err: "(process exited)\n"})
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return status.Errorf(codes.Aborted, "run failed: %v", err)
+	}
+	return svr.Send(&pb.Output{Err: "(process exited)\n"})
 }
 
 func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb.Empty, error) {

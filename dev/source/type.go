@@ -163,6 +163,7 @@ func (p *Type) Refine(in map[TypeParam]*Type) {
 		if ids == nil {
 			continue
 		}
+		delete(p.paramToIdents, tp)
 		changed = true
 		for _, id := range ids {
 			if id.ident == p.expr {
@@ -173,9 +174,22 @@ func (p *Type) Refine(in map[TypeParam]*Type) {
 			}
 			id.refine(subt.expr)
 			delete(p.identToParam, id.ident)
-			// TODO: adopt subt's params.
+			// And adopt subt's params.
+			for sid, stp := range subt.identToParam {
+				p.identToParam[sid] = stp
+				if sid == subt.expr {
+					// subt is just a parameter, but now its ident has a parent: whatever
+					// id's parent was.
+					p.paramToIdents[stp] = append(p.paramToIdents[stp], modIdent{
+						parent: id.parent,
+						ident:  sid,
+					})
+					break
+				}
+				// All of subt param should have parents inside subt.expr.
+				p.paramToIdents[stp] = append(p.paramToIdents[stp], subt.paramToIdents[stp]...)
+			}
 		}
-		delete(p.paramToIdents, tp)
 	}
 	if !changed {
 		return

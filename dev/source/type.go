@@ -289,7 +289,7 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 		qident, _ := qn.(*ast.Ident)
 		tp, ppara := p.identToParam[pident]
 		_, qpara := q.identToParam[qident]
-		// Note qpara is true only if qident is true, etc.
+		// Note qpara is true only if qident is not nil, etc.
 
 		switch {
 		case !ppara && !qpara:

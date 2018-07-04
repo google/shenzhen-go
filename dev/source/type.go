@@ -345,7 +345,12 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 				// Not compatible.
 				return nil, err
 			}
-			// If len(inf) > 0, then qs is more specific than es.
+			// If len(inf) > 0, then qs is at least as specific than es.
+			// TODO(josh): This could be improved if instead:
+			//   es.Refine(inf)
+			// but this would mutate es which is a previous subtype of q,
+			// and I'd like Infer to be non-mutating.
+			// But maybe it'd be fine.
 			if len(inf) > 0 {
 				M[tp] = qs
 			}

@@ -318,6 +318,13 @@ func TestTypeInfer(t *testing.T) {
 				{"foo", "$T"}: "map[string]int",
 			},
 		},
+		/* {  // Infer,Infer,Refine
+			base: tf.MustNewType("foo", "struct{F $T; G $T}"),
+			in:   tf.MustNewType("bar", "struct { F map[$K]int; G map[string]$V }"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "map[string]int",
+			},
+		}, */
 	}
 
 	for _, test := range tests {

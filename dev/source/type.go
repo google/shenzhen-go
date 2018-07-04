@@ -334,18 +334,24 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 			// Did a refinement for tp already get inferred?
 			// e.g. we inferred a type for the first $T in struct {F $T; G $T},
 			// and just encountered the second $T.
-			if es := M[tp]; es != nil {
-				// Yes. Are es and qs compatible? Recursive Infer can tell us.
-				_, err := es.Infer(qs)
-				if err != nil {
-					// Not compatible.
-					return nil, err
-				}
+			es := M[tp]
+			if es == nil {
+				// No.
+				M[tp] = qs
+				pwalk.next(false)
+				qwalk.next(false)
+				continue
 			}
-			// If es == nil, set something.
-			// If es != nil, then Infer ensures that qs is at least as specific
-			// as es was.
-			M[tp] = qs
+			// Yes. Are es and qs compatible? Recursive Infer can tell us.
+			inf, err := es.Infer(qs)
+			if err != nil {
+				// Not compatible.
+				return nil, err
+			}
+			// If len(inf) > 0, then qs is more specific than es.
+			if len(inf) > 0 {
+				M[tp] = qs
+			}
 			// param and ??, don't walk.
 			pwalk.next(false)
 			qwalk.next(false)

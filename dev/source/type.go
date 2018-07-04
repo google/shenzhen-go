@@ -14,9 +14,6 @@
 
 package source
 
-// This is a bit crazy.
-// Finding breaking examples is left as an exercise to the reader.
-
 import (
 	"errors"
 	"fmt"
@@ -357,7 +354,6 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 			qwalk.next(false)
 
 		case qpara:
-
 			// qn is a paramter and could match, but first check pn is typeish.
 			if !isType(pn) {
 				return nil, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)

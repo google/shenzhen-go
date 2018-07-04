@@ -287,64 +287,85 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 			return nil, errors.New("types have mismatching shapes")
 		}
 
-		if pn == qn {
-			pwalk.next(true)
-			qwalk.next(true)
-			continue
-		}
+		// Are either of pn or qn type parameters?
+		pident, _ := pn.(*ast.Ident)
+		qident, _ := qn.(*ast.Ident)
+		tp, ppara := p.identToParam[pident]
+		_, qpara := q.identToParam[qident]
+		// Note qpara is true only if qident is true, etc.
 
-		// Is pn an ident?
-		pident, ok := pn.(*ast.Ident)
-		if !ok {
-			// Basic comparison at this node, then.
+		switch {
+		case !ppara && !qpara:
+			// Neither is; compare nodes as normal.
 			if err := equal(pn, qn); err != nil {
 				return nil, err
 			}
-		}
-		// Is pn a type parameter of p?
-		tp, ok := p.identToParam[pident]
-		if !ok {
-			// pn is a plain identifier, so qn should match name exactly.
-			qident, ok := qn.(*ast.Ident)
-			if !ok {
+			// could be anything, walk children.
+			pwalk.next(true)
+			qwalk.next(true)
+
+		case pident != nil && !ppara:
+			// pn is a plain identifier, so qn must either be an ident too;
+			// either plain or a type parameter in q.
+			if qident == nil {
 				return nil, fmt.Errorf("cannot match plain ident with %T", qn)
 			}
-			if pident.Name != qident.Name {
+
+			// If qn is a parameter, then it can match pident.
+			// If qn is plain, names must be equal.
+			if !qpara && pident.Name != qident.Name {
 				return nil, fmt.Errorf("mismatching idents [%q != %q]", pident.Name, qident.Name)
 			}
-		}
+			// idents, so no children to walk
+			pwalk.next(false)
+			qwalk.next(false)
 
-		// Is qn type-ish?
-		if !isType(qn) {
-			return nil, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
-		}
-
-		// Great! The whole qn can refine p in parameter tp.
-		// It's a type per the above, so it fits in ast.Expr.
-		qs := q.subtype(qn.(ast.Expr))
-
-		// But did a refinement for tp already get inferred?
-		// e.g. we inferred a type for the first $T in struct {F $T; G $T},
-		// and just encountered the second $T.
-		if ps := M[tp]; ps != nil {
-			// Yes. Are ps and qs compatible? Recursive Infer can tell us.
-			_, err := ps.Infer(qs)
-			if err != nil {
-				// Not compatible.
-				return nil, err
+		case ppara:
+			// Note: do ppara case before qpara, because Infer should infer return
+			// something for tp even if it is just a different parameter.
+			// pn is a parameter and could match but first check qn is typeish.
+			if !isType(qn) {
+				return nil, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
 			}
-		} else {
-			M[tp] = qs
-		}
-		pwalk.next(false)
-		qwalk.next(false)
-	}
+			// Unlike the qpara case below, we must remember what type matched pn.
+			// It's a type so it fits in ast.Expr.
+			qs := q.subtype(qn.(ast.Expr))
 
+			// Did a refinement for tp already get inferred?
+			// e.g. we inferred a type for the first $T in struct {F $T; G $T},
+			// and just encountered the second $T.
+			if es := M[tp]; es != nil {
+				// Yes. Are es and qs compatible? Recursive Infer can tell us.
+				_, err := es.Infer(qs)
+				if err != nil {
+					// Not compatible.
+					return nil, err
+				}
+			}
+			// If es == nil, set something.
+			// If es != nil, then Infer ensures that qs is at least as specific
+			// as es was.
+			M[tp] = qs
+			// param and ??, don't walk.
+			pwalk.next(false)
+			qwalk.next(false)
+
+		case qpara:
+
+			// qn is a paramter and could match, but first check pn is typeish.
+			if !isType(pn) {
+				return nil, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
+			}
+
+			// param and ??, so don't walk
+			pwalk.next(false)
+			qwalk.next(false)
+		}
+	}
 	if _, ok := <-qwalk.node; ok {
 		// q has more nodes than p
 		return nil, errors.New("types have mismatching shapes")
 	}
-
 	return M, nil
 }
 

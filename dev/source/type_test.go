@@ -140,33 +140,54 @@ func TestTypeRefine(t *testing.T) {
 		want string
 	}{
 		{
+			base: tf.MustNewType("foo", "struct{}"),
+			in: map[TypeParam]*Type{
+				{"foo", "$T"}: tf.MustNewType("", "int"),
+			},
+			want: "struct{}",
+		},
+		{
 			base: tf.MustNewType("foo", "$T"),
 			in: map[TypeParam]*Type{
-				{"foo", "$T"}: tf.MustNewType("whatev", "int"),
+				{"foo", "$T"}: tf.MustNewType("", "int"),
 			},
 			want: "int",
 		},
 		{
 			base: tf.MustNewType("bar", "$U"),
 			in: map[TypeParam]*Type{
-				{"bar", "$U"}: tf.MustNewType("whatev", "string"),
+				{"bar", "$U"}: tf.MustNewType("", "string"),
 			},
 			want: "string",
 		},
 		{
 			base: tf.MustNewType("foo", "$T"),
 			in: map[TypeParam]*Type{
-				{"bar", "$U"}: tf.MustNewType("whatev", "string"),
+				{"bar", "$U"}: tf.MustNewType("", "string"),
 			},
 			want: "$T",
 		},
 		{
 			base: tf.MustNewType("foo", "map[$K]$V"),
 			in: map[TypeParam]*Type{
-				{"foo", "$K"}: tf.MustNewType("whatev", "string"),
-				{"foo", "$V"}: tf.MustNewType("whatev", "int"),
+				{"foo", "$K"}: tf.MustNewType("", "string"),
+				{"foo", "$V"}: tf.MustNewType("", "int"),
 			},
 			want: "map[string]int",
+		},
+		{
+			base: tf.MustNewType("foo", "map[$K]$V"),
+			in: map[TypeParam]*Type{
+				{"foo", "$V"}: tf.MustNewType("", "int"),
+			},
+			want: "map[$K]int",
+		},
+		{
+			base: tf.MustNewType("foo", "map[$K]$V"),
+			in: map[TypeParam]*Type{
+				{"foo", "$K"}: tf.MustNewType("", "int"),
+			},
+			want: "map[int]$V",
 		},
 	}
 
@@ -191,17 +212,17 @@ func TestTypeLithify(t *testing.T) {
 	}{
 		{
 			base: tf.MustNewType("foo", "$T"),
-			lith: tf.MustNewType("irrelevant", "int"),
+			lith: tf.MustNewType("", "int"),
 			want: "int",
 		},
 		{
 			base: tf.MustNewType("foo", "*$T"),
-			lith: tf.MustNewType("irrelevant", "int"),
+			lith: tf.MustNewType("", "int"),
 			want: "*int",
 		},
 		{
 			base: tf.MustNewType("foo", "map[$K]$V"),
-			lith: tf.MustNewType("irrelevant", "int"),
+			lith: tf.MustNewType("", "int"),
 			want: "map[int]int",
 		},
 	}
@@ -213,6 +234,97 @@ func TestTypeLithify(t *testing.T) {
 			}
 			if got, want := test.base.String(), test.want; got != want {
 				t.Errorf("base = %s, want %s", got, want)
+			}
+		})
+	}
+}
+
+func TestTypeInfer(t *testing.T) {
+	tf := TF{t}
+	tests := []struct {
+		base *Type
+		in   *Type
+		want map[TypeParam]string
+	}{
+		{
+			base: tf.MustNewType("foo", "$T"),
+			in:   tf.MustNewType("", "int"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "int",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "*$T"),
+			in:   tf.MustNewType("", "*int"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "int",
+			},
+		},
+		{
+			base: tf.MustNewType("bar", "[]$T"),
+			in:   tf.MustNewType("", "[]string"),
+			want: map[TypeParam]string{
+				{"bar", "$T"}: "string",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "map[$K]$V"),
+			in:   tf.MustNewType("", "map[interface{}]struct{}"),
+			want: map[TypeParam]string{
+				{"foo", "$K"}: "interface{}",
+				{"foo", "$V"}: "struct{}",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "struct{F $T; G $U}"),
+			in:   tf.MustNewType("", "struct { F float64; G complex128 }"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "float64",
+				{"foo", "$U"}: "complex128",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "map[$T]$T"),
+			in:   tf.MustNewType("", "map[interface{}]interface{}"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "interface{}",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "$T"),
+			in:   tf.MustNewType("bar", "$U"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "$U",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "map[$K]string"),
+			in:   tf.MustNewType("bar", "map[int]$V"),
+			want: map[TypeParam]string{
+				{"foo", "$K"}: "int",
+			},
+		},
+		{
+			base: tf.MustNewType("foo", "struct{F $T; G $T}"),
+			in:   tf.MustNewType("bar", "struct { F map[$K]$V; G map[string]int }"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "map[string]int",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.base.String(), func(t *testing.T) {
+			inf, err := test.base.Infer(test.in)
+			if err != nil {
+				t.Fatalf("base(%s).Infer(%s) = error %v", test.base, test.in, err)
+			}
+			got := make(map[TypeParam]string)
+			for param, typ := range inf {
+				got[param] = typ.String()
+			}
+			if diff, equal := messagediff.PrettyDiff(got, test.want); !equal {
+				t.Errorf("base.Infer diff\n%s", diff)
 			}
 		})
 	}

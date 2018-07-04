@@ -21,9 +21,12 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/constant"
 	"go/parser"
+	"go/token"
 	"go/types"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -144,19 +147,25 @@ func (p *Type) subtype(e ast.Expr) *Type {
 // Plain is true if the type has no parameters (is not generic).
 func (p *Type) Plain() bool { return len(p.paramToIdents) == 0 }
 
-// Params returns a slice of parameter names.
+// Params returns a sorted slice of parameter names.
 func (p *Type) Params() []TypeParam {
 	params := make([]TypeParam, 0, len(p.paramToIdents))
 	for param := range p.paramToIdents {
 		params = append(params, param)
 	}
+	sort.Slice(params, func(i, j int) bool {
+		if params[i].Scope == params[j].Scope {
+			return params[i].Ident < params[j].Ident
+		}
+		return params[i].Scope < params[j].Scope
+	})
 	return params
 }
 
 // Refine fills in type parameters according to the provided map.
 // If a parameter is not in the input map, it is left unrefined.
 // If no parameters are in the input map, it does nothing.
-func (p *Type) Refine(in map[TypeParam]*Type) {
+func (p *Type) Refine(in map[TypeParam]*Type) error {
 	changed := false
 	for tp, subt := range in {
 		ids := p.paramToIdents[tp]
@@ -170,9 +179,11 @@ func (p *Type) Refine(in map[TypeParam]*Type) {
 				// Substitute the whole thing right now;
 				// the whole of p is nothing but one type parameter.
 				*p = *subt
-				return
+				return nil
 			}
-			id.refine(subt.expr)
+			if err := id.refine(subt.expr); err != nil {
+				return err
+			}
 			delete(p.identToParam, id.ident)
 			// And adopt subt's params.
 			for sid, stp := range subt.identToParam {
@@ -192,25 +203,28 @@ func (p *Type) Refine(in map[TypeParam]*Type) {
 		}
 	}
 	if !changed {
-		return
+		return nil
 	}
 	p.spec = unmangle(types.ExprString(p.expr))
+	return nil
 }
 
 // Lithify refines all parameters with a single default.
-func (p *Type) Lithify(def *Type) {
+func (p *Type) Lithify(def *Type) error {
 	// Quite similar to Refine.
 	if p.Plain() {
-		return
+		return nil
 	}
 	for _, ids := range p.paramToIdents {
 		for _, id := range ids {
 			if id.ident == p.expr {
 				// Same reasoning as Refine.
 				*p = *def
-				return
+				return nil
 			}
-			id.refine(def.expr)
+			if err := id.refine(def.expr); err != nil {
+				return err
+			}
 		}
 	}
 	// Wholesale adopt all parameters, since all of
@@ -218,6 +232,40 @@ func (p *Type) Lithify(def *Type) {
 	p.identToParam = def.identToParam
 	p.paramToIdents = def.paramToIdents
 	p.spec = unmangle(types.ExprString(p.expr))
+	return nil
+}
+
+type chanwalker struct {
+	node chan ast.Node
+	nxt  chan bool
+}
+
+func newChanwalker() *chanwalker {
+	return &chanwalker{
+		node: make(chan ast.Node),
+		nxt:  make(chan bool),
+	}
+}
+
+func (c *chanwalker) f(n ast.Node) bool {
+	c.node <- n
+	return <-c.nxt
+}
+
+func (c *chanwalker) inspect(e ast.Expr) {
+	ast.Inspect(e, c.f)
+	close(c.node)
+}
+
+func (c *chanwalker) close() {
+	// Close next so f returns false, and then soak up any remaining nodes.
+	close(c.nxt)
+	for range c.node {
+	}
+}
+
+func (c *chanwalker) next(b bool) {
+	c.nxt <- b
 }
 
 // Infer attempts to produce a map `M` such that `p.Refine(M) = q`.
@@ -225,41 +273,31 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 	// Basic approach: Walk p.expr and t.expr at the same time.
 	// If a meaningful difference is resolvable as a type parameter refinement, then
 	// add it to the map, otherwise raise an error.
-	pnode, qnode := make(chan ast.Node, 1), make(chan ast.Node, 1)
-	pnext, qnext := make(chan bool), make(chan bool)
-	go func() {
-		ast.Inspect(p.expr, func(n ast.Node) bool {
-			pnode <- n
-			return <-pnext
-		})
-		close(pnode)
-	}()
-	go func() {
-		ast.Inspect(q.expr, func(n ast.Node) bool {
-			qnode <- n
-			return <-qnext
-		})
-		close(qnode)
-	}()
-	defer func() {
-		// On close the channels will read false forever, which wraps up ast.Inspect ASAP.
-		close(pnext)
-		close(qnext)
-	}()
+	pwalk, qwalk := newChanwalker(), newChanwalker()
+	go pwalk.inspect(p.expr)
+	go qwalk.inspect(q.expr)
+	defer pwalk.close()
+	defer qwalk.close()
 
 	M := make(map[TypeParam]*Type)
-	for pn := range pnode {
-		qn, ok := <-qnode
+	for pn := range pwalk.node {
+		qn, ok := <-qwalk.node
 		if !ok {
 			// p has more nodes than q
 			return nil, errors.New("types have mismatching shapes")
 		}
 
+		if pn == qn {
+			pwalk.next(true)
+			qwalk.next(true)
+			continue
+		}
+
 		// Is pn an ident?
 		pident, ok := pn.(*ast.Ident)
 		if !ok {
-			// Basic comparison then.
-			if err := meaningfullyEqual(pn, qn); err != nil {
+			// Basic comparison at this node, then.
+			if err := equal(pn, qn); err != nil {
 				return nil, err
 			}
 		}
@@ -282,15 +320,27 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 		}
 
 		// Great! The whole qn can refine p in parameter tp.
-		// It's a "type" per the above, so it fits in ast.Expr.
-		// TODO: check for existing value in M[tp], if so, must match qn.
-		M[tp] = q.subtype(qn.(ast.Expr))
+		// It's a type per the above, so it fits in ast.Expr.
+		qs := q.subtype(qn.(ast.Expr))
 
-		pnext <- false
-		qnext <- false
+		// But did a refinement for tp already get inferred?
+		// e.g. we inferred a type for the first $T in struct {F $T; G $T},
+		// and just encountered the second $T.
+		if ps := M[tp]; ps != nil {
+			// Yes. Are ps and qs compatible? Recursive Infer can tell us.
+			_, err := ps.Infer(qs)
+			if err != nil {
+				// Not compatible.
+				return nil, err
+			}
+		} else {
+			M[tp] = qs
+		}
+		pwalk.next(false)
+		qwalk.next(false)
 	}
 
-	if _, ok := <-qnode; ok {
+	if _, ok := <-qwalk.node; ok {
 		// q has more nodes than p
 		return nil, errors.New("types have mismatching shapes")
 	}
@@ -326,32 +376,53 @@ type modIdent struct {
 	ident  *ast.Ident
 }
 
+var errIdentExpected = errors.New("want type parameter ident in parent node")
+
 // refine finds id.ident inside id.parent and replaces it with subst.
 // It only does this for parent type nodes (nodes that refer to a subtype).
-func (id modIdent) refine(subst ast.Expr) {
-	// TODO: check id.ident == par.Elt/Value/Type/Key etc
+func (id modIdent) refine(subst ast.Expr) error {
 	switch par := id.parent.(type) {
 	case *ast.ArrayType:
+		if par.Elt != id.ident {
+			return errIdentExpected
+		}
 		par.Elt = subst
 	case *ast.ChanType:
+		if par.Value != id.ident {
+			return errIdentExpected
+		}
 		par.Value = subst
 	case *ast.Field:
 		// Covers structs, interfaces, and funcs (all contain FieldList).
+		if par.Type != id.ident {
+			return errIdentExpected
+		}
 		par.Type = subst
 	case *ast.MapType:
-		if id.ident == par.Key {
+		switch id.ident {
+		case par.Key:
 			par.Key = subst
-		}
-		if id.ident == par.Value {
+		case par.Value:
 			par.Value = subst
+		default:
+			return errIdentExpected
 		}
-		// TODO: error on other types.
+
+	case *ast.StarExpr:
+		// A pointer type (hopefully not a dereference expression).
+		if par.X != id.ident {
+			return errIdentExpected
+		}
+		par.X = subst
+	default:
+		return fmt.Errorf("cannot substitute into parent node type %T", id.parent)
 	}
+	return nil
 }
 
 func isType(n ast.Node) bool {
 	switch n.(type) {
-	case *ast.Ident, *ast.ArrayType, *ast.MapType, *ast.ChanType, *ast.FuncType, *ast.StructType, *ast.InterfaceType:
+	case *ast.Ident, *ast.ArrayType, *ast.MapType, *ast.ChanType, *ast.FuncType, *ast.StarExpr, *ast.StructType, *ast.InterfaceType:
 		// It's probably a type.
 		return true
 	default:
@@ -359,14 +430,92 @@ func isType(n ast.Node) bool {
 	}
 }
 
-func meaningfullyEqual(m, n ast.Node) error {
-	switch m.(type) {
+func equal(m, n ast.Node) error {
+	switch x := m.(type) {
 	case *ast.ArrayType:
 		_, ok := n.(*ast.ArrayType)
 		if !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
-		// TODO: continue here
+		// Len and Elt should be walked.
+	case *ast.BasicLit:
+		// Can occur as, say, the Len of an array type.
+		y, ok := n.(*ast.BasicLit)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		if x.Kind != y.Kind {
+			return fmt.Errorf("basic literal kind mismatch [%v vs %v]", x.Kind, y.Kind)
+		}
+		xv := constant.MakeFromLiteral(x.Value, x.Kind, 0)
+		yv := constant.MakeFromLiteral(y.Value, y.Kind, 0)
+		if !constant.Compare(xv, token.EQL, yv) {
+			return fmt.Errorf("basic literal not equal [%v vs %v]", xv, yv)
+		}
+	case *ast.ChanType:
+		y, ok := n.(*ast.ChanType)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		if x.Dir != y.Dir {
+			return fmt.Errorf("chan type dir mismatch [%v vs %v]", x.Dir, y.Dir)
+		}
+	case *ast.Ellipsis:
+		// Can be either an array len or function parameter list.
+		_, ok := n.(*ast.Ellipsis)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+	case *ast.Field:
+		_, ok := n.(*ast.Field)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// Names, Type, and Tag should all be walked.
+	case *ast.FieldList:
+		_, ok := n.(*ast.FieldList)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// List should be walked.
+	case *ast.FuncType:
+		_, ok := n.(*ast.FuncType)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// Params and Results should be walked.
+	case *ast.Ident:
+		y, ok := n.(*ast.Ident)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		if x.Name != y.Name {
+			return fmt.Errorf("idents not identical [%q vs %q]", x.Name, y.Name)
+		}
+	case *ast.InterfaceType:
+		_, ok := n.(*ast.InterfaceType)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// Methods should be walked.
+	case *ast.MapType:
+		_, ok := n.(*ast.MapType)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// Key and Value should be walked.
+	case *ast.StarExpr:
+		_, ok := n.(*ast.StarExpr)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// X should be walked.
+	case *ast.StructType:
+		_, ok := n.(*ast.StructType)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// Fields should be walked.
 	}
 	return nil
 }

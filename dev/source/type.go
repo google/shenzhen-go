@@ -358,7 +358,7 @@ func (m TypeInferenceMap) learn(tp TypeParam, st *Type) error {
 		m[tp] = st
 		return nil
 	}
-	// Yes. Are es and qs compatible? Recursive Infer can tell us, and
+	// Yes. Are et and qt compatible? Recursive Infer can tell us, and
 	// learn yet more inferences.
 	return m.Infer(et, st)
 }

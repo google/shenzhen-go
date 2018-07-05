@@ -190,6 +190,14 @@ func TestRefine(t *testing.T) {
 			},
 			want: "map[int]$V",
 		},
+		{
+			base: MustNewType("foo", "map[$K]$V"),
+			in: TypeInferenceMap{
+				{"foo", "$K"}: MustNewType("bar", "struct{ F $T }"),
+				{"foo", "$V"}: MustNewType("baz", "[]*$U"),
+			},
+			want: "map[struct{F $T}][]*$U",
+		},
 	}
 
 	for _, test := range tests {

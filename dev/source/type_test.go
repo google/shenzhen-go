@@ -408,6 +408,10 @@ func TestInferErrors(t *testing.T) {
 			p: MustNewType("foo", "$T"),
 			q: MustNewType("foo", "interface{ F() struct{ M map[$K][]$T }}"),
 		},
+		{ // Mismatching shapes
+			p: MustNewType("foo", "struct{ F int; G int }"),
+			q: MustNewType("foo", "struct{ F int }"),
+		},
 	}
 
 	for _, test := range tests {

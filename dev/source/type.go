@@ -116,7 +116,12 @@ func NewType(scope, t string) (*Type, error) {
 }
 
 // subtype returns a Type for the subexpression e.
+// If e is the root node of the type, it returns p.
 func (p *Type) subtype(e ast.Expr) *Type {
+	if e == p.expr {
+		return p
+	}
+
 	// Because p is already a type, its maps are already constructed.
 	// We can inspect p to find idents that p knows are type params.
 	// This is necessary for preserving scope.
@@ -172,7 +177,7 @@ func (p *Type) Params() []TypeParam {
 // It returns true if the refinement had any effect.
 // If a parameter is not in the input map, it is left unrefined.
 // If no parameters are in the input map, it does nothing.
-func (p *Type) Refine(in map[TypeParam]*Type) (bool, error) {
+func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 	changed := false
 	for tp, subt := range in {
 		ids := p.paramToIdents[tp]
@@ -249,7 +254,7 @@ type chanwalker struct {
 
 func newChanwalker() *chanwalker {
 	return &chanwalker{
-		node: make(chan ast.Node),
+		node: make(chan ast.Node, 1),
 		nxt:  make(chan bool),
 	}
 }
@@ -275,10 +280,14 @@ func (c *chanwalker) next(b bool) {
 	c.nxt <- b
 }
 
-// Infer attempts to produce a map `M` such that `p.Refine(M) = q`, or something
-// more refined than q.
-func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
-	// Basic approach: Walk p.expr and t.expr at the same time.
+// TypeInferenceMap (TypeParam -> *Type) holds inferences made about
+// type parameters.s
+type TypeInferenceMap map[TypeParam]*Type
+
+// Infer attempts to add inferences to the map `m` such that `p.Refine(m) = q.Refine(m)`.
+// It returns an error if this is impossible.
+func (m TypeInferenceMap) Infer(p, q *Type) error {
+	// Basic approach: Walk p.expr and q.expr at the same time.
 	// If a meaningful difference is resolvable as a type parameter refinement, then
 	// add it to the map, otherwise raise an error.
 	pwalk, qwalk := newChanwalker(), newChanwalker()
@@ -287,88 +296,71 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 	defer pwalk.close()
 	defer qwalk.close()
 
-	M := make(map[TypeParam]*Type)
-	for pn := range pwalk.node {
-		qn, ok := <-qwalk.node
-		if !ok {
-			// p has more nodes than q
-			return nil, errors.New("types have mismatching shapes")
+	for {
+		pn, pk := <-pwalk.node
+		qn, qk := <-qwalk.node
+		if pk != qk {
+			return errors.New("types have mismatching shapes")
+		}
+		if !pk { // and !qk, by the above.
+			return nil
 		}
 
-		// Are either of pn or qn type parameters?
-		pident, _ := pn.(*ast.Ident)
-		qident, _ := qn.(*ast.Ident)
-		tp, ppara := p.identToParam[pident]
-		_, qpara := q.identToParam[qident]
-		// Note qpara is true only if qident is not nil, etc.
-
-		switch {
-		case !ppara && !qpara:
-			// Neither is; compare nodes as normal.
-			if err := equal(pn, qn); err != nil {
-				return nil, err
-			}
-			// could be anything, walk children.
-			pwalk.next(true)
-			qwalk.next(true)
-
-		case ppara:
-			// Note: do ppara case before qpara, because Infer should infer return
-			// something for tp even if it is just a different parameter.
-			// pn is a parameter and could match but first check qn is typeish.
-			if !isType(qn) {
-				return nil, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
-			}
-			// Unlike the qpara case below, we must remember what type matched pn.
-			// It's a type so it fits in ast.Expr.
-			qs := q.subtype(qn.(ast.Expr))
-
-			// Did a refinement for tp already get inferred?
-			// e.g. we inferred a type for the first $T in struct {F $T; G $T},
-			// and just encountered the second $T.
-			es := M[tp]
-			if es == nil {
-				// No.
-				M[tp] = qs
-				pwalk.next(false)
-				qwalk.next(false)
-				continue
-			}
-			// Yes. Are es and qs compatible? Recursive Infer can tell us.
-			inf, err := es.Infer(qs)
-			if err != nil {
-				// Not compatible.
-				return nil, err
-			}
-			// If len(inf) > 0, then qs is at least as specific than es.
-			// TODO(josh): This could be improved if instead:
-			//   es.Refine(inf)
-			// but this would mutate es which is a previous subtype of q,
-			// and I'd like Infer to be non-mutating.
-			// But maybe it'd be fine.
-			if len(inf) > 0 {
-				M[tp] = qs
-			}
-			// param and ??, don't walk.
-			pwalk.next(false)
-			qwalk.next(false)
-
-		case qpara:
-			// qn is a paramter and could match, but first check pn is typeish.
-			if !isType(pn) {
-				return nil, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
-			}
-
-			// param and ??, so don't walk
-			pwalk.next(false)
-			qwalk.next(false)
+		w, err := m.inferAtNode(p, q, pn, qn)
+		if err != nil {
+			return err
 		}
+		pwalk.next(w)
+		qwalk.next(w)
 	}
-	if _, ok := <-qwalk.node; ok {
-		// q has more nodes than p
-		return nil, errors.New("types have mismatching shapes")
+}
+
+func (m TypeInferenceMap) inferAtNode(p, q *Type, pn, qn ast.Node) (bool, error) {
+	// Are either of pn or qn type parameters?
+	pident, _ := pn.(*ast.Ident)
+	qident, _ := qn.(*ast.Ident)
+	tp, ppara := p.identToParam[pident]
+	tq, qpara := q.identToParam[qident]
+	// Note qpara is true only if qident is not nil, etc.
+
+	switch {
+	case !ppara && !qpara:
+		// Neither is; compare nodes as normal, and walk all children.
+		return true, equal(pn, qn)
+
+	case ppara: // qpara can be either value.
+		// pn is a parameter and could match but first check qn is typeish.
+		if !isType(qn) {
+			return false, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
+		}
+		// It's a type or expr, so it fits in ast.Expr.
+		qs := q.subtype(qn.(ast.Expr))
+		return false, m.learn(tp, qs)
+
+	default: // qpara && !ppara.
+		// qn is a paramter and could match, but first check pn is typeish.
+		if !isType(pn) {
+			return false, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
+		}
+
+		ps := p.subtype(pn.(ast.Expr))
+		return false, m.learn(tq, ps)
 	}
-	return M, nil
+}
+
+func (m TypeInferenceMap) learn(tp TypeParam, st *Type) error {
+	// Did a refinement for tp already get inferred?
+	// e.g. we inferred a type for the first $T in struct {F $T; G $T},
+	// and just encountered the second $T.
+	et := m[tp]
+	if et == nil {
+		// No.
+		m[tp] = st
+		return nil
+	}
+	// Yes. Are es and qs compatible? Recursive Infer can tell us, and
+	// learn yet more inferences.
+	return m.Infer(et, st)
 }
 
 func (p *Type) String() string {
@@ -434,6 +426,17 @@ func (id modIdent) refine(subst ast.Expr) error {
 			return errIdentExpected
 		}
 
+	case *ast.SelectorExpr:
+		// Only if subst is an ident.
+		if par.Sel != id.ident {
+			return errIdentExpected
+		}
+		si, ok := subst.(*ast.Ident)
+		if !ok {
+			return errors.New("must substitute an ident only in selector expressions")
+		}
+		par.Sel = si
+
 	case *ast.StarExpr:
 		// A pointer type (hopefully not a dereference expression).
 		if par.X != id.ident {
@@ -467,6 +470,9 @@ func isType(n ast.Node) bool {
 }
 
 func equal(m, n ast.Node) error {
+	if (m == nil) != (n == nil) {
+		return fmt.Errorf("mismatching nils [%#v vs %#v]", m, n)
+	}
 	switch x := m.(type) {
 	case *ast.ArrayType:
 		_, ok := n.(*ast.ArrayType)
@@ -485,7 +491,7 @@ func equal(m, n ast.Node) error {
 		}
 		xv := constant.MakeFromLiteral(x.Value, x.Kind, 0)
 		yv := constant.MakeFromLiteral(y.Value, y.Kind, 0)
-		if !constant.Compare(xv, token.EQL, yv) {
+		if constant.Compare(xv, token.NEQ, yv) {
 			return fmt.Errorf("basic literal not equal [%v vs %v]", xv, yv)
 		}
 	case *ast.ChanType:

@@ -33,9 +33,8 @@ type Node struct {
 	X, Y         float64
 	Connections  map[string]string // Pin name -> channel name
 
-	typeParams      map[source.TypeParam]*source.Type // Type parameter -> inferred type
-	finalTypeParams map[string]string                 // Local type parameter -> stringy type
-	pinTypes        map[string]*source.Type           // Pin name -> inferred type of pin
+	finalTypeParams map[string]string       // Local type parameter -> stringy type
+	pinTypes        map[string]*source.Type // Pin name -> inferred type of pin
 }
 
 // Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.

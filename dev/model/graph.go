@@ -34,6 +34,8 @@ type Graph struct {
 	IsCommand   bool                `json:"is_command"`
 	Nodes       map[string]*Node    `json:"nodes"`    // name -> node
 	Channels    map[string]*Channel `json:"channels"` // name -> channel
+
+	types source.TypeInferenceMap
 }
 
 // NewGraph returns a new empty graph associated with a file path.
@@ -173,11 +175,11 @@ func (e *TypeIncompatibilityError) Error() string {
 
 // InferTypes resolves the types of channels and generic pins.
 func (g *Graph) InferTypes() error {
-	// All nodes start with no inferred type parameters, and all pin types
+	// The graph starts with no inferred types, and all pin types
 	// begin as their basic definition.
+	g.types = make(source.TypeInferenceMap)
 	for _, n := range g.Nodes {
 		pins := n.Pins()
-		n.typeParams = make(map[source.TypeParam]*source.Type)
 		n.pinTypes = make(map[string]*source.Type, len(pins))
 		for pn, p := range pins {
 			pt, err := source.NewType(n.Name, p.Type)
@@ -221,8 +223,10 @@ func (g *Graph) InferTypes() error {
 	// Force all unresolved node type parameters to interface{}.
 	// Finally, give the node a map of resolved local types.
 	for _, n := range g.Nodes {
-		n.lithifyRemainingTypeParams()
-		n.makeFinalTypes()
+		for _, pt := range n.pinTypes {
+			pt.Lithify(typeEmptyInterface)
+		}
+		n.makeFinalTypes(g.types)
 	}
 	return nil
 }
@@ -235,27 +239,18 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 	// Look at c's pins.
 	for np := range c.Pins {
 		n := g.Nodes[np.Node]
-		tp := n.pinTypes[np.Pin]
+		ptype := n.pinTypes[np.Pin]
 
-		// Use it if we don't have a type already.
+		// Use ptype for c.Type if nothing else.
 		if c.Type == nil {
 			//log.Printf("inferChannelType: adopting %s immediately", tp)
-			c.Type = tp
+			c.Type = ptype
 			next[c] = struct{}{}
 			continue
 		}
 
-		// Cross-infer c.Type with tp.
-		// c.Type refinement applies only to c.Type, but
-		// tp refinement applies to all pins on node n!
-		infc, err := c.Type.Infer(tp)
-		if err != nil {
-			return nil, &TypeIncompatibilityError{
-				Summary: "channel connected to incompatible types",
-				Source:  err,
-			}
-		}
-		infp, err := tp.Infer(c.Type)
+		// Make inferences; at the end, c.Type and ptype must be the same fully refined type.
+		g.types.Infer(c.Type, ptype)
 		if err != nil {
 			return nil, &TypeIncompatibilityError{
 				Summary: "channel connected to incompatible types",
@@ -265,15 +260,14 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 		//log.Printf("inferChannelType: for pin %v inferred %v", np, inf)
 
 		// Apply inferred params to c.Type.
-		if _, err := c.Type.Refine(infc); err != nil {
+		if _, err := c.Type.Refine(g.types); err != nil {
 			return nil, &TypeIncompatibilityError{
 				Summary: "channel type refinement failed",
 				Source:  err,
 			}
 		}
-
 		// Apply inferred params to all pins on node n.
-		nxcn, err := n.applyTypeParams(infp)
+		nxcn, err := n.applyTypeParams(g.types)
 		if err != nil {
 			return nil, err
 		}
@@ -287,27 +281,7 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 }
 
 // next is the names of channels that might be inferrable as a result of this apply.
-func (n *Node) applyTypeParams(types map[source.TypeParam]*source.Type) (next source.StringSet, err error) {
-	// Merge the new map into n.typeParams, checking for mismatches.
-	for par, typ := range types {
-		old := n.typeParams[par]
-		if old != nil {
-			// So the old type exists. Is it compatible with the new type?
-			if _, err := old.Infer(typ); err != nil {
-				return nil, &TypeIncompatibilityError{
-					Summary: "inferred type mismatch",
-					Source:  err,
-				}
-			}
-			if _, err := typ.Infer(old); err != nil {
-				return nil, &TypeIncompatibilityError{
-					Summary: "inferred type mismatch",
-					Source:  err,
-				}
-			}
-		}
-		n.typeParams[par] = typ
-	}
+func (n *Node) applyTypeParams(types source.TypeInferenceMap) (next source.StringSet, err error) {
 	// Refine all pin types.
 	next = make(source.StringSet)
 	for pn, pt := range n.pinTypes {
@@ -327,18 +301,9 @@ func (n *Node) applyTypeParams(types map[source.TypeParam]*source.Type) (next so
 	return next, nil
 }
 
-func (n *Node) lithifyRemainingTypeParams() {
-	for _, pt := range n.pinTypes {
-		for _, param := range pt.Params() {
-			n.typeParams[param] = typeEmptyInterface
-		}
-		pt.Lithify(typeEmptyInterface)
-	}
-}
-
-func (n *Node) makeFinalTypes() {
+func (n *Node) makeFinalTypes(types source.TypeInferenceMap) {
 	n.finalTypeParams = make(map[string]string)
-	for tp, typ := range n.typeParams {
+	for tp, typ := range types {
 		if tp.Scope != n.Name {
 			continue
 		}

@@ -137,40 +137,40 @@ func TestNewType(t *testing.T) {
 func TestTypeRefine(t *testing.T) {
 	tests := []struct {
 		base *Type
-		in   map[TypeParam]*Type
+		in   TypeInferenceMap
 		want string
 	}{
 		{
 			base: MustNewType("foo", "struct{}"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"foo", "$T"}: MustNewType("", "int"),
 			},
 			want: "struct{}",
 		},
 		{
 			base: MustNewType("foo", "$T"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"foo", "$T"}: MustNewType("", "int"),
 			},
 			want: "int",
 		},
 		{
 			base: MustNewType("bar", "$U"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"bar", "$U"}: MustNewType("", "string"),
 			},
 			want: "string",
 		},
 		{
 			base: MustNewType("foo", "$T"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"bar", "$U"}: MustNewType("", "string"),
 			},
 			want: "$T",
 		},
 		{
 			base: MustNewType("foo", "map[$K]$V"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"foo", "$K"}: MustNewType("", "string"),
 				{"foo", "$V"}: MustNewType("", "int"),
 			},
@@ -178,14 +178,14 @@ func TestTypeRefine(t *testing.T) {
 		},
 		{
 			base: MustNewType("foo", "map[$K]$V"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"foo", "$V"}: MustNewType("", "int"),
 			},
 			want: "map[$K]int",
 		},
 		{
 			base: MustNewType("foo", "map[$K]$V"),
-			in: map[TypeParam]*Type{
+			in: TypeInferenceMap{
 				{"foo", "$K"}: MustNewType("", "int"),
 			},
 			want: "map[int]$V",
@@ -242,113 +242,119 @@ func TestTypeLithify(t *testing.T) {
 
 func TestTypeInfer(t *testing.T) {
 	tests := []struct {
-		base *Type
-		in   *Type
+		p, q *Type
 		want map[TypeParam]string
 	}{
 		{
-			base: MustNewType("foo", "int"),
-			in:   MustNewType("", "int"),
+			p:    MustNewType("foo", "int"),
+			q:    MustNewType("", "int"),
 			want: map[TypeParam]string{},
 		},
 		{
-			base: MustNewType("foo", "packaged.Type"),
-			in:   MustNewType("", "packaged.Type"),
+			p:    MustNewType("foo", "packaged.Type"),
+			q:    MustNewType("", "packaged.Type"),
 			want: map[TypeParam]string{},
 		},
 		{
-			base: MustNewType("foo", "$T"),
-			in:   MustNewType("", "int"),
+			p: MustNewType("foo", "$T"),
+			q: MustNewType("", "int"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "int",
 			},
 		},
 		{
-			base: MustNewType("foo", "*$T"),
-			in:   MustNewType("", "*int"),
+			p: MustNewType("foo", "*$T"),
+			q: MustNewType("", "*int"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "int",
 			},
 		},
 		{
-			base: MustNewType("bar", "[]$T"),
-			in:   MustNewType("", "[]string"),
+			p: MustNewType("bar", "[]$T"),
+			q: MustNewType("", "[]string"),
 			want: map[TypeParam]string{
 				{"bar", "$T"}: "string",
 			},
 		},
 		{
-			base: MustNewType("foo", "map[$K]$V"),
-			in:   MustNewType("", "map[interface{}]struct{}"),
+			p: MustNewType("foo", "map[$K]$V"),
+			q: MustNewType("", "map[interface{}]struct{}"),
 			want: map[TypeParam]string{
 				{"foo", "$K"}: "interface{}",
 				{"foo", "$V"}: "struct{}",
 			},
 		},
 		{
-			base: MustNewType("foo", "struct{F $T; G $U}"),
-			in:   MustNewType("", "struct { F float64; G complex128 }"),
+			p: MustNewType("foo", "struct{F $T; G $U}"),
+			q: MustNewType("", "struct { F float64; G complex128 }"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "float64",
 				{"foo", "$U"}: "complex128",
 			},
 		},
 		{
-			base: MustNewType("foo", "map[$T]$T"),
-			in:   MustNewType("", "map[interface{}]interface{}"),
+			p: MustNewType("foo", "map[$T]$T"),
+			q: MustNewType("", "map[interface{}]interface{}"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "interface{}",
 			},
 		},
 		{
-			base: MustNewType("foo", "$T"),
-			in:   MustNewType("bar", "$U"),
+			p: MustNewType("foo", "$T"),
+			q: MustNewType("bar", "$U"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "$U",
 			},
 		},
 		{
-			base: MustNewType("foo", "map[$K]string"),
-			in:   MustNewType("bar", "map[int]$V"),
+			p: MustNewType("foo", "map[$K]string"),
+			q: MustNewType("bar", "map[int]$V"),
 			want: map[TypeParam]string{
 				{"foo", "$K"}: "int",
+				{"bar", "$V"}: "string",
 			},
 		},
 		{
-			base: MustNewType("foo", "struct{F $T; G $T}"),
-			in:   MustNewType("bar", "struct { F map[$K]$V; G map[string]int }"),
+			p: MustNewType("foo", "struct{F $T; G $T}"),
+			q: MustNewType("bar", "struct { F map[$K]$V; G map[string]int }"),
 			want: map[TypeParam]string{
-				{"foo", "$T"}: "map[string]int",
+				{"foo", "$T"}: "map[$K]$V",
+				{"bar", "$K"}: "string",
+				{"bar", "$V"}: "int",
 			},
 		},
 		{
-			base: MustNewType("foo", "struct{F $T; G $T}"),
-			in:   MustNewType("bar", "struct { F map[string]int; G map[$K]$V }"),
+			p: MustNewType("foo", "struct{F $T; G $T}"),
+			q: MustNewType("bar", "struct { F map[string]int; G map[$K]$V }"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "map[string]int",
+				{"bar", "$K"}: "string",
+				{"bar", "$V"}: "int",
 			},
 		},
-		/* {  // Infer,Infer,Refine
-			base: MustNewType("foo", "struct{F $T; G $T}"),
-			in:   MustNewType("bar", "struct { F map[$K]int; G map[string]$V }"),
+		{
+			p: MustNewType("foo", "struct{F $T; G $T}"),
+			q: MustNewType("bar", "struct { F map[$K]int; G map[string]$V }"),
 			want: map[TypeParam]string{
-				{"foo", "$T"}: "map[string]int",
+				{"foo", "$T"}: "map[$K]int",
+				{"bar", "$K"}: "string",
+				{"bar", "$V"}: "int",
 			},
-		}, */
+		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.base.String(), func(t *testing.T) {
-			inf, err := test.base.Infer(test.in)
-			if err != nil {
-				t.Fatalf("base(%s).Infer(%s) = error %v", test.base, test.in, err)
+		t.Run(fmt.Sprintf("%s+%s", test.p, test.q), func(t *testing.T) {
+			m := make(TypeInferenceMap)
+			if err := m.Infer(test.p, test.q); err != nil {
+				t.Fatalf("Infer(%s, %s) = error %v", test.p, test.q, err)
 			}
 			got := make(map[TypeParam]string)
-			for param, typ := range inf {
+			for param, typ := range m {
 				got[param] = typ.String()
 			}
 			if diff, equal := messagediff.PrettyDiff(got, test.want); !equal {
-				t.Errorf("base.Infer diff\n%s", diff)
+				t.Errorf("inferred map diff:\n%s", diff)
 			}
 		})
 	}

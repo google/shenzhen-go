@@ -134,72 +134,59 @@ func TestNewType(t *testing.T) {
 	}
 }
 
-type TF struct {
-	*testing.T
-}
-
-func (t TF) MustNewType(scope, spec string) *Type {
-	typ, err := NewType(scope, spec)
-	if err != nil {
-		t.Fatalf("NewType(%s, %s) = error %v", scope, spec, err)
-	}
-	return typ
-}
-
 func TestTypeRefine(t *testing.T) {
-	tf := TF{t}
 	tests := []struct {
 		base *Type
 		in   map[TypeParam]*Type
 		want string
 	}{
 		{
-			base: tf.MustNewType("foo", "struct{}"),
+			base: MustNewType("foo", "struct{}"),
 			in: map[TypeParam]*Type{
-				{"foo", "$T"}: tf.MustNewType("", "int"),
+				{"foo", "$T"}: MustNewType("", "int"),
 			},
 			want: "struct{}",
 		},
 		{
-			base: tf.MustNewType("foo", "$T"),
+			base: MustNewType("foo", "$T"),
 			in: map[TypeParam]*Type{
-				{"foo", "$T"}: tf.MustNewType("", "int"),
+				{"foo", "$T"}: MustNewType("", "int"),
 			},
 			want: "int",
 		},
 		{
-			base: tf.MustNewType("bar", "$U"),
+			base: MustNewType("bar", "$U"),
 			in: map[TypeParam]*Type{
-				{"bar", "$U"}: tf.MustNewType("", "string"),
+				{"bar", "$U"}: MustNewType("", "string"),
 			},
 			want: "string",
 		},
 		{
-			base: tf.MustNewType("foo", "$T"),
+			base: MustNewType("foo", "$T"),
 			in: map[TypeParam]*Type{
-				{"bar", "$U"}: tf.MustNewType("", "string"),
+				{"bar", "$U"}: MustNewType("", "string"),
 			},
 			want: "$T",
 		},
 		{
-			base: tf.MustNewType("foo", "map[$K]$V"),
+			base: MustNewType("foo", "map[$K]$V"),
 			in: map[TypeParam]*Type{
-				{"foo", "$K"}: tf.MustNewType("", "string"),
-				{"foo", "$V"}: tf.MustNewType("", "int"),
+				{"foo", "$K"}: MustNewType("", "string"),
+				{"foo", "$V"}: MustNewType("", "int"),
 			},
 			want: "map[string]int",
 		},
 		{
-			base: tf.MustNewType("foo", "map[$K]$V"),
+			base: MustNewType("foo", "map[$K]$V"),
 			in: map[TypeParam]*Type{
-				{"foo", "$V"}: tf.MustNewType("", "int"),
+				{"foo", "$V"}: MustNewType("", "int"),
 			},
 			want: "map[$K]int",
 		},
 		{
-			base: tf.MustNewType("foo", "map[$K]$V"),
+			base: MustNewType("foo", "map[$K]$V"),
 			in: map[TypeParam]*Type{
-				{"foo", "$K"}: tf.MustNewType("", "int"),
+				{"foo", "$K"}: MustNewType("", "int"),
 			},
 			want: "map[int]$V",
 		},
@@ -207,7 +194,8 @@ func TestTypeRefine(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.base.String(), func(t *testing.T) {
-			if err := test.base.Refine(test.in); err != nil {
+			// TODO(josh): test the changed bool.
+			if _, err := test.base.Refine(test.in); err != nil {
 				t.Fatalf("base(%s).Refine(%v) = error %v", test.base, test.in, err)
 			}
 			if got, want := test.base.String(), test.want; got != want {
@@ -218,25 +206,24 @@ func TestTypeRefine(t *testing.T) {
 }
 
 func TestTypeLithify(t *testing.T) {
-	tf := TF{t}
 	tests := []struct {
 		base *Type
 		lith *Type
 		want string
 	}{
 		{
-			base: tf.MustNewType("foo", "$T"),
-			lith: tf.MustNewType("", "int"),
+			base: MustNewType("foo", "$T"),
+			lith: MustNewType("", "int"),
 			want: "int",
 		},
 		{
-			base: tf.MustNewType("foo", "*$T"),
-			lith: tf.MustNewType("", "int"),
+			base: MustNewType("foo", "*$T"),
+			lith: MustNewType("", "int"),
 			want: "*int",
 		},
 		{
-			base: tf.MustNewType("foo", "map[$K]$V"),
-			lith: tf.MustNewType("", "int"),
+			base: MustNewType("foo", "map[$K]$V"),
+			lith: MustNewType("", "int"),
 			want: "map[int]int",
 		},
 	}
@@ -254,97 +241,96 @@ func TestTypeLithify(t *testing.T) {
 }
 
 func TestTypeInfer(t *testing.T) {
-	tf := TF{t}
 	tests := []struct {
 		base *Type
 		in   *Type
 		want map[TypeParam]string
 	}{
 		{
-			base: tf.MustNewType("foo", "int"),
-			in:   tf.MustNewType("", "int"),
+			base: MustNewType("foo", "int"),
+			in:   MustNewType("", "int"),
 			want: map[TypeParam]string{},
 		},
 		{
-			base: tf.MustNewType("foo", "packaged.Type"),
-			in:   tf.MustNewType("", "packaged.Type"),
+			base: MustNewType("foo", "packaged.Type"),
+			in:   MustNewType("", "packaged.Type"),
 			want: map[TypeParam]string{},
 		},
 		{
-			base: tf.MustNewType("foo", "$T"),
-			in:   tf.MustNewType("", "int"),
+			base: MustNewType("foo", "$T"),
+			in:   MustNewType("", "int"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "int",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "*$T"),
-			in:   tf.MustNewType("", "*int"),
+			base: MustNewType("foo", "*$T"),
+			in:   MustNewType("", "*int"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "int",
 			},
 		},
 		{
-			base: tf.MustNewType("bar", "[]$T"),
-			in:   tf.MustNewType("", "[]string"),
+			base: MustNewType("bar", "[]$T"),
+			in:   MustNewType("", "[]string"),
 			want: map[TypeParam]string{
 				{"bar", "$T"}: "string",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "map[$K]$V"),
-			in:   tf.MustNewType("", "map[interface{}]struct{}"),
+			base: MustNewType("foo", "map[$K]$V"),
+			in:   MustNewType("", "map[interface{}]struct{}"),
 			want: map[TypeParam]string{
 				{"foo", "$K"}: "interface{}",
 				{"foo", "$V"}: "struct{}",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "struct{F $T; G $U}"),
-			in:   tf.MustNewType("", "struct { F float64; G complex128 }"),
+			base: MustNewType("foo", "struct{F $T; G $U}"),
+			in:   MustNewType("", "struct { F float64; G complex128 }"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "float64",
 				{"foo", "$U"}: "complex128",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "map[$T]$T"),
-			in:   tf.MustNewType("", "map[interface{}]interface{}"),
+			base: MustNewType("foo", "map[$T]$T"),
+			in:   MustNewType("", "map[interface{}]interface{}"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "interface{}",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "$T"),
-			in:   tf.MustNewType("bar", "$U"),
+			base: MustNewType("foo", "$T"),
+			in:   MustNewType("bar", "$U"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "$U",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "map[$K]string"),
-			in:   tf.MustNewType("bar", "map[int]$V"),
+			base: MustNewType("foo", "map[$K]string"),
+			in:   MustNewType("bar", "map[int]$V"),
 			want: map[TypeParam]string{
 				{"foo", "$K"}: "int",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "struct{F $T; G $T}"),
-			in:   tf.MustNewType("bar", "struct { F map[$K]$V; G map[string]int }"),
+			base: MustNewType("foo", "struct{F $T; G $T}"),
+			in:   MustNewType("bar", "struct { F map[$K]$V; G map[string]int }"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "map[string]int",
 			},
 		},
 		{
-			base: tf.MustNewType("foo", "struct{F $T; G $T}"),
-			in:   tf.MustNewType("bar", "struct { F map[string]int; G map[$K]$V }"),
+			base: MustNewType("foo", "struct{F $T; G $T}"),
+			in:   MustNewType("bar", "struct { F map[string]int; G map[$K]$V }"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "map[string]int",
 			},
 		},
 		/* {  // Infer,Infer,Refine
-			base: tf.MustNewType("foo", "struct{F $T; G $T}"),
-			in:   tf.MustNewType("bar", "struct { F map[$K]int; G map[string]$V }"),
+			base: MustNewType("foo", "struct{F $T; G $T}"),
+			in:   MustNewType("bar", "struct { F map[$K]int; G map[string]$V }"),
 			want: map[TypeParam]string{
 				{"foo", "$T"}: "map[string]int",
 			},

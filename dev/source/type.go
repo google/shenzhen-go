@@ -62,6 +62,15 @@ func unmangle(t string) string {
 	return strings.Replace(t, mangledParamPrefix, paramPrefix, -1)
 }
 
+// MustNewType is NewType but where all errors cause a panic.
+func MustNewType(scope, t string) *Type {
+	typ, err := NewType(scope, t)
+	if err != nil {
+		panic(err)
+	}
+	return typ
+}
+
 // NewType parses a generic type string into a Type.
 // All parameters are assumed to belong to the one given scope.
 // If t is not parametrised, scope is ignored.
@@ -160,9 +169,10 @@ func (p *Type) Params() []TypeParam {
 }
 
 // Refine fills in type parameters according to the provided map.
+// It returns true if the refinement had any effect.
 // If a parameter is not in the input map, it is left unrefined.
 // If no parameters are in the input map, it does nothing.
-func (p *Type) Refine(in map[TypeParam]*Type) error {
+func (p *Type) Refine(in map[TypeParam]*Type) (bool, error) {
 	changed := false
 	for tp, subt := range in {
 		ids := p.paramToIdents[tp]
@@ -176,10 +186,10 @@ func (p *Type) Refine(in map[TypeParam]*Type) error {
 				// Substitute the whole thing right now;
 				// the whole of p is nothing but one type parameter.
 				*p = *subt
-				return nil
+				return true, nil
 			}
 			if err := id.refine(subt.expr); err != nil {
-				return err
+				return true, err
 			}
 			delete(p.identToParam, id.ident)
 			// And adopt subt's params.
@@ -200,10 +210,10 @@ func (p *Type) Refine(in map[TypeParam]*Type) error {
 		}
 	}
 	if !changed {
-		return nil
+		return false, nil
 	}
 	p.spec = unmangle(types.ExprString(p.expr))
-	return nil
+	return true, nil
 }
 
 // Lithify refines all parameters with a single default.

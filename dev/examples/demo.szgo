@@ -24,29 +24,9 @@
 					""
 				],
 				"pins": {
-					"bar": {
-						"type": "rune",
-						"dir": "in"
-					},
-					"baz": {
-						"type": "float64",
-						"dir": "out"
-					},
-					"foo": {
-						"type": "int",
-						"dir": "in"
-					},
-					"quux": {
-						"type": "string",
-						"dir": "out"
-					},
 					"qux": {
 						"type": "int",
 						"dir": "out"
-					},
-					"tuz": {
-						"type": "int64",
-						"dir": "in"
 					}
 				}
 			},
@@ -57,12 +37,7 @@
 			"x": 154,
 			"y": 65,
 			"connections": {
-				"bar": "nil",
-				"baz": "nil",
-				"foo": "nil",
-				"quux": "nil",
-				"qux": "channel0",
-				"tuz": "nil"
+				"qux": "channel0"
 			}
 		},
 		"Node 2": {
@@ -83,28 +58,8 @@
 					""
 				],
 				"pins": {
-					"bar": {
-						"type": "rune",
-						"dir": "in"
-					},
-					"baz": {
-						"type": "float64",
-						"dir": "out"
-					},
 					"foo": {
 						"type": "int",
-						"dir": "in"
-					},
-					"quux": {
-						"type": "string",
-						"dir": "out"
-					},
-					"qux": {
-						"type": "int",
-						"dir": "out"
-					},
-					"tuz": {
-						"type": "int64",
 						"dir": "in"
 					}
 				}
@@ -116,12 +71,7 @@
 			"x": 138,
 			"y": 174,
 			"connections": {
-				"bar": "nil",
-				"baz": "nil",
-				"foo": "channel0",
-				"quux": "nil",
-				"qux": "nil",
-				"tuz": "nil"
+				"foo": "channel0"
 			}
 		}
 	},

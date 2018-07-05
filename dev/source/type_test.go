@@ -134,7 +134,7 @@ func TestNewType(t *testing.T) {
 	}
 }
 
-func TestTypeRefine(t *testing.T) {
+func TestRefine(t *testing.T) {
 	tests := []struct {
 		base *Type
 		in   TypeInferenceMap
@@ -205,7 +205,7 @@ func TestTypeRefine(t *testing.T) {
 	}
 }
 
-func TestTypeLithify(t *testing.T) {
+func TestLithify(t *testing.T) {
 	tests := []struct {
 		base *Type
 		lith *Type
@@ -240,7 +240,7 @@ func TestTypeLithify(t *testing.T) {
 	}
 }
 
-func TestTypeInfer(t *testing.T) {
+func TestInfer(t *testing.T) {
 	tests := []struct {
 		p, q *Type
 		want map[TypeParam]string
@@ -285,6 +285,20 @@ func TestTypeInfer(t *testing.T) {
 			},
 		},
 		{
+			p: MustNewType("foo", "packaged.$T"),
+			q: MustNewType("", "packaged.Type"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "Type",
+			},
+		},
+		{
+			p: MustNewType("foo", "$T"),
+			q: MustNewType("", "packaged.Type"),
+			want: map[TypeParam]string{
+				{"foo", "$T"}: "packaged.Type",
+			},
+		},
+		{
 			p: MustNewType("foo", "struct{F $T; G $U}"),
 			q: MustNewType("", "struct { F float64; G complex128 }"),
 			want: map[TypeParam]string{
@@ -299,7 +313,7 @@ func TestTypeInfer(t *testing.T) {
 				{"foo", "$T"}: "interface{}",
 			},
 		},
-		{
+		{ // Parameter equality is not recorded.
 			p:    MustNewType("foo", "$T"),
 			q:    MustNewType("bar", "$U"),
 			want: map[TypeParam]string{},
@@ -353,6 +367,54 @@ func TestTypeInfer(t *testing.T) {
 			}
 			if diff, equal := messagediff.PrettyDiff(got, test.want); !equal {
 				t.Errorf("inferred map diff:\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestInferErrors(t *testing.T) {
+	tests := []struct {
+		p, q *Type
+	}{
+		{ // Plain not equal
+			p: MustNewType("foo", "int"),
+			q: MustNewType("bar", "string"),
+		},
+		{ // Mismatching container vs ident
+			p: MustNewType("foo", "[]$T"),
+			q: MustNewType("bar", "complex128"),
+		},
+		{ // Mismatching container types
+			p: MustNewType("foo", "[]$T"),
+			q: MustNewType("bar", "map[$K]$V"),
+		},
+		{ // Mismatching array lengths
+			p: MustNewType("foo", "[3]$T"),
+			q: MustNewType("bar", "[4]$U"),
+		},
+		{ // Type recursion
+			p: MustNewType("foo", "$T"),
+			q: MustNewType("foo", "[]$T"),
+		},
+		{ // Type recursion II
+			p: MustNewType("foo", "$T"),
+			q: MustNewType("foo", "*$T"),
+		},
+		{ // Type recursion III
+			p: MustNewType("foo", "map[$T]$V"),
+			q: MustNewType("foo", "$T"),
+		},
+		{ // Type recursion IV
+			p: MustNewType("foo", "$T"),
+			q: MustNewType("foo", "interface{ F() struct{ M map[$K][]$T }}"),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s+%s", test.p, test.q), func(t *testing.T) {
+			m := make(TypeInferenceMap)
+			if err := m.Infer(test.p, test.q); err == nil {
+				t.Errorf("Infer(%s, %s) = nil error", test.p, test.q)
 			}
 		})
 	}

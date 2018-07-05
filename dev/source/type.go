@@ -354,6 +354,11 @@ func (m TypeInferenceMap) inferAtNode(p, q *Type, pn, qn ast.Node) (bool, error)
 }
 
 func (m TypeInferenceMap) learn(tp TypeParam, st *Type) error {
+	// Quick check: is tp a parameter of st? That's a recursive type (disallowed).
+	if _, para := st.paramToIdents[tp]; para {
+		return fmt.Errorf("inferred type recursion [%s in %s]", tp.Ident, st)
+	}
+
 	// Did a refinement for tp already get inferred?
 	// e.g. we inferred a type for the first $T in struct {F $T; G $T},
 	// and just encountered the second $T.

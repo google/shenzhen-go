@@ -464,7 +464,7 @@ func (id modIdent) refine(subst ast.Expr) error {
 }
 
 func isType(n ast.Node) bool {
-	switch n.(type) {
+	switch x := n.(type) {
 	case
 		*ast.Ident,         // foo
 		*ast.ArrayType,     // []foo
@@ -472,11 +472,20 @@ func isType(n ast.Node) bool {
 		*ast.FuncType,      // func(a foo, b bar) baz
 		*ast.InterfaceType, // interface { a() foo; b(bar) }
 		*ast.MapType,       // map[foo]bar
-		*ast.SelectorExpr,  // package.Foo
 		*ast.StarExpr,      // *foo
 		*ast.StructType:    // struct {a foo; b bar}
 		// It's probably a type.
 		return true
+
+	case *ast.SelectorExpr: // package.Foo
+		// X must be an identifier.
+		_, ok := x.X.(*ast.Ident)
+		return ok
+
+	case *ast.ParenExpr: // (foo)
+		// X must be a type.
+		return isType(x.X)
+
 	default:
 		return false
 	}
@@ -488,8 +497,7 @@ func equal(m, n ast.Node) error {
 	}
 	switch x := m.(type) {
 	case *ast.ArrayType:
-		_, ok := n.(*ast.ArrayType)
-		if !ok {
+		if _, ok := n.(*ast.ArrayType); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Len and Elt should be walked.
@@ -517,25 +525,21 @@ func equal(m, n ast.Node) error {
 		}
 	case *ast.Ellipsis:
 		// Can be either an array len or function parameter list.
-		_, ok := n.(*ast.Ellipsis)
-		if !ok {
+		if _, ok := n.(*ast.Ellipsis); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 	case *ast.Field:
-		_, ok := n.(*ast.Field)
-		if !ok {
+		if _, ok := n.(*ast.Field); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Names, Type, and Tag should all be walked.
 	case *ast.FieldList:
-		_, ok := n.(*ast.FieldList)
-		if !ok {
+		if _, ok := n.(*ast.FieldList); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// List should be walked.
 	case *ast.FuncType:
-		_, ok := n.(*ast.FuncType)
-		if !ok {
+		if _, ok := n.(*ast.FuncType); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Params and Results should be walked.
@@ -548,32 +552,33 @@ func equal(m, n ast.Node) error {
 			return fmt.Errorf("idents not identical [%q vs %q]", x.Name, y.Name)
 		}
 	case *ast.InterfaceType:
-		_, ok := n.(*ast.InterfaceType)
-		if !ok {
+		if _, ok := n.(*ast.InterfaceType); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Methods should be walked.
 	case *ast.MapType:
-		_, ok := n.(*ast.MapType)
-		if !ok {
+		if _, ok := n.(*ast.MapType); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Key and Value should be walked.
+	case *ast.ParenExpr:
+		// Maybe they parenthesised a type for emphasis.
+		if _, ok := n.(*ast.ParenExpr); !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// X should be walked.
 	case *ast.SelectorExpr:
-		_, ok := n.(*ast.SelectorExpr)
-		if !ok {
+		if _, ok := n.(*ast.SelectorExpr); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// X and Sel should be walked.
 	case *ast.StarExpr:
-		_, ok := n.(*ast.StarExpr)
-		if !ok {
+		if _, ok := n.(*ast.StarExpr); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// X should be walked.
 	case *ast.StructType:
-		_, ok := n.(*ast.StructType)
-		if !ok {
+		if _, ok := n.(*ast.StructType); !ok {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Fields should be walked.

@@ -178,6 +178,9 @@ func (p *Type) Params() []TypeParam {
 // If a parameter is not in the input map, it is left unrefined.
 // If no parameters are in the input map, it does nothing.
 func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
+	if p == nil {
+		return false, nil
+	}
 	changed := false
 	for tp, subt := range in {
 		ids := p.paramToIdents[tp]
@@ -224,7 +227,7 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 // Lithify refines all parameters with a single default.
 func (p *Type) Lithify(def *Type) error {
 	// Quite similar to Refine.
-	if p.Plain() {
+	if p == nil || p.Plain() {
 		return nil
 	}
 	for _, ids := range p.paramToIdents {

@@ -163,7 +163,8 @@ func (g *Graph) RefreshChannelsPins() {
 	}
 }
 
-// TypeIncompatibilityError is used when
+// TypeIncompatibilityError is used when types mismatch during inference.
+// TODO(josh): Make this useful to feed into the error panel.
 type TypeIncompatibilityError struct {
 	Summary string
 	Source  error
@@ -176,7 +177,7 @@ func (e *TypeIncompatibilityError) Error() string {
 // InferTypes resolves the types of channels and generic pins.
 func (g *Graph) InferTypes() error {
 	// The graph starts with no inferred types, and all pin types
-	// begin as their basic definition.
+	// begin as their basic definition, params scoped to the node.
 	g.types = make(source.TypeInferenceMap)
 	for _, n := range g.Nodes {
 		pins := n.Pins()
@@ -201,13 +202,11 @@ func (g *Graph) InferTypes() error {
 	for len(q) > 0 {
 		c := q[0]
 		q = q[1:]
-		//log.Printf("InferTypes: popping %s", c.Name)
 
 		next, err := g.inferChannelType(c)
 		if err != nil {
 			return err
 		}
-		//log.Printf("InferTypes: pushing %d more", len(next))
 		for c := range next {
 			q = append(q, c)
 		}
@@ -215,9 +214,6 @@ func (g *Graph) InferTypes() error {
 
 	// Force all unresolved channel type parameters to interface{}.
 	for _, c := range g.Channels {
-		if c.Type == nil || c.Type.Plain() {
-			continue
-		}
 		c.Type.Lithify(typeEmptyInterface)
 	}
 	// Force all unresolved node type parameters to interface{}.
@@ -243,7 +239,6 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 
 		// Use ptype for c.Type if nothing else.
 		if c.Type == nil {
-			//log.Printf("inferChannelType: adopting %s immediately", tp)
 			c.Type = ptype
 			next[c] = struct{}{}
 			continue
@@ -257,7 +252,6 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 				Source:  err,
 			}
 		}
-		//log.Printf("inferChannelType: for pin %v inferred %v", np, inf)
 
 		// Apply inferred params to c.Type.
 		if _, err := c.Type.Refine(g.types); err != nil {

@@ -284,8 +284,8 @@ func (c *chanwalker) next(b bool) {
 // type parameters.s
 type TypeInferenceMap map[TypeParam]*Type
 
-// Infer attempts to add inferences to the map `m` such that `p.Refine(m) = q.Refine(m)`.
-// It returns an error if this is impossible.
+// Infer attempts to add inferences to the map `m` such that `p.Refine(m)` and `q.Refine(m)`
+// are similar. It returns an error if this is impossible.
 func (m TypeInferenceMap) Infer(p, q *Type) error {
 	// Basic approach: Walk p.expr and q.expr at the same time.
 	// If a meaningful difference is resolvable as a type parameter refinement, then
@@ -327,6 +327,11 @@ func (m TypeInferenceMap) inferAtNode(p, q *Type, pn, qn ast.Node) (bool, error)
 	case !ppara && !qpara:
 		// Neither is; compare nodes as normal, and walk all children.
 		return true, equal(pn, qn)
+
+	case ppara && qpara:
+		// We get nowhere by inferring that the two parameters are equal, so
+		// drop it.
+		return false, nil
 
 	case ppara: // qpara can be either value.
 		// pn is a parameter and could match but first check qn is typeish.

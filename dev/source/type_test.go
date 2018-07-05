@@ -300,11 +300,9 @@ func TestTypeInfer(t *testing.T) {
 			},
 		},
 		{
-			p: MustNewType("foo", "$T"),
-			q: MustNewType("bar", "$U"),
-			want: map[TypeParam]string{
-				{"foo", "$T"}: "$U",
-			},
+			p:    MustNewType("foo", "$T"),
+			q:    MustNewType("bar", "$U"),
+			want: map[TypeParam]string{},
 		},
 		{
 			p: MustNewType("foo", "map[$K]string"),

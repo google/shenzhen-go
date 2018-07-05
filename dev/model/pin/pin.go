@@ -17,8 +17,6 @@ package pin
 
 import (
 	"encoding/json"
-
-	"github.com/google/shenzhen-go/dev/source"
 )
 
 // Direction describes which way information flows in a Pin.
@@ -46,17 +44,6 @@ type Definition struct {
 	Name      string    `json:"-"`
 	Type      string    `json:"type"`
 	Direction Direction `json:"dir"`
-
-	typePattern *source.TypePattern // lazy-loaded
-}
-
-// TypePattern returns a TypePattern for the Type of this pin definition.
-func (d *Definition) TypePattern() *source.TypePattern {
-	if d.typePattern != nil && d.typePattern.String() == d.Type {
-		return d.typePattern
-	}
-	d.typePattern = source.NewTypePattern(d.Type)
-	return d.typePattern
 }
 
 // Map is a map from pin names to pin definitions.

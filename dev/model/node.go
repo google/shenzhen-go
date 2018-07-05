@@ -31,9 +31,11 @@ type Node struct {
 	Multiplicity uint
 	Wait         bool
 	X, Y         float64
-	Connections  map[string]string              // Pin name -> channel name
-	typeParams   map[string]string              // Type parameter -> inferred values
-	pinTypes     map[string]*source.TypePattern // Pin name -> resolved type
+	Connections  map[string]string // Pin name -> channel name
+
+	typeParams      map[source.TypeParam]*source.Type // Type parameter -> inferred type
+	finalTypeParams map[string]string                 // Local type parameter -> stringy type
+	pinTypes        map[string]*source.Type           // Pin name -> inferred type of pin
 }
 
 // Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.
@@ -59,19 +61,19 @@ func (n *Node) FlatImports() string {
 
 // ImplHead returns the Head part of the implementation.
 func (n *Node) ImplHead() string {
-	h, _, _ := n.Part.Impl(n.typeParams)
+	h, _, _ := n.Part.Impl(n.finalTypeParams)
 	return h
 }
 
 // ImplBody returns the Body part of the implementation.
 func (n *Node) ImplBody() string {
-	_, b, _ := n.Part.Impl(n.typeParams)
+	_, b, _ := n.Part.Impl(n.finalTypeParams)
 	return b
 }
 
 // ImplTail returns the Tail part of the implementation.
 func (n *Node) ImplTail() string {
-	_, _, t := n.Part.Impl(n.typeParams)
+	_, _, t := n.Part.Impl(n.finalTypeParams)
 	return t
 }
 

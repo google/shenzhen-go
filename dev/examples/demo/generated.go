@@ -6,12 +6,7 @@ import (
 	"sync"
 )
 
-func Node_1(bar <-chan rune,
-	baz chan<- float64,
-	foo <-chan int,
-	quux chan<- string,
-	qux chan<- int,
-	tuz <-chan int64,
+func Node_1(qux chan<- int,
 ) {
 
 	func(instanceNumber, multiplicity int) {
@@ -26,12 +21,7 @@ func Node_1(bar <-chan rune,
 
 }
 
-func Node_2(bar <-chan rune,
-	baz chan<- float64,
-	foo <-chan int,
-	quux chan<- string,
-	qux chan<- int,
-	tuz <-chan int64,
+func Node_2(foo <-chan int,
 ) {
 
 	func(instanceNumber, multiplicity int) {
@@ -51,13 +41,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Node_1(nil, nil, nil, nil, channel0, nil)
+		Node_1(channel0)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Node_2(nil, nil, channel0, nil, nil, nil)
+		Node_2(channel0)
 		wg.Done()
 	}()
 

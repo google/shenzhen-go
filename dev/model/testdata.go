@@ -87,7 +87,7 @@ var TestGraphs = map[string]*Graph{
 		Channels: map[string]*Channel{
 			"bar": {
 				Name:     "bar",
-				Type:     source.NewTypePattern("int"),
+				Type:     source.MustNewType("", "int"),
 				Capacity: 0,
 			},
 		},

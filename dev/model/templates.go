@@ -41,8 +41,7 @@ import (
 )
 
 {{range .Nodes}}
-func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},
-	{{end}}) {
+func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
 	{{.ImplHead}}
 	{{if eq .Multiplicity 1 -}}
 	func(instanceNumber, multiplicity int) {

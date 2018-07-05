@@ -400,17 +400,20 @@ func (id modIdent) refine(subst ast.Expr) error {
 			return errIdentExpected
 		}
 		par.Elt = subst
+
 	case *ast.ChanType:
 		if par.Value != id.ident {
 			return errIdentExpected
 		}
 		par.Value = subst
+
 	case *ast.Field:
 		// Covers structs, interfaces, and funcs (all contain FieldList).
 		if par.Type != id.ident {
 			return errIdentExpected
 		}
 		par.Type = subst
+
 	case *ast.MapType:
 		switch id.ident {
 		case par.Key:
@@ -427,6 +430,7 @@ func (id modIdent) refine(subst ast.Expr) error {
 			return errIdentExpected
 		}
 		par.X = subst
+
 	default:
 		return fmt.Errorf("cannot substitute into parent node type %T", id.parent)
 	}

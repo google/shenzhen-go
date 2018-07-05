@@ -301,22 +301,6 @@ func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 			pwalk.next(true)
 			qwalk.next(true)
 
-		case pident != nil && !ppara:
-			// pn is a plain identifier, so qn must either be an ident too;
-			// either plain or a type parameter in q.
-			if qident == nil {
-				return nil, fmt.Errorf("cannot match plain ident with %T", qn)
-			}
-
-			// If qn is a parameter, then it can match pident.
-			// If qn is plain, names must be equal.
-			if !qpara && pident.Name != qident.Name {
-				return nil, fmt.Errorf("mismatching idents [%q != %q]", pident.Name, qident.Name)
-			}
-			// idents, so no children to walk
-			pwalk.next(false)
-			qwalk.next(false)
-
 		case ppara:
 			// Note: do ppara case before qpara, because Infer should infer return
 			// something for tp even if it is just a different parameter.

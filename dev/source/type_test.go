@@ -247,6 +247,11 @@ func TestTypeInfer(t *testing.T) {
 		want map[TypeParam]string
 	}{
 		{
+			base: tf.MustNewType("foo", "int"),
+			in:   tf.MustNewType("", "int"),
+			want: map[TypeParam]string{},
+		},
+		{
 			base: tf.MustNewType("foo", "$T"),
 			in:   tf.MustNewType("", "int"),
 			want: map[TypeParam]string{

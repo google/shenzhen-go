@@ -265,7 +265,8 @@ func (c *chanwalker) next(b bool) {
 	c.nxt <- b
 }
 
-// Infer attempts to produce a map `M` such that `p.Refine(M) = q`.
+// Infer attempts to produce a map `M` such that `p.Refine(M) = q`, or something
+// more refined than q.
 func (p *Type) Infer(q *Type) (map[TypeParam]*Type, error) {
 	// Basic approach: Walk p.expr and t.expr at the same time.
 	// If a meaningful difference is resolvable as a type parameter refinement, then
@@ -434,7 +435,16 @@ func (id modIdent) refine(subst ast.Expr) error {
 
 func isType(n ast.Node) bool {
 	switch n.(type) {
-	case *ast.Ident, *ast.ArrayType, *ast.MapType, *ast.ChanType, *ast.FuncType, *ast.StarExpr, *ast.StructType, *ast.InterfaceType:
+	case
+		*ast.Ident,         // foo
+		*ast.ArrayType,     // []foo
+		*ast.ChanType,      // chan foo
+		*ast.FuncType,      // func(a foo, b bar) baz
+		*ast.InterfaceType, // interface { a() foo; b(bar) }
+		*ast.MapType,       // map[foo]bar
+		*ast.SelectorExpr,  // package.Foo
+		*ast.StarExpr,      // *foo
+		*ast.StructType:    // struct {a foo; b bar}
 		// It's probably a type.
 		return true
 	default:
@@ -516,6 +526,12 @@ func equal(m, n ast.Node) error {
 			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
 		}
 		// Key and Value should be walked.
+	case *ast.SelectorExpr:
+		_, ok := n.(*ast.SelectorExpr)
+		if !ok {
+			return fmt.Errorf("node type mismatch [%T vs %T]", m, n)
+		}
+		// X and Sel should be walked.
 	case *ast.StarExpr:
 		_, ok := n.(*ast.StarExpr)
 		if !ok {

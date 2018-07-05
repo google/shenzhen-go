@@ -51,6 +51,13 @@ func TestNewType(t *testing.T) {
 			wantParams: []TypeParam{},
 		},
 		{
+			scope:      "boop",
+			spec:       "somepackage.Type",
+			wantPlain:  true,
+			wantIdents: 0,
+			wantParams: []TypeParam{},
+		},
+		{
 			scope:      "foo",
 			spec:       "$T",
 			wantPlain:  false,
@@ -95,6 +102,13 @@ func TestNewType(t *testing.T) {
 		{
 			scope:      "foo",
 			spec:       "struct { F $T }",
+			wantPlain:  false,
+			wantIdents: 1,
+			wantParams: []TypeParam{{"foo", "$T"}},
+		},
+		{ // Here's one I didn't imagine.
+			scope:      "foo",
+			spec:       "somepackage.$T",
 			wantPlain:  false,
 			wantIdents: 1,
 			wantParams: []TypeParam{{"foo", "$T"}},
@@ -249,6 +263,11 @@ func TestTypeInfer(t *testing.T) {
 		{
 			base: tf.MustNewType("foo", "int"),
 			in:   tf.MustNewType("", "int"),
+			want: map[TypeParam]string{},
+		},
+		{
+			base: tf.MustNewType("foo", "packaged.Type"),
+			in:   tf.MustNewType("", "packaged.Type"),
 			want: map[TypeParam]string{},
 		},
 		{

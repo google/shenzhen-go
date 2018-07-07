@@ -27,6 +27,7 @@ import (
 type Node struct {
 	Part
 	Name         string
+	Comment      string
 	Enabled      bool
 	Multiplicity uint
 	Wait         bool
@@ -110,6 +111,7 @@ func (n *Node) Identifier() string {
 
 type jsonNode struct {
 	*PartJSON
+	Comment      string            `json:"comment,omitempty"`
 	Enabled      bool              `json:"enabled"`
 	Wait         bool              `json:"wait"`
 	Multiplicity uint              `json:"multiplicity,omitempty"`
@@ -126,6 +128,7 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(&jsonNode{
 		PartJSON:     pj,
+		Comment:      n.Comment,
 		Enabled:      n.Enabled,
 		Wait:         n.Wait,
 		Multiplicity: n.Multiplicity,
@@ -148,6 +151,7 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if mp.Multiplicity < 1 {
 		mp.Multiplicity = 1
 	}
+	n.Comment = mp.Comment
 	n.Enabled = mp.Enabled
 	n.Wait = mp.Wait
 	n.Multiplicity = mp.Multiplicity

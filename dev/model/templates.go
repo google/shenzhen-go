@@ -41,6 +41,9 @@ import (
 )
 
 {{range .Nodes}}
+{{if .Comment -}}
+// {{.Comment}}
+{{end -}}
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
 	{{.ImplHead}}
 	{{if eq .Multiplicity 1 -}}

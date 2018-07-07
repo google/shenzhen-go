@@ -115,6 +115,7 @@ func Setup(doc dom.Document, gc GraphController) {
 	doc.ElementByID("node-wait").
 		AddEventListener("change", v.commitSelected)
 
+	// TODO(josh): reinstate Clone and Convert-To-Code links
 	doc.ElementByID("node-delete-link").
 		AddEventListener("click", v.deleteSelected)
 

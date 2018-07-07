@@ -109,25 +109,6 @@ func NewCode(imports []string, head, body, tail string, pins pin.Map) *Code {
 	}
 }
 
-type part interface {
-	Imports() []string
-	Impl() (head, body, tail string)
-	Pins() pin.Map
-}
-
-// NewCodeFromAny creates a new Code, copying the implementation details
-// out of an existing part.
-func NewCodeFromAny(p part) *Code {
-	h, b, t := p.Impl()
-	return &Code{
-		imports: p.Imports(),
-		head:    h,
-		body:    b,
-		tail:    t,
-		pins:    p.Pins(),
-	}
-}
-
 type jsonCode struct {
 	Imports []string `json:"imports"`
 	Head    []string `json:"head"`

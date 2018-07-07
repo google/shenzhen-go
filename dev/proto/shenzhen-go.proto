@@ -31,13 +31,14 @@ message ChannelConfig {
 
 message NodeConfig {
 	string name = 1;
-    bool enabled = 2;
-    uint32 multiplicity = 3;
-    bool wait = 4;
-    bytes part_cfg = 5;
-	string part_type = 6;
-	double x = 7;
-    double y = 8;
+	string comment = 2;
+	bool enabled = 3;
+    uint32 multiplicity = 4;
+    bool wait = 5;
+    bytes part_cfg = 6;
+	string part_type = 7;
+	double x = 8;
+    double y = 9;
 }
 
 message ActionRequest {

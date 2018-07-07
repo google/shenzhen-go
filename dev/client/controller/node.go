@@ -33,6 +33,7 @@ type nodeSharedOutlets struct {
 	subpanelMetadata  dom.Element
 	subpanelCurrent   dom.Element
 	inputName         dom.Element
+	textareaComment   dom.Element
 	inputEnabled      dom.Element
 	inputMultiplicity dom.Element
 	inputWait         dom.Element
@@ -90,6 +91,7 @@ func (c *nodeController) Commit(ctx context.Context) error {
 	}
 	cfg := &pb.NodeConfig{
 		Name:         c.sharedOutlets.inputName.Get("value").String(),
+		Comment:      c.sharedOutlets.textareaComment.Get("value").String(),
 		Enabled:      c.sharedOutlets.inputEnabled.Get("checked").Bool(),
 		Multiplicity: uint32(c.sharedOutlets.inputMultiplicity.Get("value").Int()),
 		Wait:         c.sharedOutlets.inputWait.Get("checked").Bool(),
@@ -112,6 +114,7 @@ func (c *nodeController) Commit(ctx context.Context) error {
 		c.graph.Nodes[cfg.Name] = c.node
 		c.node.Name = cfg.Name
 	}
+	c.node.Comment = cfg.Comment
 	c.node.Enabled = cfg.Enabled
 	c.node.Multiplicity = uint(cfg.Multiplicity)
 	c.node.Wait = cfg.Wait
@@ -141,6 +144,7 @@ func (c *nodeController) GainFocus() {
 	c.gc.showRHSPanel(c.gc.nodePropertiesPanel)
 
 	c.sharedOutlets.inputName.Set("value", c.node.Name)
+	c.sharedOutlets.textareaComment.Set("value", c.node.Comment)
 	c.sharedOutlets.inputEnabled.Set("checked", c.node.Enabled)
 	c.sharedOutlets.inputMultiplicity.Set("value", c.node.Multiplicity)
 	c.sharedOutlets.inputWait.Set("checked", c.node.Wait)

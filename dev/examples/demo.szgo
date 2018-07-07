@@ -31,6 +31,7 @@
 				}
 			},
 			"part_type": "Code",
+			"comment": "Node 1 reads a user-entered number.",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
@@ -51,7 +52,7 @@
 				"body": [
 					"fmt.Println(\"Node 2: Started.\")",
 					"fmt.Println(\"Node 2: Waiting on foo...\")",
-					"fmt.Printf(\"Node 2: Got %d on foo\\n\", \u003c-foo)",
+					"fmt.Printf(\"Node 2: Got %v on foo\\n\", \u003c-foo)",
 					"fmt.Println(\"Node 2: Finished.\")"
 				],
 				"tail": [
@@ -65,6 +66,7 @@
 				}
 			},
 			"part_type": "Code",
+			"comment": "Node 2 prints the value it receives.",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,

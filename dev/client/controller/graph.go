@@ -127,6 +127,7 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 			subpanelMetadata:  doc.ElementByID("node-metadata-panel"),
 			subpanelCurrent:   doc.ElementByID("node-metadata-panel"),
 			inputName:         doc.ElementByID("node-name"),
+			textareaComment:   doc.ElementByID("node-comment"),
 			inputEnabled:      doc.ElementByID("node-enabled"),
 			inputMultiplicity: doc.ElementByID("node-multiplicity"),
 			inputWait:         doc.ElementByID("node-wait"),

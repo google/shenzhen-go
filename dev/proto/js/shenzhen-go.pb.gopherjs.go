@@ -289,6 +289,7 @@ func (m *ChannelConfig) Unmarshal(rawBytes []byte) (*ChannelConfig, error) {
 
 type NodeConfig struct {
 	Name         string
+	Comment      string
 	Enabled      bool
 	Multiplicity uint32
 	Wait         bool
@@ -304,6 +305,14 @@ func (m *NodeConfig) GetName() (x string) {
 		return x
 	}
 	return m.Name
+}
+
+// GetComment gets the Comment of the NodeConfig.
+func (m *NodeConfig) GetComment() (x string) {
+	if m == nil {
+		return x
+	}
+	return m.Comment
 }
 
 // GetEnabled gets the Enabled of the NodeConfig.
@@ -372,32 +381,36 @@ func (m *NodeConfig) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteString(1, m.Name)
 	}
 
+	if len(m.Comment) > 0 {
+		writer.WriteString(2, m.Comment)
+	}
+
 	if m.Enabled {
-		writer.WriteBool(2, m.Enabled)
+		writer.WriteBool(3, m.Enabled)
 	}
 
 	if m.Multiplicity != 0 {
-		writer.WriteUint32(3, m.Multiplicity)
+		writer.WriteUint32(4, m.Multiplicity)
 	}
 
 	if m.Wait {
-		writer.WriteBool(4, m.Wait)
+		writer.WriteBool(5, m.Wait)
 	}
 
 	if len(m.PartCfg) > 0 {
-		writer.WriteBytes(5, m.PartCfg)
+		writer.WriteBytes(6, m.PartCfg)
 	}
 
 	if len(m.PartType) > 0 {
-		writer.WriteString(6, m.PartType)
+		writer.WriteString(7, m.PartType)
 	}
 
 	if m.X != 0 {
-		writer.WriteFloat64(7, m.X)
+		writer.WriteFloat64(8, m.X)
 	}
 
 	if m.Y != 0 {
-		writer.WriteFloat64(8, m.Y)
+		writer.WriteFloat64(9, m.Y)
 	}
 
 	return
@@ -421,18 +434,20 @@ func (m *NodeConfig) UnmarshalFromReader(reader jspb.Reader) *NodeConfig {
 		case 1:
 			m.Name = reader.ReadString()
 		case 2:
-			m.Enabled = reader.ReadBool()
+			m.Comment = reader.ReadString()
 		case 3:
-			m.Multiplicity = reader.ReadUint32()
+			m.Enabled = reader.ReadBool()
 		case 4:
-			m.Wait = reader.ReadBool()
+			m.Multiplicity = reader.ReadUint32()
 		case 5:
-			m.PartCfg = reader.ReadBytes()
+			m.Wait = reader.ReadBool()
 		case 6:
-			m.PartType = reader.ReadString()
+			m.PartCfg = reader.ReadBytes()
 		case 7:
-			m.X = reader.ReadFloat64()
+			m.PartType = reader.ReadString()
 		case 8:
+			m.X = reader.ReadFloat64()
+		case 9:
 			m.Y = reader.ReadFloat64()
 		default:
 			reader.SkipField()

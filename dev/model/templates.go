@@ -101,6 +101,9 @@ func (g *Graph) WriteRawGoTo(w io.Writer) error {
 	if err := g.InferTypes(); err != nil {
 		return err
 	}
+	for _, n := range g.Nodes {
+		n.RefreshImpl()
+	}
 	return goTemplate.Execute(w, g)
 }
 

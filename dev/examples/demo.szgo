@@ -35,7 +35,7 @@
 			"wait": true,
 			"multiplicity": 1,
 			"x": 154,
-			"y": 65,
+			"y": 64,
 			"connections": {
 				"qux": "channel0"
 			}
@@ -59,7 +59,7 @@
 				],
 				"pins": {
 					"foo": {
-						"type": "int",
+						"type": "$T",
 						"dir": "in"
 					}
 				}

@@ -222,10 +222,10 @@ func (g *Graph) InferTypes() error {
 		for _, pt := range n.pinTypes {
 			pt.Lithify(typeEmptyInterface)
 		}
-		n.finalTypeParams = make(map[string]string)
+		n.typeParams = make(map[string]string)
 	}
 	for tp, typ := range g.types {
-		g.Nodes[tp.Scope].finalTypeParams[tp.Ident] = typ.String()
+		g.Nodes[tp.Scope].typeParams[tp.Ident] = typ.String()
 	}
 	return nil
 }

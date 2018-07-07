@@ -134,7 +134,6 @@ div#diagram-container {
 }
 
 div#panels-container {
-	padding: 6px;
 	display: flex;
 	flex-flow: column;
 }
@@ -144,6 +143,10 @@ div.panel {
 	flex-flow: column;
 	flex: auto;
 	overflow: scroll;
+}
+
+div.panel.padded {
+	padding: 6px;
 }
 
 div.node-panel {

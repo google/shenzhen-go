@@ -58,7 +58,7 @@
 			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" draggable="false" />
 		</div>
 		<div class="container" id="panels-container">
-			<div id="graph-properties" class="panel">
+			<div id="graph-properties" class="panel padded">
 				<h3>Graph Properties</h3>
 				<div class="formfield">
 				    <label for="graph-prop-name">Name</label>
@@ -82,7 +82,7 @@
 			<div id="preview-json" class="panel" style="display:none">
 				<div id="preview-json-ace" class="codeedit"></div>
 			</div>
-			<div id="channel-properties" class="panel" style="display:none">
+			<div id="channel-properties" class="panel padded" style="display:none">
 				<h3>Channel Properties</h3>
 				<div id="channel-actions" class="head">
 					<span id="channel-delete-link" class="link destructive" title="Delete this channel">Delete</a>
@@ -102,7 +102,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="node-properties" class="panel" style="display:none">
+			<div id="node-properties" class="panel padded" style="display:none">
 				<h3>Node Properties</h3>
 				<div id="node-actions" class="head">
 					<span id="node-clone-link" class="link" title="Make a copy of this goroutine.">Clone</span> | 
@@ -145,7 +145,7 @@
 				{{end}}
 				{{end}}
 			</div>
-			<div id="help-licenses-panel" class="panel" style="display:none">
+			<div id="help-licenses-panel" class="panel padded" style="display:none">
 				<h3>Licenses</h3>
 				<h4>Shenzhen Go</h4>
 				<pre>{{$.Licenses.ShenzhenGo}}</pre>
@@ -154,7 +154,7 @@
 				<h4>Chromium Hterm</h4>
 				<pre>{{$.Licenses.Hterm}}</pre>
 			</div>
-			<div id="help-about-panel" class="panel" style="display:none">
+			<div id="help-about-panel" class="panel padded" style="display:none">
 				<h3>Shenzhen Go</h3>
 				(working title)
 				<p>

@@ -33,8 +33,9 @@ type Node struct {
 	X, Y         float64
 	Connections  map[string]string // Pin name -> channel name
 
-	finalTypeParams map[string]string       // Local type parameter -> stringy type
-	pinTypes        map[string]*source.Type // Pin name -> inferred type of pin
+	imports, head, body, tail string                  // Final implementation after type inference
+	typeParams                map[string]string       // Local type parameter -> stringy type
+	pinTypes                  map[string]*source.Type // Pin name -> inferred type of pin
 }
 
 // Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.
@@ -55,25 +56,22 @@ func (n *Node) Copy() *Node {
 
 // FlatImports returns the imports as a single string.
 func (n *Node) FlatImports() string {
-	return strings.Join(n.Part.Imports(), "\n")
+	return n.imports
 }
 
 // ImplHead returns the Head part of the implementation.
 func (n *Node) ImplHead() string {
-	h, _, _ := n.Part.Impl(n.finalTypeParams)
-	return h
+	return n.head
 }
 
 // ImplBody returns the Body part of the implementation.
 func (n *Node) ImplBody() string {
-	_, b, _ := n.Part.Impl(n.finalTypeParams)
-	return b
+	return n.body
 }
 
 // ImplTail returns the Tail part of the implementation.
 func (n *Node) ImplTail() string {
-	_, _, t := n.Part.Impl(n.finalTypeParams)
-	return t
+	return n.tail
 }
 
 // PinFullTypes is a map from pin names to full resolved types:
@@ -173,4 +171,10 @@ func (n *Node) RefreshConnections() {
 		conns[d.Name] = c
 	}
 	n.Connections = conns
+}
+
+// RefreshImpl refreshes imports, head, body, and tail, from the Part.
+func (n *Node) RefreshImpl() {
+	n.imports = strings.Join(n.Part.Imports(), "\n")
+	n.head, n.body, n.tail = n.Part.Impl(n.typeParams)
 }

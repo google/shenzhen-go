@@ -6,8 +6,7 @@ import (
 	"sync"
 )
 
-func Node_1(qux chan<- int,
-) {
+func Node_1(qux chan<- int) {
 
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 1: Started.")
@@ -21,8 +20,7 @@ func Node_1(qux chan<- int,
 
 }
 
-func Node_2(foo <-chan int,
-) {
+func Node_2(foo <-chan int) {
 
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 2: Started.")

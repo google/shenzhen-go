@@ -15,6 +15,7 @@
 package model
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -145,5 +146,225 @@ func TestLoadJSON(t *testing.T) {
 	}
 	if diff, equal := messagediff.PrettyDiff(got.Channels, wantChans); !equal {
 		t.Errorf("LoadJSON().Channels diff (got -> want)\n%v", diff)
+	}
+}
+
+func TestInferTypesSimple(t *testing.T) {
+	g := &Graph{
+		FilePath:    "filepath",
+		URLPath:     "urlpath",
+		Name:        "basic inference",
+		PackagePath: "package/path",
+		IsCommand:   false,
+		Nodes: map[string]*Node{
+			"node 1": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(&pin.Definition{
+					Name:      "output",
+					Type:      "int",
+					Direction: pin.Output,
+				})},
+				Name:         "node 1",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"output": "bar",
+				},
+			},
+			"node 2": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(&pin.Definition{
+					Name:      "input",
+					Type:      "$T",
+					Direction: pin.Input,
+				})},
+				Name:         "node 2",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"input": "bar",
+				},
+			},
+		},
+		Channels: map[string]*Channel{
+			"bar": {
+				Name:     "bar",
+				Capacity: 0,
+			},
+		},
+	}
+	g.RefreshChannelsPins()
+
+	if err := g.InferTypes(); err != nil {
+		t.Fatalf("InferTypes() = error %v", err)
+	}
+	// bar should have type "int"
+	if got, want := g.Channels["bar"].Type.String(), "int"; got != want {
+		t.Errorf("Channels[bar].Type = %s, want %s", got, want)
+	}
+	// node 1.output should still have type "int"
+	if got, want := g.Nodes["node 1"].pinTypes["output"].String(), "int"; got != want {
+		t.Errorf("Nodes[node 1].pinTypes[output] = %s, want %s", got, want)
+	}
+	// node 2.input should have type "int"
+	if got, want := g.Nodes["node 2"].pinTypes["input"].String(), "int"; got != want {
+		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
+	}
+}
+
+func TestInferTypesMapToMap(t *testing.T) {
+	g := &Graph{
+		FilePath:    "filepath",
+		URLPath:     "urlpath",
+		Name:        "map to map",
+		PackagePath: "package/path",
+		IsCommand:   false,
+		Nodes: map[string]*Node{
+			"node 1": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(&pin.Definition{
+					Name:      "output",
+					Type:      "map[$K]int",
+					Direction: pin.Output,
+				})},
+				Name:         "node 1",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"output": "bar",
+				},
+			},
+			"node 2": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(&pin.Definition{
+					Name:      "input",
+					Type:      "map[string]$V",
+					Direction: pin.Input,
+				})},
+				Name:         "node 2",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"input": "bar",
+				},
+			},
+		},
+		Channels: map[string]*Channel{
+			"bar": {
+				Name:     "bar",
+				Capacity: 0,
+			},
+		},
+	}
+	g.RefreshChannelsPins()
+
+	if err := g.InferTypes(); err != nil {
+		t.Fatalf("InferTypes() = error %v", err)
+	}
+	want := "map[string]int"
+	if got := g.Channels["bar"].Type.String(); got != want {
+		t.Errorf("Channels[bar].Type = %s, want %s", got, want)
+	}
+	if got := g.Nodes["node 1"].pinTypes["output"].String(); got != want {
+		t.Errorf("Nodes[node 1].pinTypes[output] = %s, want %s", got, want)
+	}
+	if got := g.Nodes["node 2"].pinTypes["input"].String(); got != want {
+		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
+	}
+}
+
+func TestInferTypes10Chain(t *testing.T) {
+	g := &Graph{
+		FilePath:    "filepath",
+		URLPath:     "urlpath",
+		Name:        "chain with 10 channels",
+		PackagePath: "package/path",
+		IsCommand:   false,
+		Nodes: map[string]*Node{
+			"node 0": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(&pin.Definition{
+					Name:      "output",
+					Type:      "map[$K]int",
+					Direction: pin.Output,
+				})},
+				Name:         "node 0",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"output": "chan0_1",
+				},
+			},
+			"node 10": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(&pin.Definition{
+					Name:      "input",
+					Type:      "map[string]$V",
+					Direction: pin.Input,
+				})},
+				Name:         "node 10",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"input": "chan9_10",
+				},
+			},
+		},
+		Channels: map[string]*Channel{
+			"chan0_1": {
+				Name: "chan0_1",
+			},
+		},
+	}
+	for i := 1; i < 10; i++ {
+		name := fmt.Sprintf("node %d", i)
+		cname := fmt.Sprintf("chan%d_%d", i, i+1)
+		g.Nodes[name] = &Node{
+			Part: &FakePart{nil, "", "", "", pin.NewMap(
+				&pin.Definition{
+					Name:      "input",
+					Type:      "$T",
+					Direction: pin.Input,
+				},
+				&pin.Definition{
+					Name:      "output",
+					Type:      "$T",
+					Direction: pin.Output,
+				},
+			)},
+			Name:         name,
+			Enabled:      true,
+			Multiplicity: 1,
+			Wait:         true,
+			Connections: map[string]string{
+				"input":  fmt.Sprintf("chan%d_%d", i-1, i),
+				"output": cname,
+			},
+		}
+		g.Channels[cname] = &Channel{
+			Name: cname,
+		}
+	}
+	g.RefreshChannelsPins()
+
+	if err := g.InferTypes(); err != nil {
+		t.Fatalf("InferTypes() = error %v", err)
+	}
+	// TODO(josh): fix inference engine and re-enable.
+	if false {
+		want := "map[string]int"
+		for _, c := range g.Channels {
+			if got := c.Type.String(); got != want {
+				t.Errorf("Channels[%s].Type = %s, want %s", c.Name, got, want)
+			}
+		}
+		for _, n := range g.Nodes {
+			if got := n.pinTypes["input"].String(); n.Name != "node 0" && got != want {
+				t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
+			}
+			if got := n.pinTypes["output"].String(); n.Name != "node 10" && got != want {
+				t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
+			}
+		}
 	}
 }

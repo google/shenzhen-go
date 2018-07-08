@@ -19,12 +19,6 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
-//	Clone() interface{}
-//	Impl(types map[string]string) (head, body, tail string)
-//	Imports() []string
-//	Pins() pin.Map
-//	TypeKey() string
-
 func init() {
 	model.RegisterPartType("Sink", &model.PartType{
 		New: func() model.Part { return &Sink{} },
@@ -45,7 +39,7 @@ func init() {
 type Sink struct{}
 
 // Clone returns a clone of this Sink.
-func (Sink) Clone() interface{} { return &Sink{} }
+func (Sink) Clone() model.Part { return &Sink{} }
 
 // Impl returns the Sink implementation.
 func (Sink) Impl(map[string]string) (head, body, tail string) {

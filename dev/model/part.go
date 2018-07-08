@@ -26,7 +26,7 @@ import (
 // able to be marshalled to and unmarshalled from JSON sensibly.
 type Part interface {
 	// Clone returns a copy of this part.
-	Clone() interface{}
+	Clone() Part
 
 	// TODO: Aspects supported by the part: multiplicity? variadic? generic?
 

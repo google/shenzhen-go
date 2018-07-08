@@ -149,7 +149,7 @@ func (c *Code) UnmarshalJSON(j []byte) error {
 func (c *Code) Pins() pin.Map { return c.pins }
 
 // Clone returns a copy of this Code part.
-func (c *Code) Clone() interface{} {
+func (c *Code) Clone() model.Part {
 	pins := make(pin.Map, len(c.pins))
 	for k, v := range c.pins {
 		p := *v

@@ -125,13 +125,19 @@ func Setup(doc dom.Document, gc GraphController) {
 		})
 
 	for n, t := range model.PartTypes {
+		n := n
 		doc.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(dom.Object) { go v.graph.reallyCreateNode(n) }) // Don't block in callback
+			AddEventListener("click", func(dom.Object) {
+				// Don't block in callback
+				go v.graph.reallyCreateNode(n)
+			})
 
 		for _, p := range t.Panels {
 			m := p.Name
 			doc.ElementByID("node-"+n+"-"+m+"-link").
-				AddEventListener("click", func(dom.Object) { v.selectedItem.(*Node).nc.ShowPartSubpanel(m) })
+				AddEventListener("click", func(dom.Object) {
+					v.selectedItem.(*Node).nc.ShowPartSubpanel(m)
+				})
 		}
 
 	}

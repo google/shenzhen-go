@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// Node 1 reads a user-entered number.
 func Node_1(qux chan<- int) {
 
 	func(instanceNumber, multiplicity int) {
@@ -20,12 +21,13 @@ func Node_1(qux chan<- int) {
 
 }
 
+// Node 2 prints the value it receives.
 func Node_2(foo <-chan int) {
 
 	func(instanceNumber, multiplicity int) {
 		fmt.Println("Node 2: Started.")
 		fmt.Println("Node 2: Waiting on foo...")
-		fmt.Printf("Node 2: Got %d on foo\n", <-foo)
+		fmt.Printf("Node 2: Got %v on foo\n", <-foo)
 		fmt.Println("Node 2: Finished.")
 	}(0, 1)
 

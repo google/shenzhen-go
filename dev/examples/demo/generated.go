@@ -6,6 +6,14 @@ import (
 	"sync"
 )
 
+func Closer(output chan<- interface{}) {
+
+	func(instanceNumber, multiplicity int) {
+
+	}(0, 1)
+	close(output)
+}
+
 // Node 1 reads a user-entered number.
 func Node_1(qux chan<- int) {
 
@@ -33,11 +41,27 @@ func Node_2(foo <-chan int) {
 
 }
 
+func Sink(input <-chan interface{}) {
+
+	func(instanceNumber, multiplicity int) {
+		for range input {
+		}
+	}(0, 1)
+
+}
+
 func main() {
 
 	channel0 := make(chan int, 0)
+	channel2 := make(chan interface{}, 0)
 
 	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		Closer(channel2)
+		wg.Done()
+	}()
 
 	wg.Add(1)
 	go func() {
@@ -48,6 +72,12 @@ func main() {
 	wg.Add(1)
 	go func() {
 		Node_2(channel0)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Sink(channel2)
 		wg.Done()
 	}()
 

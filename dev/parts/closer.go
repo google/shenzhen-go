@@ -19,6 +19,12 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
+var closerPins = pin.NewMap(&pin.Definition{
+	Name:      "output",
+	Direction: pin.Output,
+	Type:      "$Any",
+})
+
 func init() {
 	model.RegisterPartType("Closer", &model.PartType{
 		New: func() model.Part { return &Closer{} },
@@ -48,15 +54,7 @@ func (Closer) Impl(map[string]string) (head, body, tail string) {
 func (Closer) Imports() []string { return nil }
 
 // Pins returns a map declaring a single output of any type.
-func (Closer) Pins() pin.Map {
-	return pin.Map{
-		"output": {
-			Name:      "output",
-			Direction: pin.Output,
-			Type:      "$Any",
-		},
-	}
-}
+func (Closer) Pins() pin.Map { return closerPins }
 
 // TypeKey returns "Closer".
 func (Closer) TypeKey() string { return "Closer" }

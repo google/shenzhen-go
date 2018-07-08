@@ -19,6 +19,12 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
+var sinkPins = pin.NewMap(&pin.Definition{
+	Name:      "input",
+	Direction: pin.Input,
+	Type:      "$Any",
+})
+
 func init() {
 	model.RegisterPartType("Sink", &model.PartType{
 		New: func() model.Part { return &Sink{} },
@@ -50,15 +56,7 @@ func (Sink) Impl(map[string]string) (head, body, tail string) {
 func (Sink) Imports() []string { return nil }
 
 // Pins returns a map declaring a single input of any type.
-func (Sink) Pins() pin.Map {
-	return pin.Map{
-		"input": {
-			Name:      "input",
-			Direction: pin.Input,
-			Type:      "$Any",
-		},
-	}
-}
+func (Sink) Pins() pin.Map { return sinkPins }
 
 // TypeKey returns "Sink".
 func (Sink) TypeKey() string { return "Sink" }

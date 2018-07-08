@@ -36,25 +36,6 @@ type Graph struct {
 	Channels map[string]*Channel
 }
 
-func (g *Graph) reallyCreateNode(partType string) {
-	nc, err := g.gc.CreateNode(context.TODO(), partType)
-	if err != nil {
-		g.errors.setError("Couldn't create a new node: " + err.Error())
-		return
-	}
-	g.errors.clearError()
-
-	n := &Node{
-		view:   g.view,
-		errors: g.errors,
-		graph:  g,
-		nc:     nc,
-	}
-	n.abs = Pt(nc.Position())
-	n.MakeElements(g.doc, g.Group)
-	g.Nodes[nc.Name()] = n
-}
-
 func (g *Graph) nearestPoint(x, y float64) (dist float64, pt Pointer) {
 	dist = math.MaxFloat64
 	q := complex(x, y)
@@ -136,13 +117,13 @@ func (g *Graph) loseFocus() { go g.reallyCommit() }
 func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 	g.Group.Remove()
 	g.Group = NewGroup(doc, parent)
+	g.doc = doc
 
 	// Set up data structures.
 	g.Channels = make(map[string]*Channel, g.gc.NumChannels())
 	g.Nodes = make(map[string]*Node, g.gc.NumNodes())
 
-	// Add any channels that didn't exist but now do.
-	// Refresh any existing channels.
+	// (Re-)add all channels.
 	g.gc.Channels(func(cc ChannelController) {
 		// Add the channel.
 		ch := &Channel{
@@ -156,46 +137,8 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 		ch.MakeElements(doc, g.Group)
 	})
 
-	// Add any nodes that didn't exist but now do.
-	// Refresh existing nodes.
-	g.gc.Nodes(func(nc NodeController) {
-		m := &Node{
-			view:   g.view,
-			errors: g.errors,
-			graph:  g,
-			nc:     nc,
-			abs:    Pt(nc.Position()),
-		}
-		inputs := 0
-		nc.Pins(func(pc PinController, channel string) {
-			q := &Pin{
-				pc:     pc,
-				view:   g.view,
-				errors: g.errors,
-				graph:  g,
-				node:   m,
-			}
-			if pc.IsInput() {
-				inputs++
-			}
-			m.AllPins = append(m.AllPins, q)
-			if channel == "" || channel == "nil" {
-				return
-			}
-			c := g.Channels[channel]
-			if c == nil {
-				log.Printf("channel %q not found", channel)
-				return
-			}
-			c.addPin(q)
-		})
-		// Consolidate slices (not that it really matters)
-		sortPins(m.AllPins)
-		m.Inputs, m.Outputs = m.AllPins[:inputs], m.AllPins[inputs:]
-
-		g.Nodes[nc.Name()] = m
-		m.MakeElements(doc, g.Group)
-	})
+	// (Re-)add all nodes.
+	g.gc.Nodes(g.addNode)
 
 	// Load connections.
 	for _, ch := range g.Channels {
@@ -206,4 +149,53 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 			r.Reroute()
 		}
 	}
+}
+
+func (g *Graph) reallyCreateNode(partType string) {
+	nc, err := g.gc.CreateNode(context.TODO(), partType)
+	if err != nil {
+		g.errors.setError("Couldn't create a new node: " + err.Error())
+		return
+	}
+	g.errors.clearError()
+	g.addNode(nc)
+}
+
+func (g *Graph) addNode(nc NodeController) {
+	m := &Node{
+		view:   g.view,
+		errors: g.errors,
+		graph:  g,
+		nc:     nc,
+		abs:    Pt(nc.Position()),
+	}
+	inputs := 0
+	nc.Pins(func(pc PinController, channel string) {
+		q := &Pin{
+			pc:     pc,
+			view:   g.view,
+			errors: g.errors,
+			graph:  g,
+			node:   m,
+		}
+		if pc.IsInput() {
+			inputs++
+		}
+		m.AllPins = append(m.AllPins, q)
+		if channel == "" || channel == "nil" {
+			return
+		}
+		c := g.Channels[channel]
+		if c == nil {
+			log.Printf("channel %q not found", channel)
+			return
+		}
+		c.addPin(q)
+	})
+	// Consolidate slices (not that it really matters)
+	sortPins(m.AllPins)
+	m.Inputs, m.Outputs = m.AllPins[:inputs], m.AllPins[inputs:]
+
+	g.Nodes[nc.Name()] = m
+	m.MakeElements(g.doc, g.Group)
 }

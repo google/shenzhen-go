@@ -49,6 +49,16 @@ type Definition struct {
 // Map is a map from pin names to pin definitions.
 type Map map[string]*Definition
 
+// NewConnections returns a fresh Connections map
+// (keys are pin names, values are all "nil").
+func (m Map) NewConnections() map[string]string {
+	conns := make(map[string]string, len(m))
+	for k := range m {
+		conns[k] = "nil"
+	}
+	return conns
+}
+
 // UnmarshalJSON unmarshals the map the usual way, and then
 // calls FillNames.
 func (m *Map) UnmarshalJSON(b []byte) error {

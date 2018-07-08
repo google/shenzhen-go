@@ -161,7 +161,7 @@ func (c *nodeController) ShowPartSubpanel(name string) {
 }
 
 func (c *nodeController) showSubpanel(p dom.Element) {
-	if f := c.node.Part.(focusable); f != nil {
+	if f, ok := c.node.Part.(focusable); ok {
 		// Wait until after panel is shown in case of display weirdness.
 		defer f.GainFocus()
 	}

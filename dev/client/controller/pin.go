@@ -33,11 +33,11 @@ func (c *pinController) Name() string {
 }
 
 func (c *pinController) Type() string {
-	return c.node.Pins()[c.name].Type
+	return c.def.Type
 }
 
 func (c *pinController) IsInput() bool {
-	return c.node.Pins()[c.name].Direction == pin.Input
+	return c.def.Direction == pin.Input
 }
 
 func (c *pinController) NodeName() string {

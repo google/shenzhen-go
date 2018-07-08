@@ -32,7 +32,8 @@ func init() {
 			Name: "Help",
 			Editor: `<div>
 			<p>
-				A Sink part consumes all input and does nothing with it.
+				A Sink part consumes all input and does nothing with it. 
+				It completes when the input is exhausted and closed.
 			</p>
 			</div>`,
 		}},

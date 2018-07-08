@@ -148,7 +148,14 @@ func (c *nodeController) GainFocus() {
 	c.sharedOutlets.inputEnabled.Set("checked", c.node.Enabled)
 	c.sharedOutlets.inputMultiplicity.Set("value", c.node.Multiplicity)
 	c.sharedOutlets.inputWait.Set("checked", c.node.Wait)
-	c.sharedOutlets.partEditors[c.node.Part.TypeKey()].Links.Show()
+	// Hide all parteditor links except for this parttype
+	for k, e := range c.sharedOutlets.partEditors {
+		if k == c.node.Part.TypeKey() {
+			e.Links.Show()
+		} else {
+			e.Links.Hide()
+		}
+	}
 	c.showSubpanel(c.subpanel)
 }
 

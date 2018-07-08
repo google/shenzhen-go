@@ -42,22 +42,22 @@ import (
 
 {{range .Nodes}}
 {{if .Comment -}}
-// {{.Comment}}
+/* {{.Comment}} */
 {{end -}}
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
+	const multiplicity = {{.Multiplicity}}
 	{{.ImplHead}}
 	{{if eq .Multiplicity 1 -}}
-	func(instanceNumber, multiplicity int) {
-		{{.ImplBody}}
-	}(0, 1)
+	const instanceNumber = 0
+	{{.ImplBody}}
 	{{- else -}}
 	var multWG sync.WaitGroup
-	multWG.Add({{.Multiplicity}})
-	for n:=0; n<{{.Multiplicity}}; n++ {
-		go func(instanceNumber, multiplicity int) {
+	multWG.Add(multiplicity)
+	for n:=0; n<multiplicity; n++ {
+		go func(instanceNumber int) {
 			defer multWG.Done()
 			{{.ImplBody}}
-		}(n, {{.Multiplicity}})
+		}(n)
 	}
 	multWG.Wait()
 	{{- end}}

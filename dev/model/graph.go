@@ -256,13 +256,18 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 			}
 		}
 
-		// Apply inferred params to c.Type.
-		if _, err := c.Type.Refine(g.types); err != nil {
+		// Apply inferred params back to c.Type.
+		cimp, err := c.Type.Refine(g.types)
+		if err != nil {
 			return nil, &TypeIncompatibilityError{
 				Summary: "channel type refinement failed",
 				Source:  err,
 			}
 		}
+		if cimp {
+			next[c] = struct{}{}
+		}
+
 		// Apply inferred params to all pins on node n.
 		nxcn, err := n.applyTypeParams(g.types)
 		if err != nil {

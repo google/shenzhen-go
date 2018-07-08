@@ -22,7 +22,6 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"regexp"
 	"sort"
 	"strings"
 )
@@ -31,8 +30,6 @@ const (
 	paramPrefix        = "$"
 	mangledParamPrefix = "_SzGo_Mangled_Type_Param_" // Should be unlikely enough.
 )
-
-var mangledParamRE = regexp.MustCompile(regexp.QuoteMeta(mangledParamPrefix) + `\w+`)
 
 // TypeParam identifies a type parameter in a pattern.
 type TypeParam struct {
@@ -51,8 +48,11 @@ type Type struct {
 	identToParam  map[*ast.Ident]TypeParam
 }
 
-// These assume that paramPrefix is invalid in a regular Go type, which
+// mangle/unmangle assume that paramPrefix is invalid in a regular Go type, which
 // is false in general (struct tags).
+// Typically a snippet is round-tripped through both mangle and unmangle, which undoes
+// any unintended damage to paramPrefix, but causes problems if mangledParamPrefix is
+// somehow used in the original snippet.
 
 func mangle(p string) string {
 	return strings.Replace(p, paramPrefix, mangledParamPrefix, -1)
@@ -60,6 +60,14 @@ func mangle(p string) string {
 
 func unmangle(t string) string {
 	return strings.Replace(t, mangledParamPrefix, paramPrefix, -1)
+}
+
+func mangleIdent(n string) string {
+	return mangledParamPrefix + strings.TrimPrefix(n, paramPrefix)
+}
+
+func unmangleIdent(n string) string {
+	return paramPrefix + strings.TrimPrefix(n, mangledParamPrefix)
 }
 
 // MustNewType is NewType but where all errors cause a panic.
@@ -91,12 +99,12 @@ func NewType(scope, t string) (*Type, error) {
 			if !ok {
 				return true
 			}
-			if !mangledParamRE.MatchString(id.Name) {
+			if !strings.HasPrefix(id.Name, mangledParamPrefix) {
 				return true
 			}
 			tp := TypeParam{
 				Scope: scope,
-				Ident: unmangle(id.Name),
+				Ident: unmangleIdent(id.Name),
 			}
 			identToParam[id] = tp
 			paramToIdents[tp] = append(paramToIdents[tp], modIdent{
@@ -585,3 +593,37 @@ func equal(m, n ast.Node) error {
 	}
 	return nil
 }
+
+/*
+// Expand expands type parameters in a single Go file. All type parameters
+// are assumed to be in scope for the file.
+func Expand(filename, src string, types map[string]*Type) (string, error) {
+	mangledSrc := mangle(src)
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, filename, mangledSrc, 0)
+	if err != nil {
+		return "", err
+	}
+
+	pt := parentTracker{parent: nil, f: func(parent, node ast.Node) bool {
+		ident, ok := node.(*ast.Ident)
+		if !ok {
+			return true
+		}
+		if !strings.HasPrefix(ident.Name, mangledParamPrefix) {
+			return false
+		}
+		typ := types[unmangleIdent(ident.Name)]
+		if typ == nil {
+			return false
+		}
+
+		// TODO(josh): finish
+		return false
+	}}
+	ast.Walk(pt, f)
+
+	return "", nil
+}
+*/

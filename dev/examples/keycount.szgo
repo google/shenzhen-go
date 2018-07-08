@@ -12,9 +12,9 @@
 			"x": 198,
 			"y": 229,
 			"connections": {
-				"input": "channel1",
+				"input": "words",
 				"output": "channel0",
-				"result": "channel2"
+				"result": "results"
 			}
 		},
 		"Get words": {
@@ -56,7 +56,7 @@
 			"x": 207,
 			"y": 111,
 			"connections": {
-				"words": "channel1"
+				"words": "words"
 			}
 		},
 		"Print summary": {
@@ -87,7 +87,7 @@
 			"x": 277,
 			"y": 324,
 			"connections": {
-				"result": "channel2"
+				"result": "results"
 			}
 		},
 		"Sink": {
@@ -107,10 +107,10 @@
 		"channel0": {
 			"cap": 0
 		},
-		"channel1": {
+		"results": {
 			"cap": 0
 		},
-		"channel2": {
+		"words": {
 			"cap": 0
 		}
 	}

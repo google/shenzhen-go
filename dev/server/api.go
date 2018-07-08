@@ -172,7 +172,6 @@ func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb
 			// Deletion was intended, job complete.
 			return &pb.Empty{}, nil
 		}
-
 	}
 
 	// Set entry in map, update connections on node side.

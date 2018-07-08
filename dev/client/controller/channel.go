@@ -82,6 +82,9 @@ func (c *channelController) Commit(ctx context.Context) error {
 		c.channel.Name = cfg.Name
 		c.existingName = cfg.Name
 		c.graph.Channels[cfg.Name] = c.channel
+		for np := range c.channel.Pins {
+			c.graph.Nodes[np.Node].Connections[np.Pin] = cfg.Name
+		}
 	}
 	c.channel.Capacity = int(cfg.Cap)
 	return nil

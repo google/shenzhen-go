@@ -58,26 +58,26 @@ func Sink(input <-chan string) {
 func main() {
 
 	channel0 := make(chan string, 0)
-	channel1 := make(chan string, 0)
-	channel2 := make(chan map[string]uint, 0)
+	results := make(chan map[string]uint, 0)
+	words := make(chan string, 0)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		Count_words(channel1, channel0, channel2)
+		Count_words(words, channel0, results)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Get_words(channel1)
+		Get_words(words)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Print_summary(channel2)
+		Print_summary(results)
 		wg.Done()
 	}()
 

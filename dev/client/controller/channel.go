@@ -44,11 +44,13 @@ func (c *channelController) Name() string { return c.channel.Name }
 
 func (c *channelController) Pins(f func(view.PinController)) {
 	for p := range c.channel.Pins {
+		node := c.graph.Nodes[p.Node]
 		f(&pinController{
 			client: c.client,
 			graph:  c.graph,
-			node:   c.graph.Nodes[p.Node],
+			node:   node,
 			name:   p.Pin,
+			def:    node.Pins()[p.Pin],
 		})
 	}
 }

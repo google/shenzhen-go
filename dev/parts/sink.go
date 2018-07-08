@@ -53,6 +53,7 @@ func (Sink) Imports() []string { return nil }
 func (Sink) Pins() pin.Map {
 	return pin.Map{
 		"input": {
+			Name:      "input",
 			Direction: pin.Input,
 			Type:      "$Any",
 		},

@@ -238,9 +238,8 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 		Multiplicity: 1,
 		Part:         pt,
 		// TODO: use a better initial position
-		X:           150,
-		Y:           150,
-		Connections: pt.Pins().NewConnections(),
+		X: 150,
+		Y: 150,
 	}
 
 	_, err = c.client.SetNode(ctx, &pb.SetNodeRequest{
@@ -258,6 +257,7 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 		return nil, err
 	}
 	c.graph.Nodes[n.Name] = n
+	n.RefreshConnections()
 	return c.newNodeController(n), nil
 }
 

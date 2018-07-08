@@ -51,6 +51,7 @@ func (Closer) Imports() []string { return nil }
 func (Closer) Pins() pin.Map {
 	return pin.Map{
 		"output": {
+			Name:      "output",
 			Direction: pin.Output,
 			Type:      "$Any",
 		},

@@ -165,14 +165,14 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 // RefreshConnections filters n.Connections to ensure only pins defined by the
 // part are in the map, and any new ones are mapped to "nil".
 func (n *Node) RefreshConnections() {
-	pd := n.Pins()
-	conns := make(map[string]string)
-	for _, d := range pd {
-		c := n.Connections[d.Name]
+	pins := n.Pins()
+	conns := make(map[string]string, len(pins))
+	for name := range pins {
+		c := n.Connections[name]
 		if c == "" {
 			c = "nil"
 		}
-		conns[d.Name] = c
+		conns[name] = c
 	}
 	n.Connections = conns
 }

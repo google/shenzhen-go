@@ -54,14 +54,14 @@ func (c *nodeController) Name() string             { return c.node.Name }
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
 
 func (c *nodeController) Pins(f func(view.PinController, string)) {
-	defs := c.node.Pins()
+	pins := c.node.Pins()
 	for name, conn := range c.node.Connections {
 		pc := &pinController{
 			client: c.client,
 			graph:  c.graph,
 			node:   c.node,
 			name:   name,
-			def:    defs[name],
+			def:    pins[name],
 		}
 		f(pc, conn)
 	}

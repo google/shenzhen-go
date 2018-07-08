@@ -17,7 +17,6 @@ package parts
 import (
 	"encoding/json"
 	"go/format"
-	"html/template"
 	"log"
 	"strings"
 
@@ -25,35 +24,31 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
-var (
-	// CodePanels are subpanels for editing code-type parts.
-	CodePanels = []struct {
-		Name   string
-		Editor template.HTML
-	}{
-		{
-			Name:   "Pins",
-			Editor: `<div class="codeedit" id="code-pins"></div>`,
-		},
-		{
-			Name:   "Imports",
-			Editor: `<div class="codeedit" id="code-imports"></div>`,
-		},
-		{
-			Name:   "Head",
-			Editor: `<div class="codeedit" id="code-head"></div>`,
-		},
-		{
-			Name:   "Body",
-			Editor: `<div class="codeedit" id="code-body"></div>`,
-		},
-		{
-			Name:   "Tail",
-			Editor: `<div class="codeedit" id="code-tail"></div>`,
-		},
-		{
-			Name: "Help",
-			Editor: `<div>
+// CodePanels are subpanels for editing code-type parts.
+var CodePanels = []model.PartPanel{
+	{
+		Name:   "Pins",
+		Editor: `<div class="codeedit" id="code-pins"></div>`,
+	},
+	{
+		Name:   "Imports",
+		Editor: `<div class="codeedit" id="code-imports"></div>`,
+	},
+	{
+		Name:   "Head",
+		Editor: `<div class="codeedit" id="code-head"></div>`,
+	},
+	{
+		Name:   "Body",
+		Editor: `<div class="codeedit" id="code-body"></div>`,
+	},
+	{
+		Name:   "Tail",
+		Editor: `<div class="codeedit" id="code-tail"></div>`,
+	},
+	{
+		Name: "Help",
+		Editor: `<div>
 	<p>
 		A Code part runs (executes) any Go code that you write. It is completely customisable.
 	</p><p>
@@ -80,9 +75,8 @@ var (
 	</p>
 	</div>
 	`,
-		},
-	}
-)
+	},
+}
 
 func init() {
 	model.RegisterPartType("Code", &model.PartType{

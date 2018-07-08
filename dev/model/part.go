@@ -60,10 +60,13 @@ type Part interface {
 // The HTML is loaded with the editor.
 type PartType struct {
 	New    func() Part
-	Panels []struct {
-		Name   string
-		Editor template.HTML
-	}
+	Panels []PartPanel
+}
+
+// PartPanel describes one panel of the editor interface specific to a part type.
+type PartPanel struct {
+	Name   string
+	Editor template.HTML
 }
 
 // PartTypes translates part type strings into useful information.

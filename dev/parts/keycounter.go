@@ -47,9 +47,14 @@ func init() {
 			Name: "Help",
 			Editor: `<div>
 			<p>
+				A KeyCounter produces a frequency table: a map from values to
+				how many of them passed through.
+			</p><p>
 				A KeyCounter passes through values from input to output, counting
 				how many of each value it sees in a map. When the input is closed,
 				the map is sent on the result channel, and both outputs are closed.
+			</p><p>
+				If output is nil (not connected), it is ignored.
 			</p>
 			</div>`,
 		}},
@@ -65,14 +70,15 @@ func (KeyCounter) Clone() model.Part { return &KeyCounter{} }
 // Impl returns the Closer implementation.
 func (KeyCounter) Impl(types map[string]string) (head, body, tail string) {
 	return fmt.Sprintf("m := make(map[%s]uint)", types[keyCounterTypeParam]),
-		"for in := range input { m[in]++; output <- in }",
-		"result <- m; close(output); close(result)"
+		"for in := range input { m[in]++; if output != nil { output <- in } }",
+		"result <- m; if output != nil { close(output) }; close(result)"
 }
 
 // Imports returns nil.
 func (KeyCounter) Imports() []string { return nil }
 
-// Pins returns a map declaring a single output of any type.
+// Pins returns a map declaring an input/output pair of the same type,
+// and a result output with map type.
 func (KeyCounter) Pins() pin.Map { return keyCounterPins }
 
 // TypeKey returns "Closer".

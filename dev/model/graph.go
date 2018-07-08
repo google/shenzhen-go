@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"strings"
 
 	"github.com/google/shenzhen-go/dev/source"
@@ -202,12 +203,15 @@ func (g *Graph) InferTypes() error {
 	for len(q) > 0 {
 		c := q[0]
 		q = q[1:]
+		log.Printf("popped %s currently with type %s params %v", c.Name, c.Type, c.Type.Params())
 
-		next, err := g.inferChannelType(c)
+		next, err := g.inferAndRefineChan(c)
 		if err != nil {
 			return err
 		}
+		log.Printf("inferred %s (params %v) for channel %s", c.Type, c.Type.Params(), c.Name)
 		for c := range next {
+			log.Printf("pushed %s", c.Name)
 			q = append(q, c)
 		}
 	}
@@ -215,9 +219,11 @@ func (g *Graph) InferTypes() error {
 	// Force all unresolved channel type parameters to interface{}.
 	for _, c := range g.Channels {
 		c.Type.Lithify(typeEmptyInterface)
+		for np := range c.Pins {
+			g.Nodes[np.Node].pinTypes[np.Pin] = c.Type
+		}
 	}
-	// Force all unresolved node type parameters to interface{}.
-	// Finally, give the node a map of resolved local types.
+	// Finally, give each node a map of resolved local types.
 	for _, n := range g.Nodes {
 		for _, pt := range n.pinTypes {
 			pt.Lithify(typeEmptyInterface)
@@ -232,8 +238,8 @@ func (g *Graph) InferTypes() error {
 
 // next contains any channels that might be inferrable
 // as a result of making improvement on this channel's type.
-func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err error) {
-	next = make(map[*Channel]struct{})
+func (g *Graph) inferAndRefineChan(c *Channel) (map[*Channel]struct{}, error) {
+	next := make(map[*Channel]struct{})
 
 	// Look at c's pins.
 	for np := range c.Pins {
@@ -248,13 +254,14 @@ func (g *Graph) inferChannelType(c *Channel) (next map[*Channel]struct{}, err er
 		}
 
 		// Make inferences; at the end, c.Type and ptype must be the same fully refined type.
-		g.types.Infer(c.Type, ptype)
-		if err != nil {
+		if err := g.types.Infer(c.Type, ptype); err != nil {
 			return nil, &TypeIncompatibilityError{
 				Summary: "channel connected to incompatible types",
 				Source:  err,
 			}
 		}
+
+		log.Printf("current inferences: %v", g.types)
 
 		// Apply inferred params back to c.Type.
 		cimp, err := c.Type.Refine(g.types)
@@ -291,6 +298,7 @@ func (n *Node) applyTypeParams(types source.TypeInferenceMap) (next source.Strin
 		if err != nil {
 			return nil, err
 		}
+		log.Printf("changed %t; refined type %s (params %v) for %s.%s", changed, pt, pt.Params(), n.Name, pn)
 		if !changed { // Refine had no effect, not worth investigating channel.
 			continue
 		}

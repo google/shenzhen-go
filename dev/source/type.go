@@ -168,6 +168,9 @@ func (p *Type) Plain() bool { return len(p.paramToIdents) == 0 }
 
 // Params returns a sorted slice of parameter names.
 func (p *Type) Params() []TypeParam {
+	if p == nil {
+		return nil
+	}
 	params := make([]TypeParam, 0, len(p.paramToIdents))
 	for param := range p.paramToIdents {
 		params = append(params, param)
@@ -225,11 +228,10 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 			}
 		}
 	}
-	if !changed {
-		return false, nil
+	if changed {
+		p.spec = unmangle(types.ExprString(p.expr))
 	}
-	p.spec = unmangle(types.ExprString(p.expr))
-	return true, nil
+	return changed, nil
 }
 
 // Lithify refines all parameters with a single default.

@@ -15,10 +15,14 @@ func Count_words(input <-chan string, output chan<- string, result chan<- map[st
 	const instanceNumber = 0
 	for in := range input {
 		m[in]++
-		output <- in
+		if output != nil {
+			output <- in
+		}
 	}
 	result <- m
-	close(output)
+	if output != nil {
+		close(output)
+	}
 	close(result)
 }
 
@@ -46,18 +50,8 @@ func Print_summary(result <-chan map[string]uint) {
 
 }
 
-func Sink(input <-chan string) {
-	const multiplicity = 1
-
-	const instanceNumber = 0
-	for range input {
-	}
-
-}
-
 func main() {
 
-	channel0 := make(chan string, 0)
 	results := make(chan map[string]uint, 0)
 	words := make(chan string, 0)
 
@@ -65,7 +59,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Count_words(words, channel0, results)
+		Count_words(words, nil, results)
 		wg.Done()
 	}()
 
@@ -78,12 +72,6 @@ func main() {
 	wg.Add(1)
 	go func() {
 		Print_summary(results)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		Sink(channel0)
 		wg.Done()
 	}()
 

@@ -13,7 +13,7 @@
 			"y": 229,
 			"connections": {
 				"input": "words",
-				"output": "channel0",
+				"output": "nil",
 				"result": "results"
 			}
 		},
@@ -84,29 +84,14 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 277,
-			"y": 324,
+			"x": 213,
+			"y": 358,
 			"connections": {
 				"result": "results"
-			}
-		},
-		"Sink": {
-			"part": {},
-			"part_type": "Sink",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": 1,
-			"x": 136,
-			"y": 329,
-			"connections": {
-				"input": "channel0"
 			}
 		}
 	},
 	"channels": {
-		"channel0": {
-			"cap": 0
-		},
 		"results": {
 			"cap": 0
 		},

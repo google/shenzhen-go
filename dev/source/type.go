@@ -301,12 +301,11 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 		}
 	}
 
-	changed := false
+	changed := len(q) > 0
 	for len(q) > 0 {
 		tp, st := q.any1()
 		delete(q, tp)
 
-		changed = true
 		if err := p.refine1(tp, st.clone()); err != nil {
 			return true, err
 		}

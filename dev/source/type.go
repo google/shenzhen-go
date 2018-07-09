@@ -192,39 +192,28 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 	if p == nil {
 		return false, nil
 	}
-	changed := false
-	for tp, subt := range in {
-		ids := p.paramToIdents[tp]
-		if ids == nil {
+
+	q := make(TypeInferenceMap)
+	for tp, st := range in {
+		if p.paramToIdents[tp] == nil {
 			continue
 		}
-		delete(p.paramToIdents, tp)
+		q[tp] = st
+	}
+
+	changed := false
+	for len(q) > 0 {
+		tp, st := q.any1()
+		delete(q, tp)
+
 		changed = true
-		for _, id := range ids {
-			if id.ident == p.expr {
-				// Substitute the whole thing right now;
-				// the whole of p is nothing but one type parameter.
-				*p = *subt
-				return true, nil
-			}
-			if err := id.refine(subt.expr); err != nil {
-				return true, err
-			}
-			delete(p.identToParam, id.ident)
-			// And adopt subt's params.
-			for sid, stp := range subt.identToParam {
-				p.identToParam[sid] = stp
-				if sid == subt.expr {
-					// subt is just a parameter, but now its ident has a parent: whatever
-					// id's parent was.
-					p.paramToIdents[stp] = append(p.paramToIdents[stp], modIdent{
-						parent: id.parent,
-						ident:  sid,
-					})
-					break
-				}
-				// All of subt param should have parents inside subt.expr.
-				p.paramToIdents[stp] = append(p.paramToIdents[stp], subt.paramToIdents[stp]...)
+		if err := p.refine1(tp, st); err != nil {
+			return true, err
+		}
+
+		for tp := range st.paramToIdents {
+			if st := in[tp]; st != nil {
+				q[tp] = st
 			}
 		}
 	}
@@ -232,6 +221,39 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 		p.spec = unmangle(types.ExprString(p.expr))
 	}
 	return changed, nil
+}
+
+func (p *Type) refine1(tp TypeParam, subst *Type) error {
+	ids := p.paramToIdents[tp]
+	delete(p.paramToIdents, tp)
+	for _, id := range ids {
+		if id.ident == p.expr {
+			// Substitute the whole thing right now;
+			// the whole of p is nothing but one type parameter.
+			*p = *subst
+			return nil
+		}
+		if err := id.refine(subst.expr); err != nil {
+			return err
+		}
+		delete(p.identToParam, id.ident)
+		// And adopt subt's params.
+		for sid, stp := range subst.identToParam {
+			p.identToParam[sid] = stp
+			if sid == subst.expr {
+				// subt is just a parameter, but now its ident has a parent: whatever
+				// id's parent was.
+				p.paramToIdents[stp] = append(p.paramToIdents[stp], modIdent{
+					parent: id.parent,
+					ident:  sid,
+				})
+				break
+			}
+			// All of subst params should have parents inside subst.expr.
+			p.paramToIdents[stp] = append(p.paramToIdents[stp], subst.paramToIdents[stp]...)
+		}
+	}
+	return nil
 }
 
 // Lithify refines all parameters with a single default.
@@ -258,6 +280,13 @@ func (p *Type) Lithify(def *Type) error {
 	p.paramToIdents = def.paramToIdents
 	p.spec = unmangle(types.ExprString(p.expr))
 	return nil
+}
+
+func (p *Type) String() string {
+	if p == nil {
+		return "<unspecified>"
+	}
+	return p.spec
 }
 
 type chanwalker struct {
@@ -386,11 +415,11 @@ func (m TypeInferenceMap) learn(tp TypeParam, st *Type) error {
 	return m.Infer(et, st)
 }
 
-func (p *Type) String() string {
-	if p == nil {
-		return "<unspecified>"
+func (m TypeInferenceMap) any1() (TypeParam, *Type) {
+	for tp, st := range m {
+		return tp, st
 	}
-	return p.spec
+	return TypeParam{}, nil
 }
 
 // parentTracker is an ast.Visitor that tracks the parent node of
@@ -487,7 +516,7 @@ func isType(n ast.Node) bool {
 		// It's probably a type.
 		return true
 
-	case *ast.SelectorExpr: // package.Foo
+	case *ast.SelectorExpr: // X.Foo
 		// X must be an identifier.
 		_, ok := x.X.(*ast.Ident)
 		return ok

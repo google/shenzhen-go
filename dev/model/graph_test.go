@@ -350,21 +350,18 @@ func TestInferTypes10Chain(t *testing.T) {
 	if err := g.InferTypes(); err != nil {
 		t.Fatalf("InferTypes() = error %v", err)
 	}
-	// TODO(josh): fix inference engine and re-enable.
-	if false {
-		want := "map[string]int"
-		for _, c := range g.Channels {
-			if got := c.Type.String(); got != want {
-				t.Errorf("Channels[%s].Type = %s, want %s", c.Name, got, want)
-			}
+	want := "map[string]int"
+	for _, c := range g.Channels {
+		if got := c.Type.String(); got != want {
+			t.Errorf("Channels[%s].Type = %s, want %s", c.Name, got, want)
 		}
-		for _, n := range g.Nodes {
-			if got := n.pinTypes["input"].String(); n.Name != "node 0" && got != want {
-				t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
-			}
-			if got := n.pinTypes["output"].String(); n.Name != "node 10" && got != want {
-				t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
-			}
+	}
+	for _, n := range g.Nodes {
+		if got := n.pinTypes["input"].String(); n.Name != "node 0" && got != want {
+			t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
+		}
+		if got := n.pinTypes["output"].String(); n.Name != "node 10" && got != want {
+			t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
 		}
 	}
 }

@@ -123,44 +123,145 @@ func NewType(scope, t string) (*Type, error) {
 	}, nil
 }
 
-// subtype returns a Type for the subexpression e.
-// If e is the root node of the type, it returns p.
-func (p *Type) subtype(e ast.Expr) *Type {
-	if e == p.expr {
+// clone returns a deep copy of p, unless it is nil or plain.
+// clone is only needed for parametrised types to prevent
+// parameter forgetfulness.
+func (p *Type) clone() *Type {
+	if p == nil || p.Plain() {
 		return p
 	}
+	q := &Type{
+		spec:          p.spec,
+		paramToIdents: make(map[TypeParam][]modIdent),
+		identToParam:  make(map[*ast.Ident]TypeParam),
+		expr:          nil,
+	}
+	ast.Walk(cloneWalker{oldtype: p, newtype: q}, p.expr)
+	return q
+}
 
-	// Because p is already a type, its maps are already constructed.
-	// We can inspect p to find idents that p knows are type params.
-	// This is necessary for preserving scope.
-	identToParam := make(map[*ast.Ident]TypeParam)
-	paramToIdents := make(map[TypeParam][]modIdent)
-	pt := parentTracker{
-		parent: nil,
-		f: func(par, n ast.Node) bool {
-			id, ok := n.(*ast.Ident)
-			if !ok {
-				return true
-			}
-			tp, ok := p.identToParam[id]
-			if !ok {
-				return false
-			}
-			identToParam[id] = tp
-			paramToIdents[tp] = append(paramToIdents[tp], modIdent{
-				parent: par,
-				ident:  id,
+type cloneWalker struct {
+	oldtype, newtype *Type
+	oldpar, newpar   ast.Node
+}
+
+func (cw cloneWalker) Visit(m ast.Node) ast.Visitor {
+	if m == nil {
+		return nil
+	}
+
+	n := shallowCopy(m)
+
+	// If m is actually a parameter, n is a parameter in the new type.
+	if id, ok := m.(*ast.Ident); ok {
+		if tp, ok := cw.oldtype.identToParam[id]; ok {
+			nid := n.(*ast.Ident)
+			cw.newtype.identToParam[nid] = tp
+			cw.newtype.paramToIdents[tp] = append(cw.newtype.paramToIdents[tp], modIdent{
+				parent: cw.newpar,
+				ident:  nid,
 			})
-			return false
-		},
+		}
 	}
-	ast.Walk(pt, e)
-	return &Type{
+
+	switch op := cw.oldpar.(type) {
+	case *ast.ArrayType:
+		np := cw.newpar.(*ast.ArrayType)
+		switch m {
+		case op.Len:
+			np.Len = n.(ast.Expr)
+		case op.Elt:
+			np.Elt = n.(ast.Expr)
+		}
+
+	case *ast.ChanType:
+		np := cw.newpar.(*ast.ChanType)
+		np.Value = n.(ast.Expr)
+
+	case *ast.Field:
+		np := cw.newpar.(*ast.Field)
+		np.Type = n.(ast.Expr)
+
+	case *ast.FieldList:
+		np := cw.newpar.(*ast.FieldList)
+		// Yuck.
+		for i, f := range op.List {
+			if m == f {
+				np.List[i] = n.(*ast.Field)
+			}
+		}
+
+	case *ast.FuncType:
+		np := cw.newpar.(*ast.FuncType)
+		switch m {
+		case op.Params:
+			np.Params = n.(*ast.FieldList)
+		case op.Results:
+			np.Results = n.(*ast.FieldList)
+		}
+
+	case *ast.InterfaceType:
+		np := cw.newpar.(*ast.InterfaceType)
+		np.Methods = n.(*ast.FieldList)
+
+	case *ast.MapType:
+		np := cw.newpar.(*ast.MapType)
+		switch m {
+		case op.Key:
+			np.Key = n.(ast.Expr)
+		case op.Value:
+			np.Value = n.(ast.Expr)
+		}
+
+	case *ast.ParenExpr:
+		np := cw.newpar.(*ast.ParenExpr)
+		np.X = n.(ast.Expr)
+
+	case *ast.SelectorExpr:
+		np := cw.newpar.(*ast.SelectorExpr)
+		switch m {
+		case op.Sel:
+			np.Sel = n.(*ast.Ident)
+		case op.X:
+			np.X = n.(ast.Expr)
+		}
+
+	case *ast.StarExpr:
+		np := cw.newpar.(*ast.StarExpr)
+		np.X = n.(ast.Expr)
+
+	case *ast.StructType:
+		np := cw.newpar.(*ast.StructType)
+		np.Fields = n.(*ast.FieldList)
+
+	default:
+		if op != nil {
+			panic(fmt.Sprintf("unsupported ast.Node type %T", n))
+		}
+		// Only the initial cw starts with nils.
+		cw.newtype.expr = n.(ast.Expr)
+
+	}
+	if !isParentOfType(m) {
+		return nil
+	}
+	return cloneWalker{
+		oldtype: cw.oldtype,
+		newtype: cw.newtype,
+		oldpar:  m,
+		newpar:  n,
+	}
+}
+
+// subtype returns a Type for the subexpression e.
+func (p *Type) subtype(e ast.Expr) *Type {
+	// Take advantage of cloning technology.
+	return (&Type{
 		spec:          unmangle(types.ExprString(e)),
-		paramToIdents: paramToIdents,
-		identToParam:  identToParam,
+		paramToIdents: p.paramToIdents,
+		identToParam:  p.identToParam,
 		expr:          e,
-	}
+	}).clone()
 }
 
 // Plain is true if the type has no parameters (is not generic).
@@ -194,11 +295,10 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 	}
 
 	q := make(TypeInferenceMap)
-	for tp, st := range in {
-		if p.paramToIdents[tp] == nil {
-			continue
+	for tp := range p.paramToIdents {
+		if st := in[tp]; st != nil {
+			q[tp] = st
 		}
-		q[tp] = st
 	}
 
 	changed := false
@@ -207,7 +307,7 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 		delete(q, tp)
 
 		changed = true
-		if err := p.refine1(tp, st); err != nil {
+		if err := p.refine1(tp, st.clone()); err != nil {
 			return true, err
 		}
 
@@ -366,16 +466,12 @@ func (m TypeInferenceMap) inferAtNode(p, q *Type, pn, qn ast.Node) (bool, error)
 	// Note qpara is true only if qident is not nil, etc.
 
 	switch {
-	case !ppara && !qpara:
-		// Neither is; compare nodes as normal, and walk all children.
-		return true, equal(pn, qn)
-
 	case ppara && qpara:
 		// We get nowhere by inferring that the two parameters are equal, so
 		// drop it.
 		return false, nil
 
-	case ppara: // qpara can be either value.
+	case ppara:
 		// pn is a parameter and could match but first check qn is typeish.
 		if !isType(qn) {
 			return false, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
@@ -384,7 +480,7 @@ func (m TypeInferenceMap) inferAtNode(p, q *Type, pn, qn ast.Node) (bool, error)
 		qs := q.subtype(qn.(ast.Expr))
 		return false, m.learn(tp, qs)
 
-	default: // qpara && !ppara.
+	case qpara:
 		// qn is a paramter and could match, but first check pn is typeish.
 		if !isType(pn) {
 			return false, fmt.Errorf("parameter %s cannot match non-type node %T", tp.Ident, qn)
@@ -392,6 +488,10 @@ func (m TypeInferenceMap) inferAtNode(p, q *Type, pn, qn ast.Node) (bool, error)
 
 		ps := p.subtype(pn.(ast.Expr))
 		return false, m.learn(tq, ps)
+
+	default:
+		// Neither is; compare nodes as normal, and walk all children.
+		return true, isEqual(pn, qn)
 	}
 }
 
@@ -530,7 +630,35 @@ func isType(n ast.Node) bool {
 	}
 }
 
-func equal(m, n ast.Node) error {
+func isParentOfType(n ast.Node) bool {
+	switch x := n.(type) {
+	case
+		*ast.ArrayType,
+		*ast.ChanType,
+		*ast.Field,
+		*ast.FieldList,
+		*ast.FuncType,
+		*ast.InterfaceType,
+		*ast.MapType,
+		*ast.StarExpr,
+		*ast.StructType:
+		return true
+
+	case *ast.SelectorExpr: // X.Foo
+		// X must be an identifier.
+		_, ok := x.X.(*ast.Ident)
+		return ok
+
+	case *ast.ParenExpr: // (foo)
+		// X must be a type.
+		return isType(x.X)
+
+	default:
+		return false
+	}
+}
+
+func isEqual(m, n ast.Node) error {
 	if (m == nil) != (n == nil) {
 		return fmt.Errorf("mismatching nils [%#v vs %#v]", m, n)
 	}
@@ -623,6 +751,60 @@ func equal(m, n ast.Node) error {
 		// Fields should be walked.
 	}
 	return nil
+}
+
+func shallowCopy(n ast.Node) ast.Node {
+	if n == nil {
+		return nil
+	}
+	switch x := n.(type) {
+	case *ast.ArrayType:
+		y := *x
+		return &y
+	case *ast.BasicLit:
+		y := *x
+		return &y
+	case *ast.ChanType:
+		y := *x
+		return &y
+	case *ast.Ellipsis:
+		y := *x
+		return &y
+	case *ast.Field:
+		y := *x
+		return &y
+	case *ast.FieldList:
+		y := *x
+		// Don't want to overwrite fields in x, so...
+		y.List = make([]*ast.Field, len(x.List))
+		return &y
+	case *ast.FuncType:
+		y := *x
+		return &y
+	case *ast.Ident:
+		y := *x
+		return &y
+	case *ast.InterfaceType:
+		y := *x
+		return &y
+	case *ast.MapType:
+		y := *x
+		return &y
+	case *ast.ParenExpr:
+		y := *x
+		return &y
+	case *ast.SelectorExpr:
+		y := *x
+		return &y
+	case *ast.StarExpr:
+		y := *x
+		return &y
+	case *ast.StructType:
+		y := *x
+		return &y
+	default:
+		panic(fmt.Sprintf("unsupported ast.Node type %T", n))
+	}
 }
 
 /*

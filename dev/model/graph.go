@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"strings"
 
 	"github.com/google/shenzhen-go/dev/source"
@@ -203,15 +202,12 @@ func (g *Graph) InferTypes() error {
 	for len(q) > 0 {
 		c := q[0]
 		q = q[1:]
-		log.Printf("popped %s currently with type %s params %v", c.Name, c.Type, c.Type.Params())
 
 		next, err := g.inferAndRefineChan(c)
 		if err != nil {
 			return err
 		}
-		log.Printf("inferred %s (params %v) for channel %s", c.Type, c.Type.Params(), c.Name)
 		for c := range next {
-			log.Printf("pushed %s", c.Name)
 			q = append(q, c)
 		}
 	}
@@ -219,17 +215,19 @@ func (g *Graph) InferTypes() error {
 	// Force all unresolved channel type parameters to interface{}.
 	for _, c := range g.Channels {
 		c.Type.Lithify(typeEmptyInterface)
+		// And give all pins the resolved channel type.
 		for np := range c.Pins {
 			g.Nodes[np.Node].pinTypes[np.Pin] = c.Type
 		}
 	}
-	// Finally, give each node a map of resolved local types.
 	for _, n := range g.Nodes {
+		// Some pins aren't connected, lithify those too.
 		for _, pt := range n.pinTypes {
 			pt.Lithify(typeEmptyInterface)
 		}
 		n.typeParams = make(map[string]string)
 	}
+	// Finally, limit each node to local types.
 	for tp, typ := range g.types {
 		g.Nodes[tp.Scope].typeParams[tp.Ident] = typ.String()
 	}
@@ -260,8 +258,6 @@ func (g *Graph) inferAndRefineChan(c *Channel) (map[*Channel]struct{}, error) {
 				Source:  err,
 			}
 		}
-
-		log.Printf("current inferences: %v", g.types)
 
 		// Apply inferred params back to c.Type.
 		cimp, err := c.Type.Refine(g.types)
@@ -298,7 +294,6 @@ func (n *Node) applyTypeParams(types source.TypeInferenceMap) (next source.Strin
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("changed %t; refined type %s (params %v) for %s.%s", changed, pt, pt.Params(), n.Name, pn)
 		if !changed { // Refine had no effect, not worth investigating channel.
 			continue
 		}

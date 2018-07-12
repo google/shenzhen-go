@@ -86,8 +86,8 @@ func (m *Empty) XXX_DiscardUnknown() {
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
 type NodePin struct {
-	Node                 string   `protobuf:"bytes,1,opt,name=node" json:"node,omitempty"`
-	Pin                  string   `protobuf:"bytes,2,opt,name=pin" json:"pin,omitempty"`
+	Node                 string   `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	Pin                  string   `protobuf:"bytes,2,opt,name=pin,proto3" json:"pin,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -132,9 +132,9 @@ func (m *NodePin) GetPin() string {
 }
 
 type ChannelConfig struct {
-	Name                 string     `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	Cap                  uint64     `protobuf:"varint,2,opt,name=cap" json:"cap,omitempty"`
-	Pins                 []*NodePin `protobuf:"bytes,3,rep,name=pins" json:"pins,omitempty"`
+	Name                 string     `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Cap                  uint64     `protobuf:"varint,2,opt,name=cap,proto3" json:"cap,omitempty"`
+	Pins                 []*NodePin `protobuf:"bytes,3,rep,name=pins,proto3" json:"pins,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
 	XXX_unrecognized     []byte     `json:"-"`
 	XXX_sizecache        int32      `json:"-"`
@@ -186,15 +186,15 @@ func (m *ChannelConfig) GetPins() []*NodePin {
 }
 
 type NodeConfig struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	Comment              string   `protobuf:"bytes,2,opt,name=comment" json:"comment,omitempty"`
-	Enabled              bool     `protobuf:"varint,3,opt,name=enabled" json:"enabled,omitempty"`
-	Multiplicity         uint32   `protobuf:"varint,4,opt,name=multiplicity" json:"multiplicity,omitempty"`
-	Wait                 bool     `protobuf:"varint,5,opt,name=wait" json:"wait,omitempty"`
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Comment              string   `protobuf:"bytes,2,opt,name=comment,proto3" json:"comment,omitempty"`
+	Enabled              bool     `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Multiplicity         uint32   `protobuf:"varint,4,opt,name=multiplicity,proto3" json:"multiplicity,omitempty"`
+	Wait                 bool     `protobuf:"varint,5,opt,name=wait,proto3" json:"wait,omitempty"`
 	PartCfg              []byte   `protobuf:"bytes,6,opt,name=part_cfg,json=partCfg,proto3" json:"part_cfg,omitempty"`
-	PartType             string   `protobuf:"bytes,7,opt,name=part_type,json=partType" json:"part_type,omitempty"`
-	X                    float64  `protobuf:"fixed64,8,opt,name=x" json:"x,omitempty"`
-	Y                    float64  `protobuf:"fixed64,9,opt,name=y" json:"y,omitempty"`
+	PartType             string   `protobuf:"bytes,7,opt,name=part_type,json=partType,proto3" json:"part_type,omitempty"`
+	X                    float64  `protobuf:"fixed64,8,opt,name=x,proto3" json:"x,omitempty"`
+	Y                    float64  `protobuf:"fixed64,9,opt,name=y,proto3" json:"y,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -288,8 +288,8 @@ func (m *NodeConfig) GetY() float64 {
 }
 
 type ActionRequest struct {
-	Graph                string               `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Action               ActionRequest_Action `protobuf:"varint,2,opt,name=action,enum=proto.ActionRequest_Action" json:"action,omitempty"`
+	Graph                string               `protobuf:"bytes,1,opt,name=graph,proto3" json:"graph,omitempty"`
+	Action               ActionRequest_Action `protobuf:"varint,2,opt,name=action,proto3,enum=proto.ActionRequest_Action" json:"action,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -334,7 +334,7 @@ func (m *ActionRequest) GetAction() ActionRequest_Action {
 }
 
 type ActionResponse struct {
-	Output               string   `protobuf:"bytes,1,opt,name=output" json:"output,omitempty"`
+	Output               string   `protobuf:"bytes,1,opt,name=output,proto3" json:"output,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -372,8 +372,8 @@ func (m *ActionResponse) GetOutput() string {
 }
 
 type Input struct {
-	Graph                string   `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	In                   string   `protobuf:"bytes,2,opt,name=in" json:"in,omitempty"`
+	Graph                string   `protobuf:"bytes,1,opt,name=graph,proto3" json:"graph,omitempty"`
+	In                   string   `protobuf:"bytes,2,opt,name=in,proto3" json:"in,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -418,8 +418,8 @@ func (m *Input) GetIn() string {
 }
 
 type Output struct {
-	Out                  string   `protobuf:"bytes,1,opt,name=out" json:"out,omitempty"`
-	Err                  string   `protobuf:"bytes,2,opt,name=err" json:"err,omitempty"`
+	Out                  string   `protobuf:"bytes,1,opt,name=out,proto3" json:"out,omitempty"`
+	Err                  string   `protobuf:"bytes,2,opt,name=err,proto3" json:"err,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -464,9 +464,9 @@ func (m *Output) GetErr() string {
 }
 
 type SetChannelRequest struct {
-	Graph                string         `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Channel              string         `protobuf:"bytes,2,opt,name=channel" json:"channel,omitempty"`
-	Config               *ChannelConfig `protobuf:"bytes,3,opt,name=config" json:"config,omitempty"`
+	Graph                string         `protobuf:"bytes,1,opt,name=graph,proto3" json:"graph,omitempty"`
+	Channel              string         `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
+	Config               *ChannelConfig `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
 	XXX_unrecognized     []byte         `json:"-"`
 	XXX_sizecache        int32          `json:"-"`
@@ -518,10 +518,10 @@ func (m *SetChannelRequest) GetConfig() *ChannelConfig {
 }
 
 type SetGraphPropertiesRequest struct {
-	Graph                string   `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Name                 string   `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	PackagePath          string   `protobuf:"bytes,3,opt,name=package_path,json=packagePath" json:"package_path,omitempty"`
-	IsCommand            bool     `protobuf:"varint,4,opt,name=is_command,json=isCommand" json:"is_command,omitempty"`
+	Graph                string   `protobuf:"bytes,1,opt,name=graph,proto3" json:"graph,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	PackagePath          string   `protobuf:"bytes,3,opt,name=package_path,json=packagePath,proto3" json:"package_path,omitempty"`
+	IsCommand            bool     `protobuf:"varint,4,opt,name=is_command,json=isCommand,proto3" json:"is_command,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -580,9 +580,9 @@ func (m *SetGraphPropertiesRequest) GetIsCommand() bool {
 }
 
 type SetNodeRequest struct {
-	Graph                string      `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Node                 string      `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
-	Config               *NodeConfig `protobuf:"bytes,3,opt,name=config" json:"config,omitempty"`
+	Graph                string      `protobuf:"bytes,1,opt,name=graph,proto3" json:"graph,omitempty"`
+	Node                 string      `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
+	Config               *NodeConfig `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -634,10 +634,10 @@ func (m *SetNodeRequest) GetConfig() *NodeConfig {
 }
 
 type SetPositionRequest struct {
-	Graph                string   `protobuf:"bytes,1,opt,name=graph" json:"graph,omitempty"`
-	Node                 string   `protobuf:"bytes,2,opt,name=node" json:"node,omitempty"`
-	X                    float64  `protobuf:"fixed64,3,opt,name=x" json:"x,omitempty"`
-	Y                    float64  `protobuf:"fixed64,4,opt,name=y" json:"y,omitempty"`
+	Graph                string   `protobuf:"bytes,1,opt,name=graph,proto3" json:"graph,omitempty"`
+	Node                 string   `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
+	X                    float64  `protobuf:"fixed64,3,opt,name=x,proto3" json:"x,omitempty"`
+	Y                    float64  `protobuf:"fixed64,4,opt,name=y,proto3" json:"y,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`

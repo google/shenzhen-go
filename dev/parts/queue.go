@@ -34,6 +34,11 @@ var queuePins = pin.NewMap(
 		Direction: pin.Output,
 		Type:      queueTypeParam,
 	},
+	&pin.Definition{
+		Name:      "drop",
+		Direction: pin.Output,
+		Type:      queueTypeParam,
+	},
 )
 
 func init() {
@@ -53,12 +58,17 @@ func init() {
 				of the queue is configurable.
 			</p><p>
 				Queues are either FIFO (first-in-first-out, or a traditional queue) 
-				or LIFO (last-in-first-out, also known as a stack). Using a LIFO
+				or LIFO (last-in-first-out, also known as a stack).
+			</p><p>
+				Using a LIFO
 				queue can have higher goodput than a FIFO queue.
 			</p><p>
-				Queues have a required size limit. The last-in item
-				is dropped from the queue if reading an item puts the queue over
-				the limit. A queue may temporarily use more memory than the limit.
+				Queues have a required maximum number of items. If reading an item 
+				puts the queue over	the limit, the last-in item	is dropped from the
+				queue, rather than waiting for the queue to lower. 
+				Dropped items are sent to the drop output, but unlike the main output,
+				the queue will not block on sending to drop.
+				A queue may temporarily use more memory than the limit.
 			</p>
 			</div>`,
 			},
@@ -111,9 +121,9 @@ func (m QueueMode) trim() string {
 
 // Impl returns the Queue implementation.
 func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
-	return fmt.Sprintf("const itemLim = %d", q.MaxItems),
+	return fmt.Sprintf("const maxItems = %d", q.MaxItems),
 		fmt.Sprintf(`
-		queue := make([]%s, 0, itemLim)
+		queue := make([]%s, 0, maxItems)
 		for {
 			if len(queue) == 0 {
 				if input == nil {
@@ -130,14 +140,23 @@ func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
 					break // select
 				}
 				queue = append(queue, in)
-				if len(queue) > itemLim {
-					queue = queue[1:]
+				if len(queue) <= maxItems {
+					break // select
 				}
+				// Drop an item, but don't block sending.
+				select{
+				case drop <- queue[0]:
+				default:
+				}
+				queue = queue[1:]
 			case output <- out:
 				queue = queue[%s]
 			}
 		}`, types[queueTypeParam], q.Mode.pick(), q.Mode.trim()),
-		"close(output)"
+		`close(output)
+		if drop != nil {
+			close(drop)
+		}`
 }
 
 // Imports returns nil.

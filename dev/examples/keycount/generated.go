@@ -11,8 +11,10 @@ import (
 
 func Count_words(input <-chan string, output chan<- string, result chan<- map[string]uint) {
 	const multiplicity = 1
-	m := make(map[string]uint)
+
 	const instanceNumber = 0
+
+	m := make(map[string]uint)
 	for in := range input {
 		m[in]++
 		if output != nil {

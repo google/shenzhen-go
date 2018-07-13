@@ -97,7 +97,8 @@
 				"body": [
 					"fmt.Println(\"Press Enter to shut down.\")",
 					"var s string",
-					"fmt.Scanln(\u0026s)"
+					"fmt.Scanln(\u0026s)",
+					"shutdown \u003c- context.WithTimeout(context.Background(), 5*time.Second)"
 				],
 				"tail": [
 					""

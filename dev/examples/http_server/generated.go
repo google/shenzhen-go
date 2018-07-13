@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
-	"log"
 	"net/http"
 	"sync"
+	"time"
+
+	"log"
 )
 
 func HTTPServer(addr <-chan string, errors chan<- error, requests chan<- *parts.HTTPRequest, shutdown <-chan context.Context) {
@@ -67,6 +69,8 @@ func Press_Enter_to_shut_down(shutdown chan<- context.Context) {
 	fmt.Println("Press Enter to shut down.")
 	var s string
 	fmt.Scanln(&s)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdown <- ctx
 
 }
 

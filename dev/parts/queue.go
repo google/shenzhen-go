@@ -180,7 +180,7 @@ func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
 // Imports returns nil.
 func (q *Queue) Imports() []string { return nil }
 
-// Pins returns a map declaring a single output of any type.
+// Pins returns a map declaring an input and two outputs of the same arbitrary type.
 func (q *Queue) Pins() pin.Map { return queuePins }
 
 // TypeKey returns "Queue".

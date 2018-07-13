@@ -146,7 +146,7 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 		`
 }
 
-// Imports returns nil.
+// Imports returns some needed imports.
 func (s *HTTPServer) Imports() []string {
 	return []string{
 		`"context"`,
@@ -155,7 +155,7 @@ func (s *HTTPServer) Imports() []string {
 	}
 }
 
-// Pins returns a map declaring a single output of any type.
+// Pins returns a map declaring a bunch of pins.
 func (s *HTTPServer) Pins() pin.Map { return httpServerPins }
 
 // TypeKey returns "HTTPServer".

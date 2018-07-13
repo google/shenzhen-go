@@ -54,6 +54,9 @@ func init() {
 				how many of each value it sees in a map. When the input is closed,
 				the map is sent on the result channel, and both outputs are closed.
 			</p><p>
+				Multiplicity affects how many goroutines perform counting, and
+				the number of result maps will be equal to the multiplicity.
+			</p><p>
 				If output is nil (not connected), it is ignored.
 			</p>
 			</div>`,
@@ -69,9 +72,20 @@ func (KeyCounter) Clone() model.Part { return &KeyCounter{} }
 
 // Impl returns the Closer implementation.
 func (KeyCounter) Impl(types map[string]string) (head, body, tail string) {
-	return fmt.Sprintf("m := make(map[%s]uint)", types[keyCounterTypeParam]),
-		"for in := range input { m[in]++; if output != nil { output <- in } }",
-		"result <- m; if output != nil { close(output) }; close(result)"
+	return "",
+		fmt.Sprintf(`
+			m := make(map[%s]uint)
+			for in := range input { 
+				m[in]++
+				if output != nil { 
+					output <- in 
+				} 
+			}
+			result <- m`, types[keyCounterTypeParam]),
+		`if output != nil { 
+			close(output)
+		}
+		close(result)`
 }
 
 // Imports returns nil.

@@ -6,14 +6,15 @@
 		"Generate numbers": {
 			"part": {
 				"imports": [
-					""
+					"\"time\""
 				],
 				"head": [
 					""
 				],
 				"body": [
-					"for i := 0; i \u003c 1000; i++ {",
+					"for i := 0; i \u003c 40; i++ {",
 					"\toutput \u003c- i",
+					"\t\u003c-time.After(time.Millisecond)",
 					"}",
 					"close(output)"
 				],
@@ -47,7 +48,7 @@
 					""
 				],
 				"body": [
-					"for range time.Tick(time.Millisecond) {",
+					"for range time.Tick(2 * time.Millisecond) {",
 					"\tin, open := \u003c-input",
 					"\tif !open {",
 					"\t\tbreak",

@@ -2,9 +2,8 @@
 package main
 
 import (
-	"sync"
-
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -12,8 +11,9 @@ func Generate_numbers(output chan<- int) {
 	const multiplicity = 1
 
 	const instanceNumber = 0
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 40; i++ {
 		output <- i
+		<-time.After(time.Millisecond)
 	}
 	close(output)
 
@@ -23,7 +23,7 @@ func Print_survivors(input <-chan int) {
 	const multiplicity = 1
 
 	const instanceNumber = 0
-	for range time.Tick(time.Millisecond) {
+	for range time.Tick(2 * time.Millisecond) {
 		in, open := <-input
 		if !open {
 			break

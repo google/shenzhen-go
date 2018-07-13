@@ -30,7 +30,7 @@ var (
 
 	pinsSession, importsSession, headSession, bodySession, tailSession *dom.AceSession
 
-	focused *Code
+	focusedCode *Code
 )
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
@@ -60,16 +60,16 @@ func pinsChange(dom.Object) {
 		// Ignore
 		return
 	}
-	focused.pins = p
+	focusedCode.pins = p
 }
 
-func importsChange(dom.Object) { focused.imports = strings.Split(importsSession.Value(), "\n") }
-func headChange(dom.Object)    { focused.head = headSession.Value() }
-func bodyChange(dom.Object)    { focused.body = bodySession.Value() }
-func tailChange(dom.Object)    { focused.tail = tailSession.Value() }
+func importsChange(dom.Object) { focusedCode.imports = strings.Split(importsSession.Value(), "\n") }
+func headChange(dom.Object)    { focusedCode.head = headSession.Value() }
+func bodyChange(dom.Object)    { focusedCode.body = bodySession.Value() }
+func tailChange(dom.Object)    { focusedCode.tail = tailSession.Value() }
 
 func (c *Code) GainFocus() {
-	focused = c
+	focusedCode = c
 	p, err := json.MarshalIndent(c.pins, "", "\t")
 	if err != nil {
 		// Should have parsed correctly beforehand.

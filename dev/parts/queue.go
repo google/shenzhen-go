@@ -51,8 +51,21 @@ func init() {
 		},
 		Panels: []model.PartPanel{
 			{
-				Name:   "Queue",
-				Editor: `TODO(josh): Implement configuration UI for queues`,
+				Name: "Queue",
+				Editor: `
+			<div>
+				<div class="formfield">
+					<label for="queue-maxitems">Max items</label>
+					<input id="queue-maxitems" name="queue-maxitems" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="1"></input>
+				</div>
+				<div class="formfield">
+					<label for="queue-mode">Mode</label>
+					<select id="queue-mode" name="queue-mode">
+						<option value="lifo" selected>LIFO (stack)</option>
+						<option value="fifo">FIFO (queue)</option>
+					</select>
+				</div>
+			</div>`,
 			},
 			{
 				Name: "Help",

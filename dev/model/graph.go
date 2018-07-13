@@ -178,6 +178,7 @@ func (e *TypeIncompatibilityError) Error() string {
 func (g *Graph) InferTypes() error {
 	// The graph starts with no inferred types, and all pin types
 	// begin as their basic definition, params scoped to the node.
+	// The types map should start with all type parameters set to nil.
 	g.types = make(source.TypeInferenceMap)
 	for _, n := range g.Nodes {
 		pins := n.Pins()
@@ -188,6 +189,7 @@ func (g *Graph) InferTypes() error {
 				return err
 			}
 			n.pinTypes[pn] = pt
+			g.types.Note(pt)
 		}
 	}
 
@@ -212,22 +214,20 @@ func (g *Graph) InferTypes() error {
 		}
 	}
 
-	// Force all unresolved channel type parameters to interface{}.
+	g.types.ApplyDefault(typeEmptyInterface)
+
+	// Refine all types one final time.
 	for _, c := range g.Channels {
-		c.Type.Lithify(typeEmptyInterface)
-		// And give all pins the resolved channel type.
-		for np := range c.Pins {
-			g.Nodes[np.Node].pinTypes[np.Pin] = c.Type
-		}
+		c.Type.Refine(g.types)
 	}
 	for _, n := range g.Nodes {
 		// Some pins aren't connected, lithify those too.
 		for _, pt := range n.pinTypes {
-			pt.Lithify(typeEmptyInterface)
+			pt.Refine(g.types)
 		}
 		n.typeParams = make(map[string]string)
 	}
-	// Finally, limit each node to local types.
+	// Finally, give each node a limited view of relevant inferred types.
 	for tp, typ := range g.types {
 		g.Nodes[tp.Scope].typeParams[tp.Ident] = typ.String()
 	}

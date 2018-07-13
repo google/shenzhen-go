@@ -355,32 +355,6 @@ func (p *Type) refine1(tp TypeParam, subst *Type) error {
 	return nil
 }
 
-// Lithify refines all parameters with a single default.
-func (p *Type) Lithify(def *Type) error {
-	// Quite similar to Refine.
-	if p == nil || p.Plain() {
-		return nil
-	}
-	for _, ids := range p.paramToIdents {
-		for _, id := range ids {
-			if id.ident == p.expr {
-				// Same reasoning as Refine.
-				*p = *def
-				return nil
-			}
-			if err := id.refine(def.expr); err != nil {
-				return err
-			}
-		}
-	}
-	// Wholesale adopt all parameters, since all of
-	// p's previous parameters were refined.
-	p.identToParam = def.identToParam
-	p.paramToIdents = def.paramToIdents
-	p.spec = unmangle(types.ExprString(p.expr))
-	return nil
-}
-
 func (p *Type) String() string {
 	if p == nil {
 		return "<unspecified>"
@@ -424,6 +398,15 @@ func (c *chanwalker) next(b bool) {
 // TypeInferenceMap (TypeParam -> *Type) holds inferences made about
 // type parameters.s
 type TypeInferenceMap map[TypeParam]*Type
+
+// Note ensures type params from t are keys in the map.
+func (m TypeInferenceMap) Note(t *Type) {
+	for tp := range t.paramToIdents {
+		if _, found := m[tp]; !found {
+			m[tp] = nil
+		}
+	}
+}
 
 // Infer attempts to add inferences to the map `m` such that `p.Refine(m)` and `q.Refine(m)`
 // are similar. It returns an error if this is impossible.
@@ -519,6 +502,16 @@ func (m TypeInferenceMap) any1() (TypeParam, *Type) {
 		return tp, st
 	}
 	return TypeParam{}, nil
+}
+
+// ApplyDefault sets all keys associated with a nil type to a given
+// default type.
+func (m TypeInferenceMap) ApplyDefault(t *Type) {
+	for p, v := range m {
+		if v == nil {
+			m[p] = t
+		}
+	}
 }
 
 // parentTracker is an ast.Visitor that tracks the parent node of

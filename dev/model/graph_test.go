@@ -210,6 +210,67 @@ func TestInferTypesSimple(t *testing.T) {
 	if got, want := g.Nodes["node 2"].pinTypes["input"].String(), "int"; got != want {
 		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
 	}
+	// node 1.typeParams should be an empty map.
+	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 1"].typeParams, map[string]string{}); !equal {
+		t.Errorf("Nodes[node 1].typeParams diff:\n%s", diff)
+	}
+	// node 2.typeParams should give a value for $T.
+	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 2"].typeParams, map[string]string{"$T": "int"}); !equal {
+		t.Errorf("Nodes[node 1].typeParams diff:\n%s", diff)
+	}
+}
+
+func TestInferTypesNoChannel(t *testing.T) {
+	g := &Graph{
+		FilePath:    "filepath",
+		URLPath:     "urlpath",
+		Name:        "basic inference",
+		PackagePath: "package/path",
+		IsCommand:   false,
+		Nodes: map[string]*Node{
+			"node 1": {
+				Part: &FakePart{nil, "", "", "", pin.NewMap(
+					&pin.Definition{
+						Name:      "input",
+						Type:      "$A",
+						Direction: pin.Input,
+					},
+					&pin.Definition{
+						Name:      "output",
+						Type:      "$B",
+						Direction: pin.Output,
+					})},
+				Name:         "node 1",
+				Enabled:      true,
+				Multiplicity: 1,
+				Wait:         true,
+				Connections: map[string]string{
+					"output": "bar",
+				},
+			},
+		},
+	}
+	g.RefreshChannelsPins()
+
+	if err := g.InferTypes(); err != nil {
+		t.Fatalf("InferTypes() = error %v", err)
+	}
+	// node 1.output should have type "interface{}"
+	if got, want := g.Nodes["node 1"].pinTypes["output"].String(), "interface{}"; got != want {
+		t.Errorf("Nodes[node 1].pinTypes[output] = %s, want %s", got, want)
+	}
+	// node 1.input should have type "interface{}"
+	if got, want := g.Nodes["node 1"].pinTypes["input"].String(), "interface{}"; got != want {
+		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
+	}
+	// node 1.typeParams should give a value for $A and $B.
+	want := map[string]string{
+		"$A": "interface{}",
+		"$B": "interface{}",
+	}
+	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 1"].typeParams, want); !equal {
+		t.Errorf("Nodes[node 1].typeParams diff:\n%s", diff)
+	}
 }
 
 func TestInferTypesMapToMap(t *testing.T) {

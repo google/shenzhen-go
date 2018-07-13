@@ -223,41 +223,6 @@ func TestRefine(t *testing.T) {
 	}
 }
 
-func TestLithify(t *testing.T) {
-	tests := []struct {
-		base *Type
-		lith *Type
-		want string
-	}{
-		{
-			base: MustNewType("foo", "$T"),
-			lith: MustNewType("", "int"),
-			want: "int",
-		},
-		{
-			base: MustNewType("foo", "*$T"),
-			lith: MustNewType("", "int"),
-			want: "*int",
-		},
-		{
-			base: MustNewType("foo", "map[$K]$V"),
-			lith: MustNewType("", "int"),
-			want: "map[int]int",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.base.String(), func(t *testing.T) {
-			if err := test.base.Lithify(test.lith); err != nil {
-				t.Fatalf("base(%s).Lithify(%s) = error %v", test.base, test.lith, err)
-			}
-			if got, want := test.base.String(), test.want; got != want {
-				t.Errorf("base = %s, want %s", got, want)
-			}
-		})
-	}
-}
-
 func TestInfer(t *testing.T) {
 	tests := []struct {
 		p, q *Type

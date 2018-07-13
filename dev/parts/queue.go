@@ -16,6 +16,7 @@ package parts
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
@@ -26,7 +27,7 @@ const queueTypeParam = "$Any"
 var queuePins = pin.NewMap(
 	&pin.Definition{
 		Name:      "input",
-		Direction: pin.Output,
+		Direction: pin.Input,
 		Type:      queueTypeParam,
 	},
 	&pin.Definition{
@@ -43,7 +44,12 @@ var queuePins = pin.NewMap(
 
 func init() {
 	model.RegisterPartType("Queue", &model.PartType{
-		New: func() model.Part { return &Queue{} },
+		New: func() model.Part {
+			return &Queue{
+				Mode:     QueueModeLIFO,
+				MaxItems: 1000,
+			}
+		},
 		Panels: []model.PartPanel{
 			{
 				Name:   "Queue",
@@ -121,6 +127,7 @@ func (m QueueMode) trim() string {
 
 // Impl returns the Queue implementation.
 func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
+	log.Printf("Queue.Impl(%v)", types)
 	return fmt.Sprintf("const maxItems = %d", q.MaxItems),
 		fmt.Sprintf(`
 		queue := make([]%s, 0, maxItems)

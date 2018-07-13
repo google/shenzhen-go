@@ -1,0 +1,25 @@
+{
+	"name": "Queue",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/queue",
+	"is_command": true,
+	"nodes": {
+		"Queue": {
+			"part": {
+				"mode": "lifo",
+				"max_items": 1000
+			},
+			"part_type": "Queue",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 202,
+			"y": 108,
+			"connections": {
+				"drop": "nil",
+				"input": "nil",
+				"output": "nil"
+			}
+		}
+	},
+	"channels": {}
+}

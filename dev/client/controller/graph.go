@@ -85,14 +85,22 @@ func setupAceView(id, mode string) *dom.AceSession {
 func NewGraphController(doc dom.Document, graph *model.Graph, client pb.ShenzhenGoClient) view.GraphController {
 	pes := make(map[string]*partEditor, len(model.PartTypes))
 	for n, t := range model.PartTypes {
-		p := make(map[string]dom.Element, len(t.Panels))
+		p := make(map[string]*subpanel, len(t.Panels))
 		for _, d := range t.Panels {
-			p[d.Name] = doc.ElementByID("node-" + n + "-" + d.Name + "-panel")
+			p[d.Name] = &subpanel{
+				Link:  doc.ElementByID("node-" + n + "-" + d.Name + "-link"),
+				Panel: doc.ElementByID("node-" + n + "-" + d.Name + "-panel"),
+			}
 		}
 		pes[n] = &partEditor{
-			Links:  doc.ElementByID("node-" + n + "-links"),
-			Panels: p,
+			LinkGroup: doc.ElementByID("node-" + n + "-links"),
+			Panels:    p,
 		}
+	}
+
+	subpanelMetadata := &subpanel{
+		Link:  doc.ElementByID("node-metadata-link"),
+		Panel: doc.ElementByID("node-metadata-panel"),
 	}
 
 	return &graphController{
@@ -124,8 +132,8 @@ func NewGraphController(doc dom.Document, graph *model.Graph, client pb.Shenzhen
 			inputCapacity: doc.ElementByID("channel-capacity"),
 		},
 		nodeSharedOutlets: &nodeSharedOutlets{
-			subpanelMetadata:  doc.ElementByID("node-metadata-panel"),
-			subpanelCurrent:   doc.ElementByID("node-metadata-panel"),
+			subpanelMetadata:  subpanelMetadata,
+			subpanelCurrent:   subpanelMetadata,
 			inputName:         doc.ElementByID("node-name"),
 			textareaComment:   doc.ElementByID("node-comment"),
 			inputEnabled:      doc.ElementByID("node-enabled"),

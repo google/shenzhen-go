@@ -28,23 +28,23 @@ import (
 var CodePanels = []model.PartPanel{
 	{
 		Name:   "Pins",
-		Editor: `Pins <div class="codeedit" id="code-pins"></div>`,
+		Editor: `<div class="codeedit" id="code-pins"></div>`,
 	},
 	{
 		Name:   "Imports",
-		Editor: `Imports <div class="codeedit" id="code-imports"></div>`,
+		Editor: `<div class="codeedit" id="code-imports"></div>`,
 	},
 	{
 		Name:   "Head",
-		Editor: `Head <div class="codeedit" id="code-head"></div>`,
+		Editor: `<div class="codeedit" id="code-head"></div>`,
 	},
 	{
 		Name:   "Body",
-		Editor: `Body <div class="codeedit" id="code-body"></div>`,
+		Editor: `<div class="codeedit" id="code-body"></div>`,
 	},
 	{
 		Name:   "Tail",
-		Editor: `Tail <div class="codeedit" id="code-tail"></div>`,
+		Editor: `<div class="codeedit" id="code-tail"></div>`,
 	},
 	{
 		Name: "Help",

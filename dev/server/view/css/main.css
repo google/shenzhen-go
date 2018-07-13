@@ -28,6 +28,10 @@ span.link {
 	cursor: pointer;
 }
 
+span.link.selected {
+	font-weight: bold;
+}
+
 span.link:hover {
 	color: var(--link-hover-colour);
 	text-decoration: underline;

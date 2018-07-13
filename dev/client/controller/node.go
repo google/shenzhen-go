@@ -24,14 +24,19 @@ import (
 )
 
 type partEditor struct {
-	Links  dom.Element
-	Panels map[string]dom.Element
+	LinkGroup dom.Element
+	Panels    map[string]*subpanel
+}
+
+type subpanel struct {
+	Link  dom.Element
+	Panel dom.Element
 }
 
 type nodeSharedOutlets struct {
 	// Node properties subpanels and inputs
-	subpanelMetadata  dom.Element
-	subpanelCurrent   dom.Element
+	subpanelMetadata  *subpanel
+	subpanelCurrent   *subpanel
 	inputName         dom.Element
 	textareaComment   dom.Element
 	inputEnabled      dom.Element
@@ -47,7 +52,7 @@ type nodeController struct {
 	sharedOutlets *nodeSharedOutlets
 
 	gc       *graphController
-	subpanel dom.Element // remember most recent subpanel for each node
+	subpanel *subpanel // remember most recent subpanel for each node
 }
 
 func (c *nodeController) Name() string             { return c.node.Name }
@@ -147,9 +152,9 @@ func (c *nodeController) GainFocus() {
 	// Hide all parteditor links except for this parttype
 	for k, e := range c.sharedOutlets.partEditors {
 		if k == c.node.Part.TypeKey() {
-			e.Links.Show()
+			e.LinkGroup.Show()
 		} else {
-			e.Links.Hide()
+			e.LinkGroup.Hide()
 		}
 	}
 	c.showSubpanel(c.subpanel)
@@ -163,7 +168,7 @@ func (c *nodeController) ShowPartSubpanel(name string) {
 	c.showSubpanel(c.sharedOutlets.partEditors[c.node.Part.TypeKey()].Panels[name])
 }
 
-func (c *nodeController) showSubpanel(p dom.Element) {
+func (c *nodeController) showSubpanel(p *subpanel) {
 	if f, ok := c.node.Part.(focusable); ok {
 		// Wait until after panel is shown in case of display weirdness.
 		defer f.GainFocus()
@@ -173,6 +178,9 @@ func (c *nodeController) showSubpanel(p dom.Element) {
 	if c.sharedOutlets.subpanelCurrent == p {
 		return
 	}
-	c.sharedOutlets.subpanelCurrent.Hide()
-	c.sharedOutlets.subpanelCurrent = p.Show()
+	c.sharedOutlets.subpanelCurrent.Link.ClassList().Remove("selected")
+	c.sharedOutlets.subpanelCurrent.Panel.Hide()
+	c.sharedOutlets.subpanelCurrent = p
+	p.Link.ClassList().Add("selected")
+	p.Panel.Show()
 }

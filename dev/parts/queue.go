@@ -16,7 +16,6 @@ package parts
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
@@ -127,7 +126,6 @@ func (m QueueMode) trim() string {
 
 // Impl returns the Queue implementation.
 func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
-	log.Printf("Queue.Impl(%v)", types)
 	return fmt.Sprintf("const maxItems = %d", q.MaxItems),
 		fmt.Sprintf(`
 		queue := make([]%s, 0, maxItems)

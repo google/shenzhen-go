@@ -3,23 +3,102 @@
 	"package_path": "github.com/google/shenzhen-go/dev/examples/queue",
 	"is_command": true,
 	"nodes": {
+		"Generate numbers": {
+			"part": {
+				"imports": [
+					""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for i := 0; i \u003c 1000; i++ {",
+					"\toutput \u003c- i",
+					"}",
+					"close(output)"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"output": {
+						"type": "int",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 192,
+			"y": 75,
+			"connections": {
+				"output": "channel0"
+			}
+		},
+		"Print survivors": {
+			"part": {
+				"imports": [
+					"\"fmt\"",
+					"\"time\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for range time.Tick(time.Millisecond) {",
+					"\tin, open := \u003c-input",
+					"\tif !open {",
+					"\t\tbreak",
+					"\t}",
+					"\tfmt.Println(in)",
+					"}"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"input": {
+						"type": "$T",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 264,
+			"y": 348,
+			"connections": {
+				"input": "channel1"
+			}
+		},
 		"Queue": {
 			"part": {
 				"mode": "lifo",
-				"max_items": 1000
+				"max_items": 10
 			},
 			"part_type": "Queue",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 202,
-			"y": 108,
+			"x": 231,
+			"y": 205,
 			"connections": {
 				"drop": "nil",
-				"input": "nil",
-				"output": "nil"
+				"input": "channel0",
+				"output": "channel1"
 			}
 		}
 	},
-	"channels": {}
+	"channels": {
+		"channel0": {
+			"cap": 0
+		},
+		"channel1": {
+			"cap": 0
+		}
+	}
 }

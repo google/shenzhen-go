@@ -313,6 +313,8 @@ func (c *graphController) ShowHterm() {
 }
 
 func (c *graphController) Run(ctx context.Context) error {
+	// TODO: Implement ^C
+
 	c.ShowHterm()
 	c.htermTerminal.ClearHome()
 

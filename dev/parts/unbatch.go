@@ -59,7 +59,13 @@ func (Unbatch) Clone() model.Part { return &Unbatch{} }
 
 // Impl returns the Unbatch implementation.
 func (Unbatch) Impl(map[string]string) (head, body, tail string) {
-	return "", "for in := range input { for _, el := range in { output <- el } }", "close(output)"
+	return "", `
+	for in := range input { 
+		for _, el := range in { 
+			output <- el 
+		} 
+	}`,
+		"close(output)"
 }
 
 // Imports returns nil.

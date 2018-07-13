@@ -1,0 +1,60 @@
+{
+	"name": "HTTP Server",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/http_server",
+	"is_command": true,
+	"nodes": {
+		"HTTPServer": {
+			"part": {
+				"addr": "\":8765\""
+			},
+			"part_type": "HTTPServer",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 172,
+			"y": 143,
+			"connections": {
+				"errors": "nil",
+				"requests": "channel0",
+				"shutdown": "nil"
+			}
+		},
+		"Hello World": {
+			"part": {
+				"imports": null,
+				"head": [
+					""
+				],
+				"body": [
+					"for rw := range requests {",
+					"\trw.Write([]byte(\"Hello, HTTP!\"))",
+					"\trw.Close()",
+					"}"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"requests": {
+						"type": "*parts.HTTPRequest",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 233,
+			"y": 248,
+			"connections": {
+				"requests": "channel0"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 0
+		}
+	}
+}

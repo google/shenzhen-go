@@ -80,7 +80,9 @@ var CodePanels = []model.PartPanel{
 
 func init() {
 	model.RegisterPartType("Code", &model.PartType{
-		New:    func() model.Part { return new(Code) },
+		New: func() model.Part {
+			return &Code{pins: pin.NewMap()}
+		},
 		Panels: CodePanels,
 	})
 }

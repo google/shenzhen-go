@@ -109,11 +109,7 @@ func (c *nodeController) Commit(ctx context.Context) error {
 		return err // TODO: contextualise
 	}
 	// Update local copy, since these were read at save time.
-	if c.node.Name != cfg.Name {
-		delete(c.graph.Nodes, c.node.Name)
-		c.graph.Nodes[cfg.Name] = c.node
-		c.node.Name = cfg.Name
-	}
+	c.graph.RenameNode(c.node, cfg.Name)
 	c.node.Comment = cfg.Comment
 	c.node.Enabled = cfg.Enabled
 	c.node.Multiplicity = uint(cfg.Multiplicity)

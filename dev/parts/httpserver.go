@@ -43,14 +43,20 @@ var httpServerPins = pin.NewMap(
 func init() {
 	model.RegisterPartType("HTTPServer", &model.PartType{
 		New: func() model.Part { return &HTTPServer{} },
-		Panels: []model.PartPanel{{
-			Name: "Help",
-			Editor: `<div>
+		Panels: []model.PartPanel{
+			{
+				Name:   "Server",
+				Editor: `TODO(josh): Implement UI for editing HTTP server params`,
+			},
+			{
+				Name: "Help",
+				Editor: `<div>
 			<p>
 				A HTTPServer part serves HTTP requests.
 			</p>
 			</div>`,
-		}},
+			},
+		},
 	})
 }
 
@@ -119,9 +125,9 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 // Imports returns nil.
 func (s *HTTPServer) Imports() []string {
 	return []string{
-		"context",
-		"net/http",
-		"github.com/google/shenzhen-go/dev/parts",
+		`"context"`,
+		`"net/http"`,
+		`"github.com/google/shenzhen-go/dev/parts"`,
 	}
 }
 

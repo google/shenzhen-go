@@ -132,6 +132,29 @@ func (g *Graph) DeleteNode(n *Node, cleanupChans bool) {
 	}
 }
 
+// RenameNode renames the node and fixes up references.
+func (g *Graph) RenameNode(n *Node, newName string) {
+	if newName == n.Name {
+		return
+	}
+	// Fix any channels - not too fiddly.
+	for p, co := range n.Connections {
+		if co == "nil" {
+			continue
+		}
+		ch := g.Channels[co]
+		if ch == nil {
+			continue
+		}
+		ch.RemovePin(n.Name, p)
+		ch.AddPin(newName, p)
+	}
+	// Update the nodes map.
+	delete(g.Nodes, n.Name)
+	g.Nodes[newName] = n
+	n.Name = newName
+}
+
 // Check checks over the graph for any errors.
 func (g *Graph) Check() error {
 	// TODO: implement

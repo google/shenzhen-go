@@ -19,8 +19,6 @@ package parts
 import "github.com/google/shenzhen-go/dev/dom"
 
 var (
-	doc = dom.CurrentDocument()
-
 	inputQueueMaxItems = doc.ElementByID("queue-maxitems")
 	selectQueueMode    = doc.ElementByID("queue-mode")
 

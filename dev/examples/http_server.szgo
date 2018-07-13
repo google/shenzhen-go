@@ -4,7 +4,9 @@
 	"is_command": true,
 	"nodes": {
 		"HTTPServer": {
-			"part": {},
+			"part": {
+				"max_header_bytes": 100000000
+			},
 			"part_type": "HTTPServer",
 			"enabled": true,
 			"wait": true,

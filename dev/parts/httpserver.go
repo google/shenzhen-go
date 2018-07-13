@@ -55,19 +55,19 @@ func init() {
 				Editor: `<div>
 				<div class="formfield">
 					<label for="httpserver-readtimeout">Read timeout</label>
-					<input id="httpserver-readtimeout" name="httpserver-readtimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+					<input id="httpserver-readtimeout" name="httpserver-readtimeout" type="text" required title="Must be a parseable time.Duration" value="0s"></input>
 				</div>
 				<div class="formfield">
 					<label for="httpserver-readheadertimeout">Read header timeout</label>
-					<input id="httpserver-readheadertimeout" name="httpserver-readheadertimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+					<input id="httpserver-readheadertimeout" name="httpserver-readheadertimeout" type="text" required title="Must be a parseable time.Duration" value="0s"></input>
 				</div>
 				<div class="formfield">
 					<label for="httpserver-writetimeout">Write timeout</label>
-					<input id="httpserver-writetimeout" name="httpserver-writetimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+					<input id="httpserver-writetimeout" name="httpserver-writetimeout" type="text" required title="Must be a parseable time.Duration" value="0s"></input>
 				</div>
 				<div class="formfield">
 					<label for="httpserver-idletimeout">Idle timeout</label>
-					<input id="httpserver-idletimeout" name="httpserver-idletimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+					<input id="httpserver-idletimeout" name="httpserver-idletimeout" type="text" required title="Must be a parseable time.Duration" value="0s"></input>
 				</div>
 				<div class="formfield">
 					<label for="httpserver-maxheaderbytes">Max header bytes</label>
@@ -108,16 +108,16 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 		Addr:    <-addr,
 		`)
 	if s.ReadTimeout != 0 {
-		fmt.Fprintf(b, "ReadTimeout: %d // %v,\n", s.ReadTimeout, s.ReadTimeout)
+		fmt.Fprintf(b, "ReadTimeout: %d, // %v\n", s.ReadTimeout, s.ReadTimeout)
 	}
 	if s.ReadHeaderTimeout != 0 {
-		fmt.Fprintf(b, "ReadHeaderTimeout: %d // %v,\n", s.ReadHeaderTimeout, s.ReadHeaderTimeout)
+		fmt.Fprintf(b, "ReadHeaderTimeout: %d, // %v\n", s.ReadHeaderTimeout, s.ReadHeaderTimeout)
 	}
 	if s.WriteTimeout != 0 {
-		fmt.Fprintf(b, "WriteTimeout: %d // %v,\n", s.WriteTimeout, s.WriteTimeout)
+		fmt.Fprintf(b, "WriteTimeout: %d, // %v\n", s.WriteTimeout, s.WriteTimeout)
 	}
 	if s.IdleTimeout != 0 {
-		fmt.Fprintf(b, "IdleTimeout: %d // %v,\n", s.IdleTimeout, s.IdleTimeout)
+		fmt.Fprintf(b, "IdleTimeout: %d, // %v\n", s.IdleTimeout, s.IdleTimeout)
 	}
 	if s.MaxHeaderBytes != 0 {
 		fmt.Fprintf(b, "MaxHeaderBytes: %d,\n", s.MaxHeaderBytes)

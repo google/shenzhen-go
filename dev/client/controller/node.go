@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"
@@ -55,7 +56,13 @@ type nodeController struct {
 	subpanel *subpanel // remember most recent subpanel for each node
 }
 
-func (c *nodeController) Name() string             { return c.node.Name }
+func (c *nodeController) Name() string {
+	if c.node.Multiplicity <= 1 {
+		return c.node.Name
+	}
+	return fmt.Sprintf("%s (x%d)", c.node.Name, c.node.Multiplicity)
+}
+
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
 
 func (c *nodeController) Pins(f func(view.PinController, string)) {

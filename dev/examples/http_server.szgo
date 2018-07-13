@@ -4,16 +4,15 @@
 	"is_command": true,
 	"nodes": {
 		"HTTPServer": {
-			"part": {
-				"addr": "\":8765\""
-			},
+			"part": {},
 			"part_type": "HTTPServer",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 172,
-			"y": 143,
+			"x": 180,
+			"y": 170,
 			"connections": {
+				"addr": "channel1",
 				"errors": "nil",
 				"requests": "channel0",
 				"shutdown": "nil"
@@ -27,7 +26,7 @@
 				],
 				"body": [
 					"for rw := range requests {",
-					"\trw.Write([]byte(\"Hello, HTTP!\"))",
+					"\trw.Write([]byte(\"Hello, HTTP!\\n\"))",
 					"\trw.Close()",
 					"}"
 				],
@@ -45,15 +44,47 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 233,
-			"y": 248,
+			"x": 222,
+			"y": 284,
 			"connections": {
 				"requests": "channel0"
+			}
+		},
+		"Send \":8765\"": {
+			"part": {
+				"imports": null,
+				"head": [
+					""
+				],
+				"body": [
+					"addr \u003c- \":8765\""
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"addr": {
+						"type": "string",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 176,
+			"y": 51,
+			"connections": {
+				"addr": "channel1"
 			}
 		}
 	},
 	"channels": {
 		"channel0": {
+			"cap": 0
+		},
+		"channel1": {
 			"cap": 0
 		}
 	}

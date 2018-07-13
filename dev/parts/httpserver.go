@@ -17,12 +17,18 @@ package parts
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
 var httpServerPins = pin.NewMap(
+	&pin.Definition{
+		Name:      "addr",
+		Direction: pin.Input,
+		Type:      "string",
+	},
 	&pin.Definition{
 		Name:      "shutdown",
 		Direction: pin.Input,
@@ -45,8 +51,29 @@ func init() {
 		New: func() model.Part { return &HTTPServer{} },
 		Panels: []model.PartPanel{
 			{
-				Name:   "Server",
-				Editor: `TODO(josh): Implement UI for editing HTTP server params`,
+				Name: "Server",
+				Editor: `<div>
+				<div class="formfield">
+					<label for="httpserver-readtimeout">Read timeout</label>
+					<input id="httpserver-readtimeout" name="httpserver-readtimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+				</div>
+				<div class="formfield">
+					<label for="httpserver-readheadertimeout">Read header timeout</label>
+					<input id="httpserver-readheadertimeout" name="httpserver-readheadertimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+				</div>
+				<div class="formfield">
+					<label for="httpserver-writetimeout">Write timeout</label>
+					<input id="httpserver-writetimeout" name="httpserver-writetimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+				</div>
+				<div class="formfield">
+					<label for="httpserver-idletimeout">Idle timeout</label>
+					<input id="httpserver-idletimeout" name="httpserver-idletimeout" type="text" required title="Must be 0 or a parseable time.Duration" value="0"></input>
+				</div>
+				<div class="formfield">
+					<label for="httpserver-maxheaderbytes">Max header bytes</label>
+					<input id="httpserver-maxheaderbytes" name="httpserver-maxheaderbytes" type="number" required title="Must be a whole number. 0 means http.DefaultMaxHeaderBytes." value="0"></input>
+				</div>
+			</div>`,
 			},
 			{
 				Name: "Help",
@@ -63,12 +90,11 @@ func init() {
 // HTTPServer is a part which listens on an address and
 // serves HTTP requests.
 type HTTPServer struct {
-	Addr              string `json:"addr,omitempty"`
-	ReadTimeout       string `json:"read_timeout,omitempty"`
-	ReadHeaderTimeout string `json:"read_header_timeout,omitempty"`
-	WriteTimeout      string `json:"write_timeout,omitempty"`
-	IdleTimeout       string `json:"idle_timeout,omitempty"`
-	MaxHeaderBytes    string `json:"max_header_bytes,omitempty"`
+	ReadTimeout       time.Duration `json:"read_timeout,omitempty"`
+	ReadHeaderTimeout time.Duration `json:"read_header_timeout,omitempty"`
+	WriteTimeout      time.Duration `json:"write_timeout,omitempty"`
+	IdleTimeout       time.Duration `json:"idle_timeout,omitempty"`
+	MaxHeaderBytes    int           `json:"max_header_bytes,omitempty"`
 }
 
 // Clone returns a clone of this HTTPServer.
@@ -79,24 +105,22 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 	b := bytes.NewBuffer(nil)
 	b.WriteString(`svr := &http.Server{
 		Handler: parts.HTTPHandler(requests),
+		Addr:    <-addr,
 		`)
-	if s.Addr != "" {
-		fmt.Fprintf(b, "Addr: %s,\n", s.Addr)
+	if s.ReadTimeout != 0 {
+		fmt.Fprintf(b, "ReadTimeout: %d // %v,\n", s.ReadTimeout, s.ReadTimeout)
 	}
-	if s.ReadTimeout != "" {
-		fmt.Fprintf(b, "ReadTimeout: %s,\n", s.ReadTimeout)
+	if s.ReadHeaderTimeout != 0 {
+		fmt.Fprintf(b, "ReadHeaderTimeout: %d // %v,\n", s.ReadHeaderTimeout, s.ReadHeaderTimeout)
 	}
-	if s.ReadHeaderTimeout != "" {
-		fmt.Fprintf(b, "ReadHeaderTimeout: %s,\n", s.ReadHeaderTimeout)
+	if s.WriteTimeout != 0 {
+		fmt.Fprintf(b, "WriteTimeout: %d // %v,\n", s.WriteTimeout, s.WriteTimeout)
 	}
-	if s.WriteTimeout != "" {
-		fmt.Fprintf(b, "WriteTimeout: %s,\n", s.WriteTimeout)
+	if s.IdleTimeout != 0 {
+		fmt.Fprintf(b, "IdleTimeout: %d // %v,\n", s.IdleTimeout, s.IdleTimeout)
 	}
-	if s.IdleTimeout != "" {
-		fmt.Fprintf(b, "IdleTimeout: %s,\n", s.IdleTimeout)
-	}
-	if s.MaxHeaderBytes != "" {
-		fmt.Fprintf(b, "MaxHeaderBytes: %s,\n", s.MaxHeaderBytes)
+	if s.MaxHeaderBytes != 0 {
+		fmt.Fprintf(b, "MaxHeaderBytes: %d,\n", s.MaxHeaderBytes)
 	}
 	b.WriteString(`}
 	var shutdone chan struct{}

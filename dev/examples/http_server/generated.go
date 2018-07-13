@@ -3,7 +3,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
+	"log"
 	"net/http"
 	"sync"
 )
@@ -48,6 +50,26 @@ func Hello_World(requests <-chan *parts.HTTPRequest) {
 
 }
 
+func Log_errors(errors <-chan error) {
+	const multiplicity = 1
+
+	const instanceNumber = 0
+	for err := range errors {
+		log.Printf("HTTP server: %v", err)
+	}
+
+}
+
+func Press_Enter_to_shut_down(shutdown chan<- context.Context) {
+	const multiplicity = 1
+
+	const instanceNumber = 0
+	fmt.Println("Press Enter to shut down.")
+	var s string
+	fmt.Scanln(&s)
+
+}
+
 func Send_8765(addr chan<- string) {
 	const multiplicity = 1
 
@@ -60,18 +82,32 @@ func main() {
 
 	channel0 := make(chan *parts.HTTPRequest, 0)
 	channel1 := make(chan string, 0)
+	channel2 := make(chan context.Context, 0)
+	channel3 := make(chan error, 0)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		HTTPServer(channel1, nil, channel0, nil)
+		HTTPServer(channel1, channel3, channel0, channel2)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
 		Hello_World(channel0)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Log_errors(channel3)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Press_Enter_to_shut_down(channel2)
 		wg.Done()
 	}()
 

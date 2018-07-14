@@ -2,15 +2,17 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"time"
+
+	"context"
+	"fmt"
 )
 
 func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
@@ -47,34 +49,34 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 	}
 }
 
-func HTTPServer(addr <-chan string, errors chan<- error, requests chan<- *parts.HTTPRequest, shutdown <-chan context.Context) {
+func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, requests chan<- *parts.HTTPRequest) {
 	const multiplicity = 1
 
 	defer func() {
 		close(requests)
 		if errors != nil {
 			close(errors)
+			errors = nil
 		}
 
 	}()
 	const instanceNumber = 0
-	svr := &http.Server{
-		Handler: parts.HTTPHandler(requests),
-		Addr:    <-addr,
-	}
-	var shutdone chan struct{}
-	go func() {
-		ctx := <-shutdown
-		shutdone = make(chan struct{})
-		svr.Shutdown(ctx)
-		close(shutdone)
-	}()
-	err := svr.ListenAndServe()
-	if errors != nil {
-		errors <- err
-	}
-	if shutdone != nil {
-		<-shutdone
+
+	for mgr := range manager {
+		svr := &http.Server{
+			Handler: parts.HTTPHandler(requests),
+			Addr:    mgr.Addr(),
+		}
+		go func() {
+			err := svr.ListenAndServe()
+			if errors != nil {
+				errors <- err
+			}
+		}()
+		err := svr.Shutdown(mgr.Wait())
+		if errors != nil {
+			errors <- err
+		}
 	}
 }
 
@@ -110,32 +112,34 @@ func Metrics(requests <-chan *parts.HTTPRequest) {
 
 }
 
-func Press_Enter_to_shut_down(shutdown chan<- context.Context) {
+func Send_a_manager(manager chan<- parts.HTTPServerManager) {
 	const multiplicity = 1
 
+	defer func() {
+		close(manager)
+	}()
 	const instanceNumber = 0
-	fmt.Println("Press Enter to shut down.")
-	var s string
-	fmt.Scanln(&s)
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	shutdown <- ctx
-}
+	mgr := parts.NewHTTPServerManager(":8765")
+	manager <- mgr
 
-func Send_8765(addr chan<- string) {
-	const multiplicity = 1
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+	fmt.Println("Press Ctrl-C (or SIGINT) to shut down.")
+	<-sig
 
-	const instanceNumber = 0
-	addr <- ":8765"
+	timeout := 5 * time.Second
+	fmt.Printf("Shutting down within %v...\n", timeout)
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	mgr.Shutdown(ctx)
 }
 
 func main() {
 
 	channel0 := make(chan *parts.HTTPRequest, 0)
-	channel1 := make(chan string, 0)
-	channel2 := make(chan context.Context, 0)
 	channel3 := make(chan error, 0)
 	channel5 := make(chan *parts.HTTPRequest, 0)
 	channel6 := make(chan *parts.HTTPRequest, 0)
+	channel9 := make(chan parts.HTTPServerManager, 0)
 
 	var wg sync.WaitGroup
 
@@ -147,7 +151,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		HTTPServer(channel1, channel3, channel0, channel2)
+		HTTPServer(channel3, channel9, channel0)
 		wg.Done()
 	}()
 
@@ -171,13 +175,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Press_Enter_to_shut_down(channel2)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		Send_8765(channel1)
+		Send_a_manager(channel9)
 		wg.Done()
 	}()
 

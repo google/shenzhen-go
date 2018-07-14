@@ -14,7 +14,10 @@
 
 package parts
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // HTTPRequest represents incoming HTTP requests and the means to respond to them.
 type HTTPRequest struct {
@@ -39,3 +42,39 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	<-done
 }
+
+// HTTPServerManager is information required to start and stop one HTTP server
+// with the HTTPServer part.
+//
+// You can implement your own if you really want, but NewHTTPServerManager
+// returns a simple, straightforward, channel-based implementation.
+// The HTTPServer part only requires Addr and Wait.
+type HTTPServerManager interface {
+	// Addr is the listen address for the HTTP server.
+	Addr() string
+
+	// Shutdown passes a shutdown context to the HTTP server.
+	// See https://godoc.org/net/http#Server.Shutdown for the interpretation
+	// of the context.
+	Shutdown(context.Context)
+
+	// Wait waits until Shutdown is called, and then returns the context it was called with.
+	Wait() context.Context
+}
+
+type httpServerManager struct {
+	addr     string
+	shutdown chan context.Context
+}
+
+// NewHTTPServerManager creates a channel-based HTTPServerManager.
+func NewHTTPServerManager(addr string) HTTPServerManager {
+	return &httpServerManager{
+		addr:     addr,
+		shutdown: make(chan context.Context),
+	}
+}
+
+func (h *httpServerManager) Addr() string                 { return h.addr }
+func (h *httpServerManager) Shutdown(ctx context.Context) { h.shutdown <- ctx }
+func (h *httpServerManager) Wait() context.Context        { return <-h.shutdown }

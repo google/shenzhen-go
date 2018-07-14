@@ -25,14 +25,9 @@ import (
 
 var httpServerPins = pin.NewMap(
 	&pin.Definition{
-		Name:      "addr",
+		Name:      "manager",
 		Direction: pin.Input,
-		Type:      "string",
-	},
-	&pin.Definition{
-		Name:      "shutdown",
-		Direction: pin.Input,
-		Type:      "context.Context",
+		Type:      "parts.HTTPServerManager",
 	},
 	&pin.Definition{
 		Name:      "requests",
@@ -103,9 +98,11 @@ func (s *HTTPServer) Clone() model.Part { s0 := *s; return &s0 }
 // Impl returns the HTTPServer implementation.
 func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 	b := bytes.NewBuffer(nil)
-	b.WriteString(`svr := &http.Server{
-		Handler: parts.HTTPHandler(requests),
-		Addr:    <-addr,
+	b.WriteString(`
+	for mgr := range manager {
+		svr := &http.Server{
+			Handler: parts.HTTPHandler(requests),
+			Addr:    mgr.Addr(),
 		`)
 	if s.ReadTimeout != 0 {
 		fmt.Fprintf(b, "ReadTimeout: %d, // %v\n", s.ReadTimeout, s.ReadTimeout)
@@ -123,19 +120,19 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 		fmt.Fprintf(b, "MaxHeaderBytes: %d,\n", s.MaxHeaderBytes)
 	}
 	b.WriteString(`}
-	var shutdone chan struct{}
-	go func() {
-		ctx := <-shutdown
-		shutdone = make(chan struct{})
-		svr.Shutdown(ctx)
-		close(shutdone)
-	}()
-	err := svr.ListenAndServe()
-	if errors != nil {
-		errors <- err
-	}
-	if shutdone != nil {
-		<-shutdone 
+		done := make(chan struct{})
+		go func() {
+			err := svr.ListenAndServe()
+			if errors != nil {
+				errors <- err
+			}
+			close(done)
+		}()
+		err := svr.Shutdown(mgr.Wait())
+		if errors != nil {
+			errors <- err
+		}
+		<-done
 	}`)
 	return "",
 		b.String(),

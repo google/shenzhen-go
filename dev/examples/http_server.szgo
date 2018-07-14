@@ -31,10 +31,9 @@
 			"x": 192,
 			"y": 173,
 			"connections": {
-				"addr": "channel1",
 				"errors": "channel3",
-				"requests": "channel0",
-				"shutdown": "channel2"
+				"manager": "channel9",
+				"requests": "channel0"
 			}
 		},
 		"Hello World": {
@@ -116,29 +115,39 @@
 				"requests": "channel5"
 			}
 		},
-		"Press Enter to shut down": {
+		"Send a manager": {
 			"part": {
 				"imports": [
 					"\"context\"",
 					"\"fmt\"",
-					"\"time\""
+					"\"time\"",
+					"\"os\"",
+					"\"os/signal\"",
+					"\"github.com/google/shenzhen-go/dev/parts\""
 				],
 				"head": [
 					""
 				],
 				"body": [
-					"fmt.Println(\"Press Enter to shut down.\")",
-					"var s string",
-					"fmt.Scanln(\u0026s)",
-					"ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)",
-					"shutdown \u003c- ctx"
+					"mgr := parts.NewHTTPServerManager(\":8765\")",
+					"manager \u003c- mgr",
+					"",
+					"sig := make(chan os.Signal, 1)",
+					"signal.Notify(sig, os.Interrupt)",
+					"fmt.Println(\"Press Ctrl-C (or SIGINT) to shut down.\")",
+					"\u003c-sig",
+					"",
+					"timeout := 5 * time.Second",
+					"fmt.Printf(\"Shutting down within %v...\\n\", timeout)",
+					"ctx, _ := context.WithTimeout(context.Background(), timeout)",
+					"mgr.Shutdown(ctx)"
 				],
 				"tail": [
-					""
+					"close(manager)"
 				],
 				"pins": {
-					"shutdown": {
-						"type": "context.Context",
+					"manager": {
+						"type": "parts.HTTPServerManager",
 						"dir": "out"
 					}
 				}
@@ -147,52 +156,15 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 238,
-			"y": 51,
+			"x": 178,
+			"y": 50,
 			"connections": {
-				"shutdown": "channel2"
-			}
-		},
-		"Send \":8765\"": {
-			"part": {
-				"imports": [
-					""
-				],
-				"head": [
-					""
-				],
-				"body": [
-					"addr \u003c- \":8765\""
-				],
-				"tail": [
-					""
-				],
-				"pins": {
-					"addr": {
-						"type": "string",
-						"dir": "out"
-					}
-				}
-			},
-			"part_type": "Code",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": 1,
-			"x": 90,
-			"y": 51,
-			"connections": {
-				"addr": "channel1"
+				"manager": "channel9"
 			}
 		}
 	},
 	"channels": {
 		"channel0": {
-			"cap": 0
-		},
-		"channel1": {
-			"cap": 0
-		},
-		"channel2": {
 			"cap": 0
 		},
 		"channel3": {
@@ -202,6 +174,9 @@
 			"cap": 0
 		},
 		"channel6": {
+			"cap": 0
+		},
+		"channel9": {
 			"cap": 0
 		}
 	}

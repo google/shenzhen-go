@@ -47,21 +47,23 @@ import (
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
 	const multiplicity = {{.Multiplicity}}
 	{{.ImplHead}}
+	defer func() {
+		{{.ImplTail}}
+	}()
 	{{if eq .Multiplicity 1 -}}
 	const instanceNumber = 0
 	{{.ImplBody}}
 	{{- else -}}
 	var multWG sync.WaitGroup
 	multWG.Add(multiplicity)
+	defer multWG.Wait()
 	for n:=0; n<multiplicity; n++ {
 		go func(instanceNumber int) {
 			defer multWG.Done()
 			{{.ImplBody}}
 		}(n)
 	}
-	multWG.Wait()
 	{{- end}}
-	{{.ImplTail}}
 }
 {{end}}
 
@@ -92,7 +94,7 @@ func Run() {
 		{{- end}}
 	{{- end}}
 
-	// Wait for the end
+	// Wait for the various goroutines to finish.
 	wg.Wait()
 }`
 )

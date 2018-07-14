@@ -3,14 +3,14 @@ package main
 
 import (
 	"context"
-	"sync"
-
-	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
+	"sync"
 	"time"
+
+	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {

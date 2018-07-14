@@ -3,14 +3,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"time"
 )
 
 func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
@@ -19,6 +19,11 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 	mux.Handle("/", parts.HTTPHandler(root))
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 
+	defer func() {
+		close(root)
+		close(metrics)
+
+	}()
 	const instanceNumber = 0
 	for req := range requests {
 		// Borrow fix for Go issues #3692 and #5955.
@@ -40,14 +45,18 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 		}
 		hh <- req
 	}
-	close(root)
-	close(metrics)
-
 }
 
 func HTTPServer(addr <-chan string, errors chan<- error, requests chan<- *parts.HTTPRequest, shutdown <-chan context.Context) {
 	const multiplicity = 1
 
+	defer func() {
+		close(requests)
+		if errors != nil {
+			close(errors)
+		}
+
+	}()
 	const instanceNumber = 0
 	svr := &http.Server{
 		Handler: parts.HTTPHandler(requests),
@@ -67,11 +76,6 @@ func HTTPServer(addr <-chan string, errors chan<- error, requests chan<- *parts.
 	if shutdone != nil {
 		<-shutdone
 	}
-	close(requests)
-	if errors != nil {
-		close(errors)
-	}
-
 }
 
 func Hello_World(requests <-chan *parts.HTTPRequest) {
@@ -82,7 +86,6 @@ func Hello_World(requests <-chan *parts.HTTPRequest) {
 		rw.Write([]byte("Hello, HTTP!\n"))
 		rw.Close()
 	}
-
 }
 
 func Log_errors(errors <-chan error) {
@@ -92,7 +95,6 @@ func Log_errors(errors <-chan error) {
 	for err := range errors {
 		log.Printf("HTTP server: %v", err)
 	}
-
 }
 
 func Metrics(requests <-chan *parts.HTTPRequest) {
@@ -117,7 +119,6 @@ func Press_Enter_to_shut_down(shutdown chan<- context.Context) {
 	fmt.Scanln(&s)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	shutdown <- ctx
-
 }
 
 func Send_8765(addr chan<- string) {
@@ -125,7 +126,6 @@ func Send_8765(addr chan<- string) {
 
 	const instanceNumber = 0
 	addr <- ":8765"
-
 }
 
 func main() {
@@ -181,6 +181,6 @@ func main() {
 		wg.Done()
 	}()
 
-	// Wait for the end
+	// Wait for the various goroutines to finish.
 	wg.Wait()
 }

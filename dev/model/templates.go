@@ -47,9 +47,11 @@ import (
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
 	const multiplicity = {{.Multiplicity}}
 	{{.ImplHead}}
+	{{if .ImplTail -}}
 	defer func() {
 		{{.ImplTail}}
 	}()
+	{{end -}}
 	{{if eq .Multiplicity 1 -}}
 	const instanceNumber = 0
 	{{.ImplBody}}

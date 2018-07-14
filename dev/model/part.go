@@ -69,13 +69,24 @@ type PartPanel struct {
 	Editor template.HTML
 }
 
-// PartTypes translates part type strings into useful information.
-var PartTypes = make(map[string]*PartType)
+var (
+	// PartTypes translates part type strings into useful information.
+	PartTypes = make(map[string]*PartType)
+
+	// PartTypesByCategory has an extra layer of map for grouping by category.
+	PartTypesByCategory = make(map[string]map[string]*PartType)
+)
 
 // RegisterPartType adds a part type to the PartTypes map.
 // This should be used by part types during init.
-func RegisterPartType(name string, pt *PartType) {
+func RegisterPartType(name, category string, pt *PartType) {
 	PartTypes[name] = pt
+	cat := PartTypesByCategory[category]
+	if cat == nil {
+		PartTypesByCategory[category] = map[string]*PartType{name: pt}
+		return
+	}
+	cat[name] = pt
 }
 
 // PartJSON is a convenient JSON-plus-type-key type.

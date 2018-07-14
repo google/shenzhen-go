@@ -4,20 +4,10 @@ if [ -z "$GOPATH" ]; then
 	export GOPATH="$HOME/go"
 fi
 
-pushd $GOPATH/src/github.com/google/shenzhen-go/dev
-
-go install github.com/google/shenzhen-go/scripts/embed
-
-# Client JS generation & embedding
-pushd ./client
+pushd $GOPATH/src/github.com/google/shenzhen-go/dev/client
+# Client JS generation
 go generate
-popd
 
-# Static file embedding
-pushd ./server/view
-go generate
-popd
-
-./serverbuild.sh
-
+# Build everything server-related
+../serverbuild.sh
 popd

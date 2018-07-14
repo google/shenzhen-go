@@ -47,7 +47,7 @@ var httpServerPins = pin.NewMap(
 )
 
 func init() {
-	model.RegisterPartType("HTTPServer", &model.PartType{
+	model.RegisterPartType("HTTPServer", "Web", &model.PartType{
 		New: func() model.Part { return &HTTPServer{} },
 		Panels: []model.PartPanel{
 			{

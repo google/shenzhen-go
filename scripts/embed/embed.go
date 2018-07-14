@@ -29,6 +29,7 @@ var (
 	pkg  = flag.String("p", "", "Name of package, required")
 	vn   = flag.String("v", "", "Name of map variable, required")
 	outf = flag.String("o", "", "Name of output file, required")
+	base = flag.String("base", ".", "Base directory of input files; similar to tar -C mode")
 )
 
 func main() {
@@ -49,17 +50,22 @@ func main() {
 	fmt.Fprintf(w, "var %s = map[string][]byte{\n", *vn)
 
 	for _, ifs := range flag.Args() {
-		ms, err := filepath.Glob(ifs)
+		ms, err := filepath.Glob(filepath.Join(*base, ifs))
 		if err != nil {
 			log.Fatalf("Input pattern invalid: %v", err)
 		}
 		for _, m := range ms {
 			i, err := ioutil.ReadFile(m)
 			if err != nil {
-				log.Printf("Cannot read input file: %v", err)
+				log.Printf("Cannot read input file, skipping: %v", err)
 				continue
 			}
-			fmt.Fprintf(w, "\t%q: []byte(%q),\n", filepath.ToSlash(m), string(i))
+			r, err := filepath.Rel(*base, m)
+			if err != nil {
+				log.Printf("Cannot compute relative path, skipping: %v", err)
+				continue
+			}
+			fmt.Fprintf(w, "\t%q: []byte(%q),\n", filepath.ToSlash(r), string(i))
 		}
 	}
 	fmt.Fprintln(w, "}")

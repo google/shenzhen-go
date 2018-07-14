@@ -41,7 +41,7 @@ var keyCounterPins = pin.NewMap(
 	})
 
 func init() {
-	model.RegisterPartType("KeyCounter", &model.PartType{
+	model.RegisterPartType("KeyCounter", "Utility", &model.PartType{
 		New: func() model.Part { return &KeyCounter{} },
 		Panels: []model.PartPanel{{
 			Name: "Help",

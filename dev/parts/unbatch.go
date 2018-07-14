@@ -32,7 +32,7 @@ var unbatchPins = pin.NewMap(
 	})
 
 func init() {
-	model.RegisterPartType("Unbatch", &model.PartType{
+	model.RegisterPartType("Unbatch", "Flow", &model.PartType{
 		New: func() model.Part { return &Unbatch{} },
 		Panels: []model.PartPanel{{
 			Name: "Help",

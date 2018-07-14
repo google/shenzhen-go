@@ -15,4 +15,3 @@
 package main
 
 //go:generate gopherjs build
-//go:generate embed -p view -v clientResources -o ../server/view/static-client.go client.js*

@@ -26,10 +26,11 @@ import (
 var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(string(templateResources["templates/graph.html"])))
 
 type editorInput struct {
-	Graph     *model.Graph
-	GraphJSON string
-	PartTypes map[string]*model.PartType
-	Licenses  struct {
+	Graph               *model.Graph
+	GraphJSON           string
+	PartTypes           map[string]*model.PartType
+	PartTypesByCategory map[string]map[string]*model.PartType
+	Licenses            struct {
 		ShenzhenGo string
 		Ace        string
 		Hterm      string
@@ -46,9 +47,10 @@ func Graph(w http.ResponseWriter, g *model.Graph) {
 	}
 
 	d := &editorInput{
-		Graph:     g,
-		GraphJSON: string(gj),
-		PartTypes: model.PartTypes,
+		Graph:               g,
+		GraphJSON:           string(gj),
+		PartTypes:           model.PartTypes,
+		PartTypesByCategory: model.PartTypesByCategory,
 	}
 	d.Licenses.ShenzhenGo = string(miscResources["misc/LICENSE"])
 	d.Licenses.Ace = string(jsResources["js/ace/LICENSE"])

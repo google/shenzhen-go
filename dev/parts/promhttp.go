@@ -26,7 +26,7 @@ var promHTTPHandlerPins = pin.NewMap(&pin.Definition{
 })
 
 func init() {
-	model.RegisterPartType("PrometheusHTTPHandler", &model.PartType{
+	model.RegisterPartType("PrometheusHTTPHandler", "Web", &model.PartType{
 		New: func() model.Part { return &PrometheusHTTPHandler{} },
 		Panels: []model.PartPanel{{
 			Name: "Help",

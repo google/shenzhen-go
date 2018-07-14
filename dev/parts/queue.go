@@ -42,7 +42,7 @@ var queuePins = pin.NewMap(
 )
 
 func init() {
-	model.RegisterPartType("Queue", &model.PartType{
+	model.RegisterPartType("Queue", "Flow", &model.PartType{
 		New: func() model.Part {
 			return &Queue{
 				Mode:     QueueModeLIFO,

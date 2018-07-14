@@ -14,6 +14,7 @@
 
 package view
 
+//go:generate embed -p view -v clientResources   -o static-client.go    -base ../../client client.js*
 //go:generate embed -p view -v cssResources      -o static-css.go       css/*.css
 //go:generate embed -p view -v imageResources    -o static-images.go    images/*
 //go:generate embed -p view -v jsResources       -o static-js.go        js/*/*

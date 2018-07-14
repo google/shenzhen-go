@@ -31,8 +31,12 @@
 		<div class="dropdown">
 			New goroutine
 			<div class="dropdown-content"><ul>
-			{{range $t, $null := $.PartTypes -}}
+			{{range $cat, $types := $.PartTypesByCategory -}}
+				<li>{{$cat}}<ul>
+			{{range $t, $null := $types -}}
 				<li><span class="link" id="node-new-link:{{$t}}">{{$t}}</span></li>
+			{{- end}}
+				</ul></li>
 			{{- end}}
 			</ul></div>
 		</div>

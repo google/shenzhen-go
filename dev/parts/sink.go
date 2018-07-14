@@ -26,7 +26,7 @@ var sinkPins = pin.NewMap(&pin.Definition{
 })
 
 func init() {
-	model.RegisterPartType("Sink", &model.PartType{
+	model.RegisterPartType("Sink", "Utility", &model.PartType{
 		New: func() model.Part { return &Sink{} },
 		Panels: []model.PartPanel{{
 			Name: "Help",

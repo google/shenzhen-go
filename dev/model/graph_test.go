@@ -25,7 +25,7 @@ import (
 )
 
 func init() {
-	RegisterPartType("Fake", &PartType{
+	RegisterPartType("Fake", "Misc", &PartType{
 		New: func() Part { return new(FakePart) },
 	})
 }

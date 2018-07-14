@@ -28,9 +28,10 @@ func TestGraphEditorTemplate(t *testing.T) {
 	// Smoke testing the editor template.
 	for name, g := range model.TestGraphs {
 		ei := &editorInput{
-			Graph:     g,
-			GraphJSON: `{"json": true}`,
-			PartTypes: model.PartTypes,
+			Graph:               g,
+			GraphJSON:           `{"json": true}`,
+			PartTypes:           model.PartTypes,
+			PartTypesByCategory: model.PartTypesByCategory,
 		}
 
 		if err := graphEditorTemplate.Execute(nopWriter{}, ei); err != nil {

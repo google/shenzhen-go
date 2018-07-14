@@ -4,13 +4,11 @@ if [ -z "$GOPATH" ]; then
 	export GOPATH="$HOME/go"
 fi
 
-# gRPC generation
 pushd $GOPATH/src/github.com/google/shenzhen-go/dev/proto
-
+# gRPC stubs generation
 go generate
 
-cd ..
-
-./clientbuild.sh
-
+# Also build everything else
+../clientbuild.sh
 popd
+

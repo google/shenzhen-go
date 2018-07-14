@@ -38,8 +38,18 @@ func init() {
 				Editor: `<div class="codeedit" id="httpservemux-routes"></div>`,
 			},
 			{
-				Name:   "Help",
-				Editor: `<div><p>HTTPServeMux is a part which routes requests using a <code>http.ServeMux</code>.</p></div>`,
+				Name: "Help",
+				Editor: `<div>
+					<p>
+						HTTPServeMux is a part which routes requests using a <code>http.ServeMux</code>.
+						Refer to <a href="https://godoc.org/net/http#ServeMux">ServeMux documentation</a> for
+						how ServeMux handles requests in ordinary Go.
+					</p><p>
+						Most requests will be forwarded to the matching output. Ordinary Go ServeMuxes
+						handle some requests directly; HTTPServeMux attemps to match the same behaviour, 
+						so not every input request will be sent to an output.
+					</p>
+				</div>`,
 			},
 		},
 	})
@@ -61,7 +71,7 @@ func (m HTTPServeMux) Clone() model.Part {
 }
 
 // Impl returns the implementation.
-func (m HTTPServeMux) Impl(types map[string]string) (head, body, tail string) {
+func (m HTTPServeMux) Impl(map[string]string) (head, body, tail string) {
 	// I think http.ServeMux is concurrent safe... it guards everything with RWMutex.
 	hb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	closed := source.NewStringSet()

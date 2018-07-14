@@ -76,11 +76,36 @@ func (m HTTPServeMux) Impl(types map[string]string) (head, body, tail string) {
 	}
 
 	return hb.String(),
+		// Look up the handler, assert type, and forward the original *HTTPRequest.
+		// I could use mux.ServeHTTP, but this would unwrap the old *HTTPRequest
+		// and wrap it in a new *HTTPRequest (that requires closing).
+		// Arguably that's not an issue (channel overheads anyway), but I think it's
+		// less surprising to do forwarding.
+		//
+		// The "*" logic was added to ServeMux's ServeHTTP to fix Go issue #3692, and
+		// we should mimic the behaviour. I think it should have been implemented in
+		// ServeMux.Handler; doing in ServeHTTP means anybody who is just using
+		// ServeMux.Handler has to reimplement the same logic.
+		//
+		// http.ServeMux sometimes returns handlers defined in net/http, so handle
+		// those directly.
 		`for req := range requests {
+			// Borrow fix for Go issues #3692 and #5955.
+			if req.Request.RequestURI == "*" {
+				if req.Request.ProtoAtLeast(1, 1) {
+					req.ResponseWriter.Header().Set("Connection", "close")
+				}
+				req.ResponseWriter.WriteHeader(http.StatusBadRequest)
+				req.Close()
+				continue
+			}
 			h, _ := mux.Handler(req.Request)
 			hh, ok := h.(*parts.HTTPHandler)
 			if !ok {
-				panic("mux contained a http.Handler that wasn't actually*parts.HTTPHandler")
+				// ServeMux may return handlers that weren't added above.
+				h.ServeHTTP(req.ResponseWriter, req.Request)
+				req.Close()
+				continue
 			}
 			hh <- req
 		}`,

@@ -3,14 +3,47 @@ package main
 
 import (
 	"context"
+	"sync"
+
 	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
-	"net/http"
-	"sync"
-	"time"
-
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
+	"net/http"
+	"time"
 )
+
+func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
+	const multiplicity = 1
+	mux := http.NewServeMux()
+	mux.Handle("/", parts.HTTPHandler(root))
+	mux.Handle("/metrics", parts.HTTPHandler(metrics))
+
+	const instanceNumber = 0
+	for req := range requests {
+		// Borrow fix for Go issues #3692 and #5955.
+		if req.Request.RequestURI == "*" {
+			if req.Request.ProtoAtLeast(1, 1) {
+				req.ResponseWriter.Header().Set("Connection", "close")
+			}
+			req.ResponseWriter.WriteHeader(http.StatusBadRequest)
+			req.Close()
+			continue
+		}
+		h, _ := mux.Handler(req.Request)
+		hh, ok := h.(parts.HTTPHandler)
+		if !ok {
+			// ServeMux may return handlers that weren't added above.
+			h.ServeHTTP(req.ResponseWriter, req.Request)
+			req.Close()
+			continue
+		}
+		hh <- req
+	}
+	close(root)
+	close(metrics)
+
+}
 
 func HTTPServer(addr <-chan string, errors chan<- error, requests chan<- *parts.HTTPRequest, shutdown <-chan context.Context) {
 	const multiplicity = 1
@@ -62,6 +95,19 @@ func Log_errors(errors <-chan error) {
 
 }
 
+func Metrics(requests <-chan *parts.HTTPRequest) {
+	const multiplicity = 1
+
+	const instanceNumber = 0
+
+	h := promhttp.Handler()
+	for r := range requests {
+		h.ServeHTTP(r.ResponseWriter, r.Request)
+		r.Close()
+	}
+
+}
+
 func Press_Enter_to_shut_down(shutdown chan<- context.Context) {
 	const multiplicity = 1
 
@@ -88,8 +134,16 @@ func main() {
 	channel1 := make(chan string, 0)
 	channel2 := make(chan context.Context, 0)
 	channel3 := make(chan error, 0)
+	channel5 := make(chan *parts.HTTPRequest, 0)
+	channel6 := make(chan *parts.HTTPRequest, 0)
 
 	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		HTTPServeMux(channel5, channel0, channel6)
+		wg.Done()
+	}()
 
 	wg.Add(1)
 	go func() {
@@ -99,13 +153,19 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Hello_World(channel0)
+		Hello_World(channel6)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
 		Log_errors(channel3)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Metrics(channel5)
 		wg.Done()
 	}()
 

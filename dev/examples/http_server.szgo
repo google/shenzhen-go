@@ -3,13 +3,32 @@
 	"package_path": "github.com/google/shenzhen-go/dev/examples/http_server",
 	"is_command": true,
 	"nodes": {
+		"HTTPServeMux": {
+			"part": {
+				"routes": {
+					"/": "root",
+					"/metrics": "metrics"
+				}
+			},
+			"part_type": "HTTPServeMux",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 201,
+			"y": 296,
+			"connections": {
+				"metrics": "channel5",
+				"requests": "channel0",
+				"root": "channel6"
+			}
+		},
 		"HTTPServer": {
 			"part": {},
 			"part_type": "HTTPServer",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 190,
+			"x": 192,
 			"y": 173,
 			"connections": {
 				"addr": "channel1",
@@ -46,10 +65,10 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 263,
-			"y": 293,
+			"x": 314,
+			"y": 416,
 			"connections": {
-				"requests": "channel0"
+				"requests": "channel6"
 			}
 		},
 		"Log errors": {
@@ -79,17 +98,30 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 106,
+			"x": 56,
 			"y": 296,
 			"connections": {
 				"errors": "channel3"
+			}
+		},
+		"Metrics": {
+			"part": {},
+			"part_type": "PrometheusHTTPHandler",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": 1,
+			"x": 149,
+			"y": 416,
+			"connections": {
+				"requests": "channel5"
 			}
 		},
 		"Press Enter to shut down": {
 			"part": {
 				"imports": [
 					"\"context\"",
-					"\"fmt\""
+					"\"fmt\"",
+					"\"time\""
 				],
 				"head": [
 					""
@@ -98,7 +130,8 @@
 					"fmt.Println(\"Press Enter to shut down.\")",
 					"var s string",
 					"fmt.Scanln(\u0026s)",
-					"shutdown \u003c- context.WithTimeout(context.Background(), 5*time.Second)"
+					"ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)",
+					"shutdown \u003c- ctx"
 				],
 				"tail": [
 					""
@@ -163,6 +196,12 @@
 			"cap": 0
 		},
 		"channel3": {
+			"cap": 0
+		},
+		"channel5": {
+			"cap": 0
+		},
+		"channel6": {
 			"cap": 0
 		}
 	}

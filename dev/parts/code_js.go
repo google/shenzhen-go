@@ -26,58 +26,47 @@ import (
 )
 
 var (
-	ace = dom.GlobalAce()
-
-	pinsSession, importsSession, headSession, bodySession, tailSession *dom.AceSession
+	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *dom.AceSession
 
 	focusedCode *Code
 )
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	pinsSession = setupAce("code-pins", dom.AceJSONMode, pinsChange)
-	importsSession = setupAce("code-imports", dom.AceGoMode, importsChange)
-	headSession = setupAce("code-head", dom.AceGoMode, headChange)
-	bodySession = setupAce("code-body", dom.AceGoMode, bodyChange)
-	tailSession = setupAce("code-tail", dom.AceGoMode, tailChange)
+	codePinsSession = setupAce("code-pins", dom.AceJSONMode, codePinsChange)
+	codeImportsSession = setupAce("code-imports", dom.AceGoMode, codeImportsChange)
+	codeHeadSession = setupAce("code-head", dom.AceGoMode, codeHeadChange)
+	codeBodySession = setupAce("code-body", dom.AceGoMode, codeBodyChange)
+	codeTailSession = setupAce("code-tail", dom.AceGoMode, codeTailChange)
 }
 
-func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
-	e := ace.Edit(id)
-	if e == nil {
-		log.Fatalf("Couldn't ace.edit(%q)", id)
-	}
-	e.SetTheme(dom.AceChromeTheme)
-	return e.Session().
-		SetMode(mode).
-		SetUseSoftTabs(false).
-		On("change", handler)
-}
-
-func pinsChange(dom.Object) {
+func codePinsChange(dom.Object) {
 	var p pin.Map
-	if err := json.Unmarshal([]byte(pinsSession.Value()), &p); err != nil {
-		// Ignore
+	if err := json.Unmarshal([]byte(codePinsSession.Value()), &p); err != nil {
+		log.Printf("Couldn't unmarshal codePinsSession value into a pin.Map: %v", err)
 		return
 	}
 	focusedCode.pins = p
 }
 
-func importsChange(dom.Object) { focusedCode.imports = strings.Split(importsSession.Value(), "\n") }
-func headChange(dom.Object)    { focusedCode.head = headSession.Value() }
-func bodyChange(dom.Object)    { focusedCode.body = bodySession.Value() }
-func tailChange(dom.Object)    { focusedCode.tail = tailSession.Value() }
+func codeImportsChange(dom.Object) {
+	focusedCode.imports = strings.Split(codeImportsSession.Value(), "\n")
+}
+
+func codeHeadChange(dom.Object) { focusedCode.head = codeHeadSession.Value() }
+func codeBodyChange(dom.Object) { focusedCode.body = codeBodySession.Value() }
+func codeTailChange(dom.Object) { focusedCode.tail = codeTailSession.Value() }
 
 func (c *Code) GainFocus() {
 	focusedCode = c
 	p, err := json.MarshalIndent(c.pins, "", "\t")
 	if err != nil {
-		// Should have parsed correctly beforehand.
-		panic(err)
+		// ...How?
+		log.Fatalf("Couldn't marshal a pin.Map to JSON: %v", err)
 	}
-	pinsSession.SetValue(string(p))
-	importsSession.SetValue(strings.Join(c.imports, "\n"))
-	headSession.SetValue(c.head)
-	bodySession.SetValue(c.body)
-	tailSession.SetValue(c.tail)
+	codePinsSession.SetValue(string(p))
+	codeImportsSession.SetValue(strings.Join(c.imports, "\n"))
+	codeHeadSession.SetValue(c.head)
+	codeBodySession.SetValue(c.body)
+	codeTailSession.SetValue(c.tail)
 }

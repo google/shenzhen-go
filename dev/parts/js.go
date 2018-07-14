@@ -16,6 +16,25 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dev/dom"
+import (
+	"log"
 
-var doc = dom.CurrentDocument()
+	"github.com/google/shenzhen-go/dev/dom"
+)
+
+var (
+	doc = dom.CurrentDocument()
+	ace = dom.GlobalAce()
+)
+
+func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
+	e := ace.Edit(id)
+	if e == nil {
+		log.Fatalf("Couldn't ace.edit(%q)", id)
+	}
+	e.SetTheme(dom.AceChromeTheme)
+	return e.Session().
+		SetMode(mode).
+		SetUseSoftTabs(false).
+		On("change", handler)
+}

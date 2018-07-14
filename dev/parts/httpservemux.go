@@ -27,13 +27,15 @@ func init() {
 	model.RegisterPartType("HTTPServeMux", "Web", &model.PartType{
 		New: func() model.Part {
 			return &HTTPServeMux{
-				Routes: make(map[string]string),
+				Routes: map[string]string{
+					"/": "root",
+				},
 			}
 		},
 		Panels: []model.PartPanel{
 			{
 				Name:   "Routes",
-				Editor: `TODO(josh): Implement UI`,
+				Editor: `<div class="codeedit" id="httpservemux-routes"></div>`,
 			},
 			{
 				Name:   "Help",
@@ -100,7 +102,7 @@ func (m HTTPServeMux) Impl(types map[string]string) (head, body, tail string) {
 				continue
 			}
 			h, _ := mux.Handler(req.Request)
-			hh, ok := h.(*parts.HTTPHandler)
+			hh, ok := h.(parts.HTTPHandler)
 			if !ok {
 				// ServeMux may return handlers that weren't added above.
 				h.ServeHTTP(req.ResponseWriter, req.Request)

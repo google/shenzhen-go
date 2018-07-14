@@ -22,3 +22,11 @@ func stripCR(in []string) {
 		in[i] = strings.TrimSuffix(in[i], "\r")
 	}
 }
+
+/*
+Clone() model.Part
+Impl(types map[string]string) (head, body, tail string)
+Imports() []string
+Pins() pin.Map
+TypeKey() string
+*/

@@ -23,7 +23,11 @@ import (
 	"github.com/google/shenzhen-go/dev/source"
 )
 
-var multVarRE = regexp.MustCompile(`\b[nN]\b`)
+var (
+	multVarRE          = regexp.MustCompile(`\b[nN]\b`)
+	multIdentRE        = regexp.MustCompile(`\bmultiplicity\b`)
+	instanceNumIdentRE = regexp.MustCompile(`\binstanceNumber\b`)
+)
 
 // Node models a goroutine. This is the "real" model type for nodes.
 // It can be marshalled and unmarshalled to JSON sensibly.
@@ -64,6 +68,17 @@ func (n *Node) ExpandedMult() string {
 	// &ast.CallExpr{Fun: &ast.SelectorExpr{X: ast.NewIdent("runtime"), Sel: ast.NewIdent("NumCPU")}}
 	// with a parentWalker...
 	return multVarRE.ReplaceAllString(n.Multiplicity, "runtime.NumCPU()")
+}
+
+// UsesMultiplicity returns true if multiplicity != 1 or the head/body/tail use the multiplicity variable.
+func (n *Node) UsesMultiplicity() bool {
+	// Again, could do this more properly by parsing the code.
+	return n.Multiplicity != "1" || multIdentRE.MatchString(n.head) || multIdentRE.MatchString(n.body) || multIdentRE.MatchString(n.tail)
+}
+
+// UsesInstanceNum returns true if the body uses the "instanceNum"
+func (n *Node) UsesInstanceNum() bool {
+	return instanceNumIdentRE.MatchString(n.body)
 }
 
 // FlatImports returns the imports as a single string.

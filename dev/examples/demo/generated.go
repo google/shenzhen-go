@@ -3,65 +3,38 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 )
 
-func Closer(output chan<- interface{}) {
+var _ = runtime.Compiler
 
-	func(instanceNumber, multiplicity int) {
-
-	}(0, 1)
-	close(output)
-}
-
-// Node 1 reads a user-entered number.
+/* Node 1 reads a user-entered number. */
 func Node_1(qux chan<- int) {
 
-	func(instanceNumber, multiplicity int) {
-		fmt.Println("Node 1: Started.")
-		fmt.Print("Enter a number: ")
-		var n int
-		fmt.Scanf("%d", &n)
-		fmt.Printf("Node 1: Sending %d on qux...\n", n)
-		qux <- n
-		fmt.Println("Node 1: Finished.")
-	}(0, 1)
-
+	fmt.Println("Node 1: Started.")
+	fmt.Print("Enter a number: ")
+	var n int
+	fmt.Scanf("%d", &n)
+	fmt.Printf("Node 1: Sending %d on qux...\n", n)
+	qux <- n
+	fmt.Println("Node 1: Finished.")
 }
 
-// Node 2 prints the value it receives.
+/* Node 2 prints the value it receives. */
 func Node_2(foo <-chan int) {
 
-	func(instanceNumber, multiplicity int) {
-		fmt.Println("Node 2: Started.")
-		fmt.Println("Node 2: Waiting on foo...")
-		fmt.Printf("Node 2: Got %v on foo\n", <-foo)
-		fmt.Println("Node 2: Finished.")
-	}(0, 1)
-
-}
-
-func Sink(input <-chan interface{}) {
-
-	func(instanceNumber, multiplicity int) {
-		for range input {
-		}
-	}(0, 1)
-
+	fmt.Println("Node 2: Started.")
+	fmt.Println("Node 2: Waiting on foo...")
+	fmt.Printf("Node 2: Got %v on foo\n", <-foo)
+	fmt.Println("Node 2: Finished.")
 }
 
 func main() {
 
 	channel0 := make(chan int, 0)
-	channel2 := make(chan interface{}, 0)
 
 	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		Closer(channel2)
-		wg.Done()
-	}()
 
 	wg.Add(1)
 	go func() {
@@ -75,12 +48,6 @@ func main() {
 		wg.Done()
 	}()
 
-	wg.Add(1)
-	go func() {
-		Sink(channel2)
-		wg.Done()
-	}()
-
-	// Wait for the end
+	// Wait for the various goroutines to finish.
 	wg.Wait()
 }

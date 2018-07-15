@@ -32,7 +32,7 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
 	for n := 0; n < multiplicity; n++ {
-		go func(instanceNumber int) {
+		go func() {
 			defer multWG.Done()
 			for req := range requests {
 				// Borrow fix for Go issues #3692 and #5955.
@@ -54,12 +54,11 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 				}
 				hh <- req
 			}
-		}(n)
+		}()
 	}
 }
 
 func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, requests chan<- *parts.HTTPRequest) {
-	multiplicity := 1
 
 	defer func() {
 		close(requests)
@@ -68,7 +67,6 @@ func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, req
 		}
 
 	}()
-	const instanceNumber = 0
 
 	for mgr := range manager {
 		svr := &http.Server{
@@ -96,20 +94,18 @@ func Hello_World(requests <-chan *parts.HTTPRequest) {
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
 	for n := 0; n < multiplicity; n++ {
-		go func(instanceNumber int) {
+		go func() {
 			defer multWG.Done()
 			for rw := range requests {
 				rw.Write([]byte("Hello, HTTP!\n"))
 				rw.Close()
 			}
-		}(n)
+		}()
 	}
 }
 
 func Log_errors(errors <-chan error) {
-	multiplicity := 1
 
-	const instanceNumber = 0
 	for err := range errors {
 		log.Printf("HTTP server: %v", err)
 	}
@@ -122,7 +118,7 @@ func Metrics(requests <-chan *parts.HTTPRequest) {
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
 	for n := 0; n < multiplicity; n++ {
-		go func(instanceNumber int) {
+		go func() {
 			defer multWG.Done()
 
 			h := promhttp.Handler()
@@ -131,17 +127,15 @@ func Metrics(requests <-chan *parts.HTTPRequest) {
 				r.Close()
 			}
 
-		}(n)
+		}()
 	}
 }
 
 func Send_a_manager(manager chan<- parts.HTTPServerManager) {
-	multiplicity := 1
 
 	defer func() {
 		close(manager)
 	}()
-	const instanceNumber = 0
 	mgr := parts.NewHTTPServerManager(":8765")
 	manager <- mgr
 

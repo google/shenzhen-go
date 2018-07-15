@@ -47,7 +47,9 @@ var _ = runtime.Compiler
 /* {{.Comment}} */
 {{end -}}
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
+	{{if .UsesMultiplicity -}}
 	multiplicity := {{.ExpandedMult}}
+	{{end -}}
 	{{.ImplHead}}
 	{{if .ImplTail -}}
 	defer func() {
@@ -55,17 +57,22 @@ func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},
 	}()
 	{{end -}}
 	{{if eq .Multiplicity "1" -}}
+	{{if .UsesInstanceNum -}}
 	const instanceNumber = 0
+	{{end -}}
 	{{.ImplBody}}
 	{{else -}}
 	var multWG sync.WaitGroup
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
 	for n:=0; n<multiplicity; n++ {
-		go func(instanceNumber int) {
+		{{if .UsesInstanceNum -}}
+		instanceNumber := n
+		{{end -}}
+		go func() {
 			defer multWG.Done()
 			{{.ImplBody}}
-		}(n)
+		}()
 	}
 	{{end -}}
 }

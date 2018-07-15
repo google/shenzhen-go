@@ -3,14 +3,15 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
 
-func Generate_numbers(output chan<- int) {
-	const multiplicity = 1
+var _ = runtime.Compiler
 
-	const instanceNumber = 0
+func Generate_numbers(output chan<- int) {
+
 	for i := 0; i < 40; i++ {
 		output <- i
 		<-time.After(time.Millisecond)
@@ -19,9 +20,7 @@ func Generate_numbers(output chan<- int) {
 }
 
 func Print_survivors(input <-chan int) {
-	const multiplicity = 1
 
-	const instanceNumber = 0
 	for range time.Tick(2 * time.Millisecond) {
 		in, open := <-input
 		if !open {
@@ -32,7 +31,6 @@ func Print_survivors(input <-chan int) {
 }
 
 func Queue(drop chan<- int, input <-chan int, output chan<- int) {
-	const multiplicity = 1
 	const maxItems = 10
 	defer func() {
 		close(output)
@@ -40,7 +38,6 @@ func Queue(drop chan<- int, input <-chan int, output chan<- int) {
 			close(drop)
 		}
 	}()
-	const instanceNumber = 0
 
 	queue := make([]int, 0, maxItems)
 	for {

@@ -5,14 +5,21 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 )
 
-func Count_words(input <-chan string, output chan<- string, result chan<- map[string]uint) {
-	const multiplicity = 1
+var _ = runtime.Compiler
 
-	const instanceNumber = 0
+func Count_words(input <-chan string, output chan<- string, result chan<- map[string]uint) {
+
+	defer func() {
+		if output != nil {
+			close(output)
+		}
+		close(result)
+	}()
 
 	m := make(map[string]uint)
 	for in := range input {
@@ -22,16 +29,10 @@ func Count_words(input <-chan string, output chan<- string, result chan<- map[st
 		}
 	}
 	result <- m
-	if output != nil {
-		close(output)
-	}
-	close(result)
 }
 
 func Get_words(words chan<- string) {
-	const multiplicity = 1
 
-	const instanceNumber = 0
 	fmt.Println("Enter a line of text:")
 	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil {
@@ -41,15 +42,11 @@ func Get_words(words chan<- string) {
 		words <- word
 	}
 	close(words)
-
 }
 
 func Print_summary(result <-chan map[string]uint) {
-	const multiplicity = 1
 
-	const instanceNumber = 0
 	fmt.Printf("Got results: %v\n", <-result)
-
 }
 
 func main() {
@@ -77,6 +74,6 @@ func main() {
 		wg.Done()
 	}()
 
-	// Wait for the end
+	// Wait for the various goroutines to finish.
 	wg.Wait()
 }

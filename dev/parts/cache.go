@@ -162,6 +162,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 					data: p.Data,
 					last: time.Now(),
 				}
+				totalBytes += len(p.Data)
 				mu.Unlock()
 			}
 		}`, putType, initTime, keyType, timeComp),

@@ -20,7 +20,7 @@ func Cache(get <-chan int, hit chan<- struct {
 }) {
 	multiplicity := runtime.NumCPU()
 
-	const bytesLimit = 1073741824
+	const bytesLimit = 1048576
 	type cacheEntry struct {
 		data []byte
 		last time.Time
@@ -164,7 +164,7 @@ func Put_random_sizes(puts chan<- struct {
 		}{
 			Key: i,
 			// Very large sizes to trigger evictions
-			Data: make([]byte, rand.Intn(1<<29)),
+			Data: make([]byte, rand.Intn(1<<19)),
 		}
 	}
 }

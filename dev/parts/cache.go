@@ -138,14 +138,33 @@ func init() {
 				EvictionMode:      EvictLRU,
 			}
 		},
-		Panels: []model.PartPanel{{
-			Name: "Help",
-			Editor: `<div><p>
-				A Cache part caches content in memory.
+		Panels: []model.PartPanel{
+			{
+				Name: "Cache",
+				Editor: `
+				<div>
+					<div class="formfield">
+						<label for="cache-contentbyteslimit">Maximum bytes</label>
+						<input id="cache-contentbyteslimit" name="cache-contentbyteslimit" type="number" required title="Must be a whole number, at least 1." value="1073741824"></input>
+					</div>
+					<div class="formfield">
+						<label for="cache-evictionmode">Eviction mode</label>
+						<select id="cache-evictionmode" name="cache-evictionmode">
+							<option value="lru" selected>LRU (least recently used)</option>
+							<option value="mru">MRU (most recently used)</option>
+						</select>
+					</div>
+				</div>`,
+			},
+			{
+				Name: "Help",
+				Editor: `<div><p>
+				A Cache part caches content in memory. It supports concurrently inserting and retrieving items.
 			</p><p>
 				TODO: Implement Cache part.
 			</p></div>`,
-		}},
+			},
+		},
 	})
 }
 

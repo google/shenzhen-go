@@ -5,7 +5,7 @@
 	"nodes": {
 		"Cache": {
 			"part": {
-				"ContentBytesLimit": 1073741824,
+				"ContentBytesLimit": 1048576,
 				"EvictionMode": "lru"
 			},
 			"part_type": "Cache",
@@ -136,7 +136,7 @@
 					"\t}{",
 					"\t\tKey: i,",
 					"\t\t// Very large sizes to trigger evictions",
-					"\t\tData: make([]byte, rand.Intn(1\u003c\u003c29)),",
+					"\t\tData: make([]byte, rand.Intn(1\u003c\u003c19)),",
 					"\t}",
 					"}"
 				],

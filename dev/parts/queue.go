@@ -56,7 +56,7 @@ func init() {
 			<div>
 				<div class="formfield">
 					<label for="queue-maxitems">Max items</label>
-					<input id="queue-maxitems" name="queue-maxitems" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="1"></input>
+					<input id="queue-maxitems" name="queue-maxitems" type="number" required title="Must be a whole number, at least 1." value="1"></input>
 				</div>
 				<div class="formfield">
 					<label for="queue-mode">Mode</label>
@@ -115,23 +115,12 @@ func (q *Queue) Clone() model.Part {
 	return &q0
 }
 
-func (m QueueMode) pick() string {
+func (m QueueMode) params() (index, trim string) {
 	switch m {
 	case QueueModeFIFO:
-		return "0"
+		return "0", "1:"
 	case QueueModeLIFO:
-		return "len(queue)-1"
-	default:
-		panic("unknown mode " + m)
-	}
-}
-
-func (m QueueMode) trim() string {
-	switch m {
-	case QueueModeFIFO:
-		return "1:"
-	case QueueModeLIFO:
-		return ":idx"
+		return "len(queue)-1", ":idx"
 	default:
 		panic("unknown mode " + m)
 	}
@@ -139,6 +128,7 @@ func (m QueueMode) trim() string {
 
 // Impl returns the Queue implementation.
 func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
+	index, trim := q.Mode.params()
 	return fmt.Sprintf("const maxItems = %d", q.MaxItems),
 		fmt.Sprintf(`
 		queue := make([]%s, 0, maxItems)
@@ -170,7 +160,7 @@ func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
 			case output <- out:
 				queue = queue[%s]
 			}
-		}`, types[queueTypeParam], q.Mode.pick(), q.Mode.trim()),
+		}`, types[queueTypeParam], index, trim),
 		`close(output)
 		if drop != nil {
 			close(drop)

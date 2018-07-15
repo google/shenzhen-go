@@ -291,7 +291,7 @@ type NodeConfig struct {
 	Name         string
 	Comment      string
 	Enabled      bool
-	Multiplicity uint32
+	Multiplicity string
 	Wait         bool
 	PartCfg      []byte
 	PartType     string
@@ -324,7 +324,7 @@ func (m *NodeConfig) GetEnabled() (x bool) {
 }
 
 // GetMultiplicity gets the Multiplicity of the NodeConfig.
-func (m *NodeConfig) GetMultiplicity() (x uint32) {
+func (m *NodeConfig) GetMultiplicity() (x string) {
 	if m == nil {
 		return x
 	}
@@ -389,8 +389,8 @@ func (m *NodeConfig) MarshalToWriter(writer jspb.Writer) {
 		writer.WriteBool(3, m.Enabled)
 	}
 
-	if m.Multiplicity != 0 {
-		writer.WriteUint32(4, m.Multiplicity)
+	if len(m.Multiplicity) > 0 {
+		writer.WriteString(4, m.Multiplicity)
 	}
 
 	if m.Wait {
@@ -438,7 +438,7 @@ func (m *NodeConfig) UnmarshalFromReader(reader jspb.Reader) *NodeConfig {
 		case 3:
 			m.Enabled = reader.ReadBool()
 		case 4:
-			m.Multiplicity = reader.ReadUint32()
+			m.Multiplicity = reader.ReadString()
 		case 5:
 			m.Wait = reader.ReadBool()
 		case 6:

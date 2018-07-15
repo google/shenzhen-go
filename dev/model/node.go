@@ -16,11 +16,14 @@ package model
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 	"unicode"
 
 	"github.com/google/shenzhen-go/dev/source"
 )
+
+var multVarRE = regexp.MustCompile(`\bn\b`)
 
 // Node models a goroutine. This is the "real" model type for nodes.
 // It can be marshalled and unmarshalled to JSON sensibly.
@@ -29,7 +32,7 @@ type Node struct {
 	Name         string
 	Comment      string
 	Enabled      bool
-	Multiplicity uint
+	Multiplicity string
 	Wait         bool
 	X, Y         float64
 	Connections  map[string]string // Pin name -> channel name
@@ -46,13 +49,21 @@ func (n *Node) Copy() *Node {
 		Enabled:      n.Enabled,
 		Multiplicity: n.Multiplicity,
 		Wait:         n.Wait,
-		Part:         n.Part.Clone().(Part),
+		Part:         n.Part.Clone(),
 		// TODO: find a better location
 		X: n.X + 8,
 		Y: n.Y + 100,
 	}
 	n0.RefreshConnections()
 	return n0
+}
+
+// ExpandedMult expands Multiplicity into an expression that uses calls runtime.NumCPU.
+func (n *Node) ExpandedMult() string {
+	// TODO: Do it with parser.ParseExpr(n.Multiplicity) and substituting in
+	// &ast.CallExpr{Fun: &ast.SelectorExpr{X: ast.NewIdent("runtime"), Sel: ast.NewIdent("NumCPU")}}
+	// with a parentWalker...
+	return multVarRE.ReplaceAllString(n.Multiplicity, "runtime.NumCPU()")
 }
 
 // FlatImports returns the imports as a single string.
@@ -114,7 +125,7 @@ type jsonNode struct {
 	Comment      string            `json:"comment,omitempty"`
 	Enabled      bool              `json:"enabled"`
 	Wait         bool              `json:"wait"`
-	Multiplicity uint              `json:"multiplicity,omitempty"`
+	Multiplicity string            `json:"multiplicity,omitempty"`
 	X            float64           `json:"x"`
 	Y            float64           `json:"y"`
 	Connections  map[string]string `json:"connections"`
@@ -148,8 +159,8 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 	if err != nil {
 		return err
 	}
-	if mp.Multiplicity < 1 {
-		mp.Multiplicity = 1
+	if mp.Multiplicity == "" {
+		mp.Multiplicity = "1"
 	}
 	n.Comment = mp.Comment
 	n.Enabled = mp.Enabled

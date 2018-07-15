@@ -8,7 +8,7 @@
 			"part_type": "KeyCounter",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 198,
 			"y": 229,
 			"connections": {
@@ -52,7 +52,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 207,
 			"y": 111,
 			"connections": {
@@ -83,7 +83,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 213,
 			"y": 358,
 			"connections": {

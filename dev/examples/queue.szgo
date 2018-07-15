@@ -31,7 +31,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 189,
 			"y": 90,
 			"connections": {
@@ -69,7 +69,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 220,
 			"y": 331,
 			"connections": {
@@ -84,7 +84,7 @@
 			"part_type": "Queue",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 231,
 			"y": 205,
 			"connections": {

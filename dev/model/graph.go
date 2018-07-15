@@ -81,14 +81,19 @@ func (g *Graph) PackageName() string {
 }
 
 // AllImports combines all desired imports into one slice.
-// It doesn't fix conflicting names, but dedupes any whole lines.
+// It doesn't fix conflicting names, but dedupes any whole lines,
+// trims whitespace and removes blank lines. go/format will put
+// them in sorted order later.
 // TODO: Put nodes in separate files to solve all import issues.
 func (g *Graph) AllImports() []string {
-	m := source.NewStringSet()
-	m.Add(`"sync"`)
+	m := source.NewStringSet(`"runtime"`, `"sync"`)
 	for _, n := range g.Nodes {
 		for _, i := range n.Part.Imports() {
-			m.Add(i)
+			j := strings.TrimSpace(i)
+			if j == "" {
+				continue
+			}
+			m.Add(j)
 		}
 	}
 	return m.Slice()

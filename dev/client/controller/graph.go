@@ -243,7 +243,7 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 		Name:         name,
 		Enabled:      true,
 		Wait:         true,
-		Multiplicity: 1,
+		Multiplicity: "1",
 		Part:         pt,
 		// TODO: use a better initial position
 		X: 150,
@@ -256,7 +256,7 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 			Name:         n.Name,
 			Enabled:      n.Enabled,
 			Wait:         n.Wait,
-			Multiplicity: uint32(n.Multiplicity),
+			Multiplicity: n.Multiplicity,
 			PartType:     partType,
 			PartCfg:      pm.Part,
 		},

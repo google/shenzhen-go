@@ -204,7 +204,7 @@ func TestSetNodeCreate(t *testing.T) {
 					Name:         "bax",
 					PartCfg:      []byte("{}"),
 					PartType:     "Code",
-					Multiplicity: 1,
+					Multiplicity: "1",
 					Enabled:      true,
 					Wait:         true,
 				},
@@ -227,8 +227,8 @@ func TestSetNodeCreate(t *testing.T) {
 	if got, want := bax.Name, "bax"; got != want {
 		t.Errorf("bax.Name = %q, want %q", got, want)
 	}
-	if got, want := bax.Multiplicity, uint(1); got != want {
-		t.Errorf("bax.Multiplicity = %v, want %v", got, want)
+	if got, want := bax.Multiplicity, "1"; got != want {
+		t.Errorf("bax.Multiplicity = %q, want %q", got, want)
 	}
 	if got, want := bax.Enabled, true; got != want {
 		t.Errorf("bax.Enabled = %t, want %t", got, want)
@@ -520,7 +520,7 @@ func TestSetNode(t *testing.T) {
 					Name:         "bax",
 					PartCfg:      []byte("{}"),
 					PartType:     "Code",
-					Multiplicity: 1,
+					Multiplicity: "1",
 					Enabled:      true,
 					Wait:         true,
 				},
@@ -546,8 +546,8 @@ func TestSetNode(t *testing.T) {
 	if got, want := bax.Name, "bax"; got != want {
 		t.Errorf("bax.Name = %q, want %q", got, want)
 	}
-	if got, want := bax.Multiplicity, uint(1); got != want {
-		t.Errorf("bax.Multiplicity = %v, want %v", got, want)
+	if got, want := bax.Multiplicity, "1"; got != want {
+		t.Errorf("bax.Multiplicity = %q, want %q", got, want)
 	}
 	if got, want := bax.Enabled, true; got != want {
 		t.Errorf("bax.Enabled = %t, want %t", got, want)

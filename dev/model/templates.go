@@ -35,27 +35,29 @@ package {{.PackageName}}{{if ne .PackagePath .PackageName}} // import "{{.Packag
 {{end}}
 
 import (
-	{{range .AllImports}}
+	{{range .AllImports -}}
 	{{.}}
-	{{- end}}
+	{{end -}}
 )
+
+var _ = runtime.Compiler
 
 {{range .Nodes}}
 {{if .Comment -}}
 /* {{.Comment}} */
 {{end -}}
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
-	const multiplicity = {{.Multiplicity}}
+	multiplicity := {{.ExpandedMult}}
 	{{.ImplHead}}
 	{{if .ImplTail -}}
 	defer func() {
 		{{.ImplTail}}
 	}()
 	{{end -}}
-	{{if eq .Multiplicity 1 -}}
+	{{if eq .Multiplicity "1" -}}
 	const instanceNumber = 0
 	{{.ImplBody}}
-	{{- else -}}
+	{{else -}}
 	var multWG sync.WaitGroup
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
@@ -65,7 +67,7 @@ func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},
 			{{.ImplBody}}
 		}(n)
 	}
-	{{- end}}
+	{{end -}}
 }
 {{end}}
 

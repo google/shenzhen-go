@@ -57,10 +57,10 @@ type nodeController struct {
 }
 
 func (c *nodeController) Name() string {
-	if c.node.Multiplicity <= 1 {
+	if c.node.Multiplicity == "1" {
 		return c.node.Name
 	}
-	return fmt.Sprintf("%s (x%d)", c.node.Name, c.node.Multiplicity)
+	return fmt.Sprintf("%s (x%s)", c.node.Name, c.node.Multiplicity)
 }
 
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }
@@ -105,7 +105,7 @@ func (c *nodeController) Commit(ctx context.Context) error {
 		Name:         c.sharedOutlets.inputName.Get("value").String(),
 		Comment:      c.sharedOutlets.textareaComment.Get("value").String(),
 		Enabled:      c.sharedOutlets.inputEnabled.Get("checked").Bool(),
-		Multiplicity: uint32(c.sharedOutlets.inputMultiplicity.Get("value").Int()),
+		Multiplicity: c.sharedOutlets.inputMultiplicity.Get("value").String(),
 		Wait:         c.sharedOutlets.inputWait.Get("checked").Bool(),
 		PartCfg:      pj.Part,
 		PartType:     pj.Type,
@@ -124,7 +124,7 @@ func (c *nodeController) Commit(ctx context.Context) error {
 	c.graph.RenameNode(c.node, cfg.Name)
 	c.node.Comment = cfg.Comment
 	c.node.Enabled = cfg.Enabled
-	c.node.Multiplicity = uint(cfg.Multiplicity)
+	c.node.Multiplicity = cfg.Multiplicity
 	c.node.Wait = cfg.Wait
 	c.node.RefreshConnections()
 	return nil

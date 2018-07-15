@@ -140,7 +140,7 @@
 					</div>
 					<div class="formfield">
 						<label for="node-multiplicity">Multiplicity</label>
-						<input id="node-multiplicity" name="node-multiplicity" type="number" required pattern="^[1-9][0-9]*$" title="Must be a whole number, at least 1." value="1"></input>
+						<input id="node-multiplicity" name="node-multiplicity" type="text" required value="1" title="An integer expression. You may use literals and `n`, which equals the result of runtime.NumCPU"></input>
 					</div>
 					<div class="formfield">
 						<label for="node-wait">Wait for this to finish</label>

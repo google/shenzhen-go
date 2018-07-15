@@ -77,7 +77,7 @@ var TestGraphs = map[string]*Graph{
 				},
 				Name:         "foo",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"output": "bar",
@@ -110,7 +110,7 @@ var TestGraphs = map[string]*Graph{
 				},
 				Name:         "foo",
 				Enabled:      false,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         false,
 				Connections: map[string]string{
 					"output": "nil",
@@ -135,7 +135,7 @@ var TestGraphs = map[string]*Graph{
 				}},
 				Name:         "foo",
 				Enabled:      true,
-				Multiplicity: 50,
+				Multiplicity: "50",
 				Wait:         true,
 				Connections: map[string]string{
 					"output": "nil",
@@ -160,7 +160,7 @@ var TestGraphs = map[string]*Graph{
 				}},
 				Name:         "foo",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         false,
 				Connections: map[string]string{
 					"output": "nil",

@@ -33,7 +33,7 @@ message NodeConfig {
 	string name = 1;
 	string comment = 2;
 	bool enabled = 3;
-    uint32 multiplicity = 4;
+    string multiplicity = 4;
     bool wait = 5;
     bytes part_cfg = 6;
 	string part_type = 7;

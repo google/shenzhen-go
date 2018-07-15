@@ -93,7 +93,7 @@ func TestLoadJSON(t *testing.T) {
 	wantNodes := map[string]*Node{
 		"foo": {
 			Name:         "foo",
-			Multiplicity: 1,
+			Multiplicity: "1",
 			Part: &FakePart{nil, "", "", "", pin.Map{
 				"output": {
 					Name:      "output",
@@ -113,7 +113,7 @@ func TestLoadJSON(t *testing.T) {
 		},
 		"bar": {
 			Name:         "bar",
-			Multiplicity: 1,
+			Multiplicity: "1",
 			Part: &FakePart{nil, "", "", "", pin.Map{
 				"input": {
 					Name:      "input",
@@ -165,7 +165,7 @@ func TestInferTypesSimple(t *testing.T) {
 				})},
 				Name:         "node 1",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"output": "bar",
@@ -179,7 +179,7 @@ func TestInferTypesSimple(t *testing.T) {
 				})},
 				Name:         "node 2",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"input": "bar",
@@ -242,7 +242,7 @@ func TestInferTypesNoChannel(t *testing.T) {
 					})},
 				Name:         "node 1",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"output": "bar",
@@ -289,7 +289,7 @@ func TestInferTypesMapToMap(t *testing.T) {
 				})},
 				Name:         "node 1",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"output": "bar",
@@ -303,7 +303,7 @@ func TestInferTypesMapToMap(t *testing.T) {
 				})},
 				Name:         "node 2",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"input": "bar",
@@ -350,7 +350,7 @@ func TestInferTypes10Chain(t *testing.T) {
 				})},
 				Name:         "node 0",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"output": "chan0_1",
@@ -364,7 +364,7 @@ func TestInferTypes10Chain(t *testing.T) {
 				})},
 				Name:         "node 10",
 				Enabled:      true,
-				Multiplicity: 1,
+				Multiplicity: "1",
 				Wait:         true,
 				Connections: map[string]string{
 					"input": "chan9_10",
@@ -395,7 +395,7 @@ func TestInferTypes10Chain(t *testing.T) {
 			)},
 			Name:         name,
 			Enabled:      true,
-			Multiplicity: 1,
+			Multiplicity: "1",
 			Wait:         true,
 			Connections: map[string]string{
 				"input":  fmt.Sprintf("chan%d_%d", i-1, i),

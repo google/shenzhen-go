@@ -254,7 +254,7 @@ func (c *server) SetNode(ctx context.Context, req *pb.SetNodeRequest) (*pb.Empty
 	n := &model.Node{
 		Name:         req.Config.Name,
 		Comment:      req.Config.Comment,
-		Multiplicity: uint(req.Config.Multiplicity),
+		Multiplicity: req.Config.Multiplicity,
 		Enabled:      req.Config.Enabled,
 		Wait:         req.Config.Wait,
 		Part:         part,

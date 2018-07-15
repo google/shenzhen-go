@@ -13,8 +13,8 @@
 			"part_type": "HTTPServeMux",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
-			"x": 201,
+			"multiplicity": "n",
+			"x": 202,
 			"y": 296,
 			"connections": {
 				"metrics": "channel5",
@@ -27,7 +27,7 @@
 			"part_type": "HTTPServer",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 192,
 			"y": 173,
 			"connections": {
@@ -63,7 +63,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "n",
 			"x": 314,
 			"y": 416,
 			"connections": {
@@ -96,7 +96,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 56,
 			"y": 296,
 			"connections": {
@@ -108,7 +108,7 @@
 			"part_type": "PrometheusHTTPHandler",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "n",
 			"x": 149,
 			"y": 416,
 			"connections": {
@@ -155,7 +155,7 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 178,
 			"y": 50,
 			"connections": {

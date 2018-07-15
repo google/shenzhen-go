@@ -34,7 +34,7 @@
 			"comment": "Node 1 reads a user-entered number.",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 154,
 			"y": 64,
 			"connections": {
@@ -69,7 +69,7 @@
 			"comment": "Node 2 prints the value it receives.",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": 1,
+			"multiplicity": "1",
 			"x": 138,
 			"y": 174,
 			"connections": {

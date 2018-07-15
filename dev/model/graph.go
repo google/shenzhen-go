@@ -66,8 +66,16 @@ func LoadJSON(r io.Reader, filePath, urlPath string) (*Graph, error) {
 	for k, n := range g.Nodes {
 		n.Name = k
 	}
-	// Finally, set up channel pin caches.
+	// Set up channel pin caches.
 	g.RefreshChannelsPins()
+	// As a safety mechanism, cull any connections to channels that don't exist.
+	for _, n := range g.Nodes {
+		for p, co := range n.Connections {
+			if g.Channels[co] == nil {
+				n.Connections[p] = "nil"
+			}
+		}
+	}
 	return g, nil
 }
 

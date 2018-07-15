@@ -32,7 +32,7 @@ var (
 // Node models a goroutine. This is the "real" model type for nodes.
 // It can be marshalled and unmarshalled to JSON sensibly.
 type Node struct {
-	Part
+	Part         Part
 	Name         string
 	Comment      string
 	Enabled      bool
@@ -40,10 +40,10 @@ type Node struct {
 	Wait         bool
 	X, Y         float64
 	Connections  map[string]string // Pin name -> channel name
+	Impl         PartImpl          // Final implementation after type inference
 
-	imports, head, body, tail string                  // Final implementation after type inference
-	typeParams                map[string]string       // Local type parameter -> stringy type
-	pinTypes                  map[string]*source.Type // Pin name -> inferred type of pin
+	typeParams map[string]string       // Local type parameter -> stringy type
+	pinTypes   map[string]*source.Type // Pin name -> inferred type of pin
 }
 
 // Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.
@@ -73,39 +73,22 @@ func (n *Node) ExpandedMult() string {
 // UsesMultiplicity returns true if multiplicity != 1 or the head/body/tail use the multiplicity variable.
 func (n *Node) UsesMultiplicity() bool {
 	// Again, could do this more properly by parsing the code.
-	return n.Multiplicity != "1" || multiplicityUsageRE.MatchString(n.head) || multiplicityUsageRE.MatchString(n.body) || multiplicityUsageRE.MatchString(n.tail)
+	return n.Multiplicity != "1" ||
+		multiplicityUsageRE.MatchString(n.Impl.Head) ||
+		multiplicityUsageRE.MatchString(n.Impl.Body) ||
+		multiplicityUsageRE.MatchString(n.Impl.Tail)
 }
 
 // UsesInstanceNum returns true if the body uses the "instanceNum"
 func (n *Node) UsesInstanceNum() bool {
-	return instanceNumUsageRE.MatchString(n.body)
-}
-
-// FlatImports returns the imports as a single string.
-func (n *Node) FlatImports() string {
-	return n.imports
-}
-
-// ImplHead returns the Head part of the implementation.
-func (n *Node) ImplHead() string {
-	return n.head
-}
-
-// ImplBody returns the Body part of the implementation.
-func (n *Node) ImplBody() string {
-	return n.body
-}
-
-// ImplTail returns the Tail part of the implementation.
-func (n *Node) ImplTail() string {
-	return n.tail
+	return instanceNumUsageRE.MatchString(n.Impl.Body)
 }
 
 // PinFullTypes is a map from pin names to full resolved types:
 // pinName <-chan someType or pinName chan<- someType.
 // Requires InferTypes to have been called.
 func (n *Node) PinFullTypes() map[string]string {
-	pins := n.Pins()
+	pins := n.Part.Pins()
 	m := make(map[string]string, len(pins))
 	for pn, p := range pins {
 		m[pn] = p.Direction.Type() + " " + n.pinTypes[pn].String()
@@ -191,7 +174,7 @@ func (n *Node) UnmarshalJSON(j []byte) error {
 // RefreshConnections filters n.Connections to ensure only pins defined by the
 // part are in the map, and any new ones are mapped to "nil".
 func (n *Node) RefreshConnections() {
-	pins := n.Pins()
+	pins := n.Part.Pins()
 	conns := make(map[string]string, len(pins))
 	for name := range pins {
 		c := n.Connections[name]
@@ -203,8 +186,7 @@ func (n *Node) RefreshConnections() {
 	n.Connections = conns
 }
 
-// RefreshImpl refreshes imports, head, body, and tail, from the Part.
+// RefreshImpl refreshes Impl from the Part.
 func (n *Node) RefreshImpl() {
-	n.imports = strings.Join(n.Part.Imports(), "\n")
-	n.head, n.body, n.tail = n.Part.Impl(n.typeParams)
+	n.Impl = n.Part.Impl(n.typeParams)
 }

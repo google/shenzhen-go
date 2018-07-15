@@ -65,7 +65,6 @@ func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, req
 		if errors != nil {
 			close(errors)
 		}
-
 	}()
 
 	for mgr := range manager {
@@ -120,13 +119,11 @@ func Metrics(requests <-chan *parts.HTTPRequest) {
 	for n := 0; n < multiplicity; n++ {
 		go func() {
 			defer multWG.Done()
-
 			h := promhttp.Handler()
 			for r := range requests {
 				h.ServeHTTP(r.ResponseWriter, r.Request)
 				r.Close()
 			}
-
 		}()
 	}
 }

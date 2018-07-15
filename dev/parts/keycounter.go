@@ -71,9 +71,9 @@ type KeyCounter struct{}
 func (KeyCounter) Clone() model.Part { return &KeyCounter{} }
 
 // Impl returns the Closer implementation.
-func (KeyCounter) Impl(types map[string]string) (head, body, tail string) {
-	return "",
-		fmt.Sprintf(`
+func (KeyCounter) Impl(types map[string]string) model.PartImpl {
+	return model.PartImpl{
+		Body: fmt.Sprintf(`
 			m := make(map[%s]uint)
 			for in := range input { 
 				m[in]++
@@ -82,14 +82,12 @@ func (KeyCounter) Impl(types map[string]string) (head, body, tail string) {
 				} 
 			}
 			result <- m`, types[keyCounterTypeParam]),
-		`if output != nil { 
+		Tail: `if output != nil { 
 			close(output)
 		}
-		close(result)`
+		close(result)`,
+	}
 }
-
-// Imports returns nil.
-func (KeyCounter) Imports() []string { return nil }
 
 // Pins returns a map declaring an input/output pair of the same type,
 // and a result output with map type.

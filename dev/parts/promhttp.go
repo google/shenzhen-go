@@ -49,21 +49,17 @@ type PrometheusHTTPHandler struct{}
 func (PrometheusHTTPHandler) Clone() model.Part { return &PrometheusHTTPHandler{} }
 
 // Impl returns the PrometheusHTTPHandler implementation.
-func (PrometheusHTTPHandler) Impl(map[string]string) (head, body, tail string) {
-	return "", `
-		h := promhttp.Handler()
+func (PrometheusHTTPHandler) Impl(map[string]string) model.PartImpl {
+	return model.PartImpl{
+		Imports: []string{
+			`"github.com/google/shenzhen-go/dev/parts"`,
+			`"github.com/prometheus/client_golang/prometheus/promhttp"`,
+		},
+		Body: `h := promhttp.Handler()
 		for r := range requests {
 			h.ServeHTTP(r.ResponseWriter, r.Request)
 			r.Close()
-		}
-	`, ""
-}
-
-// Imports returns the needed imports.
-func (PrometheusHTTPHandler) Imports() []string {
-	return []string{
-		`"github.com/google/shenzhen-go/dev/parts"`,
-		`"github.com/prometheus/client_golang/prometheus/promhttp"`,
+		}`,
 	}
 }
 

@@ -212,7 +212,7 @@ func (c *Cache) Clone() model.Part {
 }
 
 // Impl returns a cache implementation.
-func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
+func (c *Cache) Impl(types map[string]string) model.PartImpl {
 	params := struct {
 		KeyType, HitType, InitTime, TimeComp string
 	}{
@@ -220,30 +220,28 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 	}
 	params.HitType = cacheHitType(params.KeyType, types[cacheCtxTypeParam])
 	params.InitTime, params.TimeComp = c.EvictionMode.searchParams()
+	h := fmt.Sprintf(`
+	const bytesLimit = %d
+	type cacheEntry struct {
+		data []byte
+		last time.Time
+		sync.Mutex
+	}
+	var mu sync.RWMutex
+	totalBytes := uint64(0)
+	cache := make(map[%s]*cacheEntry)
+`, c.ContentBytesLimit, params.KeyType)
 	b := bytes.NewBuffer(nil)
 	err := cacheBodyTmpl.Execute(b, params)
 	if err != nil {
 		panic("couldn't execute template: " + err.Error())
 	}
-	return fmt.Sprintf(`
-		const bytesLimit = %d
-		type cacheEntry struct {
-			data []byte
-			last time.Time
-			sync.Mutex
-		}
-		var mu sync.RWMutex
-		totalBytes := uint64(0)
-		cache := make(map[%s]*cacheEntry)
-	`, c.ContentBytesLimit, params.KeyType),
-		b.String(),
-		`close(hit)
-		close(miss)`
-}
-
-// Imports returns nil.
-func (c *Cache) Imports() []string {
-	return []string{`"sync"`, `"time"`}
+	return model.PartImpl{
+		Imports: []string{`"sync"`, `"time"`},
+		Head:    h,
+		Body:    b.String(),
+		Tail:    `close(hit); close(miss)`,
+	}
 }
 
 // Pins returns a pin map.

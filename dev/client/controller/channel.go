@@ -50,7 +50,7 @@ func (c *channelController) Pins(f func(view.PinController)) {
 			graph:  c.graph,
 			node:   node,
 			name:   p.Pin,
-			def:    node.Pins()[p.Pin],
+			def:    node.Part.Pins()[p.Pin],
 		})
 	}
 }

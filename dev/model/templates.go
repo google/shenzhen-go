@@ -43,6 +43,12 @@ import (
 var _ = runtime.Compiler
 
 {{range .Nodes}}
+{{if .Impl.Init -}}
+func init() {
+	{{.Impl.Init}}
+}
+{{end -}}
+
 {{if .Comment -}}
 /* {{.Comment}} */
 {{end -}}
@@ -50,17 +56,17 @@ func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},
 	{{if .UsesMultiplicity -}}
 	multiplicity := {{.ExpandedMult}}
 	{{end -}}
-	{{.ImplHead}}
-	{{if .ImplTail -}}
+	{{.Impl.Head}}
+	{{if .Impl.Tail -}}
 	defer func() {
-		{{.ImplTail}}
+		{{.Impl.Tail}}
 	}()
 	{{end -}}
 	{{if eq .Multiplicity "1" -}}
 	{{if .UsesInstanceNum -}}
 	const instanceNumber = 0
 	{{end -}}
-	{{.ImplBody}}
+	{{.Impl.Body}}
 	{{else -}}
 	var multWG sync.WaitGroup
 	multWG.Add(multiplicity)
@@ -71,7 +77,7 @@ func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},
 		{{end -}}
 		go func() {
 			defer multWG.Done()
-			{{.ImplBody}}
+			{{.Impl.Body}}
 		}()
 	}
 	{{end -}}
@@ -96,11 +102,11 @@ func Run() {
 			{{if $node.Wait -}}
 	wg.Add(1)
 	go func() {
-			{{$node.Identifier}}({{range $pin := $node.Pins}}{{index $node.Connections $pin.Name}},{{end}})
+			{{$node.Identifier}}({{range $pin := $node.Part.Pins}}{{index $node.Connections $pin.Name}},{{end}})
 		wg.Done()
 	}()
 			{{else}}
-	go {{$node.Identifier}}({{range $pin := $node.Pins}}{{index $node.Connections $pin.Name}},{{end}})
+	go {{$node.Identifier}}({{range $pin := $node.Part.Pins}}{{index $node.Connections $pin.Name}},{{end}})
 			{{- end}}
 		{{- end}}
 	{{- end}}

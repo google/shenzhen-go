@@ -31,6 +31,12 @@ type Part interface {
 	// TODO: Aspects supported by the part: multiplicity? variadic? generic?
 
 	// Impl returns Go source code implementing the part.
+	//
+	// The imports are combined with other imports needed for the file.
+	//
+	// The init forms the body of an init function included in the output.
+	//
+	// For the node itself, the head, body, and tail are used.
 	// The head is executed, then the body is executed (# Multiplicity
 	// instances of the body concurrently), then the tail (once the body/bodies
 	// are finished).
@@ -41,10 +47,7 @@ type Part interface {
 	//
 	// The types map indicates inferred types which the part is responsible
 	// for interpolating into the output as needed.
-	Impl(types map[string]string) (head, body, tail string)
-
-	// Imports returns any extra import lines needed for the Part.
-	Imports() []string
+	Impl(types map[string]string) PartImpl
 
 	// Pins returns any pins - "channel arguments" - to the part.
 	// inputs and outputs map argument names to types (the "<-chan" /
@@ -54,6 +57,13 @@ type Part interface {
 
 	// TypeKey returns the "type" of part.
 	TypeKey() string
+}
+
+// PartImpl wraps the mostly-formed Go source code that can be inserted into
+// the template.
+type PartImpl struct {
+	Imports                []string
+	Init, Head, Body, Tail string
 }
 
 // PartType has metadata common to this type of part, and is also a part factory.

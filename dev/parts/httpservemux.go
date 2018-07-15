@@ -71,7 +71,7 @@ func (m HTTPServeMux) Clone() model.Part {
 }
 
 // Impl returns the implementation.
-func (m HTTPServeMux) Impl(map[string]string) (head, body, tail string) {
+func (m HTTPServeMux) Impl(map[string]string) model.PartImpl {
 	// I think http.ServeMux is concurrent safe... it guards everything with RWMutex.
 	hb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	closed := source.NewStringSet()
@@ -87,7 +87,12 @@ func (m HTTPServeMux) Impl(map[string]string) (head, body, tail string) {
 		closed.Add(out)
 	}
 
-	return hb.String(),
+	return model.PartImpl{
+		Imports: []string{
+			`"net/http"`,
+			`"github.com/google/shenzhen-go/dev/parts"`,
+		},
+		Head: hb.String(),
 		// Look up the handler, assert type, and forward the original *HTTPRequest.
 		// I could use mux.ServeHTTP, but this would unwrap the old *HTTPRequest
 		// and wrap it in a new *HTTPRequest (that requires closing).
@@ -101,7 +106,7 @@ func (m HTTPServeMux) Impl(map[string]string) (head, body, tail string) {
 		//
 		// http.ServeMux sometimes returns handlers defined in net/http, so handle
 		// those directly.
-		`for req := range requests {
+		Body: `for req := range requests {
 			// Borrow fix for Go issues #3692 and #5955.
 			if req.Request.RequestURI == "*" {
 				if req.Request.ProtoAtLeast(1, 1) {
@@ -121,14 +126,7 @@ func (m HTTPServeMux) Impl(map[string]string) (head, body, tail string) {
 			}
 			hh <- req
 		}`,
-		tb.String()
-}
-
-// Imports returns needed imports.
-func (m HTTPServeMux) Imports() []string {
-	return []string{
-		`"net/http"`,
-		`"github.com/google/shenzhen-go/dev/parts"`,
+		Tail: tb.String(),
 	}
 }
 

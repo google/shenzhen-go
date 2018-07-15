@@ -46,12 +46,9 @@ type Closer struct{}
 func (Closer) Clone() model.Part { return &Closer{} }
 
 // Impl returns the Closer implementation.
-func (Closer) Impl(map[string]string) (head, body, tail string) {
-	return "", "", "close(output)"
+func (Closer) Impl(map[string]string) model.PartImpl {
+	return model.PartImpl{Tail: "close(output)"}
 }
-
-// Imports returns nil.
-func (Closer) Imports() []string { return nil }
 
 // Pins returns a map declaring a single output of any type.
 func (Closer) Pins() pin.Map { return closerPins }

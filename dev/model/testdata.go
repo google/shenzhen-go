@@ -31,11 +31,15 @@ type FakePart struct {
 // Clone returns a shallow copy.
 func (f *FakePart) Clone() Part { f2 := *f; return &f2 }
 
-// Imports returns Impts.
-func (f *FakePart) Imports() []string { return f.Impts }
-
 // Impl returns Head, Body, Tail.
-func (f *FakePart) Impl(map[string]string) (h, b, t string) { return f.Head, f.Body, f.Tail }
+func (f *FakePart) Impl(map[string]string) PartImpl {
+	return PartImpl{
+		Imports: f.Impts,
+		Head:    f.Head,
+		Body:    f.Body,
+		Tail:    f.Tail,
+	}
+}
 
 // Pins returns Pns.
 func (f *FakePart) Pins() pin.Map { return f.Pns }

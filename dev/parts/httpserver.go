@@ -111,7 +111,7 @@ type HTTPServer struct {
 func (s *HTTPServer) Clone() model.Part { s0 := *s; return &s0 }
 
 // Impl returns the HTTPServer implementation.
-func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
+func (s *HTTPServer) Impl(map[string]string) model.PartImpl {
 	b := bytes.NewBuffer(nil)
 	b.WriteString(`
 	for mgr := range manager {
@@ -147,21 +147,17 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 		}
 		<-done
 	}`)
-	return "",
-		b.String(),
-		`close(requests)
+	return model.PartImpl{
+		Imports: []string{
+			`"context"`,
+			`"net/http"`,
+			`"github.com/google/shenzhen-go/dev/parts"`,
+		},
+		Body: b.String(),
+		Tail: `close(requests)
 		if errors != nil {
 			close(errors)
-		}
-		`
-}
-
-// Imports returns some needed imports.
-func (s *HTTPServer) Imports() []string {
-	return []string{
-		`"context"`,
-		`"net/http"`,
-		`"github.com/google/shenzhen-go/dev/parts"`,
+		}`,
 	}
 }
 

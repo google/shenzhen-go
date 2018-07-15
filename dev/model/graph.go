@@ -96,7 +96,7 @@ func (g *Graph) PackageName() string {
 func (g *Graph) AllImports() []string {
 	m := source.NewStringSet(`"runtime"`, `"sync"`)
 	for _, n := range g.Nodes {
-		for _, i := range n.Part.Imports() {
+		for _, i := range n.Impl.Imports {
 			j := strings.TrimSpace(i)
 			if j == "" {
 				continue
@@ -217,7 +217,7 @@ func (g *Graph) InferTypes() error {
 	// The types map should start with all type parameters set to nil.
 	g.types = make(source.TypeInferenceMap)
 	for _, n := range g.Nodes {
-		pins := n.Pins()
+		pins := n.Part.Pins()
 		n.pinTypes = make(map[string]*source.Type, len(pins))
 		for pn, p := range pins {
 			pt, err := source.NewType(n.Name, p.Type)

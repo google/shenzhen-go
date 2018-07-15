@@ -48,12 +48,9 @@ type Sink struct{}
 func (Sink) Clone() model.Part { return &Sink{} }
 
 // Impl returns the Sink implementation.
-func (Sink) Impl(map[string]string) (head, body, tail string) {
-	return "", "for range input {}", ""
+func (Sink) Impl(map[string]string) model.PartImpl {
+	return model.PartImpl{Body: "for range input {}"}
 }
-
-// Imports returns nil.
-func (Sink) Imports() []string { return nil }
 
 // Pins returns a map declaring a single input of any type.
 func (Sink) Pins() pin.Map { return sinkPins }

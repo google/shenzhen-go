@@ -25,8 +25,7 @@ func stripCR(in []string) {
 
 /*
 Clone() model.Part
-Impl(types map[string]string) (head, body, tail string)
-Imports() []string
+Impl(types map[string]string) model.PartImpl
 Pins() pin.Map
 TypeKey() string
 */

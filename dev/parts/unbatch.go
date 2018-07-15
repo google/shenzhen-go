@@ -58,18 +58,16 @@ type Unbatch struct{}
 func (Unbatch) Clone() model.Part { return &Unbatch{} }
 
 // Impl returns the Unbatch implementation.
-func (Unbatch) Impl(map[string]string) (head, body, tail string) {
-	return "", `
-	for in := range input { 
+func (Unbatch) Impl(map[string]string) model.PartImpl {
+	return model.PartImpl{
+		Body: `for in := range input { 
 		for _, el := range in { 
 			output <- el 
 		} 
 	}`,
-		"close(output)"
+		Tail: "close(output)",
+	}
 }
-
-// Imports returns nil.
-func (Unbatch) Imports() []string { return nil }
 
 // Pins returns a map declaring a single input of any slice type
 // and a single output of the slice element type.

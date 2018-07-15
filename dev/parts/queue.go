@@ -127,10 +127,11 @@ func (m QueueMode) params() (index, trim string) {
 }
 
 // Impl returns the Queue implementation.
-func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
+func (q *Queue) Impl(types map[string]string) model.PartImpl {
 	index, trim := q.Mode.params()
-	return fmt.Sprintf("const maxItems = %d", q.MaxItems),
-		fmt.Sprintf(`
+	return model.PartImpl{
+		Head: fmt.Sprintf("const maxItems = %d", q.MaxItems),
+		Body: fmt.Sprintf(`
 		queue := make([]%s, 0, maxItems)
 		for {
 			if len(queue) == 0 {
@@ -161,14 +162,12 @@ func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
 				queue = queue[%s]
 			}
 		}`, types[queueTypeParam], index, trim),
-		`close(output)
+		Tail: `close(output)
 		if drop != nil {
 			close(drop)
-		}`
+		}`,
+	}
 }
-
-// Imports returns nil.
-func (q *Queue) Imports() []string { return nil }
 
 // Pins returns a map declaring an input and two outputs of the same arbitrary type.
 func (q *Queue) Pins() pin.Map { return queuePins }

@@ -73,7 +73,7 @@ func init() {
 
 // Cache is a part which caches content in memory.
 type Cache struct {
-	ContentBytesLimit int64
+	ContentBytesLimit uint64
 	EvictionMode      CacheEvictionMode
 }
 
@@ -117,7 +117,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 			mu   sync.Mutex
 		}
 		var mu sync.RWMutex
-		totalBytes := int64(0)
+		totalBytes := uint64(0)
 		cache := make(map[%s]*cacheEntry)
 	`, c.ContentBytesLimit, keyType),
 		fmt.Sprintf(`
@@ -159,7 +159,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 				// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
 				for {
 					mu.RLock()
-					if totalBytes + len(p.Data) <= bytesLimit {
+					if totalBytes + uint64(len(p.Data)) <= bytesLimit {
 						mu.RUnlock()
 						break
 					}
@@ -175,7 +175,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 					mu.RUnlock()
 					mu.Lock()
 					// Still necessary to evict?
-					if newBytes := totalBytes + len(p.Data); newBytes <= bytesLimit {
+					if newBytes := totalBytes + uint64(len(p.Data)); newBytes <= bytesLimit {
 						cache[p.Key] = &cacheEntry{
 							data: p.Data,
 							last: time.Now(),
@@ -187,7 +187,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 					// Evict k.
 					totalBytes -= len(cache[k].data)
 					delete(cache, k)
-					if newBytes := totalBytes + len(p.Data); newBytes <= bytesLimit {
+					if newBytes := totalBytes + uint64(len(p.Data)); newBytes <= bytesLimit {
 						cache[p.Key] = &cacheEntry{
 							data: p.Data,
 							last: time.Now(),

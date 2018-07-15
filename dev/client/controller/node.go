@@ -60,7 +60,7 @@ func (c *nodeController) Name() string {
 	if c.node.Multiplicity == "1" {
 		return c.node.Name
 	}
-	return fmt.Sprintf("%s (x%s)", c.node.Name, c.node.Multiplicity)
+	return fmt.Sprintf("%s (×%s)", c.node.Name, c.node.Multiplicity)
 }
 
 func (c *nodeController) Position() (x, y float64) { return c.node.X, c.node.Y }

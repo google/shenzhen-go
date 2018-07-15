@@ -201,10 +201,16 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 	}
 
 	// Pick a unique name
-	for i := 0; ; i++ {
-		ch.Name = defaultChannelNamePrefix + strconv.Itoa(i)
-		if c.graph.Channels[ch.Name] == nil {
-			break
+	// River gently flows in spring
+	// First try channelN
+	ch.Name = defaultChannelNamePrefix + strconv.Itoa(len(c.graph.Channels))
+	if c.graph.Channels[ch.Name] != nil {
+		// Fall back to probing...
+		for i := 0; ; i++ {
+			ch.Name = defaultChannelNamePrefix + strconv.Itoa(i)
+			if c.graph.Channels[ch.Name] == nil {
+				break
+			}
 		}
 	}
 

@@ -23,7 +23,7 @@ import (
 	"github.com/google/shenzhen-go/dev/source"
 )
 
-var multVarRE = regexp.MustCompile(`\bn\b`)
+var multVarRE = regexp.MustCompile(`\b[nN]\b`)
 
 // Node models a goroutine. This is the "real" model type for nodes.
 // It can be marshalled and unmarshalled to JSON sensibly.

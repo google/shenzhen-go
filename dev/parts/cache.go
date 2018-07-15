@@ -114,38 +114,38 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 		type cacheEntry struct {
 			data []byte
 			last time.Time
+			mu   sync.Mutex
 		}
-		var mu sync.Mutex
+		var mu sync.RWMutex
 		totalBytes := int64(0)
-		cache := make(map[%s]cacheEntry)
+		cache := make(map[%s]*cacheEntry)
 	`, c.ContentBytesLimit, keyType),
-		fmt.Sprintf(`for {
+		fmt.Sprintf(`selectLoop:
+		for {
 			select {
 			case g := <-get:
 				mu.RLock()
-				if e, ok := cache[g]; !ok {
+				e, ok := cache[g]
+				if !ok {
 					miss <- g
 					mu.RUnlock()
-					continue
+					continue selectLoop
 				}
+				mu.RUnlock()
+				e.mu.Lock()
 				hit <- %s{
 					Key: g,
 					Data: e.data,
 				}
-				mu.RUnlock()
-				mu.Lock()
-				cache[g] = cacheEntry{
-					data: e.data,
-					last: time.Now(),
-				}
-				mu.Unlock()
+				e.last = time.Now()
+				e.mu.Unlock()
 				
 			case p := <-put:
 				if len(p.Data) > bytesLimit {
 					// TODO: some kind of failure message
 					continue
 				}
-				mu.Lock()
+				mu.RLock()
 				// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
 				for totalBytes + len(p.Data) > bytesLimit {
 					et := %s
@@ -155,10 +155,21 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 							et, ek = e.last, k
 						}
 					}
+					mu.RUnlock()
+					mu.Lock()
+					// Check it's still necessary.
+					if totalBytes + len(p.Data) <= bytesLimit {
+						mu.Unlock()
+						continue selectLoop
+					}
 					totalBytes -= len(cache[k].data)
 					delete(cache, k)
+					mu.Unlock()
+					mu.RLock()
 				}
-				cache[p.Key] = cacheEntry{
+				mu.RUnlock()
+				mu.Lock()
+				cache[p.Key] = &cacheEntry{
 					data: p.Data,
 					last: time.Now(),
 				}

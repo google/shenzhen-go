@@ -16,7 +16,6 @@ func Generate_numbers(output chan<- int) {
 		<-time.After(time.Millisecond)
 	}
 	close(output)
-
 }
 
 func Print_survivors(input <-chan int) {
@@ -30,12 +29,17 @@ func Print_survivors(input <-chan int) {
 		}
 		fmt.Println(in)
 	}
-
 }
 
 func Queue(drop chan<- int, input <-chan int, output chan<- int) {
 	const multiplicity = 1
 	const maxItems = 10
+	defer func() {
+		close(output)
+		if drop != nil {
+			close(drop)
+		}
+	}()
 	const instanceNumber = 0
 
 	queue := make([]int, 0, maxItems)
@@ -58,7 +62,7 @@ func Queue(drop chan<- int, input <-chan int, output chan<- int) {
 			if len(queue) <= maxItems {
 				break // select
 			}
-			// Drop an item, but don't block sending.
+			// Drop least-recently read item, but don't block.
 			select {
 			case drop <- queue[0]:
 			default:
@@ -67,10 +71,6 @@ func Queue(drop chan<- int, input <-chan int, output chan<- int) {
 		case output <- out:
 			queue = queue[:idx]
 		}
-	}
-	close(output)
-	if drop != nil {
-		close(drop)
 	}
 }
 
@@ -99,6 +99,6 @@ func main() {
 		wg.Done()
 	}()
 
-	// Wait for the end
+	// Wait for the various goroutines to finish.
 	wg.Wait()
 }

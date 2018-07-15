@@ -82,8 +82,8 @@ func init() {
 				queue can have higher goodput than a FIFO queue.
 			</p><p>
 				Queues have a required maximum number of items. If reading an item 
-				puts the queue over	the limit, the last-in item	is dropped from the
-				queue, rather than waiting for the queue to lower. 
+				puts the queue over	the limit, the least recently read item is dropped
+				from the queue, rather than waiting for the queue to lower. 
 				Dropped items are sent to the drop output, but unlike the main output,
 				the queue will not block on sending to drop.
 				A queue may temporarily use more memory than the limit.
@@ -161,8 +161,8 @@ func (q *Queue) Impl(types map[string]string) (head, body, tail string) {
 				if len(queue) <= maxItems {
 					break // select
 				}
-				// Drop an item, but don't block sending.
-				select{
+				// Drop least-recently read item, but don't block.
+				select {
 				case drop <- queue[0]:
 				default:
 				}

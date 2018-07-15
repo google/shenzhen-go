@@ -32,8 +32,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 192,
-			"y": 75,
+			"x": 189,
+			"y": 90,
 			"connections": {
 				"output": "channel0"
 			}
@@ -70,8 +70,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": 1,
-			"x": 264,
-			"y": 348,
+			"x": 220,
+			"y": 331,
 			"connections": {
 				"input": "channel1"
 			}

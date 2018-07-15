@@ -74,7 +74,22 @@ func init() {
 				Name: "Help",
 				Editor: `<div>
 			<p>
-				A HTTPServer part serves HTTP requests.
+				A HTTPServer part creates HTTP servers that serve HTTP requests.
+			</p><p>
+				For each HTTPServerManager received, a new HTTP server is started, and
+			    listens on the address given by the manager.
+				It continues running until the manager's Wait returns (after Shutdown), 
+				at which point it will read the next manager.
+			</p><p>
+				The outputs are shared by all servers started by this part. If different
+				request handling or error paths are needed for different servers, then use 
+				distinct HTTPServer nodes.
+			</p><p>
+				Multiplicity limits how many HTTP servers may be run at once.
+				Sending more than the multiplicity number of managers
+				will block the input until one or more of the servers started are shut
+				down, and sending fewer than multiplicity number of managers will only
+				run as many servers as managers.
 			</p>
 			</div>`,
 			},

@@ -11,10 +11,17 @@ import (
 
 var _ = runtime.Compiler
 
-func Cache(get <-chan int, hit chan<- struct {
+func Cache(get <-chan struct {
+	Key int
+	Ctx struct{}
+}, hit chan<- struct {
 	Key  int
+	Ctx  struct{}
 	Data []byte
-}, miss chan<- int, put <-chan struct {
+}, miss chan<- struct {
+	Key int
+	Ctx struct{}
+}, put <-chan struct {
 	Key  int
 	Data []byte
 }) {
@@ -52,7 +59,7 @@ func Cache(get <-chan int, hit chan<- struct {
 						continue
 					}
 					mu.RLock()
-					e, ok := cache[g]
+					e, ok := cache[g.Key]
 					mu.RUnlock()
 					if !ok {
 						miss <- g
@@ -61,9 +68,11 @@ func Cache(get <-chan int, hit chan<- struct {
 					e.Lock()
 					hit <- struct {
 						Key  int
+						Ctx  struct{}
 						Data []byte
 					}{
-						Key:  g,
+						Key:  g.Key,
+						Ctx:  g.Ctx,
 						Data: e.data,
 					}
 					e.last = time.Now()
@@ -75,7 +84,6 @@ func Cache(get <-chan int, hit chan<- struct {
 						continue
 					}
 					if len(p.Data) > bytesLimit {
-						// TODO: some kind of failure message
 						continue
 					}
 
@@ -97,7 +105,6 @@ func Cache(get <-chan int, hit chan<- struct {
 						if totalBytes+uint64(len(p.Data)) > bytesLimit {
 							// Evict ek.
 							if ee == nil {
-								// TODO: some kind of error message
 								break
 							}
 							ee.Lock()
@@ -122,27 +129,39 @@ func Cache(get <-chan int, hit chan<- struct {
 	}
 }
 
-func Get_random_items(keys chan<- int) {
+func Get_random_items(keys chan<- struct {
+	Key int
+	Ctx struct{}
+}) {
 
 	defer func() {
 		close(keys)
 	}()
 	for i := 0; i < 200; i++ {
-		keys <- rand.Intn(6)
+		keys <- struct {
+			Key int
+			Ctx struct{}
+		}{
+			Key: rand.Intn(6),
+		}
 	}
 }
 
 func Print_hits(gets <-chan struct {
 	Key  int
+	Ctx  struct{}
 	Data []byte
 }) {
 
 	for g := range gets {
-		fmt.Printf("Hit: %v (size %v)\n", g.Key, len(g.Data))
+		fmt.Printf("Hit: %v (ctx %v, size %v)\n", g.Key, g.Ctx, len(g.Data))
 	}
 }
 
-func Print_misses(keys <-chan int) {
+func Print_misses(keys <-chan struct {
+	Key int
+	Ctx struct{}
+}) {
 
 	for k := range keys {
 		fmt.Printf("Miss: %v\n", k)
@@ -171,14 +190,21 @@ func Put_random_sizes(puts chan<- struct {
 
 func main() {
 
-	channel0 := make(chan int, 0)
+	channel0 := make(chan struct {
+		Key int
+		Ctx struct{}
+	}, 0)
 	channel1 := make(chan struct {
 		Key  int
 		Data []byte
 	}, 0)
-	channel2 := make(chan int, 0)
+	channel2 := make(chan struct {
+		Key int
+		Ctx struct{}
+	}, 0)
 	channel3 := make(chan struct {
 		Key  int
+		Ctx  struct{}
 		Data []byte
 	}, 0)
 

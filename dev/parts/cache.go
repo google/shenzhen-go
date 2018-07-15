@@ -23,7 +23,18 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
-const cacheKeyTypeParam = "$Key"
+const (
+	cacheKeyTypeParam = "$Key"
+	cacheCtxTypeParam = "$Ctx"
+)
+
+func cacheGetType(kt, ct string) string {
+	return fmt.Sprintf("struct{ Key %s; Ctx %s }", kt, ct)
+}
+
+func cacheHitType(kt, ct string) string {
+	return fmt.Sprintf("struct{ Key %s; Ctx %s; Data []byte }", kt, ct)
+}
 
 func cachePutType(kt string) string {
 	return fmt.Sprintf("struct{ Key %s; Data []byte }", kt)
@@ -34,7 +45,7 @@ var (
 		&pin.Definition{
 			Name:      "get",
 			Direction: pin.Input,
-			Type:      cacheKeyTypeParam,
+			Type:      cacheGetType(cacheKeyTypeParam, cacheCtxTypeParam),
 		},
 		&pin.Definition{
 			Name:      "put",
@@ -44,12 +55,12 @@ var (
 		&pin.Definition{
 			Name:      "hit",
 			Direction: pin.Output,
-			Type:      cachePutType(cacheKeyTypeParam),
+			Type:      cacheHitType(cacheKeyTypeParam, cacheCtxTypeParam),
 		},
 		&pin.Definition{
 			Name:      "miss",
 			Direction: pin.Output,
-			Type:      cacheKeyTypeParam,
+			Type:      cacheGetType(cacheKeyTypeParam, cacheCtxTypeParam),
 		},
 	)
 
@@ -65,15 +76,16 @@ var (
 				continue
 			}
 			mu.RLock()
-			e, ok := cache[g]
+			e, ok := cache[g.Key]
 			mu.RUnlock()
 			if !ok {
 				miss <- g
 				continue
 			}
 			e.Lock()
-			hit <- {{.PutType}}{
-				Key: g,
+			hit <- {{.HitType}}{
+				Key: g.Key,
+				Ctx: g.Ctx,
 				Data: e.data,
 			}
 			e.last = time.Now()
@@ -85,7 +97,6 @@ var (
 				continue
 			}
 			if len(p.Data) > bytesLimit {
-				// TODO: some kind of failure message
 				continue
 			}
 			
@@ -107,7 +118,6 @@ var (
 				if totalBytes + uint64(len(p.Data)) > bytesLimit {
 					// Evict ek.
 					if ee == nil {
-						// TODO: some kind of error message
 						break
 					}
 					ee.Lock()
@@ -127,7 +137,7 @@ var (
 			}
 			mu.Unlock()
 		}
-	}`)) // `, putType, keyType, initTime, timeComp)
+	}`))
 )
 
 func init() {
@@ -204,11 +214,11 @@ func (c *Cache) Clone() model.Part {
 // Impl returns a cache implementation.
 func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 	params := struct {
-		KeyType, PutType, InitTime, TimeComp string
+		KeyType, HitType, InitTime, TimeComp string
 	}{
 		KeyType: types[cacheKeyTypeParam],
 	}
-	params.PutType = cachePutType(params.KeyType)
+	params.HitType = cacheHitType(params.KeyType, types[cacheCtxTypeParam])
 	params.InitTime, params.TimeComp = c.EvictionMode.searchParams()
 	b := bytes.NewBuffer(nil)
 	err := cacheBodyTmpl.Execute(b, params)

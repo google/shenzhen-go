@@ -108,7 +108,6 @@ var (
 					// Evict ek.
 					if ee == nil {
 						// TODO: some kind of error message
-						mu.Unlock()
 						break
 					}
 					ee.Lock()

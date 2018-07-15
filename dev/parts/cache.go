@@ -120,7 +120,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 		totalBytes := int64(0)
 		cache := make(map[%s]*cacheEntry)
 	`, c.ContentBytesLimit, keyType),
-		fmt.Sprintf(`selectLoop:
+		fmt.Sprintf(`
 		for {
 			select {
 			case g := <-get:
@@ -129,7 +129,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 				if !ok {
 					miss <- g
 					mu.RUnlock()
-					continue selectLoop
+					continue
 				}
 				mu.RUnlock()
 				e.mu.Lock()
@@ -145,36 +145,50 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 					// TODO: some kind of failure message
 					continue
 				}
-				mu.RLock()
+				
 				// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
-				for totalBytes + len(p.Data) > bytesLimit {
+				for {
+					mu.RLock()
+					if totalBytes + len(p.Data) <= bytesLimit {
+						mu.RUnlock()
+						break
+					}
 					et := %s
 					var ek %s
 					for k, e := range cache {
+						e.Lock()
 						if e.last.%s(et) {
 							et, ek = e.last, k
 						}
+						e.Unlock()
 					}
 					mu.RUnlock()
 					mu.Lock()
-					// Check it's still necessary.
-					if totalBytes + len(p.Data) <= bytesLimit {
+					// Still necessary to evict?
+					if newBytes := totalBytes + len(p.Data); newBytes <= bytesLimit {
+						cache[p.Key] = &cacheEntry{
+							data: p.Data,
+							last: time.Now(),
+						}
+						totalBytes = newBytes
 						mu.Unlock()
-						continue selectLoop
+						break
 					}
+					// Evict k.
 					totalBytes -= len(cache[k].data)
 					delete(cache, k)
+					if newBytes := totalBytes + len(p.Data); newBytes <= bytesLimit {
+						cache[p.Key] = &cacheEntry{
+							data: p.Data,
+							last: time.Now(),
+						}
+						totalBytes = newBytes
+						mu.Unlock()
+						break
+					}
 					mu.Unlock()
-					mu.RLock()
 				}
-				mu.RUnlock()
-				mu.Lock()
-				cache[p.Key] = &cacheEntry{
-					data: p.Data,
-					last: time.Now(),
-				}
-				totalBytes += len(p.Data)
-				mu.Unlock()
+
 			}
 		}`, putType, initTime, keyType, timeComp),
 		`close(hit)

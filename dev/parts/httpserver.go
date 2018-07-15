@@ -123,13 +123,13 @@ func (s *HTTPServer) Impl(map[string]string) (head, body, tail string) {
 		done := make(chan struct{})
 		go func() {
 			err := svr.ListenAndServe()
-			if errors != nil {
+			if err != nil && errors != nil {
 				errors <- err
 			}
 			close(done)
 		}()
 		err := svr.Shutdown(mgr.Wait())
-		if errors != nil {
+		if err != nil && errors != nil {
 			errors <- err
 		}
 		<-done

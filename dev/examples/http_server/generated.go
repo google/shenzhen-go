@@ -2,17 +2,17 @@
 package main
 
 import (
+	"net/http"
+
+	"context"
+	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"time"
-
-	"context"
-	"fmt"
 )
 
 func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
@@ -56,7 +56,6 @@ func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, req
 		close(requests)
 		if errors != nil {
 			close(errors)
-			errors = nil
 		}
 
 	}()
@@ -67,16 +66,19 @@ func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, req
 			Handler: parts.HTTPHandler(requests),
 			Addr:    mgr.Addr(),
 		}
+		done := make(chan struct{})
 		go func() {
 			err := svr.ListenAndServe()
-			if errors != nil {
+			if err != nil && errors != nil {
 				errors <- err
 			}
+			close(done)
 		}()
 		err := svr.Shutdown(mgr.Wait())
-		if errors != nil {
+		if err != nil && errors != nil {
 			errors <- err
 		}
+		<-done
 	}
 }
 

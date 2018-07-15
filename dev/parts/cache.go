@@ -128,10 +128,11 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 				e, ok := cache[g]
 				if !ok {
 					miss <- g
-					mu.RUnlock()
-					continue
 				}
 				mu.RUnlock()
+				if !ok {
+					continue
+				}
 				e.mu.Lock()
 				hit <- %s{
 					Key: g,
@@ -188,7 +189,6 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 					}
 					mu.Unlock()
 				}
-
 			}
 		}`, putType, initTime, keyType, timeComp),
 		`close(hit)

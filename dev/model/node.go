@@ -24,9 +24,9 @@ import (
 )
 
 var (
-	multVarRE          = regexp.MustCompile(`\b[nN]\b`)
-	multIdentRE        = regexp.MustCompile(`\bmultiplicity\b`)
-	instanceNumIdentRE = regexp.MustCompile(`\binstanceNumber\b`)
+	multiplicityVarRE   = regexp.MustCompile(`\b[nN]\b`)
+	multiplicityUsageRE = regexp.MustCompile(`\bmultiplicity\b`)
+	instanceNumUsageRE  = regexp.MustCompile(`\binstanceNumber\b`)
 )
 
 // Node models a goroutine. This is the "real" model type for nodes.
@@ -67,18 +67,18 @@ func (n *Node) ExpandedMult() string {
 	// TODO: Do it with parser.ParseExpr(n.Multiplicity) and substituting in
 	// &ast.CallExpr{Fun: &ast.SelectorExpr{X: ast.NewIdent("runtime"), Sel: ast.NewIdent("NumCPU")}}
 	// with a parentWalker...
-	return multVarRE.ReplaceAllString(n.Multiplicity, "runtime.NumCPU()")
+	return multiplicityVarRE.ReplaceAllString(n.Multiplicity, "runtime.NumCPU()")
 }
 
 // UsesMultiplicity returns true if multiplicity != 1 or the head/body/tail use the multiplicity variable.
 func (n *Node) UsesMultiplicity() bool {
 	// Again, could do this more properly by parsing the code.
-	return n.Multiplicity != "1" || multIdentRE.MatchString(n.head) || multIdentRE.MatchString(n.body) || multIdentRE.MatchString(n.tail)
+	return n.Multiplicity != "1" || multiplicityUsageRE.MatchString(n.head) || multiplicityUsageRE.MatchString(n.body) || multiplicityUsageRE.MatchString(n.tail)
 }
 
 // UsesInstanceNum returns true if the body uses the "instanceNum"
 func (n *Node) UsesInstanceNum() bool {
-	return instanceNumIdentRE.MatchString(n.body)
+	return instanceNumUsageRE.MatchString(n.body)
 }
 
 // FlatImports returns the imports as a single string.

@@ -122,8 +122,15 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 	`, c.ContentBytesLimit, keyType),
 		fmt.Sprintf(`
 		for {
+			if get == nil && put == nil {
+				break
+			}
 			select {
-			case g := <-get:
+			case g, open := <-get:
+				if !open {
+					get = nil
+					continue
+				}
 				mu.RLock()
 				e, ok := cache[g]
 				mu.RUnlock()
@@ -139,7 +146,11 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 				e.last = time.Now()
 				e.mu.Unlock()
 				
-			case p := <-put:
+			case p, open := <-put:
+				if !open {
+					put = nil
+					continue
+				}
 				if len(p.Data) > bytesLimit {
 					// TODO: some kind of failure message
 					continue

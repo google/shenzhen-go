@@ -114,7 +114,7 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 		type cacheEntry struct {
 			data []byte
 			last time.Time
-			mu   sync.Mutex
+			sync.Mutex
 		}
 		var mu sync.RWMutex
 		totalBytes := uint64(0)
@@ -138,13 +138,13 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 					miss <- g
 					continue
 				}
-				e.mu.Lock()
+				e.Lock()
 				hit <- %s{
 					Key: g,
 					Data: e.data,
 				}
 				e.last = time.Now()
-				e.mu.Unlock()
+				e.Unlock()
 				
 			case p, open := <-put:
 				if !open {
@@ -157,49 +157,45 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 				}
 				
 				// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
+				mu.Lock()
 				for {
-					mu.RLock()
-					if totalBytes + uint64(len(p.Data)) <= bytesLimit {
-						mu.RUnlock()
-						break
-					}
-					et := %s
+					// Find something to evict if needed.
 					var ek %s
+					var ee *cacheEntry
+					et := %s
 					for k, e := range cache {
 						e.Lock()
 						if e.last.%s(et) {
-							et, ek = e.last, k
+							ee, et, ek = e, e.last, k
 						}
 						e.Unlock()
 					}
-					mu.RUnlock()
-					mu.Lock()
-					// Still necessary to evict?
-					if newBytes := totalBytes + uint64(len(p.Data)); newBytes <= bytesLimit {
-						cache[p.Key] = &cacheEntry{
-							data: p.Data,
-							last: time.Now(),
+					// Necessary to evict?
+					if totalBytes + uint64(len(p.Data)) > bytesLimit {
+						// Evict ek.
+						if ee == nil {
+							// TODO: some kind of error message
+							mu.Unlock()
+							return
 						}
-						totalBytes = newBytes
-						mu.Unlock()
-						break
+						ee.Lock()
+						totalBytes -= uint64(len(ee.data))
+						ee.Unlock()
+						delete(cache, ek)
+						continue
 					}
-					// Evict k.
-					totalBytes -= len(cache[k].data)
-					delete(cache, k)
-					if newBytes := totalBytes + uint64(len(p.Data)); newBytes <= bytesLimit {
-						cache[p.Key] = &cacheEntry{
-							data: p.Data,
-							last: time.Now(),
-						}
-						totalBytes = newBytes
-						mu.Unlock()
-						break
+
+					// No - insert now.
+					cache[p.Key] = &cacheEntry{
+						data: p.Data,
+						last: time.Now(),
 					}
-					mu.Unlock()
+					totalBytes += uint64(len(p.Data))
+					break
 				}
+				mu.Unlock()
 			}
-		}`, putType, initTime, keyType, timeComp),
+		}`, putType, keyType, initTime, timeComp),
 		`close(hit)
 		close(miss)`
 }

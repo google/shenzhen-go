@@ -1,0 +1,178 @@
+{
+	"name": "Cache",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/cache",
+	"is_command": true,
+	"nodes": {
+		"Cache": {
+			"part": {
+				"ContentBytesLimit": 1073741824,
+				"EvictionMode": "lru"
+			},
+			"part_type": "Cache",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 197,
+			"y": 254,
+			"connections": {
+				"get": "channel0",
+				"hit": "channel3",
+				"miss": "channel2",
+				"put": "channel1"
+			}
+		},
+		"Get random items": {
+			"part": {
+				"imports": [
+					"\"math/rand\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for i := 0; i \u003c 200; i++ {",
+					"\tkeys \u003c- rand.Intn(6)",
+					"}"
+				],
+				"tail": [
+					"close(keys)"
+				],
+				"pins": {
+					"keys": {
+						"type": "int",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 76,
+			"y": 115,
+			"connections": {
+				"keys": "channel0"
+			}
+		},
+		"Print hits": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for g := range gets {",
+					"\tfmt.Printf(\"Hit: %v (size %v)\\n\", g.Key, len(g.Data))",
+					"}"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"gets": {
+						"type": "struct{ Key $Key; Data []byte }",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 118,
+			"y": 379,
+			"connections": {
+				"gets": "channel3"
+			}
+		},
+		"Print misses": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for k := range keys {",
+					"\tfmt.Printf(\"Miss: %v\\n\", k)",
+					"}"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"keys": {
+						"type": "$T",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 268,
+			"y": 379,
+			"connections": {
+				"keys": "channel2"
+			}
+		},
+		"Put random sizes": {
+			"part": {
+				"imports": [
+					""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for i := 0; i \u003c 6; i++ {",
+					"\tputs \u003c- struct {",
+					"\t\tKey  int",
+					"\t\tData []byte",
+					"\t}{",
+					"\t\tKey: i,",
+					"\t\t// Very large sizes to trigger evictions",
+					"\t\tData: make([]byte, rand.Intn(1\u003c\u003c29)),",
+					"\t}",
+					"}"
+				],
+				"tail": [
+					"close(puts)"
+				],
+				"pins": {
+					"puts": {
+						"type": "struct{ Key int; Data []byte }",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 282,
+			"y": 115,
+			"connections": {
+				"puts": "channel1"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 0
+		},
+		"channel1": {
+			"cap": 0
+		},
+		"channel2": {
+			"cap": 0
+		},
+		"channel3": {
+			"cap": 0
+		}
+	}
+}

@@ -19,9 +19,7 @@ import (
 	"errors"
 	"io"
 	"log"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/google/shenzhen-go/dev/client/view"
 	"github.com/google/shenzhen-go/dev/dom"
@@ -33,8 +31,6 @@ import (
 const defaultChannelNamePrefix = "channel"
 
 var (
-	defaultChannelNameRE = regexp.MustCompile(`^channel\d+$`)
-
 	ace   = dom.GlobalAce()
 	hterm = dom.GlobalHterm()
 
@@ -205,21 +201,12 @@ func (c *graphController) CreateChannel(pcs ...view.PinController) (view.Channel
 	}
 
 	// Pick a unique name
-	max := -1
-	for _, ec := range c.graph.Channels {
-		if !defaultChannelNameRE.MatchString(ec.Name) {
-			continue
-		}
-		n, err := strconv.Atoi(strings.TrimPrefix(ec.Name, defaultChannelNamePrefix))
-		if err != nil {
-			// The string just matched \d+ but can't be converted to an int?...
-			panic(err)
-		}
-		if n > max {
-			max = n
+	for i := 0; ; i++ {
+		ch.Name = defaultChannelNamePrefix + strconv.Itoa(i)
+		if c.graph.Channels[ch.Name] == nil {
+			break
 		}
 	}
-	ch.Name = defaultChannelNamePrefix + strconv.Itoa(max+1)
 
 	return c.newChannelController(ch, ""), nil
 }
@@ -337,7 +324,6 @@ func (c *graphController) Run(ctx context.Context) error {
 
 	tio := c.htermTerminal.IO().Push()
 	defer func() {
-		// FIXME: the process exits, but the client doesn't realise until sending another string.
 		tio.OnVTKeystroke(func(string) {})
 		tio.SendString(func(string) {})
 		tio.Pop()

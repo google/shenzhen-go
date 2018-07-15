@@ -17,9 +17,9 @@
 			"x": 202,
 			"y": 296,
 			"connections": {
-				"metrics": "channel5",
+				"metrics": "channel3",
 				"requests": "channel0",
-				"root": "channel6"
+				"root": "channel4"
 			}
 		},
 		"HTTPServer": {
@@ -31,8 +31,8 @@
 			"x": 192,
 			"y": 173,
 			"connections": {
-				"errors": "channel3",
-				"manager": "channel9",
+				"errors": "channel2",
+				"manager": "channel1",
 				"requests": "channel0"
 			}
 		},
@@ -67,7 +67,7 @@
 			"x": 314,
 			"y": 416,
 			"connections": {
-				"requests": "channel6"
+				"requests": "channel4"
 			}
 		},
 		"Log errors": {
@@ -100,7 +100,7 @@
 			"x": 56,
 			"y": 296,
 			"connections": {
-				"errors": "channel3"
+				"errors": "channel2"
 			}
 		},
 		"Metrics": {
@@ -112,7 +112,7 @@
 			"x": 149,
 			"y": 416,
 			"connections": {
-				"requests": "channel5"
+				"requests": "channel3"
 			}
 		},
 		"Send a manager": {
@@ -159,7 +159,7 @@
 			"x": 178,
 			"y": 50,
 			"connections": {
-				"manager": "channel9"
+				"manager": "channel1"
 			}
 		}
 	},
@@ -167,16 +167,16 @@
 		"channel0": {
 			"cap": 0
 		},
+		"channel1": {
+			"cap": 0
+		},
+		"channel2": {
+			"cap": 0
+		},
 		"channel3": {
 			"cap": 0
 		},
-		"channel5": {
-			"cap": 0
-		},
-		"channel6": {
-			"cap": 0
-		},
-		"channel9": {
+		"channel4": {
 			"cap": 0
 		}
 	}

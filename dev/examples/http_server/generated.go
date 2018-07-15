@@ -161,46 +161,46 @@ func Send_a_manager(manager chan<- parts.HTTPServerManager) {
 func main() {
 
 	channel0 := make(chan *parts.HTTPRequest, 0)
-	channel3 := make(chan error, 0)
-	channel5 := make(chan *parts.HTTPRequest, 0)
-	channel6 := make(chan *parts.HTTPRequest, 0)
-	channel9 := make(chan parts.HTTPServerManager, 0)
+	channel1 := make(chan parts.HTTPServerManager, 0)
+	channel2 := make(chan error, 0)
+	channel3 := make(chan *parts.HTTPRequest, 0)
+	channel4 := make(chan *parts.HTTPRequest, 0)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		HTTPServeMux(channel5, channel0, channel6)
+		HTTPServeMux(channel3, channel0, channel4)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		HTTPServer(channel3, channel9, channel0)
+		HTTPServer(channel2, channel1, channel0)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Hello_World(channel6)
+		Hello_World(channel4)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Log_errors(channel3)
+		Log_errors(channel2)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Metrics(channel5)
+		Metrics(channel3)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Send_a_manager(channel9)
+		Send_a_manager(channel1)
 		wg.Done()
 	}()
 

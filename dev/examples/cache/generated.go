@@ -99,7 +99,7 @@ func Cache(get <-chan int, hit chan<- struct {
 							if ee == nil {
 								// TODO: some kind of error message
 								mu.Unlock()
-								return
+								break
 							}
 							ee.Lock()
 							totalBytes -= uint64(len(ee.data))

@@ -15,7 +15,9 @@
 package parts
 
 import (
+	"bytes"
 	"fmt"
+	"text/template"
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
@@ -50,6 +52,83 @@ var (
 			Type:      cacheKeyTypeParam,
 		},
 	)
+
+	cacheBodyTmpl = template.Must(template.New("cache-body").Parse(`
+	for {
+		if get == nil && put == nil {
+			break
+		}
+		select {
+		case g, open := <-get:
+			if !open {
+				get = nil
+				continue
+			}
+			mu.RLock()
+			e, ok := cache[g]
+			mu.RUnlock()
+			if !ok {
+				miss <- g
+				continue
+			}
+			e.Lock()
+			hit <- {{.PutType}}{
+				Key: g,
+				Data: e.data,
+			}
+			e.last = time.Now()
+			e.Unlock()
+			
+		case p, open := <-put:
+			if !open {
+				put = nil
+				continue
+			}
+			if len(p.Data) > bytesLimit {
+				// TODO: some kind of failure message
+				continue
+			}
+			
+			// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
+			mu.Lock()
+			for {
+				// Find something to evict if needed.
+				var ek {{.KeyType}}
+				var ee *cacheEntry
+				et := {{.InitTime}}
+				for k, e := range cache {
+					e.Lock()
+					if e.last.{{.TimeComp}}(et) {
+						ee, et, ek = e, e.last, k
+					}
+					e.Unlock()
+				}
+				// Necessary to evict?
+				if totalBytes + uint64(len(p.Data)) > bytesLimit {
+					// Evict ek.
+					if ee == nil {
+						// TODO: some kind of error message
+						mu.Unlock()
+						break
+					}
+					ee.Lock()
+					totalBytes -= uint64(len(ee.data))
+					ee.Unlock()
+					delete(cache, ek)
+					continue
+				}
+
+				// No - insert now.
+				cache[p.Key] = &cacheEntry{
+					data: p.Data,
+					last: time.Now(),
+				}
+				totalBytes += uint64(len(p.Data))
+				break
+			}
+			mu.Unlock()
+		}
+	}`)) // `, putType, keyType, initTime, timeComp)
 )
 
 func init() {
@@ -106,9 +185,18 @@ func (c *Cache) Clone() model.Part {
 
 // Impl returns a cache implementation.
 func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
-	keyType := types[cacheKeyTypeParam]
-	putType := cachePutType(keyType)
-	initTime, timeComp := c.EvictionMode.searchParams()
+	params := struct {
+		KeyType, PutType, InitTime, TimeComp string
+	}{
+		KeyType: types[cacheKeyTypeParam],
+	}
+	params.PutType = cachePutType(params.KeyType)
+	params.InitTime, params.TimeComp = c.EvictionMode.searchParams()
+	b := bytes.NewBuffer(nil)
+	err := cacheBodyTmpl.Execute(b, params)
+	if err != nil {
+		panic("couldn't execute template: " + err.Error())
+	}
 	return fmt.Sprintf(`
 		const bytesLimit = %d
 		type cacheEntry struct {
@@ -119,83 +207,8 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 		var mu sync.RWMutex
 		totalBytes := uint64(0)
 		cache := make(map[%s]*cacheEntry)
-	`, c.ContentBytesLimit, keyType),
-		fmt.Sprintf(`
-		for {
-			if get == nil && put == nil {
-				break
-			}
-			select {
-			case g, open := <-get:
-				if !open {
-					get = nil
-					continue
-				}
-				mu.RLock()
-				e, ok := cache[g]
-				mu.RUnlock()
-				if !ok {
-					miss <- g
-					continue
-				}
-				e.Lock()
-				hit <- %s{
-					Key: g,
-					Data: e.data,
-				}
-				e.last = time.Now()
-				e.Unlock()
-				
-			case p, open := <-put:
-				if !open {
-					put = nil
-					continue
-				}
-				if len(p.Data) > bytesLimit {
-					// TODO: some kind of failure message
-					continue
-				}
-				
-				// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
-				mu.Lock()
-				for {
-					// Find something to evict if needed.
-					var ek %s
-					var ee *cacheEntry
-					et := %s
-					for k, e := range cache {
-						e.Lock()
-						if e.last.%s(et) {
-							ee, et, ek = e, e.last, k
-						}
-						e.Unlock()
-					}
-					// Necessary to evict?
-					if totalBytes + uint64(len(p.Data)) > bytesLimit {
-						// Evict ek.
-						if ee == nil {
-							// TODO: some kind of error message
-							mu.Unlock()
-							return
-						}
-						ee.Lock()
-						totalBytes -= uint64(len(ee.data))
-						ee.Unlock()
-						delete(cache, ek)
-						continue
-					}
-
-					// No - insert now.
-					cache[p.Key] = &cacheEntry{
-						data: p.Data,
-						last: time.Now(),
-					}
-					totalBytes += uint64(len(p.Data))
-					break
-				}
-				mu.Unlock()
-			}
-		}`, putType, keyType, initTime, timeComp),
+	`, c.ContentBytesLimit, params.KeyType),
+		b.String(),
 		`close(hit)
 		close(miss)`
 }

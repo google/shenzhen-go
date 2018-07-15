@@ -126,11 +126,9 @@ func (c *Cache) Impl(types map[string]string) (head, body, tail string) {
 			case g := <-get:
 				mu.RLock()
 				e, ok := cache[g]
-				if !ok {
-					miss <- g
-				}
 				mu.RUnlock()
 				if !ok {
+					miss <- g
 					continue
 				}
 				e.mu.Lock()

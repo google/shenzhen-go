@@ -53,7 +53,7 @@ func init() {
 			{
 				Name: "Queue",
 				Editor: `
-			<div>
+			<div class="form">
 				<div class="formfield">
 					<label for="queue-maxitems">Max items</label>
 					<input id="queue-maxitems" name="queue-maxitems" type="number" required title="Must be a whole number, at least 1." value="1"></input>

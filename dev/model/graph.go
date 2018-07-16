@@ -107,6 +107,23 @@ func (g *Graph) AllImports() []string {
 	return m.Slice()
 }
 
+// Inits returns a map of part type keys to init sections for those parts that need it.
+func (g *Graph) Inits() map[string]string {
+	m := make(map[string]string)
+	for _, n := range g.Nodes {
+		if !n.Impl.NeedsInit {
+			continue
+		}
+		k := n.Part.TypeKey()
+		i := PartTypes[k].Init
+		if i == "" {
+			continue
+		}
+		m[k] = i
+	}
+	return m
+}
+
 // DeleteChannel cleans up any connections and then deletes a channel.
 func (g *Graph) DeleteChannel(ch *Channel) {
 	for np := range ch.Pins {

@@ -42,13 +42,11 @@ import (
 
 var _ = runtime.Compiler
 
-{{range .Nodes}}
-{{if .Impl.Init -}}
-func init() {
-	{{.Impl.Init}}
-}
+{{range .Inits -}}
+{{.}}
 {{end -}}
 
+{{range .Nodes}}
 {{if .Comment -}}
 /* {{.Comment}} */
 {{end -}}

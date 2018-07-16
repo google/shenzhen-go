@@ -20,6 +20,7 @@ import "github.com/google/shenzhen-go/dev/dom"
 
 var (
 	inputCacheContentBytesLimit = doc.ElementByID("cache-contentbyteslimit")
+	inputCacheEnablePrometheus  = doc.ElementByID("cache-enableprometheus")
 	selectCacheEvictionMode     = doc.ElementByID("cache-evictionmode")
 
 	focusedCache *Cache
@@ -29,6 +30,9 @@ func init() {
 	inputCacheContentBytesLimit.AddEventListener("change", func(dom.Object) {
 		focusedCache.ContentBytesLimit = inputCacheContentBytesLimit.Get("value").Uint64()
 	})
+	inputCacheEnablePrometheus.AddEventListener("change", func(dom.Object) {
+		focusedCache.EnablePrometheus = inputCacheEnablePrometheus.Get("checked").Bool()
+	})
 	selectCacheEvictionMode.AddEventListener("change", func(dom.Object) {
 		focusedCache.EvictionMode = CacheEvictionMode(selectCacheEvictionMode.Get("value").String())
 	})
@@ -37,5 +41,6 @@ func init() {
 func (c *Cache) GainFocus() {
 	focusedCache = c
 	inputCacheContentBytesLimit.Set("value", c.ContentBytesLimit)
+	inputCacheEnablePrometheus.Set("checked", c.EnablePrometheus)
 	selectCacheEvictionMode.Set("value", c.EvictionMode)
 }

@@ -41,9 +41,6 @@
 				"imports": [
 					""
 				],
-				"init": [
-					""
-				],
 				"head": [
 					""
 				],
@@ -77,9 +74,6 @@
 			"part": {
 				"imports": [
 					"\"log\""
-				],
-				"init": [
-					""
 				],
 				"head": [
 					""
@@ -130,9 +124,6 @@
 					"\"os\"",
 					"\"os/signal\"",
 					"\"github.com/google/shenzhen-go/dev/parts\""
-				],
-				"init": [
-					""
 				],
 				"head": [
 					""

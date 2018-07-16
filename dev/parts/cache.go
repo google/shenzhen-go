@@ -73,9 +73,27 @@ var (
 	}
 	{{if .Mult}}var mu sync.RWMutex{{end}}
 	totalBytes := uint64(0)
-	cache := make(map[{{.KeyType}}]*cacheEntry)`))
+	cache := make(map[{{.KeyType}}]*cacheEntry)
+	{{if .Prometheus -}}
+	cacheLimit.With(prometheus.Labels{"node_name":"{{.NodeName}}"}).Set(bytesLimit)
+	cacheSize := cacheSize.With(prometheus.Labels{"node_name":"{{.NodeName}}"})
+	cacheSize.Set(0)
+	{{end -}}`))
 
 	cacheBodyTmpl = template.Must(template.New("cache-body").Parse(`
+	{{if .Prometheus -}}
+	labels := prometheus.Labels{
+		"node_name": "{{.NodeName}}",
+		"instance_num": strconv.Itoa(instanceNumber),
+	}
+	cacheHits := cacheHits.With(labels)
+	cacheMisses := cacheMisses.With(labels)
+	cachePuts := cachePuts.With(labels)
+	cacheEvictions := cacheEvictions.With(labels)
+	cacheHitsSize := cacheHitsSize.With(labels)
+	cachePutsSize := cachePutsSize.With(labels)
+	cacheEvictionsSize := cacheEvictionsSize.With(labels)
+	{{end -}}
 	for {
 		if get == nil && put == nil {
 			break
@@ -91,9 +109,14 @@ var (
 			{{if .Mult}}mu.RUnlock(){{end}}
 			if !ok {
 				miss <- g
+				{{if .Prometheus}}cacheMisses.Inc(){{end}}
 				continue
 			}
 			{{if .Mult}}e.Lock(){{end}}
+			{{if .Prometheus -}}
+			cacheHits.Inc()
+			cacheHitsSize.Add(float64(len(e.data)))
+			{{end -}}
 			hit <- {{.HitType}}{
 				Key: g.Key,
 				Ctx: g.Ctx,
@@ -132,18 +155,29 @@ var (
 						break
 					}
 					{{if .Mult}}ee.Lock(){{end}}
-					totalBytes -= uint64(len(ee.data))
+					size := uint64(len(ee.data))
 					{{if .Mult}}ee.Unlock(){{end}}
+					totalBytes -= size
 					delete(cache, ek)
+					{{if .Prometheus -}}
+					cacheEvictions.Inc()
+					cacheEvictionsSize.Add(float64(size))
+					{{end -}}
 					continue
 				}
 
 				// No - insert now.
+				size := uint64(len(p.Data))
 				cache[p.Key] = &cacheEntry{
 					data: p.Data,
 					last: time.Now(),
 				}
-				totalBytes += uint64(len(p.Data))
+				totalBytes += size
+				{{if .Prometheus -}}
+				cachePuts.Inc()
+				cachePutsSize.Add(float64(size))
+				cacheSize.Set(float64(totalBytes))
+				{{end -}}
 				break
 			}
 			{{if .Mult}}mu.Unlock(){{end}}
@@ -159,11 +193,113 @@ func init() {
 				EvictionMode:      EvictLRU,
 			}
 		},
+		Init: `
+		var (
+			cacheHits = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "hits",
+					Help:      "Hits to the cache in a Cache node",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+			cacheMisses = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "misses",
+					Help:      "Misses to the cache in a Cache node",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+			cachePuts = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "puts",
+					Help:      "Cache node cache insertions",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+			cacheEvictions = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "evictions",
+					Help:      "Cache node cache evictions",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+			cacheSize = prometheus.NewGaugeVec(
+				prometheus.GaugeOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "size",
+					Help:      "Size of content in Cache nodes in bytes",
+				},
+				[]string{"node_name"},
+			)
+			cacheLimit = prometheus.NewGaugeVec(
+				prometheus.GaugeOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "limit",
+					Help:      "Upper limit of content size in Cache nodes in bytes",
+				},
+				[]string{"node_name"},
+			)
+			cacheHitsSize = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "hits-size",
+					Help:      "Cumulative Cache node cache hits size in bytes",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+			cachePutsSize = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "puts-size",
+					Help:      "Cumulative Cache node cache insertions size in bytes",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+			cacheEvictionsSize = prometheus.NewCounterVec(
+				prometheus.CounterOpts{
+					Namespace: "shenzhen-go",
+					Subsystem: "cache",
+					Name:      "evictions-size",
+					Help:      "Cumulative Cache node cache evictions size in bytes",
+				},
+				[]string{"node_name", "instance_num"},
+			)
+		)
+
+		func init() {
+			prometheus.MustRegister(
+				cacheHits, 
+				cacheMisses, 
+				cachePuts, 
+				cacheSize, 
+				cacheLimit, 
+				cacheHitsSize, 
+				cachePutsSize, 
+				cacheEvictionsSize,
+			)
+		}
+		`,
 		Panels: []model.PartPanel{
 			{
 				Name: "Cache",
 				Editor: `
-				<div>
+				<div class="form">
+					<div class="formfield">
+						<input id="cache-enableprometheus" name="cache-enableprometheus" type="checkbox"></input>
+						<label for="cache-enableprometheus">Enable Prometheus metrics</label>
+					</div>
 					<div class="formfield">
 						<label for="cache-contentbyteslimit">Maximum bytes</label>
 						<input id="cache-contentbyteslimit" name="cache-contentbyteslimit" type="number" required title="Must be a whole number, at least 1." value="1073741824"></input>
@@ -192,6 +328,7 @@ func init() {
 // Cache is a part which caches content in memory.
 type Cache struct {
 	ContentBytesLimit uint64
+	EnablePrometheus  bool
 	EvictionMode      CacheEvictionMode
 }
 
@@ -225,13 +362,16 @@ func (c *Cache) Clone() model.Part {
 // Impl returns a cache implementation.
 func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.PartImpl {
 	params := struct {
-		KeyType, HitType, InitTime, TimeComp string
-		Mult                                 bool
 		BytesLimit                           uint64
+		KeyType, HitType, InitTime, TimeComp string
+		Mult, Prometheus                     bool
+		NodeName                             string
 	}{
+		BytesLimit: c.ContentBytesLimit,
 		KeyType:    types[cacheKeyTypeParam],
 		Mult:       multiple,
-		BytesLimit: c.ContentBytesLimit,
+		NodeName:   name,
+		Prometheus: c.EnablePrometheus,
 	}
 	params.HitType = cacheHitType(params.KeyType, types[cacheCtxTypeParam])
 	params.InitTime, params.TimeComp = c.EvictionMode.searchParams()
@@ -246,11 +386,15 @@ func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.
 	if multiple {
 		imps = append(imps, `"sync"`)
 	}
+	if c.EnablePrometheus {
+		imps = append(imps, `"github.com/prometheus/client_golang/prometheus"`)
+	}
 	return model.PartImpl{
-		Imports: imps,
-		Head:    h.String(),
-		Body:    b.String(),
-		Tail:    `close(hit); close(miss)`,
+		Imports:   imps,
+		Head:      h.String(),
+		Body:      b.String(),
+		Tail:      `close(hit); close(miss)`,
+		NeedsInit: c.EnablePrometheus,
 	}
 }
 

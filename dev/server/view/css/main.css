@@ -68,42 +68,9 @@ code {
 	color: #066;
 }
 
-form {
-	float: none;
-	max-width: 800px;
-	margin: 0 auto;
-}
-
-div.formfield {
-	margin-top: 12px;
-	margin-bottom: 12px;
-}
-
-table {
-	table-layout: fixed;
-	margin-top: 12px;
-	margin-bottom: 12px;
-}
-
-div.formfield label {
-	float: left;
-	text-align: right;
-	margin-right: 15px;
-	width: 30%;
-}
-
 input {
 	font-family: var(--font-family-mono);
 	font-size: 12pt;
-}
-
-div.formfield input[type=text] {
-	width: 65%;
-}
-
-div.browse-container {
-	margin: 0 auto 8px;
-	min-width: 800px;
 }
 
 select {
@@ -114,6 +81,23 @@ select {
 textarea {
 	font-family: var(--font-family-mono);
 	font-size: 12pt;
+}
+
+div.form input[type=text], div.form select, div.form textarea {
+	width: 100%;
+	margin: 8px 0;
+	display: inline-block;
+	box-sizing: border-box;
+}
+
+div.formfield {
+	width: 100%;
+	margin-top: 12px;
+}
+
+div.browse-container {
+	margin: 0 auto 8px;
+	min-width: 800px;
 }
 
 div.head {

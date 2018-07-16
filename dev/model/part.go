@@ -42,8 +42,6 @@ type Part interface {
 	//
 	// The imports are combined with other imports needed for the file.
 	//
-	// The init forms the body of an init function included in the output.
-	//
 	// For the node itself, the head, body, and tail are used.
 	// The head is executed, then the body is executed (# Multiplicity
 	// instances of the body concurrently), then the tail (once the body/bodies
@@ -70,14 +68,24 @@ type Part interface {
 // PartImpl wraps the mostly-formed Go source code that can be inserted into
 // the template.
 type PartImpl struct {
-	Imports                []string
-	Init, Head, Body, Tail string
+	Imports          []string
+	Head, Body, Tail string
+	NeedsInit        bool // true if this node needs infrastructure set up by PartType.Init
 }
 
-// PartType has metadata common to this type of part, and is also a part factory.
-// The HTML is loaded with the editor.
+// PartType has metadata common to a type of part, and is a part factory for
+// the type.
 type PartType struct {
-	New    func() Part
+	// New must return a new instance of this particular part, preferably
+	// with good default settings.
+	New func() Part
+
+	// Init will contain package level var and init blocks specific to this
+	// type. It is included only once per part type for nodes where the part
+	// impl has NeedsInit = true.
+	Init string
+
+	// Panels defines the UI for controlling the settings of the part.
 	Panels []PartPanel
 }
 

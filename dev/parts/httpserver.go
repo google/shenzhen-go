@@ -47,7 +47,7 @@ func init() {
 		Panels: []model.PartPanel{
 			{
 				Name: "Server",
-				Editor: `<div>
+				Editor: `<div class="form">
 				<div class="formfield">
 					<label for="httpserver-readtimeout">Read timeout</label>
 					<input id="httpserver-readtimeout" name="httpserver-readtimeout" type="text" required title="Must be a parseable time.Duration" value="0s"></input>

@@ -5,8 +5,9 @@
 	"nodes": {
 		"Cache": {
 			"part": {
-				"ContentBytesLimit": 1048576,
-				"EvictionMode": "lru"
+				"content_bytes_limit": 1048576,
+				"enable_prometheus": false,
+				"eviction_mode": "lru"
 			},
 			"part_type": "Cache",
 			"enabled": true,

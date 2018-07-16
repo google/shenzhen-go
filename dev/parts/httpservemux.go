@@ -86,17 +86,19 @@ func init() {
 		var (
 			httpServeMuxRequestsIn = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "httpservemux",
-					Name:      "requests-in",
+					Name:      "requests_in",
+					Help:      "Requests received by HTTPServeMux nodes.",
 				},
 				[]string{"node_name", "instance_num"},
 			)
 			httpServeMuxRequestsOut = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "httpservemux",
-					Name:      "requests-out",
+					Name:      "requests_out",
+					Help:      "Requests sent out of HTTPServeMux nodes.",
 				},
 				[]string{"node_name", "instance_num", "output_pin"},
 			)
@@ -142,7 +144,7 @@ func init() {
 
 // HTTPServeMux is a part which routes requests using a http.ServeMux.
 type HTTPServeMux struct {
-	EnablePrometheus bool
+	EnablePrometheus bool `json:"enable_prometheus"`
 
 	// Routes is a map of patterns to output pin names.
 	Routes map[string]string `json:"routes"`
@@ -164,23 +166,23 @@ func (m *HTTPServeMux) Clone() model.Part {
 func (m *HTTPServeMux) Impl(name string, _ bool, _ map[string]string) model.PartImpl {
 	// I think http.ServeMux is concurrent safe... it guards everything with RWMutex.
 	hb, bb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil), bytes.NewBuffer(nil)
-	closed := source.NewStringSet()
+	seen := source.NewStringSet()
 
 	hb.WriteString("mux := http.NewServeMux()\n")
 	if m.EnablePrometheus {
-		hb.WriteString("outLabel := make(map[parts.HTTPHandler]string)\n")
+		hb.WriteString("outLabels := make(map[parts.HTTPHandler]string)\n")
 	}
 	for pat, out := range m.Routes {
 		fmt.Fprintf(hb, "mux.Handle(%q, parts.HTTPHandler(%s))\n", pat, out)
-		if m.EnablePrometheus {
-			fmt.Fprintf(hb, "outLabel[%s] = %q", out, out)
-		}
 
-		if closed.Ni(out) {
+		if seen.Ni(out) {
 			continue
 		}
+		if m.EnablePrometheus {
+			fmt.Fprintf(hb, "outLabels[%s] = %q\n", out, out)
+		}
 		fmt.Fprintf(tb, "close(%s)\n", out)
-		closed.Add(out)
+		seen.Add(out)
 	}
 	imps := []string{
 		`"net/http"`,

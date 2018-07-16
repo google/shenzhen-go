@@ -5,6 +5,7 @@
 	"nodes": {
 		"HTTPServeMux": {
 			"part": {
+				"enable_prometheus": true,
 				"routes": {
 					"/": "root",
 					"/metrics": "metrics"

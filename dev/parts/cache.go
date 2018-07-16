@@ -197,7 +197,7 @@ func init() {
 		var (
 			cacheHits = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
 					Name:      "hits",
 					Help:      "Hits to the cache in a Cache node",
@@ -206,7 +206,7 @@ func init() {
 			)
 			cacheMisses = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
 					Name:      "misses",
 					Help:      "Misses to the cache in a Cache node",
@@ -215,7 +215,7 @@ func init() {
 			)
 			cachePuts = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
 					Name:      "puts",
 					Help:      "Cache node cache insertions",
@@ -224,7 +224,7 @@ func init() {
 			)
 			cacheEvictions = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
 					Name:      "evictions",
 					Help:      "Cache node cache evictions",
@@ -233,7 +233,7 @@ func init() {
 			)
 			cacheSize = prometheus.NewGaugeVec(
 				prometheus.GaugeOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
 					Name:      "size",
 					Help:      "Size of content in Cache nodes in bytes",
@@ -242,7 +242,7 @@ func init() {
 			)
 			cacheLimit = prometheus.NewGaugeVec(
 				prometheus.GaugeOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
 					Name:      "limit",
 					Help:      "Upper limit of content size in Cache nodes in bytes",
@@ -251,27 +251,27 @@ func init() {
 			)
 			cacheHitsSize = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
-					Name:      "hits-size",
+					Name:      "hits_size",
 					Help:      "Cumulative Cache node cache hits size in bytes",
 				},
 				[]string{"node_name", "instance_num"},
 			)
 			cachePutsSize = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
-					Name:      "puts-size",
+					Name:      "puts_size",
 					Help:      "Cumulative Cache node cache insertions size in bytes",
 				},
 				[]string{"node_name", "instance_num"},
 			)
 			cacheEvictionsSize = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
-					Namespace: "shenzhen-go",
+					Namespace: "shenzhen_go",
 					Subsystem: "cache",
-					Name:      "evictions-size",
+					Name:      "evictions_size",
 					Help:      "Cumulative Cache node cache evictions size in bytes",
 				},
 				[]string{"node_name", "instance_num"},
@@ -327,9 +327,9 @@ func init() {
 
 // Cache is a part which caches content in memory.
 type Cache struct {
-	ContentBytesLimit uint64
-	EnablePrometheus  bool
-	EvictionMode      CacheEvictionMode
+	ContentBytesLimit uint64            `json:"content_bytes_limit"`
+	EnablePrometheus  bool              `json:"enable_prometheus"`
+	EvictionMode      CacheEvictionMode `json:"eviction_mode"`
 }
 
 // CacheEvictionMode is how the cache decides which content to evict

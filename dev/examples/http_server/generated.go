@@ -4,25 +4,57 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/google/shenzhen-go/dev/parts"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
-
-	"github.com/google/shenzhen-go/dev/parts"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var _ = runtime.Compiler
 
+var (
+	httpServeMuxRequestsIn = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "httpservemux",
+			Name:      "requests_in",
+			Help:      "Requests received by HTTPServeMux nodes.",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	httpServeMuxRequestsOut = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "httpservemux",
+			Name:      "requests_out",
+			Help:      "Requests sent out of HTTPServeMux nodes.",
+		},
+		[]string{"node_name", "instance_num", "output_pin"},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(
+		httpServeMuxRequestsIn,
+		httpServeMuxRequestsOut,
+	)
+}
+
 func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
+	outLabels := make(map[parts.HTTPHandler]string)
 	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
+	outLabels[metrics] = "metrics"
 
 	defer func() {
 		close(root)
@@ -33,9 +65,18 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
 	for n := 0; n < multiplicity; n++ {
+		instanceNumber := n
 		go func() {
 			defer multWG.Done()
+
+			labels := prometheus.Labels{
+				"node_name":    "HTTPServeMux",
+				"instance_num": strconv.Itoa(instanceNumber),
+			}
+			reqsIn := httpServeMuxRequestsIn.With(labels)
+			reqsOut := httpServeMuxRequestsOut.MustCurryWith(labels)
 			for req := range requests {
+				reqsIn.Inc()
 				// Borrow fix for Go issues #3692 and #5955.
 				if req.Request.RequestURI == "*" {
 					if req.Request.ProtoAtLeast(1, 1) {
@@ -48,11 +89,12 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 				h, _ := mux.Handler(req.Request)
 				hh, ok := h.(parts.HTTPHandler)
 				if !ok {
-					// ServeMux may return handlers that weren't added above.
+					// ServeMux may return handlers that weren't added in the head.
 					h.ServeHTTP(req.ResponseWriter, req.Request)
 					req.Close()
 					continue
 				}
+				reqsOut.With(prometheus.Labels{"output_pin": outLabels[hh]}).Inc()
 				hh <- req
 			}
 		}()

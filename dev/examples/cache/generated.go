@@ -63,6 +63,7 @@ func Cache(get <-chan struct {
 					mu.RUnlock()
 					if !ok {
 						miss <- g
+
 						continue
 					}
 					e.Lock()
@@ -108,18 +109,20 @@ func Cache(get <-chan struct {
 								break
 							}
 							ee.Lock()
-							totalBytes -= uint64(len(ee.data))
+							size := uint64(len(ee.data))
 							ee.Unlock()
+							totalBytes -= size
 							delete(cache, ek)
 							continue
 						}
 
 						// No - insert now.
+						size := uint64(len(p.Data))
 						cache[p.Key] = &cacheEntry{
 							data: p.Data,
 							last: time.Now(),
 						}
-						totalBytes += uint64(len(p.Data))
+						totalBytes += size
 						break
 					}
 					mu.Unlock()

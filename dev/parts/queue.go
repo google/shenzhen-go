@@ -127,7 +127,7 @@ func (m QueueMode) params() (index, trim string) {
 }
 
 // Impl returns the Queue implementation.
-func (q *Queue) Impl(types map[string]string) model.PartImpl {
+func (q *Queue) Impl(name string, multiple bool, types map[string]string) model.PartImpl {
 	index, trim := q.Mode.params()
 	return model.PartImpl{
 		Head: fmt.Sprintf("const maxItems = %d", q.MaxItems),

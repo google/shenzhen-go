@@ -64,6 +64,17 @@ var (
 		},
 	)
 
+	cacheHeadTmpl = template.Must(template.New("cache-head").Parse(`
+	const bytesLimit = {{.BytesLimit}}
+	type cacheEntry struct {
+		data []byte
+		last time.Time
+		{{if .Mult}}sync.Mutex{{end}}
+	}
+	{{if .Mult}}var mu sync.RWMutex{{end}}
+	totalBytes := uint64(0)
+	cache := make(map[{{.KeyType}}]*cacheEntry)`))
+
 	cacheBodyTmpl = template.Must(template.New("cache-body").Parse(`
 	for {
 		if get == nil && put == nil {
@@ -75,21 +86,21 @@ var (
 				get = nil
 				continue
 			}
-			mu.RLock()
+			{{if .Mult}}mu.RLock(){{end}}
 			e, ok := cache[g.Key]
-			mu.RUnlock()
+			{{if .Mult}}mu.RUnlock(){{end}}
 			if !ok {
 				miss <- g
 				continue
 			}
-			e.Lock()
+			{{if .Mult}}e.Lock(){{end}}
 			hit <- {{.HitType}}{
 				Key: g.Key,
 				Ctx: g.Ctx,
 				Data: e.data,
 			}
 			e.last = time.Now()
-			e.Unlock()
+			{{if .Mult}}e.Unlock(){{end}}
 			
 		case p, open := <-put:
 			if !open {
@@ -101,18 +112,18 @@ var (
 			}
 			
 			// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
-			mu.Lock()
+			{{if .Mult}}mu.Lock(){{end}}
 			for {
 				// Find something to evict if needed.
 				var ek {{.KeyType}}
 				var ee *cacheEntry
 				et := {{.InitTime}}
 				for k, e := range cache {
-					e.Lock()
+					{{if .Mult}}e.Lock(){{end}}
 					if e.last.{{.TimeComp}}(et) {
 						ee, et, ek = e, e.last, k
 					}
-					e.Unlock()
+					{{if .Mult}}e.Unlock(){{end}}
 				}
 				// Necessary to evict?
 				if totalBytes + uint64(len(p.Data)) > bytesLimit {
@@ -120,9 +131,9 @@ var (
 					if ee == nil {
 						break
 					}
-					ee.Lock()
+					{{if .Mult}}ee.Lock(){{end}}
 					totalBytes -= uint64(len(ee.data))
-					ee.Unlock()
+					{{if .Mult}}ee.Unlock(){{end}}
 					delete(cache, ek)
 					continue
 				}
@@ -135,7 +146,7 @@ var (
 				totalBytes += uint64(len(p.Data))
 				break
 			}
-			mu.Unlock()
+			{{if .Mult}}mu.Unlock(){{end}}
 		}
 	}`))
 )
@@ -212,33 +223,32 @@ func (c *Cache) Clone() model.Part {
 }
 
 // Impl returns a cache implementation.
-func (c *Cache) Impl(types map[string]string) model.PartImpl {
+func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.PartImpl {
 	params := struct {
 		KeyType, HitType, InitTime, TimeComp string
+		Mult                                 bool
+		BytesLimit                           uint64
 	}{
-		KeyType: types[cacheKeyTypeParam],
+		KeyType:    types[cacheKeyTypeParam],
+		Mult:       multiple,
+		BytesLimit: c.ContentBytesLimit,
 	}
 	params.HitType = cacheHitType(params.KeyType, types[cacheCtxTypeParam])
 	params.InitTime, params.TimeComp = c.EvictionMode.searchParams()
-	h := fmt.Sprintf(`
-	const bytesLimit = %d
-	type cacheEntry struct {
-		data []byte
-		last time.Time
-		sync.Mutex
+	h, b := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
+	if err := cacheHeadTmpl.Execute(h, params); err != nil {
+		panic("couldn't execute cache-head template: " + err.Error())
 	}
-	var mu sync.RWMutex
-	totalBytes := uint64(0)
-	cache := make(map[%s]*cacheEntry)
-`, c.ContentBytesLimit, params.KeyType)
-	b := bytes.NewBuffer(nil)
-	err := cacheBodyTmpl.Execute(b, params)
-	if err != nil {
-		panic("couldn't execute template: " + err.Error())
+	if err := cacheBodyTmpl.Execute(b, params); err != nil {
+		panic("couldn't execute cache-body template: " + err.Error())
+	}
+	imps := []string{`"time"`}
+	if multiple {
+		imps = append(imps, `"sync"`)
 	}
 	return model.PartImpl{
-		Imports: []string{`"sync"`, `"time"`},
-		Head:    h,
+		Imports: imps,
+		Head:    h.String(),
 		Body:    b.String(),
 		Tail:    `close(hit); close(miss)`,
 	}

@@ -71,7 +71,7 @@ type KeyCounter struct{}
 func (KeyCounter) Clone() model.Part { return &KeyCounter{} }
 
 // Impl returns the Closer implementation.
-func (KeyCounter) Impl(types map[string]string) model.PartImpl {
+func (KeyCounter) Impl(name string, multiple bool, types map[string]string) model.PartImpl {
 	return model.PartImpl{
 		Body: fmt.Sprintf(`
 			m := make(map[%s]uint)

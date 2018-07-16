@@ -49,7 +49,7 @@ type PrometheusHTTPHandler struct{}
 func (PrometheusHTTPHandler) Clone() model.Part { return &PrometheusHTTPHandler{} }
 
 // Impl returns the PrometheusHTTPHandler implementation.
-func (PrometheusHTTPHandler) Impl(map[string]string) model.PartImpl {
+func (PrometheusHTTPHandler) Impl(string, bool, map[string]string) model.PartImpl {
 	return model.PartImpl{
 		Imports: []string{
 			`"github.com/google/shenzhen-go/dev/parts"`,

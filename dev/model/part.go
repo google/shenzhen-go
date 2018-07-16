@@ -32,6 +32,14 @@ type Part interface {
 
 	// Impl returns Go source code implementing the part.
 	//
+	// It is called with the name of the node, whether the node is multiple or
+	// not, i.e. Multiplicity != "1", and the resolved type parameters relevant
+	// to this specific node.
+	//
+	// Parts are expected to use the name, multiple an type parameters responsibly.
+	// Names are generally used for exporting Prometheus metrics, and multiple
+	// can be used to add or eliminate locking around shared data structures.
+	//
 	// The imports are combined with other imports needed for the file.
 	//
 	// The init forms the body of an init function included in the output.
@@ -47,7 +55,7 @@ type Part interface {
 	//
 	// The types map indicates inferred types which the part is responsible
 	// for interpolating into the output as needed.
-	Impl(types map[string]string) PartImpl
+	Impl(name string, multiple bool, types map[string]string) PartImpl
 
 	// Pins returns any pins - "channel arguments" - to the part.
 	// inputs and outputs map argument names to types (the "<-chan" /

@@ -71,7 +71,7 @@ func (m HTTPServeMux) Clone() model.Part {
 }
 
 // Impl returns the implementation.
-func (m HTTPServeMux) Impl(map[string]string) model.PartImpl {
+func (m HTTPServeMux) Impl(string, bool, map[string]string) model.PartImpl {
 	// I think http.ServeMux is concurrent safe... it guards everything with RWMutex.
 	hb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	closed := source.NewStringSet()

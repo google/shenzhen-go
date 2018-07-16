@@ -188,5 +188,5 @@ func (n *Node) RefreshConnections() {
 
 // RefreshImpl refreshes Impl from the Part.
 func (n *Node) RefreshImpl() {
-	n.Impl = n.Part.Impl(n.typeParams)
+	n.Impl = n.Part.Impl(n.Name, n.Multiplicity != "1", n.typeParams)
 }

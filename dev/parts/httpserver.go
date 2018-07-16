@@ -111,7 +111,7 @@ type HTTPServer struct {
 func (s *HTTPServer) Clone() model.Part { s0 := *s; return &s0 }
 
 // Impl returns the HTTPServer implementation.
-func (s *HTTPServer) Impl(map[string]string) model.PartImpl {
+func (s *HTTPServer) Impl(string, bool, map[string]string) model.PartImpl {
 	b := bytes.NewBuffer(nil)
 	b.WriteString(`
 	for mgr := range manager {

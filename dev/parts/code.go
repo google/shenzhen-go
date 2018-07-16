@@ -173,7 +173,7 @@ func (c *Code) Clone() model.Part {
 }
 
 // Impl returns the implementation of the goroutine.
-func (c *Code) Impl(map[string]string) model.PartImpl {
+func (c *Code) Impl(string, bool, map[string]string) model.PartImpl {
 	// TODO(josh): Figure out the least awful way of letting the
 	// user use the types map.
 	return model.PartImpl{

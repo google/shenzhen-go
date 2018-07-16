@@ -26,30 +26,31 @@ var promHTTPHandlerPins = pin.NewMap(&pin.Definition{
 })
 
 func init() {
-	model.RegisterPartType("PrometheusHTTPHandler", "Web", &model.PartType{
-		New: func() model.Part { return &PrometheusHTTPHandler{} },
+	model.RegisterPartType("PrometheusMetricsHandler", "Web", &model.PartType{
+		New: func() model.Part { return &PrometheusMetricsHandler{} },
 		Panels: []model.PartPanel{{
 			Name: "Help",
 			Editor: `<div>
 			<p>
-				A PrometheusHTTPHandler part handles requests with the Prometheus Go client.
+				A PrometheusMetricsHandler part handles requests with the Prometheus Go client:
+				it responds by using the handler returned by <code>promhttp.Handler</code>.
 			</p><p>
-				The <code>promhttp</code> handler will serve any request this part
-				receives, but Prometheus only expects the URL path to be <code>/metrics</code>.
+				This part will serve any request it	receives with <code>promhttp.Handler</code>,
+				but Prometheus generally expects the URL path to be <code>/metrics</code>.
 			</p>
 			</div>`,
 		}},
 	})
 }
 
-// PrometheusHTTPHandler is a part which immediately closes the output channel.
-type PrometheusHTTPHandler struct{}
+// PrometheusMetricsHandler is a part which immediately closes the output channel.
+type PrometheusMetricsHandler struct{}
 
-// Clone returns a clone of this PrometheusHTTPHandler.
-func (PrometheusHTTPHandler) Clone() model.Part { return &PrometheusHTTPHandler{} }
+// Clone returns a clone of this PrometheusMetricsHandler.
+func (PrometheusMetricsHandler) Clone() model.Part { return &PrometheusMetricsHandler{} }
 
-// Impl returns the PrometheusHTTPHandler implementation.
-func (PrometheusHTTPHandler) Impl(string, bool, map[string]string) model.PartImpl {
+// Impl returns the PrometheusMetricsHandler implementation.
+func (PrometheusMetricsHandler) Impl(string, bool, map[string]string) model.PartImpl {
 	return model.PartImpl{
 		Imports: []string{
 			`"github.com/google/shenzhen-go/dev/parts"`,
@@ -64,7 +65,7 @@ func (PrometheusHTTPHandler) Impl(string, bool, map[string]string) model.PartImp
 }
 
 // Pins returns a map declaring a single request input.
-func (PrometheusHTTPHandler) Pins() pin.Map { return promHTTPHandlerPins }
+func (PrometheusMetricsHandler) Pins() pin.Map { return promHTTPHandlerPins }
 
-// TypeKey returns "PrometheusHTTPHandler".
-func (PrometheusHTTPHandler) TypeKey() string { return "PrometheusHTTPHandler" }
+// TypeKey returns "PrometheusMetricsHandler".
+func (PrometheusMetricsHandler) TypeKey() string { return "PrometheusMetricsHandler" }

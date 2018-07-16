@@ -106,7 +106,7 @@
 		},
 		"Metrics": {
 			"part": {},
-			"part_type": "PrometheusHTTPHandler",
+			"part_type": "PrometheusMetricsHandler",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "n",
@@ -142,8 +142,10 @@
 					"fmt.Printf(\"Shutting down within %v...\\n\", timeout)",
 					"ctx, canc := context.WithTimeout(context.Background(), timeout)",
 					"mgr.Shutdown(ctx)",
-					"time.Sleep(timeout)",
-					"canc()"
+					"go func() {",
+					"\ttime.Sleep(timeout)",
+					"\tcanc()",
+					"}()"
 				],
 				"tail": [
 					"close(manager)"

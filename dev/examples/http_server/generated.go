@@ -51,14 +51,14 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
-	mux.Handle("/", parts.HTTPHandler(root))
-	outLabels[root] = "root"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 	outLabels[metrics] = "metrics"
+	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
 
 	defer func() {
-		close(root)
 		close(metrics)
+		close(root)
 
 	}()
 	var multWG sync.WaitGroup
@@ -188,8 +188,10 @@ func Send_a_manager(manager chan<- parts.HTTPServerManager) {
 	fmt.Printf("Shutting down within %v...\n", timeout)
 	ctx, canc := context.WithTimeout(context.Background(), timeout)
 	mgr.Shutdown(ctx)
-	time.Sleep(timeout)
-	canc()
+	go func() {
+		time.Sleep(timeout)
+		canc()
+	}()
 }
 
 func main() {

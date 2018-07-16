@@ -387,7 +387,10 @@ func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.
 		imps = append(imps, `"sync"`)
 	}
 	if c.EnablePrometheus {
-		imps = append(imps, `"github.com/prometheus/client_golang/prometheus"`)
+		imps = append(imps,
+			`"strconv"`,
+			`"github.com/prometheus/client_golang/prometheus"`,
+		)
 	}
 	return model.PartImpl{
 		Imports:   imps,

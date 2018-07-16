@@ -34,8 +34,16 @@ func init() {
 		},
 		Panels: []model.PartPanel{
 			{
-				Name:   "Routes",
-				Editor: `<div class="codeedit" id="httpservemux-routes"></div>`,
+				Name: "Routes",
+				Editor: `
+				<div class="form">
+					<div class="formfield">
+						<input id="httpservemux-enableprometheus" name="httpservemux-enableprometheus" type="checkbox"></input>
+						<label for="httpservemux-enableprometheus">Enable Prometheus metrics</label>
+					</div>
+				</div>
+				<div class="codeedit" id="httpservemux-routes"></div>
+				`,
 			},
 			{
 				Name: "Help",
@@ -57,6 +65,8 @@ func init() {
 
 // HTTPServeMux is a part which routes requests using a http.ServeMux.
 type HTTPServeMux struct {
+	EnablePrometheus bool
+
 	// Routes is a map of patterns to output pin names.
 	Routes map[string]string `json:"routes"`
 }
@@ -72,6 +82,8 @@ func (m HTTPServeMux) Clone() model.Part {
 
 // Impl returns the implementation.
 func (m HTTPServeMux) Impl(string, bool, map[string]string) model.PartImpl {
+	// TODO: implement prometheus metrics for this part.
+
 	// I think http.ServeMux is concurrent safe... it guards everything with RWMutex.
 	hb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	closed := source.NewStringSet()

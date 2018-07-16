@@ -26,11 +26,16 @@ import (
 var (
 	httpServeMuxRoutesSession *dom.AceSession
 
+	inputHTTPServeMuxEnablePrometheus = doc.ElementByID("httpservemux-enableprometheus")
+
 	focusedHTTPServeMux *HTTPServeMux
 )
 
 func init() {
 	httpServeMuxRoutesSession = setupAce("httpservemux-routes", dom.AceJSONMode, httpServeMuxRoutesChange)
+	inputHTTPServeMuxEnablePrometheus.AddEventListener("change", func(dom.Object) {
+		focusedHTTPServeMux.EnablePrometheus = inputHTTPServeMuxEnablePrometheus.Get("checked").Bool()
+	})
 }
 
 func httpServeMuxRoutesChange(dom.Object) {
@@ -50,4 +55,5 @@ func (m *HTTPServeMux) GainFocus() {
 		log.Fatalf("Couldn't marshal a map[string]string to JSON: %v", err)
 	}
 	httpServeMuxRoutesSession.SetValue(string(routes))
+	inputHTTPServeMuxEnablePrometheus.Set("checked", focusedHTTPServeMux.EnablePrometheus)
 }

@@ -4,8 +4,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/google/shenzhen-go/dev/parts"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +11,9 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/google/shenzhen-go/dev/parts"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var _ = runtime.Compiler
@@ -143,8 +144,10 @@ func Send_a_manager(manager chan<- parts.HTTPServerManager) {
 
 	timeout := 5 * time.Second
 	fmt.Printf("Shutting down within %v...\n", timeout)
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	ctx, canc := context.WithTimeout(context.Background(), timeout)
 	mgr.Shutdown(ctx)
+	time.Sleep(timeout)
+	canc()
 }
 
 func main() {

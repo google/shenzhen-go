@@ -41,6 +41,9 @@
 				"imports": [
 					""
 				],
+				"init": [
+					""
+				],
 				"head": [
 					""
 				],
@@ -74,6 +77,9 @@
 			"part": {
 				"imports": [
 					"\"log\""
+				],
+				"init": [
+					""
 				],
 				"head": [
 					""
@@ -125,6 +131,9 @@
 					"\"os/signal\"",
 					"\"github.com/google/shenzhen-go/dev/parts\""
 				],
+				"init": [
+					""
+				],
 				"head": [
 					""
 				],
@@ -139,8 +148,10 @@
 					"",
 					"timeout := 5 * time.Second",
 					"fmt.Printf(\"Shutting down within %v...\\n\", timeout)",
-					"ctx, _ := context.WithTimeout(context.Background(), timeout)",
-					"mgr.Shutdown(ctx)"
+					"ctx, canc := context.WithTimeout(context.Background(), timeout)",
+					"mgr.Shutdown(ctx)",
+					"time.Sleep(timeout)",
+					"canc()"
 				],
 				"tail": [
 					"close(manager)"
@@ -157,7 +168,7 @@
 			"wait": true,
 			"multiplicity": "1",
 			"x": 178,
-			"y": 50,
+			"y": 51,
 			"connections": {
 				"manager": "channel1"
 			}

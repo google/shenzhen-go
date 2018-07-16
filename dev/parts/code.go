@@ -191,7 +191,7 @@ func (c *Code) refresh(h, b, t string) error {
 	bf, e2 := format.Source([]byte(b))
 	tf, e3 := format.Source([]byte(t))
 	if e1 != nil || e2 != nil || e3 != nil {
-		return fmt.Errorf("gofmting errors (h, b, t): %v; %v; %v; %v", e1, e2, e3)
+		return fmt.Errorf("gofmting errors (h, b, t): %v; %v; %v", e1, e2, e3)
 	}
 
 	c.head, c.body, c.tail = string(hf), string(bf), string(tf)

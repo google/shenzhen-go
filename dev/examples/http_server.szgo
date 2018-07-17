@@ -70,7 +70,7 @@
 					"\t\t\t\tfor k := 0; k \u003c depth; k++ {",
 					"\t\t\t\t\tz = z*z + c",
 					"\t\t\t\t\tif cmplx.Abs(z) \u003e 2 {",
-					"\t\t\t\t\t\tcol = color.White",
+					"\t\t\t\t\t\tcol = color.Gray16{uint16(k * 65536 / depth)}",
 					"\t\t\t\t\t\tbreak",
 					"\t\t\t\t\t}",
 					"\t\t\t\t}",
@@ -98,7 +98,7 @@
 			"wait": true,
 			"multiplicity": "N",
 			"x": 25,
-			"y": 568,
+			"y": 569,
 			"connections": {
 				"requests": "channel7"
 			}

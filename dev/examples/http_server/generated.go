@@ -131,7 +131,7 @@ func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
 							for k := 0; k < depth; k++ {
 								z = z*z + c
 								if cmplx.Abs(z) > 2 {
-									col = color.White
+									col = color.Gray16{uint16(k * 65536 / depth)}
 									break
 								}
 							}
@@ -150,17 +150,17 @@ func HTTPServeMux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HT
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
+	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
 	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
 	outLabels[mandelbrot] = "mandelbrot"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 	outLabels[metrics] = "metrics"
-	mux.Handle("/", parts.HTTPHandler(root))
-	outLabels[root] = "root"
 
 	defer func() {
+		close(root)
 		close(mandelbrot)
 		close(metrics)
-		close(root)
 
 	}()
 	var multWG sync.WaitGroup

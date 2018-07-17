@@ -3,6 +3,23 @@
 	"package_path": "github.com/google/shenzhen-go/dev/examples/http_server",
 	"is_command": true,
 	"nodes": {
+		"Duration": {
+			"part": {
+				"instrumenter": "Duration",
+				"label_code": false,
+				"label_method": false
+			},
+			"part_type": "PrometheusInstrumentHandler",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 380,
+			"y": 410,
+			"connections": {
+				"in": "channel4",
+				"out": "channel5"
+			}
+		},
 		"Generate a Mandelbrot": {
 			"part": {
 				"imports": [
@@ -122,6 +139,80 @@
 				"requests": "channel0"
 			}
 		},
+		"Handle /": {
+			"part": {
+				"imports": [
+					"\"html/template\"",
+					"\"strconv\""
+				],
+				"head": [
+					"tmpl := template.Must(template.New(\"root\").Parse(`\u003chtml\u003e",
+					"\u003chead\u003e\u003ctitle\u003eMandelbrot viewer\u003c/title\u003e\u003c/head\u003e",
+					"\u003cbody\u003e",
+					"\t\u003cimg src=\"/mandelbrot?x={{.X}}\u0026y={{.Y}}\u0026z={{.Z}}\" /\u003e\u003cimg src=\"/mandelbrot?x={{.X1}}\u0026y={{.Y}}\u0026z={{.Z}}\" /\u003e\u003cbr/\u003e",
+					"\t\u003cimg src=\"/mandelbrot?x={{.X}}\u0026y={{.Y1}}\u0026z={{.Z}}\" /\u003e\u003cimg src=\"/mandelbrot?x={{.X1}}\u0026y={{.Y1}}\u0026z={{.Z}}\" /\u003e\u003cbr /\u003e",
+					"\u003c/body\u003e",
+					"\u003c/html\u003e`))",
+					"",
+					"type params struct {",
+					"\tX, X1, Y, Y1 int",
+					"\tZ            uint",
+					"}"
+				],
+				"body": [
+					"for r := range requests {",
+					"\tfunc() {",
+					"\t\tdefer r.Close()",
+					"\t\tp := params{X: -1, X1: 0, Y: -1, Y1: 0, Z: 0}",
+					"\t\tq := r.Request.URL.Query()",
+					"\t\tif xs := q.Get(\"x\"); xs != \"\" {",
+					"\t\t\tx, err := strconv.Atoi(xs)",
+					"\t\t\tif err != nil {",
+					"\t\t\t\thttp.Error(r, \"invalid x parameter\", http.StatusBadRequest)",
+					"\t\t\t\treturn",
+					"\t\t\t}",
+					"\t\t\tp.X, p.X1 = x, x+1",
+					"\t\t}",
+					"\t\tif ys := q.Get(\"y\"); ys != \"\" {",
+					"\t\t\ty, err := strconv.Atoi(ys)",
+					"\t\t\tif err != nil {",
+					"\t\t\t\thttp.Error(r, \"invalid y parameter\", http.StatusBadRequest)",
+					"\t\t\t\treturn",
+					"\t\t\t}",
+					"\t\t\tp.Y, p.Y1 = y, y+1",
+					"\t\t}",
+					"\t\tif zs := q.Get(\"z\"); zs != \"\" {",
+					"\t\t\tz, err := strconv.ParseUint(q.Get(\"z\"), 10, 64)",
+					"\t\t\tif err != nil {",
+					"\t\t\t\thttp.Error(r, \"invalid z parameter\", http.StatusBadRequest)",
+					"\t\t\t\treturn",
+					"\t\t\t}",
+					"\t\t\tp.Z = uint(z)",
+					"\t\t}",
+					"\t\ttmpl.Execute(r, p)",
+					"\t}()",
+					"}"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"requests": {
+						"type": "*parts.HTTPRequest",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 382,
+			"y": 569,
+			"connections": {
+				"requests": "channel5"
+			}
+		},
 		"Log errors": {
 			"part": {
 				"imports": [
@@ -184,23 +275,6 @@
 				"requests": "channel3"
 			}
 		},
-		"Root duration": {
-			"part": {
-				"instrumenter": "Duration",
-				"label_code": false,
-				"label_method": false
-			},
-			"part_type": "PrometheusInstrumentHandler",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": "N",
-			"x": 340,
-			"y": 409,
-			"connections": {
-				"in": "channel4",
-				"out": "channel5"
-			}
-		},
 		"Send a manager": {
 			"part": {
 				"imports": [
@@ -250,46 +324,6 @@
 			"y": 39,
 			"connections": {
 				"manager": "channel1"
-			}
-		},
-		"index.html": {
-			"part": {
-				"imports": [
-					""
-				],
-				"head": [
-					""
-				],
-				"body": [
-					"for rw := range requests {",
-					"\trw.Write([]byte(`\u003chtml\u003e",
-					"\u003chead\u003e\u003ctitle\u003eMandelbrot viewer\u003c/title\u003e\u003c/head\u003e",
-					"\u003cbody\u003e",
-					"\t\u003cimg src=\"/mandelbrot?x=-1\u0026y=-1\u0026z=0\" /\u003e\u003cimg src=\"/mandelbrot?x=0\u0026y=-1\u0026z=0\" /\u003e\u003cbr/\u003e",
-					"\t\u003cimg src=\"/mandelbrot?x=-1\u0026y=0\u0026z=0\" /\u003e\u003cimg src=\"/mandelbrot?x=0\u0026y=0\u0026z=0\" /\u003e\u003cbr /\u003e",
-					"\u003c/body\u003e",
-					"\u003c/html\u003e`))",
-					"\trw.Close()",
-					"}"
-				],
-				"tail": [
-					""
-				],
-				"pins": {
-					"requests": {
-						"type": "*parts.HTTPRequest",
-						"dir": "in"
-					}
-				}
-			},
-			"part_type": "Code",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": "N",
-			"x": 351,
-			"y": 558,
-			"connections": {
-				"requests": "channel5"
 			}
 		}
 	},

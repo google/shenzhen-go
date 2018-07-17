@@ -13,8 +13,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 380,
-			"y": 410,
+			"x": 537,
+			"y": 448,
 			"connections": {
 				"in": "channel4",
 				"out": "channel5"
@@ -26,6 +26,7 @@
 					"\"image\"",
 					"\"image/color\"",
 					"\"image/png\"",
+					"\"math\"",
 					"\"math/cmplx\"",
 					"\"strconv\"",
 					"\"github.com/google/shenzhen-go/dev/parts\""
@@ -69,8 +70,11 @@
 					"\t\t\t\tcol := color.Black",
 					"\t\t\t\tfor k := 0; k \u003c depth; k++ {",
 					"\t\t\t\t\tz = z*z + c",
-					"\t\t\t\t\tif cmplx.Abs(z) \u003e 2 {",
-					"\t\t\t\t\t\tcol = color.Gray16{uint16(k * 65536 / depth)}",
+					"\t\t\t\t\t",
+					"\t\t\t\t\t// Higher escape radius makes it smoother",
+					"\t\t\t\t\tif mz := cmplx.Abs(z); mz \u003e 50 {",
+					"\t\t\t\t\t\tsm := float64(k) + 1 - math.Log2(math.Log(mz))",
+					"\t\t\t\t\t\tcol = color.Gray16{uint16(sm*65536 / depth)}",
 					"\t\t\t\t\t\tbreak",
 					"\t\t\t\t\t}",
 					"\t\t\t\t}",
@@ -97,42 +101,20 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 25,
-			"y": 569,
+			"x": 120,
+			"y": 597,
 			"connections": {
 				"requests": "channel7"
 			}
 		},
-		"HTTPServeMux": {
-			"part": {
-				"enable_prometheus": true,
-				"routes": {
-					"/": "root",
-					"/mandelbrot": "mandelbrot",
-					"/metrics": "metrics"
-				}
-			},
-			"part_type": "HTTPServeMux",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": "N",
-			"x": 202,
-			"y": 296,
-			"connections": {
-				"mandelbrot": "channel6",
-				"metrics": "channel3",
-				"requests": "channel0",
-				"root": "channel4"
-			}
-		},
-		"HTTPServer": {
+		"HTTP Server": {
 			"part": {},
 			"part_type": "HTTPServer",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 211,
-			"y": 163,
+			"x": 350,
+			"y": 157,
 			"connections": {
 				"errors": "channel2",
 				"manager": "channel1",
@@ -147,10 +129,25 @@
 				],
 				"head": [
 					"tmpl := template.Must(template.New(\"root\").Parse(`\u003chtml\u003e",
-					"\u003chead\u003e\u003ctitle\u003eMandelbrot viewer\u003c/title\u003e\u003c/head\u003e",
+					"\u003chead\u003e",
+					"\t\u003ctitle\u003eMandelbrot viewer\u003c/title\u003e",
+					"\t\u003cstyle\u003e\u003c!--",
+					"\t\timg {",
+					"\t\t\tfloat: left;",
+					"\t\t}",
+					"\t\timg.first {",
+					"\t\t\tclear: left;",
+					"\t\t}",
+					"\t\timg:hover {",
+					"\t\t\tborder: thick red;",
+					"\t\t}",
+					"\t--\u003e\u003c/style\u003e",
+					"\u003c/head\u003e",
 					"\u003cbody\u003e",
-					"\t\u003cimg src=\"/mandelbrot?x={{.X}}\u0026y={{.Y}}\u0026z={{.Z}}\" /\u003e\u003cimg src=\"/mandelbrot?x={{.X1}}\u0026y={{.Y}}\u0026z={{.Z}}\" /\u003e\u003cbr/\u003e",
-					"\t\u003cimg src=\"/mandelbrot?x={{.X}}\u0026y={{.Y1}}\u0026z={{.Z}}\" /\u003e\u003cimg src=\"/mandelbrot?x={{.X1}}\u0026y={{.Y1}}\u0026z={{.Z}}\" /\u003e\u003cbr /\u003e",
+					"\t\u003cimg src=\"/mandelbrot?x={{.X}}\u0026y={{.Y}}\u0026z={{.Z}}\" class=\"first\" /\u003e",
+					"\t\u003cimg src=\"/mandelbrot?x={{.X1}}\u0026y={{.Y}}\u0026z={{.Z}}\" /\u003e",
+					"\t\u003cimg src=\"/mandelbrot?x={{.X}}\u0026y={{.Y1}}\u0026z={{.Z}}\" class=\"first\" /\u003e",
+					"\t\u003cimg src=\"/mandelbrot?x={{.X1}}\u0026y={{.Y1}}\u0026z={{.Z}}\" /\u003e",
 					"\u003c/body\u003e",
 					"\u003c/html\u003e`))",
 					"",
@@ -189,7 +186,9 @@
 					"\t\t\t}",
 					"\t\t\tp.Z = uint(z)",
 					"\t\t}",
-					"\t\ttmpl.Execute(r, p)",
+					"\t\tif err := tmpl.Execute(r, p); err != nil {",
+					"\t\t\tpanic(err)",
+					"\t\t}",
 					"\t}()",
 					"}"
 				],
@@ -207,8 +206,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 382,
-			"y": 569,
+			"x": 537,
+			"y": 590,
 			"connections": {
 				"requests": "channel5"
 			}
@@ -240,8 +239,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 58,
-			"y": 294,
+			"x": 226,
+			"y": 295,
 			"connections": {
 				"errors": "channel2"
 			}
@@ -256,8 +255,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 38,
-			"y": 412,
+			"x": 133,
+			"y": 447,
 			"connections": {
 				"in": "channel6",
 				"out": "channel7"
@@ -269,13 +268,35 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 232,
-			"y": 487,
+			"x": 374,
+			"y": 448,
 			"connections": {
 				"requests": "channel3"
 			}
 		},
-		"Send a manager": {
+		"Mux": {
+			"part": {
+				"enable_prometheus": true,
+				"routes": {
+					"/": "root",
+					"/mandelbrot": "mandelbrot",
+					"/metrics": "metrics"
+				}
+			},
+			"part_type": "HTTPServeMux",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 387,
+			"y": 298,
+			"connections": {
+				"mandelbrot": "channel6",
+				"metrics": "channel3",
+				"requests": "channel0",
+				"root": "channel4"
+			}
+		},
+		"Server manager": {
 			"part": {
 				"imports": [
 					"\"context\"",
@@ -320,8 +341,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 196,
-			"y": 39,
+			"x": 340,
+			"y": 32,
 			"connections": {
 				"manager": "channel1"
 			}

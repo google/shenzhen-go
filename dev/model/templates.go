@@ -51,6 +51,7 @@ var _ = runtime.Compiler
 /* {{.Comment}} */
 {{end -}}
 func {{.Identifier}}({{range $name, $type := .PinFullTypes}}{{$name}} {{$type}},{{end}}) {
+	// {{ .Name }}
 	{{if .UsesMultiplicity -}}
 	multiplicity := {{.ExpandedMult}}
 	{{end -}}

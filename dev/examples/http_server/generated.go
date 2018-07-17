@@ -12,6 +12,7 @@ import (
 	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"math/cmplx"
 	"net/http"
 	"os"
@@ -53,6 +54,7 @@ func init() {
 }
 
 func Duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
+	// Duration
 	multiplicity := runtime.NumCPU()
 
 	sum := prometheus.NewHistogramVec(
@@ -87,6 +89,7 @@ func Duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
 
 /* Generates a Mandelbrot fractal */
 func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
+	// Generate a Mandelbrot
 	multiplicity := runtime.NumCPU()
 	const tileW = 320
 	const depth = 25
@@ -130,8 +133,11 @@ func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
 							col := color.Black
 							for k := 0; k < depth; k++ {
 								z = z*z + c
-								if cmplx.Abs(z) > 2 {
-									col = color.Gray16{uint16(k * 65536 / depth)}
+
+								// Higher escape radius makes it smoother
+								if mz := cmplx.Abs(z); mz > 50 {
+									sm := float64(k) + 1 - math.Log2(math.Log(mz))
+									col = color.Gray16{uint16(sm * 65536 / depth)}
 									break
 								}
 							}
@@ -146,64 +152,8 @@ func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
 	}
 }
 
-func HTTPServeMux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
-	multiplicity := runtime.NumCPU()
-	mux := http.NewServeMux()
-	outLabels := make(map[parts.HTTPHandler]string)
-	mux.Handle("/", parts.HTTPHandler(root))
-	outLabels[root] = "root"
-	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
-	outLabels[mandelbrot] = "mandelbrot"
-	mux.Handle("/metrics", parts.HTTPHandler(metrics))
-	outLabels[metrics] = "metrics"
-
-	defer func() {
-		close(root)
-		close(mandelbrot)
-		close(metrics)
-
-	}()
-	var multWG sync.WaitGroup
-	multWG.Add(multiplicity)
-	defer multWG.Wait()
-	for n := 0; n < multiplicity; n++ {
-		instanceNumber := n
-		go func() {
-			defer multWG.Done()
-
-			labels := prometheus.Labels{
-				"node_name":    "HTTPServeMux",
-				"instance_num": strconv.Itoa(instanceNumber),
-			}
-			reqsIn := httpServeMuxRequestsIn.With(labels)
-			reqsOut := httpServeMuxRequestsOut.MustCurryWith(labels)
-			for req := range requests {
-				reqsIn.Inc()
-				// Borrow fix for Go issues #3692 and #5955.
-				if req.Request.RequestURI == "*" {
-					if req.Request.ProtoAtLeast(1, 1) {
-						req.ResponseWriter.Header().Set("Connection", "close")
-					}
-					req.ResponseWriter.WriteHeader(http.StatusBadRequest)
-					req.Close()
-					continue
-				}
-				h, _ := mux.Handler(req.Request)
-				hh, ok := h.(parts.HTTPHandler)
-				if !ok {
-					// ServeMux may return handlers that weren't added in the head.
-					h.ServeHTTP(req.ResponseWriter, req.Request)
-					req.Close()
-					continue
-				}
-				reqsOut.With(prometheus.Labels{"output_pin": outLabels[hh]}).Inc()
-				hh <- req
-			}
-		}()
-	}
-}
-
-func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, requests chan<- *parts.HTTPRequest) {
+func HTTP_Server(errors chan<- error, manager <-chan parts.HTTPServerManager, requests chan<- *parts.HTTPRequest) {
+	// HTTP Server
 
 	defer func() {
 		close(requests)
@@ -232,12 +182,28 @@ func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, req
 }
 
 func Handle_(requests <-chan *parts.HTTPRequest) {
+	// Handle /
 	multiplicity := runtime.NumCPU()
 	tmpl := template.Must(template.New("root").Parse(`<html>
-<head><title>Mandelbrot viewer</title></head>
+<head>
+	<title>Mandelbrot viewer</title>
+	<style><!--
+		img {
+			float: left;
+		}
+		img.first {
+			clear: left;
+		}
+		img:hover {
+			border: thick red;
+		}
+	--></style>
+</head>
 <body>
-	<img src="/mandelbrot?x={{.X}}&y={{.Y}}&z={{.Z}}" /><img src="/mandelbrot?x={{.X1}}&y={{.Y}}&z={{.Z}}" /><br/>
-	<img src="/mandelbrot?x={{.X}}&y={{.Y1}}&z={{.Z}}" /><img src="/mandelbrot?x={{.X1}}&y={{.Y1}}&z={{.Z}}" /><br />
+	<img src="/mandelbrot?x={{.X}}&y={{.Y}}&z={{.Z}}" class="first" />
+	<img src="/mandelbrot?x={{.X1}}&y={{.Y}}&z={{.Z}}" />
+	<img src="/mandelbrot?x={{.X}}&y={{.Y1}}&z={{.Z}}" class="first" />
+	<img src="/mandelbrot?x={{.X1}}&y={{.Y1}}&z={{.Z}}" />
 </body>
 </html>`))
 
@@ -280,7 +246,9 @@ func Handle_(requests <-chan *parts.HTTPRequest) {
 						}
 						p.Z = uint(z)
 					}
-					tmpl.Execute(r, p)
+					if err := tmpl.Execute(r, p); err != nil {
+						panic(err)
+					}
 				}()
 			}
 		}()
@@ -288,6 +256,7 @@ func Handle_(requests <-chan *parts.HTTPRequest) {
 }
 
 func Log_errors(errors <-chan error) {
+	// Log errors
 
 	for err := range errors {
 		log.Printf("HTTP server: %v", err)
@@ -295,6 +264,7 @@ func Log_errors(errors <-chan error) {
 }
 
 func Mandelbrot_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
+	// Mandelbrot duration
 	multiplicity := runtime.NumCPU()
 
 	sum := prometheus.NewHistogramVec(
@@ -328,6 +298,7 @@ func Mandelbrot_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPReq
 }
 
 func Metrics(requests <-chan *parts.HTTPRequest) {
+	// Metrics
 	multiplicity := runtime.NumCPU()
 
 	var multWG sync.WaitGroup
@@ -345,7 +316,66 @@ func Metrics(requests <-chan *parts.HTTPRequest) {
 	}
 }
 
-func Send_a_manager(manager chan<- parts.HTTPServerManager) {
+func Mux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
+	// Mux
+	multiplicity := runtime.NumCPU()
+	mux := http.NewServeMux()
+	outLabels := make(map[parts.HTTPHandler]string)
+	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
+	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
+	outLabels[mandelbrot] = "mandelbrot"
+	mux.Handle("/metrics", parts.HTTPHandler(metrics))
+	outLabels[metrics] = "metrics"
+
+	defer func() {
+		close(root)
+		close(mandelbrot)
+		close(metrics)
+
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		instanceNumber := n
+		go func() {
+			defer multWG.Done()
+
+			labels := prometheus.Labels{
+				"node_name":    "Mux",
+				"instance_num": strconv.Itoa(instanceNumber),
+			}
+			reqsIn := httpServeMuxRequestsIn.With(labels)
+			reqsOut := httpServeMuxRequestsOut.MustCurryWith(labels)
+			for req := range requests {
+				reqsIn.Inc()
+				// Borrow fix for Go issues #3692 and #5955.
+				if req.Request.RequestURI == "*" {
+					if req.Request.ProtoAtLeast(1, 1) {
+						req.ResponseWriter.Header().Set("Connection", "close")
+					}
+					req.ResponseWriter.WriteHeader(http.StatusBadRequest)
+					req.Close()
+					continue
+				}
+				h, _ := mux.Handler(req.Request)
+				hh, ok := h.(parts.HTTPHandler)
+				if !ok {
+					// ServeMux may return handlers that weren't added in the head.
+					h.ServeHTTP(req.ResponseWriter, req.Request)
+					req.Close()
+					continue
+				}
+				reqsOut.With(prometheus.Labels{"output_pin": outLabels[hh]}).Inc()
+				hh <- req
+			}
+		}()
+	}
+}
+
+func Server_manager(manager chan<- parts.HTTPServerManager) {
+	// Server manager
 
 	defer func() {
 		close(manager)
@@ -395,13 +425,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		HTTPServeMux(channel6, channel3, channel0, channel4)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		HTTPServer(channel2, channel1, channel0)
+		HTTP_Server(channel2, channel1, channel0)
 		wg.Done()
 	}()
 
@@ -431,7 +455,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Send_a_manager(channel1)
+		Mux(channel6, channel3, channel0, channel4)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Server_manager(channel1)
 		wg.Done()
 	}()
 

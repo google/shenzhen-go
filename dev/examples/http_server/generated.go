@@ -54,8 +54,9 @@ func init() {
 /* Generates a Mandelbrot fractal */
 func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
 	multiplicity := runtime.NumCPU()
-	const tileW, tileH = 320, 240
+	const tileW = 320
 	const depth = 25
+
 	var multWG sync.WaitGroup
 	multWG.Add(multiplicity)
 	defer multWG.Wait()
@@ -63,32 +64,49 @@ func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
 		go func() {
 			defer multWG.Done()
 			for req := range requests {
-				// Serve a PNG
+				func() {
+					defer req.Close()
 
-				req.Header().Set("Content-Type", "image/png")
-				req.WriteHeader(http.StatusOK)
-
-				img := image.NewRGBA(image.Rect(0, 0, tileW, tileH))
-
-				for i := 0; i < tileW; i++ {
-					for j := 0; j < tileH; j++ {
-						c := complex(float64(i-tileW/2), float64(j-tileH/2))
-						c *= (4 + 0i) / (tileW + 0i)
-						z := 0i
-						col := color.Black
-						for k := 0; k < depth; k++ {
-							z = z*z + c
-							if cmplx.Abs(z) > 2 {
-								col = color.White
-								break
-							}
-						}
-						img.Set(i, j, col)
+					q := req.Request.URL.Query()
+					tileX, e0 := strconv.Atoi(q.Get("x"))
+					tileY, e1 := strconv.Atoi(q.Get("y"))
+					zoom, e2 := strconv.ParseUint(q.Get("z"), 10, 64)
+					if e0 != nil || e1 != nil || e2 != nil || zoom > 50 {
+						http.Error(req, "invalid parameter", http.StatusBadRequest)
+						return
 					}
-				}
+					zoom = 1 << zoom
+					offset := complex(float64(tileX), float64(tileY))
 
-				png.Encode(req, img)
-				req.Close()
+					req.Header().Set("Content-Type", "image/png")
+					req.WriteHeader(http.StatusOK)
+
+					img := image.NewRGBA(image.Rect(0, 0, tileW, tileW))
+
+					for i := 0; i < tileW; i++ {
+						for j := 0; j < tileW; j++ {
+							c := complex(float64(i), float64(j))
+							c /= tileW
+							c += offset
+							c *= 2
+							c /= complex(float64(zoom), 0)
+
+							z := 0i
+
+							col := color.Black
+							for k := 0; k < depth; k++ {
+								z = z*z + c
+								if cmplx.Abs(z) > 2 {
+									col = color.White
+									break
+								}
+							}
+							img.Set(i, j, col)
+						}
+					}
+
+					png.Encode(req, img)
+				}()
 			}
 		}()
 	}
@@ -98,17 +116,17 @@ func HTTPServeMux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HT
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
+	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
 	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
 	outLabels[mandelbrot] = "mandelbrot"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 	outLabels[metrics] = "metrics"
-	mux.Handle("/", parts.HTTPHandler(root))
-	outLabels[root] = "root"
 
 	defer func() {
+		close(root)
 		close(mandelbrot)
 		close(metrics)
-		close(root)
 
 	}()
 	var multWG sync.WaitGroup
@@ -303,7 +321,13 @@ func indexhtml(requests <-chan *parts.HTTPRequest) {
 		go func() {
 			defer multWG.Done()
 			for rw := range requests {
-				rw.Write([]byte("Hello, HTTP!\n"))
+				rw.Write([]byte(`<html>
+<head><title>Mandelbrot viewer</title></head>
+<body>
+	<img src="/mandelbrot?x=-1&y=-1&z=0" /><img src="/mandelbrot?x=0&y=-1&z=0" /><br/>
+	<img src="/mandelbrot?x=-1&y=0&z=0" /><img src="/mandelbrot?x=0&y=0&z=0" /><br />
+</body>
+</html>`))
 				rw.Close()
 			}
 		}()

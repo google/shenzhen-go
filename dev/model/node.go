@@ -96,8 +96,8 @@ func (n *Node) PinFullTypes() map[string]string {
 	return m
 }
 
-// Identifier turns the name into a similar-looking identifier.
-func (n *Node) Identifier() string {
+// Mangle turns an arbitrary name into a similar-looking identifier.
+func Mangle(name string) string {
 	base := strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
 			return '_'
@@ -106,7 +106,7 @@ func (n *Node) Identifier() string {
 			return -1
 		}
 		return r
-	}, n.Name)
+	}, name)
 	var f rune
 	for _, r := range base {
 		f = r
@@ -116,6 +116,11 @@ func (n *Node) Identifier() string {
 		base = "_" + base
 	}
 	return base
+}
+
+// Identifier turns the name into a similar-looking identifier.
+func (n *Node) Identifier() string {
+	return Mangle(n.Name)
 }
 
 type jsonNode struct {

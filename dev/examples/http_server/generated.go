@@ -51,14 +51,14 @@ func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTP
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
-	mux.Handle("/metrics", parts.HTTPHandler(metrics))
-	outLabels[metrics] = "metrics"
 	mux.Handle("/", parts.HTTPHandler(root))
 	outLabels[root] = "root"
+	mux.Handle("/metrics", parts.HTTPHandler(metrics))
+	outLabels[metrics] = "metrics"
 
 	defer func() {
-		close(metrics)
 		close(root)
+		close(metrics)
 
 	}()
 	var multWG sync.WaitGroup
@@ -153,6 +153,39 @@ func Log_errors(errors <-chan error) {
 	}
 }
 
+func Measure_root_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
+	multiplicity := runtime.NumCPU()
+
+	sum := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "instrument_handler",
+			Name:      "Measure_root_duration",
+			Help:      "Durations of requests",
+			Buckets:   []float64(nil),
+		},
+		[]string(nil))
+	prometheus.MustRegister(sum)
+
+	defer func() {
+		close(out)
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+
+			h := promhttp.InstrumentHandlerDuration(sum, parts.HTTPHandler(out))
+			for r := range in {
+				h.ServeHTTP(r.ResponseWriter, r.Request)
+				r.Close()
+			}
+		}()
+	}
+}
+
 func Metrics(requests <-chan *parts.HTTPRequest) {
 	multiplicity := runtime.NumCPU()
 
@@ -201,6 +234,7 @@ func main() {
 	channel2 := make(chan error, 0)
 	channel3 := make(chan *parts.HTTPRequest, 0)
 	channel4 := make(chan *parts.HTTPRequest, 0)
+	channel5 := make(chan *parts.HTTPRequest, 0)
 
 	var wg sync.WaitGroup
 
@@ -218,13 +252,19 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Hello_World(channel4)
+		Hello_World(channel5)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
 		Log_errors(channel2)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Measure_root_duration(channel4, channel5)
 		wg.Done()
 	}()
 

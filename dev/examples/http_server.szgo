@@ -14,7 +14,7 @@
 			"part_type": "HTTPServeMux",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": "n",
+			"multiplicity": "N",
 			"x": 202,
 			"y": 296,
 			"connections": {
@@ -64,11 +64,11 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": "n",
-			"x": 314,
-			"y": 416,
+			"multiplicity": "N",
+			"x": 323,
+			"y": 536,
 			"connections": {
-				"requests": "channel4"
+				"requests": "channel5"
 			}
 		},
 		"Log errors": {
@@ -104,12 +104,29 @@
 				"errors": "channel2"
 			}
 		},
+		"Measure root duration": {
+			"part": {
+				"instrumenter": "Duration",
+				"label_code": false,
+				"label_method": false
+			},
+			"part_type": "PrometheusInstrumentHandler",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 288,
+			"y": 417,
+			"connections": {
+				"in": "channel4",
+				"out": "channel5"
+			}
+		},
 		"Metrics": {
 			"part": {},
 			"part_type": "PrometheusMetricsHandler",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": "n",
+			"multiplicity": "N",
 			"x": 149,
 			"y": 416,
 			"connections": {
@@ -182,6 +199,9 @@
 			"cap": 0
 		},
 		"channel4": {
+			"cap": 0
+		},
+		"channel5": {
 			"cap": 0
 		}
 	}

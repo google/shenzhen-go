@@ -7,7 +7,11 @@ import (
 	"github.com/google/shenzhen-go/dev/parts"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"image"
+	"image/color"
+	"image/png"
 	"log"
+	"math/cmplx"
 	"net/http"
 	"os"
 	"os/signal"
@@ -47,17 +51,63 @@ func init() {
 	)
 }
 
-func HTTPServeMux(metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
+/* Generates a Mandelbrot fractal */
+func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
+	multiplicity := runtime.NumCPU()
+	const tileW, tileH = 320, 240
+	const depth = 25
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+			for req := range requests {
+				// Serve a PNG
+
+				req.Header().Set("Content-Type", "image/png")
+				req.WriteHeader(http.StatusOK)
+
+				img := image.NewRGBA(image.Rect(0, 0, tileW, tileH))
+
+				for i := 0; i < tileW; i++ {
+					for j := 0; j < tileH; j++ {
+						c := complex(float64(i-tileW/2), float64(j-tileH/2))
+						c *= (4 + 0i) / (tileW + 0i)
+						z := 0i
+						col := color.Black
+						for k := 0; k < depth; k++ {
+							z = z*z + c
+							if cmplx.Abs(z) > 2 {
+								col = color.White
+								break
+							}
+						}
+						img.Set(i, j, col)
+					}
+				}
+
+				png.Encode(req, img)
+				req.Close()
+			}
+		}()
+	}
+}
+
+func HTTPServeMux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HTTPRequest, requests <-chan *parts.HTTPRequest, root chan<- *parts.HTTPRequest) {
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
 	mux.Handle("/", parts.HTTPHandler(root))
 	outLabels[root] = "root"
+	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
+	outLabels[mandelbrot] = "mandelbrot"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 	outLabels[metrics] = "metrics"
 
 	defer func() {
 		close(root)
+		close(mandelbrot)
 		close(metrics)
 
 	}()
@@ -129,23 +179,6 @@ func HTTPServer(errors chan<- error, manager <-chan parts.HTTPServerManager, req
 	}
 }
 
-func Hello_World(requests <-chan *parts.HTTPRequest) {
-	multiplicity := runtime.NumCPU()
-
-	var multWG sync.WaitGroup
-	multWG.Add(multiplicity)
-	defer multWG.Wait()
-	for n := 0; n < multiplicity; n++ {
-		go func() {
-			defer multWG.Done()
-			for rw := range requests {
-				rw.Write([]byte("Hello, HTTP!\n"))
-				rw.Close()
-			}
-		}()
-	}
-}
-
 func Log_errors(errors <-chan error) {
 
 	for err := range errors {
@@ -153,14 +186,14 @@ func Log_errors(errors <-chan error) {
 	}
 }
 
-func Measure_root_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
+func Mandelbrot_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
 	multiplicity := runtime.NumCPU()
 
 	sum := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "shenzhen_go",
 			Subsystem: "instrument_handler",
-			Name:      "Measure_root_duration",
+			Name:      "Mandelbrot_duration",
 			Help:      "Durations of requests",
 			Buckets:   []float64(nil),
 		},
@@ -204,6 +237,39 @@ func Metrics(requests <-chan *parts.HTTPRequest) {
 	}
 }
 
+func Root_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
+	multiplicity := runtime.NumCPU()
+
+	sum := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "instrument_handler",
+			Name:      "Root_duration",
+			Help:      "Durations of requests",
+			Buckets:   []float64(nil),
+		},
+		[]string(nil))
+	prometheus.MustRegister(sum)
+
+	defer func() {
+		close(out)
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+
+			h := promhttp.InstrumentHandlerDuration(sum, parts.HTTPHandler(out))
+			for r := range in {
+				h.ServeHTTP(r.ResponseWriter, r.Request)
+				r.Close()
+			}
+		}()
+	}
+}
+
 func Send_a_manager(manager chan<- parts.HTTPServerManager) {
 
 	defer func() {
@@ -227,6 +293,23 @@ func Send_a_manager(manager chan<- parts.HTTPServerManager) {
 	}()
 }
 
+func indexhtml(requests <-chan *parts.HTTPRequest) {
+	multiplicity := runtime.NumCPU()
+
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+			for rw := range requests {
+				rw.Write([]byte("Hello, HTTP!\n"))
+				rw.Close()
+			}
+		}()
+	}
+}
+
 func main() {
 
 	channel0 := make(chan *parts.HTTPRequest, 0)
@@ -235,12 +318,20 @@ func main() {
 	channel3 := make(chan *parts.HTTPRequest, 0)
 	channel4 := make(chan *parts.HTTPRequest, 0)
 	channel5 := make(chan *parts.HTTPRequest, 0)
+	channel6 := make(chan *parts.HTTPRequest, 0)
+	channel7 := make(chan *parts.HTTPRequest, 0)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		HTTPServeMux(channel3, channel0, channel4)
+		Generate_a_Mandelbrot(channel7)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		HTTPServeMux(channel6, channel3, channel0, channel4)
 		wg.Done()
 	}()
 
@@ -252,19 +343,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Hello_World(channel5)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
 		Log_errors(channel2)
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		Measure_root_duration(channel4, channel5)
+		Mandelbrot_duration(channel6, channel7)
 		wg.Done()
 	}()
 
@@ -276,7 +361,19 @@ func main() {
 
 	wg.Add(1)
 	go func() {
+		Root_duration(channel4, channel5)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
 		Send_a_manager(channel1)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		indexhtml(channel5)
 		wg.Done()
 	}()
 

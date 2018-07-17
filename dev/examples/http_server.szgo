@@ -3,52 +3,47 @@
 	"package_path": "github.com/google/shenzhen-go/dev/examples/http_server",
 	"is_command": true,
 	"nodes": {
-		"HTTPServeMux": {
-			"part": {
-				"enable_prometheus": true,
-				"routes": {
-					"/": "root",
-					"/metrics": "metrics"
-				}
-			},
-			"part_type": "HTTPServeMux",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": "N",
-			"x": 202,
-			"y": 296,
-			"connections": {
-				"metrics": "channel3",
-				"requests": "channel0",
-				"root": "channel4"
-			}
-		},
-		"HTTPServer": {
-			"part": {},
-			"part_type": "HTTPServer",
-			"enabled": true,
-			"wait": true,
-			"multiplicity": "1",
-			"x": 192,
-			"y": 173,
-			"connections": {
-				"errors": "channel2",
-				"manager": "channel1",
-				"requests": "channel0"
-			}
-		},
-		"Hello World": {
+		"Generate a Mandelbrot": {
 			"part": {
 				"imports": [
-					""
+					"\"image\"",
+					"\"image/color\"",
+					"\"image/png\"",
+					"\"math/cmplx\"",
+					"\"github.com/google/shenzhen-go/dev/parts\""
 				],
 				"head": [
-					""
+					"const tileW, tileH = 320, 240",
+					"const depth = 25"
 				],
 				"body": [
-					"for rw := range requests {",
-					"\trw.Write([]byte(\"Hello, HTTP!\\n\"))",
-					"\trw.Close()",
+					"for req := range requests {",
+					"\t// Serve a PNG",
+					"",
+					"\treq.Header().Set(\"Content-Type\", \"image/png\")",
+					"\treq.WriteHeader(http.StatusOK)",
+					"",
+					"\timg := image.NewRGBA(image.Rect(0, 0, tileW, tileH))",
+					"",
+					"\tfor i := 0; i \u003c tileW; i++ {",
+					"\t\tfor j := 0; j \u003c tileH; j++ {",
+					"\t\t\tc := complex(float64(i-tileW/2), float64(j-tileH/2))",
+					"\t\t\tc *= (4 + 0i) / (tileW + 0i)",
+					"\t\t\tz := 0i",
+					"\t\t\tcol := color.Black",
+					"\t\t\tfor k := 0; k \u003c depth; k++ {",
+					"\t\t\t\tz = z*z + c",
+					"\t\t\t\tif cmplx.Abs(z) \u003e 2 {",
+					"\t\t\t\t\tcol = color.White",
+					"\t\t\t\t\tbreak",
+					"\t\t\t\t}",
+					"\t\t\t}",
+					"\t\t\timg.Set(i, j, col)",
+					"\t\t}",
+					"\t}",
+					"",
+					"\tpng.Encode(req, img)",
+					"\treq.Close()",
 					"}"
 				],
 				"tail": [
@@ -62,13 +57,50 @@
 				}
 			},
 			"part_type": "Code",
+			"comment": "Generates a Mandelbrot fractal",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 323,
-			"y": 536,
+			"x": 26,
+			"y": 566,
 			"connections": {
-				"requests": "channel5"
+				"requests": "channel7"
+			}
+		},
+		"HTTPServeMux": {
+			"part": {
+				"enable_prometheus": true,
+				"routes": {
+					"/": "root",
+					"/mandelbrot": "mandelbrot",
+					"/metrics": "metrics"
+				}
+			},
+			"part_type": "HTTPServeMux",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 202,
+			"y": 296,
+			"connections": {
+				"mandelbrot": "channel6",
+				"metrics": "channel3",
+				"requests": "channel0",
+				"root": "channel4"
+			}
+		},
+		"HTTPServer": {
+			"part": {},
+			"part_type": "HTTPServer",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 211,
+			"y": 163,
+			"connections": {
+				"errors": "channel2",
+				"manager": "channel1",
+				"requests": "channel0"
 			}
 		},
 		"Log errors": {
@@ -98,13 +130,13 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 56,
-			"y": 296,
+			"x": 58,
+			"y": 294,
 			"connections": {
 				"errors": "channel2"
 			}
 		},
-		"Measure root duration": {
+		"Mandelbrot duration": {
 			"part": {
 				"instrumenter": "Duration",
 				"label_code": false,
@@ -114,11 +146,11 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 288,
-			"y": 417,
+			"x": 38,
+			"y": 412,
 			"connections": {
-				"in": "channel4",
-				"out": "channel5"
+				"in": "channel6",
+				"out": "channel7"
 			}
 		},
 		"Metrics": {
@@ -127,10 +159,27 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 149,
-			"y": 416,
+			"x": 232,
+			"y": 487,
 			"connections": {
 				"requests": "channel3"
+			}
+		},
+		"Root duration": {
+			"part": {
+				"instrumenter": "Duration",
+				"label_code": false,
+				"label_method": false
+			},
+			"part_type": "PrometheusInstrumentHandler",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 340,
+			"y": 409,
+			"connections": {
+				"in": "channel4",
+				"out": "channel5"
 			}
 		},
 		"Send a manager": {
@@ -178,10 +227,44 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 178,
-			"y": 51,
+			"x": 196,
+			"y": 39,
 			"connections": {
 				"manager": "channel1"
+			}
+		},
+		"index.html": {
+			"part": {
+				"imports": [
+					""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"for rw := range requests {",
+					"\trw.Write([]byte(\"Hello, HTTP!\\n\"))",
+					"\trw.Close()",
+					"}"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"requests": {
+						"type": "*parts.HTTPRequest",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 351,
+			"y": 558,
+			"connections": {
+				"requests": "channel5"
 			}
 		}
 	},
@@ -202,6 +285,12 @@
 			"cap": 0
 		},
 		"channel5": {
+			"cap": 0
+		},
+		"channel6": {
+			"cap": 0
+		},
+		"channel7": {
 			"cap": 0
 		}
 	}

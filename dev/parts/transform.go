@@ -37,12 +37,12 @@ var transformPins = pin.NewMap(
 
 func init() {
 	model.RegisterPartType("Transform", "General", &model.PartType{
-		New: func() model.Part {
-			return &Transform{
-				Body: []string{},
-			}
-		},
+		New: func() model.Part { return &Transform{} },
 		Panels: []model.PartPanel{
+			{
+				Name:   "Imports",
+				Editor: `<div class="codeedit" id="transform-imports"></div>`,
+			},
 			{
 				Name:   "Transform",
 				Editor: `<span class="link" id="transform-format-link">Format</span><div class="codeedit" id="transform-body"></div>`,
@@ -64,7 +64,8 @@ func init() {
 
 // Transform is a part which immediately closes the output channel.
 type Transform struct {
-	Body []string `json:"body"`
+	Imports []string `json:"imports"`
+	Body    []string `json:"body"`
 }
 
 // Clone returns a clone of this Transform.
@@ -75,6 +76,7 @@ func (t *Transform) Clone() model.Part {
 // Impl returns the Transform implementation.
 func (t *Transform) Impl(_ string, _ bool, types map[string]string) model.PartImpl {
 	return model.PartImpl{
+		Imports: t.Imports,
 		Body: fmt.Sprintf(`for input := range inputs {
 			outputs <- func() %s {
 				%s

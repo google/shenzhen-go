@@ -18,6 +18,7 @@ package parts
 
 import (
 	"encoding/json"
+	"go/format"
 	"log"
 	"strings"
 
@@ -27,6 +28,10 @@ import (
 
 var (
 	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *dom.AceSession
+
+	linkCodeFormatHead = doc.ElementByID("code-format-head-link")
+	linkCodeFormatBody = doc.ElementByID("code-format-body-link")
+	linkCodeFormatTail = doc.ElementByID("code-format-tail-link")
 
 	focusedCode *Code
 )
@@ -38,6 +43,21 @@ func init() {
 	codeHeadSession = setupAce("code-head", dom.AceGoMode, codeHeadChange)
 	codeBodySession = setupAce("code-body", dom.AceGoMode, codeBodyChange)
 	codeTailSession = setupAce("code-tail", dom.AceGoMode, codeTailChange)
+
+	linkCodeFormatHead.AddEventListener("click", codeFormatHandler(codeHeadSession))
+	linkCodeFormatBody.AddEventListener("click", codeFormatHandler(codeBodySession))
+	linkCodeFormatTail.AddEventListener("click", codeFormatHandler(codeTailSession))
+}
+
+func codeFormatHandler(session *dom.AceSession) func(dom.Object) {
+	return func(dom.Object) {
+		buf, err := format.Source([]byte(session.Value()))
+		if err != nil {
+			log.Printf("Couldn't format: %v", err)
+			return
+		}
+		session.SetValue(string(buf))
+	}
 }
 
 func codePinsChange(dom.Object) {
@@ -46,27 +66,35 @@ func codePinsChange(dom.Object) {
 		log.Printf("Couldn't unmarshal codePinsSession value into a pin.Map: %v", err)
 		return
 	}
-	focusedCode.pins = p
+	focusedCode.PinMap = p
 }
 
 func codeImportsChange(dom.Object) {
-	focusedCode.imports = strings.Split(codeImportsSession.Value(), "\n")
+	focusedCode.Imports = stripCR(strings.Split(codeImportsSession.Value(), "\n"))
 }
 
-func codeHeadChange(dom.Object) { focusedCode.head = codeHeadSession.Value() }
-func codeBodyChange(dom.Object) { focusedCode.body = codeBodySession.Value() }
-func codeTailChange(dom.Object) { focusedCode.tail = codeTailSession.Value() }
+func codeHeadChange(dom.Object) {
+	focusedCode.Head = stripCR(strings.Split(codeHeadSession.Value(), "\n"))
+}
+
+func codeBodyChange(dom.Object) {
+	focusedCode.Body = stripCR(strings.Split(codeBodySession.Value(), "\n"))
+}
+
+func codeTailChange(dom.Object) {
+	focusedCode.Tail = stripCR(strings.Split(codeTailSession.Value(), "\n"))
+}
 
 func (c *Code) GainFocus() {
 	focusedCode = c
-	p, err := json.MarshalIndent(c.pins, "", "\t")
+	p, err := json.MarshalIndent(c.PinMap, "", "\t")
 	if err != nil {
 		// ...How?
 		log.Fatalf("Couldn't marshal a pin.Map to JSON: %v", err)
 	}
 	codePinsSession.SetValue(string(p))
-	codeImportsSession.SetValue(strings.Join(c.imports, "\n"))
-	codeHeadSession.SetValue(c.head)
-	codeBodySession.SetValue(c.body)
-	codeTailSession.SetValue(c.tail)
+	codeImportsSession.SetValue(strings.Join(c.Imports, "\n"))
+	codeHeadSession.SetValue(strings.Join(c.Head, "\n"))
+	codeBodySession.SetValue(strings.Join(c.Body, "\n"))
+	codeTailSession.SetValue(strings.Join(c.Tail, "\n"))
 }

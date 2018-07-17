@@ -15,10 +15,6 @@
 package parts
 
 import (
-	"encoding/json"
-	"fmt"
-	"go/format"
-	"log"
 	"strings"
 
 	"github.com/google/shenzhen-go/dev/model"
@@ -37,15 +33,15 @@ var CodePanels = []model.PartPanel{
 	},
 	{
 		Name:   "Head",
-		Editor: `<div class="codeedit" id="code-head"></div>`,
+		Editor: `<span class="link" id="code-format-head-link">Format</span><div class="codeedit" id="code-head"></div>`,
 	},
 	{
 		Name:   "Body",
-		Editor: `<div class="codeedit" id="code-body"></div>`,
+		Editor: `<span class="link" id="code-format-body-link">Format</span><div class="codeedit" id="code-body"></div>`,
 	},
 	{
 		Name:   "Tail",
-		Editor: `<div class="codeedit" id="code-tail"></div>`,
+		Editor: `<span class="link" id="code-format-tail-link">Format</span><div class="codeedit" id="code-tail"></div>`,
 	},
 	{
 		Name: "Help",
@@ -82,88 +78,50 @@ var CodePanels = []model.PartPanel{
 func init() {
 	model.RegisterPartType("Code", "General", &model.PartType{
 		New: func() model.Part {
-			return &Code{pins: pin.NewMap()}
+			return &Code{PinMap: pin.NewMap()}
 		},
 		Panels: CodePanels,
 	})
 }
 
 // Code is a component containing arbitrary code.
+// The contents are stored in []string, to make it slightly
+// easier to see what's going on in the output JSON.
 type Code struct {
-	imports                []string
-	init, head, body, tail string
-	pins                   pin.Map
+	Imports []string `json:"imports"`
+	Head    []string `json:"head"`
+	Body    []string `json:"body"`
+	Tail    []string `json:"tail"`
+	PinMap  pin.Map  `json:"pins"`
 }
 
 // NewCode just makes a new *Code.
 func NewCode(imports []string, head, body, tail string, pins pin.Map) *Code {
 	return &Code{
-		imports: imports,
-		head:    head,
-		body:    body,
-		tail:    tail,
-		pins:    pins,
+		Imports: stripCR(imports),
+		Head:    stripCR(strings.Split(head, "\n")),
+		Body:    stripCR(strings.Split(body, "\n")),
+		Tail:    stripCR(strings.Split(tail, "\n")),
+		PinMap:  pins,
 	}
-}
-
-type jsonCode struct {
-	Imports []string `json:"imports"`
-	Head    []string `json:"head"`
-	Body    []string `json:"body"`
-	Tail    []string `json:"tail"`
-	Pins    pin.Map  `json:"pins"`
-}
-
-// MarshalJSON encodes the Code component as JSON.
-func (c *Code) MarshalJSON() ([]byte, error) {
-	k := &jsonCode{
-		Imports: c.imports,
-		Head:    strings.Split(c.head, "\n"),
-		Body:    strings.Split(c.body, "\n"),
-		Tail:    strings.Split(c.tail, "\n"),
-		Pins:    c.pins,
-	}
-	stripCR(k.Imports)
-	stripCR(k.Head)
-	stripCR(k.Body)
-	stripCR(k.Tail)
-	return json.Marshal(k)
-}
-
-// UnmarshalJSON decodes the Code component from JSON.
-func (c *Code) UnmarshalJSON(j []byte) error {
-	var mp jsonCode
-	if err := json.Unmarshal(j, &mp); err != nil {
-		return err
-	}
-	h := strings.Join(mp.Head, "\n")
-	b := strings.Join(mp.Body, "\n")
-	t := strings.Join(mp.Tail, "\n")
-	if err := c.refresh(h, b, t); err != nil {
-		// TODO: revisit all this
-		log.Printf("Couldn't format or determine channels used: %v", err)
-	}
-	c.imports = mp.Imports
-	c.pins = mp.Pins
-	return nil
 }
 
 // Pins returns pins. These are 100% user-defined.
-func (c *Code) Pins() pin.Map { return c.pins }
+func (c *Code) Pins() pin.Map { return c.PinMap }
 
 // Clone returns a copy of this Code part.
 func (c *Code) Clone() model.Part {
-	pins := make(pin.Map, len(c.pins))
-	for k, v := range c.pins {
+	pins := make(pin.Map, len(c.PinMap))
+	for k, v := range c.PinMap {
 		p := *v
 		pins[k] = &p
 	}
 	return &Code{
-		imports: c.imports,
-		head:    c.head,
-		body:    c.body,
-		tail:    c.tail,
-		pins:    pins,
+		Imports: c.Imports,
+		Head:    c.Head,
+		Body:    c.Body,
+		Tail:    c.Tail,
+		PinMap:  pins,
 	}
 }
 
@@ -172,16 +130,17 @@ func (c *Code) Impl(string, bool, map[string]string) model.PartImpl {
 	// TODO(josh): Figure out the least awful way of letting the
 	// user use the types map.
 	return model.PartImpl{
-		Imports: c.imports,
-		Head:    c.head,
-		Body:    c.body,
-		Tail:    c.tail,
+		Imports: c.Imports,
+		Head:    strings.Join(c.Head, "\n"),
+		Body:    strings.Join(c.Body, "\n"),
+		Tail:    strings.Join(c.Tail, "\n"),
 	}
 }
 
 // TypeKey returns "Code".
 func (*Code) TypeKey() string { return "Code" }
 
+/*
 func (c *Code) refresh(h, b, t string) error {
 	// At least save what the user entered.
 	c.head, c.body, c.tail = h, b, t
@@ -197,3 +156,4 @@ func (c *Code) refresh(h, b, t string) error {
 	c.head, c.body, c.tail = string(hf), string(bf), string(tf)
 	return nil
 }
+*/

@@ -17,10 +17,11 @@ package parts
 
 import "strings"
 
-func stripCR(in []string) {
+func stripCR(in []string) []string {
 	for i := range in {
 		in[i] = strings.TrimSuffix(in[i], "\r")
 	}
+	return in
 }
 
 /*

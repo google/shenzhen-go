@@ -267,6 +267,17 @@ func (p *Type) subtype(e ast.Expr) *Type {
 // Plain is true if the type has no parameters (is not generic).
 func (p *Type) Plain() bool { return len(p.paramToIdents) == 0 }
 
+type byScopeAndIdent []TypeParam
+
+func (p byScopeAndIdent) Len() int      { return len(p) }
+func (p byScopeAndIdent) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p byScopeAndIdent) Less(i, j int) bool {
+	if p[i].Scope == p[j].Scope {
+		return p[i].Ident < p[j].Ident
+	}
+	return p[i].Scope < p[j].Scope
+}
+
 // Params returns a sorted slice of parameter names.
 func (p *Type) Params() []TypeParam {
 	if p == nil {
@@ -276,12 +287,7 @@ func (p *Type) Params() []TypeParam {
 	for param := range p.paramToIdents {
 		params = append(params, param)
 	}
-	sort.Slice(params, func(i, j int) bool {
-		if params[i].Scope == params[j].Scope {
-			return params[i].Ident < params[j].Ident
-		}
-		return params[i].Scope < params[j].Scope
-	})
+	sort.Sort(byScopeAndIdent(params))
 	return params
 }
 

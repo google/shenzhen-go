@@ -263,11 +263,31 @@ func (c *graphController) CreateNode(ctx context.Context, partType string) (view
 }
 
 func (c *graphController) action(ctx context.Context, a pb.ActionRequest_Action) error {
-	_, err := c.client.Action(ctx, &pb.ActionRequest{
+	stream, err := c.client.Action(ctx, &pb.ActionRequest{
 		Graph:  c.graph.FilePath,
 		Action: a,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if a == pb.ActionRequest_SAVE || a == pb.ActionRequest_REVERT {
+		// No need for a terminal
+		return nil
+	}
+	c.ShowHterm()
+	c.htermTerminal.ClearHome()
+	tio := c.htermTerminal.IO().Push()
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		tio.Print(resp.Output)
+	}
+	return nil
 }
 
 func (c *graphController) Save(ctx context.Context) error {
@@ -314,7 +334,7 @@ func (c *graphController) ShowHterm() {
 }
 
 func (c *graphController) Run(ctx context.Context) error {
-	// TODO: Implement ^C
+	// TODO: Implement ^C / stop
 
 	c.ShowHterm()
 	c.htermTerminal.ClearHome()

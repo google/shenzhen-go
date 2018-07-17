@@ -95,8 +95,8 @@ message SetPositionRequest {
 }
 
 service ShenzhenGo {
-	// Action performs an action (save, run, etc).
-	rpc Action(ActionRequest) returns (ActionResponse) {}
+	// Action performs an action (save, generate, install/build, etc).
+	rpc Action(ActionRequest) returns (stream ActionResponse) {}
 
 	// Run runs the program.
 	rpc Run(stream Input) returns (stream Output) {}

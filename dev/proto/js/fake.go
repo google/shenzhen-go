@@ -27,7 +27,7 @@ var _ ShenzhenGoClient = UnimplementedShenzhenGoClient{}
 type UnimplementedShenzhenGoClient struct{}
 
 // Action does nothing and returns nil, nil.
-func (UnimplementedShenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (*ActionResponse, error) {
+func (UnimplementedShenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (ShenzhenGo_ActionClient, error) {
 	return nil, nil
 }
 

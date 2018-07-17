@@ -1188,8 +1188,8 @@ const _ = grpcweb.GrpcWebPackageIsVersion3
 // Client API for ShenzhenGo service
 
 type ShenzhenGoClient interface {
-	// Action performs an action (save, run, etc).
-	Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (*ActionResponse, error)
+	// Action performs an action (save, generate, install/build, etc).
+	Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (ShenzhenGo_ActionClient, error)
 	// Run runs the program.
 	Run(ctx context.Context, opts ...grpcweb.CallOption) (ShenzhenGo_RunClient, error)
 	// SetNode either creates a new channel (name == "", config != nil)
@@ -1217,8 +1217,31 @@ func NewShenzhenGoClient(hostname string, opts ...grpcweb.DialOption) ShenzhenGo
 	}
 }
 
-func (c *shenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (*ActionResponse, error) {
-	resp, err := c.client.RPCCall(ctx, "Action", in.Marshal(), opts...)
+func (c *shenzhenGoClient) Action(ctx context.Context, in *ActionRequest, opts ...grpcweb.CallOption) (ShenzhenGo_ActionClient, error) {
+	srv, err := c.client.NewClientStream(ctx, false, true, "Action", opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	err = srv.SendMsg(in.Marshal())
+	if err != nil {
+		return nil, err
+	}
+
+	return &shenzhenGoActionClient{srv}, nil
+}
+
+type ShenzhenGo_ActionClient interface {
+	Recv() (*ActionResponse, error)
+	grpcweb.ClientStream
+}
+
+type shenzhenGoActionClient struct {
+	grpcweb.ClientStream
+}
+
+func (x *shenzhenGoActionClient) Recv() (*ActionResponse, error) {
+	resp, err := x.RecvMsg()
 	if err != nil {
 		return nil, err
 	}

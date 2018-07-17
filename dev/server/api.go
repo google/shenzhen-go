@@ -16,6 +16,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/exec"
 
@@ -27,31 +28,40 @@ import (
 	pb "github.com/google/shenzhen-go/dev/proto/go"
 )
 
-func (c *server) Action(ctx context.Context, req *pb.ActionRequest) (*pb.ActionResponse, error) {
+type actionStreamWriter struct {
+	stream pb.ShenzhenGo_ActionServer
+}
+
+func (a actionStreamWriter) Write(b []byte) (int, error) {
+	if err := a.stream.Send(&pb.ActionResponse{Output: string(b)}); err != nil {
+		return 0, err
+	}
+	return len(b), nil
+}
+
+func (c *server) Action(req *pb.ActionRequest, stream pb.ShenzhenGo_ActionServer) error {
 	log.Printf("api: Action(%s)", proto.MarshalTextString(req))
 	g, err := c.lookupGraph(req.Graph)
 	if err != nil {
-		return &pb.ActionResponse{}, err
+		return err
 	}
 	g.Lock()
 	defer g.Unlock()
 
 	switch req.Action {
 	case pb.ActionRequest_SAVE:
-		return &pb.ActionResponse{}, SaveJSONFile(g.Graph)
+		return SaveJSONFile(g.Graph)
 	case pb.ActionRequest_REVERT:
-		return &pb.ActionResponse{}, g.reload()
+		return g.reload()
 	case pb.ActionRequest_GENERATE:
-		_, err := GeneratePackage(g.Graph)
-		return &pb.ActionResponse{}, err
+		_, err := GeneratePackage(actionStreamWriter{stream}, g.Graph)
+		return err
 	case pb.ActionRequest_BUILD:
-		// TODO: put build output into the response
-		return &pb.ActionResponse{}, Build(g.Graph)
+		return Build(actionStreamWriter{stream}, g.Graph)
 	case pb.ActionRequest_INSTALL:
-		// TODO: put install output into the response
-		return &pb.ActionResponse{}, Install(g.Graph)
+		return Install(actionStreamWriter{stream}, g.Graph)
 	default:
-		return &pb.ActionResponse{}, status.Errorf(codes.Unimplemented, "action %v not implemented", req.Action)
+		return status.Errorf(codes.Unimplemented, "action %v not implemented", req.Action)
 	}
 }
 
@@ -78,14 +88,19 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 	if err != nil {
 		return err
 	}
+
+	stdout := &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}
+	stderr := &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Err: string(b)} }}
+
 	g.Lock()
-	gp, err := GenerateRunner(g.Graph)
+	gp, err := GenerateRunner(stderr, g.Graph)
 	g.Unlock()
 	if err != nil {
 		return err
 	}
 
 	cmd := exec.CommandContext(svr.Context(), "go", "run", gp)
+	fmt.Fprintf(stderr, "%v\n", cmd.Args)
 
 	// A pipe is better for input; managing a buffer is fiddly, and cmd.Wait
 	// will wait until read returns, which doesn't mesh well with the
@@ -106,12 +121,16 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 			}
 		}
 	}()
-	cmd.Stdout = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Out: string(b)} }}
-	cmd.Stderr = &runSvrWriter{svr, func(b []byte) *pb.Output { return &pb.Output{Err: string(b)} }}
+	cmd.Stdout, cmd.Stderr = stdout, stderr
 	if err := cmd.Run(); err != nil {
 		return status.Errorf(codes.Aborted, "run failed: %v", err)
 	}
-	return svr.Send(&pb.Output{Err: "(process exited)\n"})
+	msg := "failed"
+	if cmd.ProcessState.Success() {
+		msg = "succeeded"
+	}
+	fmt.Fprintf(stderr, "(process %s)\n", msg)
+	return nil
 }
 
 func (c *server) SetChannel(ctx context.Context, req *pb.SetChannelRequest) (*pb.Empty, error) {

@@ -16,6 +16,7 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -67,68 +68,91 @@ func SaveJSONFile(g *model.Graph) error {
 
 // GeneratePackage writes the Go view of the graph to a file called generated.go in
 // ${GOPATH}/src/${g.PackagePath}/, returning the full path.
-func GeneratePackage(g *model.Graph) (string, error) {
+// Messages from the generation process will be written to out.
+func GeneratePackage(out io.Writer, g *model.Graph) (string, error) {
+	fmt.Fprintln(out, "[GeneratePackage]")
 	gp, err := source.GoPath()
 	if err != nil {
+		fmt.Fprintf(out, "source.GoPath() = error %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	pp := filepath.Join(gp, "src", g.PackagePath)
 	if err := os.Mkdir(pp, os.FileMode(0755)); err != nil {
 		log.Printf("Could not make path %q, continuing: %v", pp, err)
+		fmt.Fprintf(out, "os.Mkdir(pp, 0755) = error %v (continuing anyway)\n", err)
 	}
 	mp := filepath.Join(pp, "generated.go")
 	f, err := os.Create(mp)
 	if err != nil {
+		fmt.Fprintf(out, "os.Create(mp) = error %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	defer f.Close()
 	if err := g.WriteGoTo(f); err != nil {
+		fmt.Fprintf(out, "g.WriteGoTo(f) = error %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	if err := f.Close(); err != nil {
+		fmt.Fprintf(out, "f.Close() = error %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
+	fmt.Fprintln(out, "(GeneratePackage succeeded)")
 	return mp, nil
 }
 
 // GenerateRunner generates a `go run`-able; either the output package itself,
 // or the package together with a temporary runner, returning the full path to
-// the runner.
-func GenerateRunner(g *model.Graph) (string, error) {
-	gp, err := GeneratePackage(g)
+// the runnable path. Messages from the generation process will be written to out.
+func GenerateRunner(out io.Writer, g *model.Graph) (string, error) {
+	gp, err := GeneratePackage(out, g)
 	if err != nil {
 		return "", err
 	}
 	if g.IsCommand {
 		return gp, nil
 	}
-	return writeTempRunner(g)
+	fmt.Fprintln(out, "[GenerateRunner]")
+	path, err := writeTempRunner(g)
+	if err != nil {
+		fmt.Fprintf(out, "writeTempRunner(g) = error %v\n(GenerateRunner failed)\n", err)
+		return "", err
+	}
+	fmt.Fprintln(out, "(GenerateRunner succeeded)")
+	return path, nil
+}
+
+func finalStatus(out io.Writer, cmd *exec.Cmd) {
+	msg := "failed"
+	if cmd.ProcessState.Success() {
+		msg = "succeeded"
+	}
+	fmt.Fprintf(out, "(process %s)\n", msg)
+}
+
+func runCmd(out io.Writer, cmd *exec.Cmd) error {
+	fmt.Fprintf(out, "%v\n", cmd.Args)
+	cmd.Stdout = out
+	cmd.Stderr = out
+	defer finalStatus(out, cmd)
+	return cmd.Run()
 }
 
 // Build saves the graph as Go source code and tries to "go build" it.
-func Build(g *model.Graph) error {
-	if _, err := GeneratePackage(g); err != nil {
+// Console output from the command (*not* the compiled program) is written to out.
+func Build(out io.Writer, g *model.Graph) error {
+	if _, err := GeneratePackage(out, g); err != nil {
 		return err
 	}
-	o, err := exec.Command(`go`, `build`, g.PackagePath).CombinedOutput()
-	if err != nil {
-		// TODO: better error type
-		return fmt.Errorf("go build: %v:\n%s", err, o)
-	}
-	return nil
+	return runCmd(out, exec.Command(`go`, `build`, g.PackagePath))
 }
 
 // Install saves the graph as Go source code and tries to "go install" it.
-func Install(g *model.Graph) error {
-	if _, err := GeneratePackage(g); err != nil {
+// Console output from the command (*not* the compiled program) is written to out.
+func Install(out io.Writer, g *model.Graph) error {
+	if _, err := GeneratePackage(out, g); err != nil {
 		return err
 	}
-	o, err := exec.Command(`go`, `install`, g.PackagePath).CombinedOutput()
-	if err != nil {
-		// TODO: better error type
-		return fmt.Errorf("go install: %v:\n%s", err, o)
-	}
-	return nil
+	return runCmd(out, exec.Command(`go`, `install`, g.PackagePath))
 }
 
 func writeTempRunner(g *model.Graph) (string, error) {

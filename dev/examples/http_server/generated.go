@@ -98,17 +98,17 @@ func HTTPServeMux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HT
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
-	mux.Handle("/", parts.HTTPHandler(root))
-	outLabels[root] = "root"
 	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
 	outLabels[mandelbrot] = "mandelbrot"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 	outLabels[metrics] = "metrics"
+	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
 
 	defer func() {
-		close(root)
 		close(mandelbrot)
 		close(metrics)
+		close(root)
 
 	}()
 	var multWG sync.WaitGroup

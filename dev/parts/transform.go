@@ -31,8 +31,11 @@ func init() {
 				Editor: `<div class="codeedit" id="transform-imports"></div>`,
 			},
 			{
-				Name:   "Transform",
-				Editor: `<span class="link" id="transform-format-link">Format</span><div class="codeedit" id="transform-body"></div>`,
+				Name: "Transform",
+				Editor: `<div class="formfield">
+					<span class="link" id="transform-format-link">Format</span>
+				</div>
+				<div class="formfield codeedit" id="transform-body"></div>`,
 			},
 			{
 				Name: "Help",

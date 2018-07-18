@@ -32,16 +32,25 @@ var CodePanels = []model.PartPanel{
 		Editor: `<div class="codeedit" id="code-imports"></div>`,
 	},
 	{
-		Name:   "Head",
-		Editor: `<span class="link" id="code-format-head-link">Format</span><div class="codeedit" id="code-head"></div>`,
+		Name: "Head",
+		Editor: `<div class="formfield">
+					<span class="link" id="code-format-head-link">Format</span>
+				</div>
+				<div class="codeedit formfield" id="code-head"></div>`,
 	},
 	{
-		Name:   "Body",
-		Editor: `<span class="link" id="code-format-body-link">Format</span><div class="codeedit" id="code-body"></div>`,
+		Name: "Body",
+		Editor: `<div class="formfield">
+					<span class="link" id="code-format-body-link">Format</span>
+				</div>
+				<div class="codeedit formfield" id="code-body"></div>`,
 	},
 	{
-		Name:   "Tail",
-		Editor: `<span class="link" id="code-format-tail-link">Format</span><div class="codeedit" id="code-tail"></div>`,
+		Name: "Tail",
+		Editor: `<div class="formfield">
+					<span class="link" id="code-format-tail-link">Format</span>
+				</div>
+				<div class="codeedit formfield" id="code-tail"></div>`,
 	},
 	{
 		Name: "Help",

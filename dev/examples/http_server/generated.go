@@ -87,68 +87,68 @@ func Duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
 	}
 }
 
-/* Generates a Mandelbrot fractal */
-func Generate_a_Mandelbrot(requests <-chan *parts.HTTPRequest) {
+func Generate_a_Mandelbrot(inputs <-chan *parts.HTTPRequest, outputs chan<- interface{}) {
 	// Generate a Mandelbrot
-	multiplicity := runtime.NumCPU()
-	const tileW = 320
-	const depth = 25
 
-	var multWG sync.WaitGroup
-	multWG.Add(multiplicity)
-	defer multWG.Wait()
-	for n := 0; n < multiplicity; n++ {
-		go func() {
-			defer multWG.Done()
-			for req := range requests {
-				func() {
-					defer req.Close()
+	defer func() {
+		if outputs != nil {
+			close(outputs)
+		}
+	}()
+	for input := range inputs {
+		out := func() interface{} {
+			const tileW = 320
+			const depth = 25
 
-					q := req.Request.URL.Query()
-					tileX, e0 := strconv.Atoi(q.Get("x"))
-					tileY, e1 := strconv.Atoi(q.Get("y"))
-					zoom, e2 := strconv.ParseUint(q.Get("z"), 10, 64)
-					if e0 != nil || e1 != nil || e2 != nil || zoom > 50 {
-						http.Error(req, "invalid parameter", http.StatusBadRequest)
-						return
-					}
-					zoom = 1 << zoom
-					offset := complex(float64(tileX), float64(tileY))
+			defer input.Close()
 
-					req.Header().Set("Content-Type", "image/png")
-					req.WriteHeader(http.StatusOK)
+			q := input.Request.URL.Query()
+			tileX, e0 := strconv.Atoi(q.Get("x"))
+			tileY, e1 := strconv.Atoi(q.Get("y"))
+			zoom, e2 := strconv.ParseUint(q.Get("z"), 10, 64)
+			if e0 != nil || e1 != nil || e2 != nil || zoom > 50 {
+				http.Error(input, "invalid parameter", http.StatusBadRequest)
+				return nil
+			}
+			zoom = 1 << zoom
+			offset := complex(float64(tileX), float64(tileY))
 
-					img := image.NewRGBA(image.Rect(0, 0, tileW, tileW))
+			input.Header().Set("Content-Type", "image/png")
+			input.WriteHeader(http.StatusOK)
 
-					for i := 0; i < tileW; i++ {
-						for j := 0; j < tileW; j++ {
-							c := complex(float64(i), float64(j))
-							c /= tileW
-							c += offset
-							c *= 2
-							c /= complex(float64(zoom), 0)
+			img := image.NewRGBA(image.Rect(0, 0, tileW, tileW))
 
-							z := 0i
+			for i := 0; i < tileW; i++ {
+				for j := 0; j < tileW; j++ {
+					c := complex(float64(i), float64(j))
+					c /= tileW
+					c += offset
+					c *= 2
+					c /= complex(float64(zoom), 0)
 
-							col := color.Black
-							for k := 0; k < depth; k++ {
-								z = z*z + c
+					z := 0i
 
-								// Higher escape radius makes it smoother
-								if mz := cmplx.Abs(z); mz > 50 {
-									sm := float64(k) + 1 - math.Log2(math.Log(mz))
-									col = color.Gray16{uint16(sm * 65536 / depth)}
-									break
-								}
-							}
-							img.Set(i, j, col)
+					col := color.Black
+					for k := 0; k < depth; k++ {
+						z = z*z + c
+
+						// Higher escape radius makes it smoother
+						if mz := cmplx.Abs(z); mz > 50 {
+							sm := float64(k) + 1 - math.Log2(math.Log(mz))
+							col = color.Gray16{uint16(sm * 65536 / depth)}
+							break
 						}
 					}
-
-					png.Encode(req, img)
-				}()
+					img.Set(i, j, col)
+				}
 			}
+
+			png.Encode(input, img)
+			return nil
 		}()
+		if outputs != nil {
+			outputs <- out
+		}
 	}
 }
 
@@ -419,7 +419,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Generate_a_Mandelbrot(channel7)
+		Generate_a_Mandelbrot(channel7, nil)
 		wg.Done()
 	}()
 

@@ -87,9 +87,9 @@
 			"part_type": "Transform",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": "1",
-			"x": 142,
-			"y": 575,
+			"multiplicity": "N",
+			"x": 122,
+			"y": 578,
 			"connections": {
 				"inputs": "channel7",
 				"outputs": "nil"

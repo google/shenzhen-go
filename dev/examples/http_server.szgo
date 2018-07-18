@@ -14,7 +14,7 @@
 			"wait": true,
 			"multiplicity": "N",
 			"x": 170,
-			"y": 666,
+			"y": 667,
 			"connections": {
 				"get": "channel8",
 				"hit": "channel11",
@@ -53,6 +53,7 @@
 					"z, e2 := strconv.ParseUint(q.Get(\"z\"), 10, 64)",
 					"if e0 != nil || e1 != nil || e2 != nil || z \u003e 50 {",
 					"\thttp.Error(input, \"invalid parameter\", http.StatusBadRequest)",
+					"\tinput.Close()",
 					"\treturn",
 					"}",
 					"outputs \u003c- struct{",
@@ -80,7 +81,7 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 109,
+			"x": 104,
 			"y": 554,
 			"connections": {
 				"inputs": "channel7",
@@ -158,14 +159,14 @@
 					""
 				],
 				"input_type": "struct{ Key struct{ X, Y int; Z uint}; Ctx *parts.HTTPRequest}",
-				"output_type": "$AnyOut"
+				"output_type": "struct{ Key struct{ X, Y int; Z uint}; Data []byte}"
 			},
 			"part_type": "Transform",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
 			"x": 346,
-			"y": 668,
+			"y": 669,
 			"connections": {
 				"inputs": "channel9",
 				"outputs": "channel10"
@@ -319,8 +320,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 108,
-			"y": 445,
+			"x": 100,
+			"y": 446,
 			"connections": {
 				"in": "channel6",
 				"out": "channel7"
@@ -382,7 +383,7 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 112,
+			"x": 111,
 			"y": 773,
 			"connections": {
 				"inputs": "channel11",

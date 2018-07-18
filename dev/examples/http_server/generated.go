@@ -376,6 +376,7 @@ func Extract_parameters(inputs <-chan *parts.HTTPRequest, outputs chan<- struct 
 					z, e2 := strconv.ParseUint(q.Get("z"), 10, 64)
 					if e0 != nil || e1 != nil || e2 != nil || z > 50 {
 						http.Error(input, "invalid parameter", http.StatusBadRequest)
+						input.Close()
 						return
 					}
 					outputs <- struct {

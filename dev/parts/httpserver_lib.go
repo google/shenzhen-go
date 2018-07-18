@@ -16,7 +16,9 @@ package parts
 
 import (
 	"context"
+	"log"
 	"net/http"
+	"runtime"
 )
 
 // HTTPRequest represents incoming HTTP requests and the means to respond to them.
@@ -35,11 +37,19 @@ type HTTPHandler chan<- *HTTPRequest
 
 func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	done := make(chan struct{})
-	h <- &HTTPRequest{
+	hr := &HTTPRequest{
 		ResponseWriter: w,
 		Request:        r,
 		done:           done,
 	}
+	// Crawshaw-style sharp-edged finalizers are nice but it's possible some
+	// connections will be deliberately dropped (e.g. load shedding).
+	// Detect, keep calm and carry on.
+	runtime.SetFinalizer(hr, func(hr *HTTPRequest) {
+		log.Printf("*parts.HTTPRequest(Request: %v) not closed", r)
+		close(done)
+	})
+	h <- hr
 	<-done
 }
 

@@ -3,6 +3,25 @@
 	"package_path": "github.com/google/shenzhen-go/dev/examples/http_server",
 	"is_command": true,
 	"nodes": {
+		"Cache": {
+			"part": {
+				"content_bytes_limit": 1073741824,
+				"enable_prometheus": true,
+				"eviction_mode": "lru"
+			},
+			"part_type": "Cache",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 170,
+			"y": 666,
+			"connections": {
+				"get": "channel8",
+				"hit": "channel11",
+				"miss": "channel9",
+				"put": "channel10"
+			}
+		},
 		"Duration": {
 			"part": {
 				"instrumenter": "Duration",
@@ -20,36 +39,72 @@
 				"out": "channel5"
 			}
 		},
+		"Extract parameters": {
+			"part": {
+				"imports": [
+					"\"net/http\"",
+					"\"strconv\"",
+					"\"github.com/google/shenzhen-go/dev/parts\""
+				],
+				"body": [
+					"q := input.Request.URL.Query()",
+					"x, e0 := strconv.Atoi(q.Get(\"x\"))",
+					"y, e1 := strconv.Atoi(q.Get(\"y\"))",
+					"z, e2 := strconv.ParseUint(q.Get(\"z\"), 10, 64)",
+					"if e0 != nil || e1 != nil || e2 != nil || z \u003e 50 {",
+					"\thttp.Error(input, \"invalid parameter\", http.StatusBadRequest)",
+					"\treturn",
+					"}",
+					"outputs \u003c- struct{",
+					"\tKey struct{",
+					"\t\tX, Y int",
+					"\t\tZ uint",
+					"\t}",
+					"\tCtx *parts.HTTPRequest",
+					"} {",
+					"\tKey: struct{",
+					"\t\tX, Y int",
+					"\t\tZ uint",
+					"\t}{",
+					"\t\tX: x,",
+					"\t\tY: y,",
+					"\t\tZ: uint(z),",
+					"\t},",
+					"\tCtx: input,",
+					"}"
+				],
+				"input_type": "*parts.HTTPRequest",
+				"output_type": "struct { Key struct { X, Y int; Z uint }; Ctx *parts.HTTPRequest }"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 109,
+			"y": 554,
+			"connections": {
+				"inputs": "channel7",
+				"outputs": "channel8"
+			}
+		},
 		"Generate a Mandelbrot": {
 			"part": {
 				"imports": [
+					"\"bytes\"",
 					"\"image\"",
 					"\"image/color\"",
 					"\"image/png\"",
 					"\"math\"",
 					"\"math/cmplx\"",
-					"\"strconv\"",
+					"\"net/http\"",
 					"\"github.com/google/shenzhen-go/dev/parts\""
 				],
 				"body": [
 					"const tileW = 320",
 					"const depth = 25",
 					"",
-					"defer input.Close()",
-					"",
-					"q := input.Request.URL.Query()",
-					"tileX, e0 := strconv.Atoi(q.Get(\"x\"))",
-					"tileY, e1 := strconv.Atoi(q.Get(\"y\"))",
-					"zoom, e2 := strconv.ParseUint(q.Get(\"z\"), 10, 64)",
-					"if e0 != nil || e1 != nil || e2 != nil || zoom \u003e 50 {",
-					"\thttp.Error(input, \"invalid parameter\", http.StatusBadRequest)",
-					"\treturn nil",
-					"}",
-					"zoom = 1 \u003c\u003c zoom",
-					"offset := complex(float64(tileX), float64(tileY))",
-					"",
-					"input.Header().Set(\"Content-Type\", \"image/png\")",
-					"input.WriteHeader(http.StatusOK)",
+					"zoom := 1 \u003c\u003c input.Key.Z",
+					"offset := complex(float64(input.Key.X), float64(input.Key.Y))",
 					"",
 					"img := image.NewRGBA(image.Rect(0, 0, tileW, tileW))",
 					"",
@@ -78,21 +133,42 @@
 					"\t}",
 					"}",
 					"",
-					"png.Encode(input, img)",
-					"return nil"
+					"b := bytes.NewBuffer(nil)",
+					"png.Encode(b, img)",
+					"// Put into cache",
+					"outputs \u003c- struct{",
+					"\tKey struct {",
+					"\t\tX, Y int",
+					"\t\tZ uint",
+					"\t}",
+					"\tData []byte",
+					"}{",
+					"\tKey: input.Key,",
+					"\tData: b.Bytes(),",
+					"}",
+					"",
+					"http.ServeContent(",
+					"\tinput.Ctx.ResponseWriter, ",
+					"\tinput.Ctx.Request,",
+					"\t\"mandelbrot.png\",",
+					"\ttime.Now(),",
+					"\tbytes.NewReader(b.Bytes()),",
+					")",
+					"input.Ctx.Close()",
+					""
 				],
-				"input_type": "*parts.HTTPRequest",
+				"input_type": "struct{ Key struct{ X, Y int; Z uint}; Ctx *parts.HTTPRequest}",
 				"output_type": "$AnyOut"
 			},
 			"part_type": "Transform",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 122,
-			"y": 578,
+			"x": 346,
+			"y": 668,
 			"connections": {
-				"inputs": "channel7",
-				"outputs": "nil"
+				"inputs": "channel9",
+				"outputs": "channel10"
 			}
 		},
 		"HTTP Server": {
@@ -243,8 +319,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 134,
-			"y": 447,
+			"x": 108,
+			"y": 445,
 			"connections": {
 				"in": "channel6",
 				"out": "channel7"
@@ -282,6 +358,35 @@
 				"metrics": "channel3",
 				"requests": "channel0",
 				"root": "channel4"
+			}
+		},
+		"Serve from cache": {
+			"part": {
+				"imports": [
+					"\"github.com/google/shenzhen-go/dev/parts\""
+				],
+				"body": [
+					"http.ServeContent(",
+					"\tinput.Ctx.ResponseWriter, ",
+					"\tinput.Ctx.Request,",
+					"\t\"mandelbrot.png\",",
+					"\ttime.Now(),",
+					"\tbytes.NewReader(input.Data),",
+					")",
+					"input.Ctx.Close()"
+				],
+				"input_type": "struct{ Key struct{ X, Y int; Z uint}; Ctx *parts.HTTPRequest; Data []byte}",
+				"output_type": "$AnyOut"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 112,
+			"y": 773,
+			"connections": {
+				"inputs": "channel11",
+				"outputs": "nil"
 			}
 		},
 		"Server manager": {
@@ -343,6 +448,12 @@
 		"channel1": {
 			"cap": 0
 		},
+		"channel10": {
+			"cap": 0
+		},
+		"channel11": {
+			"cap": 0
+		},
 		"channel2": {
 			"cap": 0
 		},
@@ -359,6 +470,12 @@
 			"cap": 0
 		},
 		"channel7": {
+			"cap": 0
+		},
+		"channel8": {
+			"cap": 0
+		},
+		"channel9": {
 			"cap": 0
 		}
 	}

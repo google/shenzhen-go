@@ -61,8 +61,9 @@ func init() {
 			<p>
 				A Transform part converts inputs into outputs. The transformation itself is BYO code.
 			</p><p>
-				The BYO code body can be any function body but must <code>return</code> the
-				transformed input, available as a value called <code>input</code>.
+				The BYO code body can be any function body but must transform or filter the
+				input value (available as a value called <code>input</code>) and write any output
+				to <code>outputs</code>.
 			</p>
 			</div>`,
 			},
@@ -88,11 +89,10 @@ func (t *Transform) Impl(n *model.Node) model.PartImpl {
 	return model.PartImpl{
 		Imports: t.Imports,
 		Body: fmt.Sprintf(`for input := range inputs {
-			out := func() %s {
+			func() {
 				%s
 			}()
-			if outputs != nil { outputs <- out }
-		}`, n.PinTypes["outputs"], strings.Join(t.Body, "\n")),
+		}`, strings.Join(t.Body, "\n")),
 		Tail: "if outputs != nil { close(outputs) }",
 	}
 }

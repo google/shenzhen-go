@@ -94,15 +94,12 @@ var (
 	cachePutsSize := cachePutsSize.With(labels)
 	cacheEvictionsSize := cacheEvictionsSize.With(labels)
 	{{end -}}
+handleLoop:
 	for {
-		if get == nil && put == nil {
-			break
-		}
 		select {
 		case g, open := <-get:
 			if !open {
-				get = nil
-				continue
+				break handleLoop
 			}
 			{{if .Mult}}mu.RLock(){{end}}
 			e, ok := cache[g.Key]

@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/google/shenzhen-go/dev/parts"
@@ -24,6 +25,103 @@ import (
 )
 
 var _ = runtime.Compiler
+
+var (
+	cacheHits = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "hits",
+			Help:      "Hits to the cache in a Cache node",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	cacheMisses = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "misses",
+			Help:      "Misses to the cache in a Cache node",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	cachePuts = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "puts",
+			Help:      "Cache node cache insertions",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	cacheEvictions = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "evictions",
+			Help:      "Cache node cache evictions",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	cacheSize = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "size",
+			Help:      "Size of content in Cache nodes in bytes",
+		},
+		[]string{"node_name"},
+	)
+	cacheLimit = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "limit",
+			Help:      "Upper limit of content size in Cache nodes in bytes",
+		},
+		[]string{"node_name"},
+	)
+	cacheHitsSize = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "hits_size",
+			Help:      "Cumulative Cache node cache hits size in bytes",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	cachePutsSize = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "puts_size",
+			Help:      "Cumulative Cache node cache insertions size in bytes",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+	cacheEvictionsSize = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "shenzhen_go",
+			Subsystem: "cache",
+			Name:      "evictions_size",
+			Help:      "Cumulative Cache node cache evictions size in bytes",
+		},
+		[]string{"node_name", "instance_num"},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(
+		cacheHits,
+		cacheMisses,
+		cachePuts,
+		cacheSize,
+		cacheLimit,
+		cacheHitsSize,
+		cachePutsSize,
+		cacheEvictionsSize,
+	)
+}
 
 var (
 	httpServeMuxRequestsIn = prometheus.NewCounterVec(
@@ -51,6 +149,168 @@ func init() {
 		httpServeMuxRequestsIn,
 		httpServeMuxRequestsOut,
 	)
+}
+
+func Cache(get <-chan struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Ctx *parts.HTTPRequest
+}, hit chan<- struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Ctx  *parts.HTTPRequest
+	Data []byte
+}, miss chan<- struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Ctx *parts.HTTPRequest
+}, put <-chan struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Data []byte
+}) {
+	// Cache
+	multiplicity := runtime.NumCPU()
+
+	const bytesLimit = 1073741824
+	type cacheEntry struct {
+		data []byte
+		last time.Time
+		sync.Mutex
+	}
+	var mu sync.RWMutex
+	totalBytes := uint64(0)
+	cache := make(map[struct {
+		X, Y int
+		Z    uint
+	}]*cacheEntry)
+	cacheLimit.With(prometheus.Labels{"node_name": "Cache"}).Set(bytesLimit)
+	cacheSize := cacheSize.With(prometheus.Labels{"node_name": "Cache"})
+	cacheSize.Set(0)
+
+	defer func() {
+		close(hit)
+		close(miss)
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		instanceNumber := n
+		go func() {
+			defer multWG.Done()
+
+			labels := prometheus.Labels{
+				"node_name":    "Cache",
+				"instance_num": strconv.Itoa(instanceNumber),
+			}
+			cacheHits := cacheHits.With(labels)
+			cacheMisses := cacheMisses.With(labels)
+			cachePuts := cachePuts.With(labels)
+			cacheEvictions := cacheEvictions.With(labels)
+			cacheHitsSize := cacheHitsSize.With(labels)
+			cachePutsSize := cachePutsSize.With(labels)
+			cacheEvictionsSize := cacheEvictionsSize.With(labels)
+		handleLoop:
+			for {
+				select {
+				case g, open := <-get:
+					if !open {
+						break handleLoop
+					}
+					mu.RLock()
+					e, ok := cache[g.Key]
+					mu.RUnlock()
+					if !ok {
+						miss <- g
+						cacheMisses.Inc()
+						continue
+					}
+					e.Lock()
+					cacheHits.Inc()
+					cacheHitsSize.Add(float64(len(e.data)))
+					hit <- struct {
+						Key struct {
+							X, Y int
+							Z    uint
+						}
+						Ctx  *parts.HTTPRequest
+						Data []byte
+					}{
+						Key:  g.Key,
+						Ctx:  g.Ctx,
+						Data: e.data,
+					}
+					e.last = time.Now()
+					e.Unlock()
+
+				case p, open := <-put:
+					if !open {
+						put = nil
+						continue
+					}
+					if len(p.Data) > bytesLimit {
+						continue
+					}
+
+					// TODO: Can improve eviction algorithm - this is simplistic but O(n^2)
+					mu.Lock()
+					for {
+						// Find something to evict if needed.
+						var ek struct {
+							X, Y int
+							Z    uint
+						}
+						var ee *cacheEntry
+						et := time.Now()
+						for k, e := range cache {
+							e.Lock()
+							if e.last.Before(et) {
+								ee, et, ek = e, e.last, k
+							}
+							e.Unlock()
+						}
+						// Necessary to evict?
+						if totalBytes+uint64(len(p.Data)) > bytesLimit {
+							// Evict ek.
+							if ee == nil {
+								break
+							}
+							ee.Lock()
+							size := uint64(len(ee.data))
+							ee.Unlock()
+							totalBytes -= size
+							delete(cache, ek)
+							cacheEvictions.Inc()
+							cacheEvictionsSize.Add(float64(size))
+							continue
+						}
+
+						// No - insert now.
+						size := uint64(len(p.Data))
+						cache[p.Key] = &cacheEntry{
+							data: p.Data,
+							last: time.Now(),
+						}
+						totalBytes += size
+						cachePuts.Inc()
+						cachePutsSize.Add(float64(size))
+						cacheSize.Set(float64(totalBytes))
+						break
+					}
+					mu.Unlock()
+				}
+			}
+		}()
+	}
 }
 
 func Duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
@@ -87,7 +347,73 @@ func Duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
 	}
 }
 
-func Generate_a_Mandelbrot(inputs <-chan *parts.HTTPRequest, outputs chan<- interface{}) {
+func Extract_parameters(inputs <-chan *parts.HTTPRequest, outputs chan<- struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Ctx *parts.HTTPRequest
+}) {
+	// Extract parameters
+	multiplicity := runtime.NumCPU()
+
+	defer func() {
+		if outputs != nil {
+			close(outputs)
+		}
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+			for input := range inputs {
+				func() {
+					q := input.Request.URL.Query()
+					x, e0 := strconv.Atoi(q.Get("x"))
+					y, e1 := strconv.Atoi(q.Get("y"))
+					z, e2 := strconv.ParseUint(q.Get("z"), 10, 64)
+					if e0 != nil || e1 != nil || e2 != nil || z > 50 {
+						http.Error(input, "invalid parameter", http.StatusBadRequest)
+						return
+					}
+					outputs <- struct {
+						Key struct {
+							X, Y int
+							Z    uint
+						}
+						Ctx *parts.HTTPRequest
+					}{
+						Key: struct {
+							X, Y int
+							Z    uint
+						}{
+							X: x,
+							Y: y,
+							Z: uint(z),
+						},
+						Ctx: input,
+					}
+				}()
+			}
+		}()
+	}
+}
+
+func Generate_a_Mandelbrot(inputs <-chan struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Ctx *parts.HTTPRequest
+}, outputs chan<- struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Data []byte
+}) {
 	// Generate a Mandelbrot
 	multiplicity := runtime.NumCPU()
 
@@ -103,25 +429,12 @@ func Generate_a_Mandelbrot(inputs <-chan *parts.HTTPRequest, outputs chan<- inte
 		go func() {
 			defer multWG.Done()
 			for input := range inputs {
-				out := func() interface{} {
+				func() {
 					const tileW = 320
 					const depth = 25
 
-					defer input.Close()
-
-					q := input.Request.URL.Query()
-					tileX, e0 := strconv.Atoi(q.Get("x"))
-					tileY, e1 := strconv.Atoi(q.Get("y"))
-					zoom, e2 := strconv.ParseUint(q.Get("z"), 10, 64)
-					if e0 != nil || e1 != nil || e2 != nil || zoom > 50 {
-						http.Error(input, "invalid parameter", http.StatusBadRequest)
-						return nil
-					}
-					zoom = 1 << zoom
-					offset := complex(float64(tileX), float64(tileY))
-
-					input.Header().Set("Content-Type", "image/png")
-					input.WriteHeader(http.StatusOK)
+					zoom := 1 << input.Key.Z
+					offset := complex(float64(input.Key.X), float64(input.Key.Y))
 
 					img := image.NewRGBA(image.Rect(0, 0, tileW, tileW))
 
@@ -150,12 +463,30 @@ func Generate_a_Mandelbrot(inputs <-chan *parts.HTTPRequest, outputs chan<- inte
 						}
 					}
 
-					png.Encode(input, img)
-					return nil
+					b := bytes.NewBuffer(nil)
+					png.Encode(b, img)
+					// Put into cache
+					outputs <- struct {
+						Key struct {
+							X, Y int
+							Z    uint
+						}
+						Data []byte
+					}{
+						Key:  input.Key,
+						Data: b.Bytes(),
+					}
+
+					http.ServeContent(
+						input.Ctx.ResponseWriter,
+						input.Ctx.Request,
+						"mandelbrot.png",
+						time.Now(),
+						bytes.NewReader(b.Bytes()),
+					)
+					input.Ctx.Close()
+
 				}()
-				if outputs != nil {
-					outputs <- out
-				}
 			}
 		}()
 	}
@@ -383,6 +714,44 @@ func Mux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HTTPRequest
 	}
 }
 
+func Serve_from_cache(inputs <-chan struct {
+	Key struct {
+		X, Y int
+		Z    uint
+	}
+	Ctx  *parts.HTTPRequest
+	Data []byte
+}, outputs chan<- interface{}) {
+	// Serve from cache
+	multiplicity := runtime.NumCPU()
+
+	defer func() {
+		if outputs != nil {
+			close(outputs)
+		}
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+			for input := range inputs {
+				func() {
+					http.ServeContent(
+						input.Ctx.ResponseWriter,
+						input.Ctx.Request,
+						"mandelbrot.png",
+						time.Now(),
+						bytes.NewReader(input.Data),
+					)
+					input.Ctx.Close()
+				}()
+			}
+		}()
+	}
+}
+
 func Server_manager(manager chan<- parts.HTTPServerManager) {
 	// Server manager
 
@@ -411,14 +780,49 @@ func main() {
 
 	channel0 := make(chan *parts.HTTPRequest, 0)
 	channel1 := make(chan parts.HTTPServerManager, 0)
+	channel10 := make(chan struct {
+		Key struct {
+			X, Y int
+			Z    uint
+		}
+		Data []byte
+	}, 0)
+	channel11 := make(chan struct {
+		Key struct {
+			X, Y int
+			Z    uint
+		}
+		Ctx  *parts.HTTPRequest
+		Data []byte
+	}, 0)
 	channel2 := make(chan error, 0)
 	channel3 := make(chan *parts.HTTPRequest, 0)
 	channel4 := make(chan *parts.HTTPRequest, 0)
 	channel5 := make(chan *parts.HTTPRequest, 0)
 	channel6 := make(chan *parts.HTTPRequest, 0)
 	channel7 := make(chan *parts.HTTPRequest, 0)
+	channel8 := make(chan struct {
+		Key struct {
+			X, Y int
+			Z    uint
+		}
+		Ctx *parts.HTTPRequest
+	}, 0)
+	channel9 := make(chan struct {
+		Key struct {
+			X, Y int
+			Z    uint
+		}
+		Ctx *parts.HTTPRequest
+	}, 0)
 
 	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		Cache(channel8, channel11, channel9, channel10)
+		wg.Done()
+	}()
 
 	wg.Add(1)
 	go func() {
@@ -428,7 +832,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Generate_a_Mandelbrot(channel7, nil)
+		Extract_parameters(channel7, channel8)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Generate_a_Mandelbrot(channel9, channel10)
 		wg.Done()
 	}()
 
@@ -465,6 +875,12 @@ func main() {
 	wg.Add(1)
 	go func() {
 		Mux(channel6, channel3, channel0, channel4)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Serve_from_cache(channel11, nil)
 		wg.Done()
 	}()
 

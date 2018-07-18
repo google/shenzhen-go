@@ -29,7 +29,7 @@ type HTTPRequest struct {
 }
 
 // Close completes the request.
-func (r *HTTPRequest) Close() error { close(r.done); return nil }
+func (r *HTTPRequest) Close() error { close(r.done); r.done = nil; return nil }
 
 // HTTPHandler is a channel that can be sent HTTPRequests, thus supporting a
 // simple implementation of ServerHTTP.
@@ -46,8 +46,11 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// connections will be deliberately dropped (e.g. load shedding).
 	// Detect, keep calm and carry on.
 	runtime.SetFinalizer(hr, func(hr *HTTPRequest) {
-		log.Printf("*parts.HTTPRequest(Request: %v) not closed", r)
-		close(done)
+		if hr.done == nil {
+			return
+		}
+		log.Printf("*parts.HTTPRequest(Request: %v) not closed", hr.Request)
+		hr.Close()
 	})
 	h <- hr
 	<-done

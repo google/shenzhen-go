@@ -18,7 +18,6 @@ package parts
 
 import (
 	"encoding/json"
-	"go/format"
 	"log"
 	"strings"
 
@@ -44,20 +43,9 @@ func init() {
 	codeBodySession = setupAce("code-body", dom.AceGoMode, codeBodyChange)
 	codeTailSession = setupAce("code-tail", dom.AceGoMode, codeTailChange)
 
-	linkCodeFormatHead.AddEventListener("click", codeFormatHandler(codeHeadSession))
-	linkCodeFormatBody.AddEventListener("click", codeFormatHandler(codeBodySession))
-	linkCodeFormatTail.AddEventListener("click", codeFormatHandler(codeTailSession))
-}
-
-func codeFormatHandler(session *dom.AceSession) func(dom.Object) {
-	return func(dom.Object) {
-		buf, err := format.Source([]byte(session.Value()))
-		if err != nil {
-			log.Printf("Couldn't format: %v", err)
-			return
-		}
-		session.SetValue(string(buf))
-	}
+	linkCodeFormatHead.AddEventListener("click", formatHandler(codeHeadSession))
+	linkCodeFormatBody.AddEventListener("click", formatHandler(codeBodySession))
+	linkCodeFormatTail.AddEventListener("click", formatHandler(codeTailSession))
 }
 
 func codePinsChange(dom.Object) {

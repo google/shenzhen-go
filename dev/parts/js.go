@@ -17,6 +17,7 @@
 package parts
 
 import (
+	"go/format"
 	"log"
 
 	"github.com/google/shenzhen-go/dev/dom"
@@ -37,4 +38,15 @@ func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
 		SetMode(mode).
 		SetUseSoftTabs(false).
 		On("change", handler)
+}
+
+func formatHandler(session *dom.AceSession) func(dom.Object) {
+	return func(dom.Object) {
+		buf, err := format.Source([]byte(session.Value()))
+		if err != nil {
+			log.Printf("Couldn't format: %v", err)
+			return
+		}
+		session.SetValue(string(buf))
+	}
 }

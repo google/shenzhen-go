@@ -139,7 +139,7 @@ func (h *PrometheusInstrumentHandler) Clone() model.Part {
 }
 
 // Impl returns the PrometheusInstrumentHandler implementation.
-func (h *PrometheusInstrumentHandler) Impl(name string, _ bool, _ map[string]string) model.PartImpl {
+func (h *PrometheusInstrumentHandler) Impl(n *model.Node) model.PartImpl {
 	return model.PartImpl{
 		Imports: []string{
 			`"github.com/google/shenzhen-go/dev/parts"`,
@@ -158,7 +158,7 @@ func (h *PrometheusInstrumentHandler) Impl(name string, _ bool, _ map[string]str
 					},
 					%#v)
 		prometheus.MustRegister(sum)
-		`, model.Mangle(name), h.Instrumenter.help(), h.Buckets, h.labels()),
+		`, model.Mangle(n.Name), h.Instrumenter.help(), h.Buckets, h.labels()),
 		Body: fmt.Sprintf(`
 		h := promhttp.InstrumentHandler%s(sum, parts.HTTPHandler(out))
 		for r := range in {

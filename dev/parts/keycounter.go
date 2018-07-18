@@ -67,11 +67,11 @@ func init() {
 // KeyCounter produces a frequency table.
 type KeyCounter struct{}
 
-// Clone returns a clone of this Closer.
+// Clone returns a clone of this KeyCounter.
 func (KeyCounter) Clone() model.Part { return &KeyCounter{} }
 
-// Impl returns the Closer implementation.
-func (KeyCounter) Impl(name string, multiple bool, types map[string]string) model.PartImpl {
+// Impl returns the KeyCounter implementation.
+func (KeyCounter) Impl(n *model.Node) model.PartImpl {
 	return model.PartImpl{
 		Body: fmt.Sprintf(`
 			m := make(map[%s]uint)
@@ -81,7 +81,7 @@ func (KeyCounter) Impl(name string, multiple bool, types map[string]string) mode
 					output <- in 
 				} 
 			}
-			result <- m`, types[keyCounterTypeParam]),
+			result <- m`, n.TypeParams[keyCounterTypeParam].String()),
 		Tail: `if output != nil { 
 			close(output)
 		}
@@ -93,5 +93,5 @@ func (KeyCounter) Impl(name string, multiple bool, types map[string]string) mode
 // and a result output with map type.
 func (KeyCounter) Pins() pin.Map { return keyCounterPins }
 
-// TypeKey returns "Closer".
+// TypeKey returns "KeyCounter".
 func (KeyCounter) TypeKey() string { return "KeyCounter" }

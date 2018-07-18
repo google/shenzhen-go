@@ -22,6 +22,7 @@ import (
 	"gopkg.in/d4l3k/messagediff.v1"
 
 	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/source"
 )
 
 func init() {
@@ -203,20 +204,24 @@ func TestInferTypesSimple(t *testing.T) {
 		t.Errorf("Channels[bar].Type = %s, want %s", got, want)
 	}
 	// node 1.output should still have type "int"
-	if got, want := g.Nodes["node 1"].pinTypes["output"].String(), "int"; got != want {
-		t.Errorf("Nodes[node 1].pinTypes[output] = %s, want %s", got, want)
+	if got, want := g.Nodes["node 1"].PinTypes["output"].String(), "int"; got != want {
+		t.Errorf("Nodes[node 1].PinTypes[output] = %s, want %s", got, want)
 	}
 	// node 2.input should have type "int"
-	if got, want := g.Nodes["node 2"].pinTypes["input"].String(), "int"; got != want {
-		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
+	if got, want := g.Nodes["node 2"].PinTypes["input"].String(), "int"; got != want {
+		t.Errorf("Nodes[node 2].PinTypes[input] = %s, want %s", got, want)
 	}
-	// node 1.typeParams should be an empty map.
-	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 1"].typeParams, map[string]string{}); !equal {
-		t.Errorf("Nodes[node 1].typeParams diff:\n%s", diff)
+	// node 1.TypeParams should be an empty map.
+	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 1"].TypeParams, map[string]*source.Type{}); !equal {
+		t.Errorf("Nodes[node 1].TypeParams diff:\n%s", diff)
 	}
-	// node 2.typeParams should give a value for $T.
-	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 2"].typeParams, map[string]string{"$T": "int"}); !equal {
-		t.Errorf("Nodes[node 1].typeParams diff:\n%s", diff)
+	// node 2.TypeParams should give a value for $T.
+	got := make(map[string]string)
+	for k, t := range g.Nodes["node 2"].TypeParams {
+		got[k] = t.String()
+	}
+	if diff, equal := messagediff.PrettyDiff(got, map[string]string{"$T": "int"}); !equal {
+		t.Errorf("Nodes[node 2].TypeParams diff:\n%s", diff)
 	}
 }
 
@@ -256,20 +261,24 @@ func TestInferTypesNoChannel(t *testing.T) {
 		t.Fatalf("InferTypes() = error %v", err)
 	}
 	// node 1.output should have type "interface{}"
-	if got, want := g.Nodes["node 1"].pinTypes["output"].String(), "interface{}"; got != want {
-		t.Errorf("Nodes[node 1].pinTypes[output] = %s, want %s", got, want)
+	if got, want := g.Nodes["node 1"].PinTypes["output"].String(), "interface{}"; got != want {
+		t.Errorf("Nodes[node 1].PinTypes[output] = %s, want %s", got, want)
 	}
 	// node 1.input should have type "interface{}"
-	if got, want := g.Nodes["node 1"].pinTypes["input"].String(), "interface{}"; got != want {
-		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
+	if got, want := g.Nodes["node 1"].PinTypes["input"].String(), "interface{}"; got != want {
+		t.Errorf("Nodes[node 2].PinTypes[input] = %s, want %s", got, want)
 	}
-	// node 1.typeParams should give a value for $A and $B.
+	// node 1.TypeParams should give a value for $A and $B.
+	got := make(map[string]string)
+	for k, t := range g.Nodes["node 1"].TypeParams {
+		got[k] = t.String()
+	}
 	want := map[string]string{
 		"$A": "interface{}",
 		"$B": "interface{}",
 	}
-	if diff, equal := messagediff.PrettyDiff(g.Nodes["node 1"].typeParams, want); !equal {
-		t.Errorf("Nodes[node 1].typeParams diff:\n%s", diff)
+	if diff, equal := messagediff.PrettyDiff(got, want); !equal {
+		t.Errorf("Nodes[node 1].TypeParams diff:\n%s", diff)
 	}
 }
 
@@ -326,11 +335,11 @@ func TestInferTypesMapToMap(t *testing.T) {
 	if got := g.Channels["bar"].Type.String(); got != want {
 		t.Errorf("Channels[bar].Type = %s, want %s", got, want)
 	}
-	if got := g.Nodes["node 1"].pinTypes["output"].String(); got != want {
-		t.Errorf("Nodes[node 1].pinTypes[output] = %s, want %s", got, want)
+	if got := g.Nodes["node 1"].PinTypes["output"].String(); got != want {
+		t.Errorf("Nodes[node 1].PinTypes[output] = %s, want %s", got, want)
 	}
-	if got := g.Nodes["node 2"].pinTypes["input"].String(); got != want {
-		t.Errorf("Nodes[node 2].pinTypes[input] = %s, want %s", got, want)
+	if got := g.Nodes["node 2"].PinTypes["input"].String(); got != want {
+		t.Errorf("Nodes[node 2].PinTypes[input] = %s, want %s", got, want)
 	}
 }
 
@@ -418,10 +427,10 @@ func TestInferTypes10Chain(t *testing.T) {
 		}
 	}
 	for _, n := range g.Nodes {
-		if got := n.pinTypes["input"].String(); n.Name != "node 0" && got != want {
+		if got := n.PinTypes["input"].String(); n.Name != "node 0" && got != want {
 			t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
 		}
-		if got := n.pinTypes["output"].String(); n.Name != "node 10" && got != want {
+		if got := n.PinTypes["output"].String(); n.Name != "node 10" && got != want {
 			t.Errorf("Nodes[%s].Type = %s, want %s", n.Name, got, want)
 		}
 	}

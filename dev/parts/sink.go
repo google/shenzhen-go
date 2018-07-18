@@ -48,7 +48,7 @@ type Sink struct{}
 func (Sink) Clone() model.Part { return &Sink{} }
 
 // Impl returns the Sink implementation.
-func (Sink) Impl(string, bool, map[string]string) model.PartImpl {
+func (Sink) Impl(*model.Node) model.PartImpl {
 	return model.PartImpl{Body: "for range input {}"}
 }
 

@@ -42,8 +42,8 @@ type Node struct {
 	Connections  map[string]string // Pin name -> channel name
 	Impl         PartImpl          // Final implementation after type inference
 
-	typeParams map[string]string       // Local type parameter -> stringy type
-	pinTypes   map[string]*source.Type // Pin name -> inferred type of pin
+	TypeParams map[string]*source.Type // Local type parameter -> stringy type
+	PinTypes   map[string]*source.Type // Pin name -> inferred type of pin
 }
 
 // Copy returns a copy of this node, but with an empty name, nil connections, and a clone of the Part.
@@ -91,7 +91,7 @@ func (n *Node) PinFullTypes() map[string]string {
 	pins := n.Part.Pins()
 	m := make(map[string]string, len(pins))
 	for pn, p := range pins {
-		m[pn] = p.Direction.Type() + " " + n.pinTypes[pn].String()
+		m[pn] = p.Direction.Type() + " " + n.PinTypes[pn].String()
 	}
 	return m
 }
@@ -193,5 +193,5 @@ func (n *Node) RefreshConnections() {
 
 // RefreshImpl refreshes Impl from the Part.
 func (n *Node) RefreshImpl() {
-	n.Impl = n.Part.Impl(n.Name, n.Multiplicity != "1", n.typeParams)
+	n.Impl = n.Part.Impl(n)
 }

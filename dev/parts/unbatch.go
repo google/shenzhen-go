@@ -58,7 +58,7 @@ type Unbatch struct{}
 func (Unbatch) Clone() model.Part { return &Unbatch{} }
 
 // Impl returns the Unbatch implementation.
-func (Unbatch) Impl(string, bool, map[string]string) model.PartImpl {
+func (Unbatch) Impl(*model.Node) model.PartImpl {
 	return model.PartImpl{
 		Body: `for in := range input { 
 		for _, el := range in { 

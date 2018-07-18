@@ -46,7 +46,7 @@ type Closer struct{}
 func (Closer) Clone() model.Part { return &Closer{} }
 
 // Impl returns the Closer implementation.
-func (Closer) Impl(string, bool, map[string]string) model.PartImpl {
+func (Closer) Impl(*model.Node) model.PartImpl {
 	return model.PartImpl{Tail: "close(output)"}
 }
 

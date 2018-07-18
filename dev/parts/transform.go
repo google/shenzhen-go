@@ -22,19 +22,6 @@ import (
 	"github.com/google/shenzhen-go/dev/model/pin"
 )
 
-var transformPins = pin.NewMap(
-	&pin.Definition{
-		Name:      "inputs",
-		Direction: pin.Input,
-		Type:      "$AnyIn",
-	},
-	&pin.Definition{
-		Name:      "outputs",
-		Direction: pin.Output,
-		Type:      "$AnyOut",
-	},
-)
-
 func init() {
 	model.RegisterPartType("Transform", "General", &model.PartType{
 		New: func() model.Part { return &Transform{} },
@@ -64,8 +51,10 @@ func init() {
 
 // Transform is a part which immediately closes the output channel.
 type Transform struct {
-	Imports []string `json:"imports"`
-	Body    []string `json:"body"`
+	Imports    []string `json:"imports"`
+	Body       []string `json:"body"`
+	InputType  string   `json:"input_type"`
+	OutputType string   `json:"output_type"`
 }
 
 // Clone returns a clone of this Transform.
@@ -74,7 +63,7 @@ func (t *Transform) Clone() model.Part {
 }
 
 // Impl returns the Transform implementation.
-func (t *Transform) Impl(_ string, _ bool, types map[string]string) model.PartImpl {
+func (t *Transform) Impl(n *model.Node) model.PartImpl {
 	return model.PartImpl{
 		Imports: t.Imports,
 		Body: fmt.Sprintf(`for input := range inputs {
@@ -82,13 +71,26 @@ func (t *Transform) Impl(_ string, _ bool, types map[string]string) model.PartIm
 				%s
 			}()
 			if outputs != nil { outputs <- out }
-		}`, types["$AnyOut"], strings.Join(t.Body, "\n")),
+		}`, n.PinTypes["outputs"], strings.Join(t.Body, "\n")),
 		Tail: "if outputs != nil { close(outputs) }",
 	}
 }
 
 // Pins returns a map declaring a single input and single output of any type.
-func (t *Transform) Pins() pin.Map { return transformPins }
+func (t *Transform) Pins() pin.Map {
+	return pin.NewMap(
+		&pin.Definition{
+			Name:      "inputs",
+			Direction: pin.Input,
+			Type:      t.InputType,
+		},
+		&pin.Definition{
+			Name:      "outputs",
+			Direction: pin.Output,
+			Type:      t.OutputType,
+		},
+	)
+}
 
 // TypeKey returns "Transform".
 func (Transform) TypeKey() string { return "Transform" }

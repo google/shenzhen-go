@@ -32,7 +32,7 @@ type FakePart struct {
 func (f *FakePart) Clone() Part { f2 := *f; return &f2 }
 
 // Impl returns Head, Body, Tail.
-func (f *FakePart) Impl(string, bool, map[string]string) PartImpl {
+func (f *FakePart) Impl(*Node) PartImpl {
 	return PartImpl{
 		Imports: f.Impts,
 		Head:    f.Head,

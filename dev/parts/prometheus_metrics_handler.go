@@ -50,7 +50,7 @@ type PrometheusMetricsHandler struct{}
 func (PrometheusMetricsHandler) Clone() model.Part { return &PrometheusMetricsHandler{} }
 
 // Impl returns the PrometheusMetricsHandler implementation.
-func (PrometheusMetricsHandler) Impl(string, bool, map[string]string) model.PartImpl {
+func (PrometheusMetricsHandler) Impl(*model.Node) model.PartImpl {
 	return model.PartImpl{
 		Imports: []string{
 			`"github.com/google/shenzhen-go/dev/parts"`,

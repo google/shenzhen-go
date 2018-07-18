@@ -235,13 +235,13 @@ func (g *Graph) InferTypes() error {
 	g.types = make(source.TypeInferenceMap)
 	for _, n := range g.Nodes {
 		pins := n.Part.Pins()
-		n.pinTypes = make(map[string]*source.Type, len(pins))
+		n.PinTypes = make(map[string]*source.Type, len(pins))
 		for pn, p := range pins {
 			pt, err := source.NewType(n.Name, p.Type)
 			if err != nil {
 				return err
 			}
-			n.pinTypes[pn] = pt
+			n.PinTypes[pn] = pt
 			g.types.Note(pt)
 		}
 	}
@@ -275,14 +275,14 @@ func (g *Graph) InferTypes() error {
 	}
 	for _, n := range g.Nodes {
 		// Some pins aren't connected, lithify those too.
-		for _, pt := range n.pinTypes {
+		for _, pt := range n.PinTypes {
 			pt.Refine(g.types)
 		}
-		n.typeParams = make(map[string]string)
+		n.TypeParams = make(map[string]*source.Type)
 	}
 	// Finally, give each node a limited view of relevant inferred types.
 	for tp, typ := range g.types {
-		g.Nodes[tp.Scope].typeParams[tp.Ident] = typ.String()
+		g.Nodes[tp.Scope].TypeParams[tp.Ident] = typ
 	}
 	return nil
 }
@@ -295,7 +295,7 @@ func (g *Graph) inferAndRefineChan(c *Channel) (map[*Channel]struct{}, error) {
 	// Look at c's pins.
 	for np := range c.Pins {
 		n := g.Nodes[np.Node]
-		ptype := n.pinTypes[np.Pin]
+		ptype := n.PinTypes[np.Pin]
 
 		// Use ptype for c.Type if nothing else.
 		if c.Type == nil {
@@ -342,7 +342,7 @@ func (g *Graph) inferAndRefineChan(c *Channel) (map[*Channel]struct{}, error) {
 func (n *Node) applyTypeParams(types source.TypeInferenceMap) (next source.StringSet, err error) {
 	// Refine all pin types.
 	next = make(source.StringSet)
-	for pn, pt := range n.pinTypes {
+	for pn, pt := range n.PinTypes {
 		changed, err := pt.Refine(types)
 		if err != nil {
 			return nil, err

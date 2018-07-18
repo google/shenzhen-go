@@ -360,7 +360,7 @@ func (c *Cache) Clone() model.Part {
 }
 
 // Impl returns a cache implementation.
-func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.PartImpl {
+func (c *Cache) Impl(n *model.Node) model.PartImpl {
 	params := struct {
 		BytesLimit                           uint64
 		KeyType, HitType, InitTime, TimeComp string
@@ -368,12 +368,12 @@ func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.
 		NodeName                             string
 	}{
 		BytesLimit: c.ContentBytesLimit,
-		KeyType:    types[cacheKeyTypeParam],
-		Mult:       multiple,
-		NodeName:   name,
+		KeyType:    n.TypeParams[cacheKeyTypeParam].String(),
+		Mult:       n.Multiplicity != "1",
+		NodeName:   n.Name,
 		Prometheus: c.EnablePrometheus,
 	}
-	params.HitType = cacheHitType(params.KeyType, types[cacheCtxTypeParam])
+	params.HitType = cacheHitType(params.KeyType, n.TypeParams[cacheCtxTypeParam].String())
 	params.InitTime, params.TimeComp = c.EvictionMode.searchParams()
 	h, b := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	if err := cacheHeadTmpl.Execute(h, params); err != nil {
@@ -383,7 +383,7 @@ func (c *Cache) Impl(name string, multiple bool, types map[string]string) model.
 		panic("couldn't execute cache-body template: " + err.Error())
 	}
 	imps := []string{`"time"`}
-	if multiple {
+	if params.Mult {
 		imps = append(imps, `"sync"`)
 	}
 	if c.EnablePrometheus {

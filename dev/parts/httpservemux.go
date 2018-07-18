@@ -163,7 +163,7 @@ func (m *HTTPServeMux) Clone() model.Part {
 }
 
 // Impl returns the implementation.
-func (m *HTTPServeMux) Impl(name string, _ bool, _ map[string]string) model.PartImpl {
+func (m *HTTPServeMux) Impl(n *model.Node) model.PartImpl {
 	// I think http.ServeMux is concurrent safe... it guards everything with RWMutex.
 	hb, bb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	seen := source.NewStringSet()
@@ -198,7 +198,7 @@ func (m *HTTPServeMux) Impl(name string, _ bool, _ map[string]string) model.Part
 		NodeName   string
 		Prometheus bool
 	}{
-		NodeName:   name,
+		NodeName:   n.Name,
 		Prometheus: m.EnablePrometheus,
 	}
 	if err := httpServeMuxBodyTmpl.Execute(bb, params); err != nil {

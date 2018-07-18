@@ -78,11 +78,12 @@ func (t *Transform) Impl(_ string, _ bool, types map[string]string) model.PartIm
 	return model.PartImpl{
 		Imports: t.Imports,
 		Body: fmt.Sprintf(`for input := range inputs {
-			outputs <- func() %s {
+			out := func() %s {
 				%s
 			}()
+			if outputs != nil { outputs <- out }
 		}`, types["$AnyOut"], strings.Join(t.Body, "\n")),
-		Tail: "close(outputs)",
+		Tail: "if outputs != nil { close(outputs) }",
 	}
 }
 

@@ -1,0 +1,87 @@
+{
+	"name": "Transform",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/transform",
+	"is_command": true,
+	"nodes": {
+		"Generate some numbers": {
+			"part": {
+				"imports": null,
+				"head": null,
+				"body": [
+					"for i := 0; i\u003c10; i++ {",
+					"\tnums \u003c- i",
+					"}"
+				],
+				"tail": [
+					"close(nums)"
+				],
+				"pins": {
+					"nums": {
+						"type": "int",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 170,
+			"y": 121,
+			"connections": {
+				"nums": "channel0"
+			}
+		},
+		"Multiply numbers by 3": {
+			"part": {
+				"imports": null,
+				"body": [
+					"return input * 3"
+				],
+				"input_type": "int",
+				"output_type": "int"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 175,
+			"y": 228,
+			"connections": {
+				"inputs": "channel0",
+				"outputs": "channel1"
+			}
+		},
+		"Print numbers": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"body": [
+					"fmt.Println(input)",
+					"return nil"
+				],
+				"input_type": "$AnyIn",
+				"output_type": "$AnyOut"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 207,
+			"y": 346,
+			"connections": {
+				"inputs": "channel1",
+				"outputs": "nil"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 0
+		},
+		"channel1": {
+			"cap": 0
+		}
+	}
+}

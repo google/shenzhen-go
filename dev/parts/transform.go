@@ -24,8 +24,26 @@ import (
 
 func init() {
 	model.RegisterPartType("Transform", "General", &model.PartType{
-		New: func() model.Part { return &Transform{} },
+		New: func() model.Part {
+			return &Transform{
+				InputType:  "$AnyIn",
+				OutputType: "$AnyOut",
+			}
+		},
 		Panels: []model.PartPanel{
+			{
+				Name: "Types",
+				Editor: `<div class="form">
+					<div class="formfield">
+						<label for="transform-inputtype">Input type</label>
+						<input id="transform-inputtype" name="transform-inputtype" type="text"></input>
+					</div>
+					<div class="formfield">
+						<label for="transform-outputtype">Output type</label>
+						<input id="transform-outputtype" name="transform-outputtype" type="text"></input>
+					</div>
+				</div>`,
+			},
 			{
 				Name:   "Imports",
 				Editor: `<div class="codeedit" id="transform-imports"></div>`,
@@ -35,7 +53,7 @@ func init() {
 				Editor: `<div class="formfield">
 					<span class="link" id="transform-format-link">Format</span>
 				</div>
-				<div class="formfield codeedit" id="transform-body"></div>`,
+				<div class="codeedit formfield" id="transform-body"></div>`,
 			},
 			{
 				Name: "Help",

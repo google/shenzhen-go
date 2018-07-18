@@ -25,7 +25,9 @@ import (
 var (
 	transformImportsSession, transformBodySession *dom.AceSession
 
-	linkTransformFormat = doc.ElementByID("transform-format-link")
+	inputTransformInputType  = doc.ElementByID("transform-inputtype")
+	inputTransformOutputType = doc.ElementByID("transform-outputtype")
+	linkTransformFormat      = doc.ElementByID("transform-format-link")
 
 	focusedTransform *Transform
 )
@@ -35,6 +37,12 @@ func init() {
 	transformImportsSession = setupAce("transform-imports", dom.AceGoMode, transformImportsChange)
 	transformBodySession = setupAce("transform-body", dom.AceGoMode, transformBodyChange)
 
+	inputTransformInputType.AddEventListener("change", func(dom.Object) {
+		focusedTransform.InputType = inputTransformInputType.Get("value").String()
+	})
+	inputTransformOutputType.AddEventListener("change", func(dom.Object) {
+		focusedTransform.OutputType = inputTransformOutputType.Get("value").String()
+	})
 	linkTransformFormat.AddEventListener("click", formatHandler(transformBodySession))
 }
 
@@ -48,6 +56,8 @@ func transformBodyChange(dom.Object) {
 
 func (t *Transform) GainFocus() {
 	focusedTransform = t
+	inputTransformInputType.Set("value", t.InputType)
+	inputTransformOutputType.Set("value", t.OutputType)
 	transformImportsSession.SetValue(strings.Join(t.Imports, "\n"))
 	transformBodySession.SetValue(strings.Join(t.Body, "\n"))
 }

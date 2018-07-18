@@ -45,7 +45,14 @@ var (
 	// Set up by webview.go
 	useDefaultBrowser *bool
 	webviewOpen       func(string) error
+
+	viewParams view.Params
 )
+
+func init() {
+	flag.StringVar(&viewParams.AceTheme, "ace_theme", "chrome", "name of the ace theme (not including ace/theme/ prefix)")
+	flag.StringVar(&viewParams.CSSTheme, "css_theme", "default", "name of theme css file to use (name as in theme-${name}.css)")
+}
 
 func systemOpen(url string) error {
 	switch runtime.GOOS {
@@ -116,13 +123,15 @@ func serve(addr chan<- net.Addr) error {
 		addr <- ln.Addr()
 	}
 
+	s := server.New(viewParams)
+
 	http.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(pingMsg)) })
 	http.Handle("/favicon.ico", view.Favicon)
 	http.Handle("/.static/", http.StripPrefix("/.static/", view.Static))
-	http.Handle("/", server.S)
+	http.Handle("/", s)
 
 	gs := grpc.NewServer()
-	pb.RegisterShenzhenGoServer(gs, server.S)
+	pb.RegisterShenzhenGoServer(gs, s)
 	ws := grpcweb.WrapServer(gs,
 		grpcweb.WithWebsockets(true),
 	)
@@ -149,7 +158,7 @@ func serve(addr chan<- net.Addr) error {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, `Shenzhen Go is a tool for managing Shenzhen Go source code.
+	fmt.Fprintf(os.Stderr, `Shenzhen Go is a tool for managing and editing Shenzhen Go source code.
 	
 Usage:
 

@@ -172,7 +172,7 @@ func writeTempRunner(g *model.Graph) (string, error) {
 }
 
 // Graph handles displaying/editing a graph.
-func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
+func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request, uiParams *view.Params) {
 	log.Printf("%s graph: %s", r.Method, r.URL)
 	q := r.URL.Query()
 
@@ -191,5 +191,5 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	view.Graph(w, g.Graph)
+	view.Graph(w, g.Graph, uiParams)
 }

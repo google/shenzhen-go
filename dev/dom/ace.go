@@ -27,7 +27,8 @@ const (
 	AceJSONMode = "ace/mode/json"
 
 	// Ace themes.
-	AceChromeTheme = "ace/theme/chrome"
+	AceChromeTheme              = "ace/theme/chrome"
+	AceTomorrowNightBrightTheme = "ace/theme/tomorrow_night_bright"
 )
 
 // Ace wraps an "ace" object (usually global).

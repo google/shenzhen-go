@@ -49,3 +49,8 @@ func (o object) New(params ...interface{}) Object    { return WrapObject(o.Objec
 func (o object) Call(method string, params ...interface{}) Object {
 	return WrapObject(o.Object.Call(method, params...))
 }
+
+// Global returns a name from the global namespace.
+func Global(name string) Object {
+	return WrapObject(js.Global.Get(name))
+}

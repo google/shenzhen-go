@@ -14,3 +14,9 @@
 
 // Package view provides the user interface.
 package view
+
+// Params are common parameters needed to stye the UI.
+type Params struct {
+	AceTheme string
+	CSSTheme string
+}

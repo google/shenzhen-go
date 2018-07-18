@@ -3,12 +3,14 @@
 	<meta charset="utf-8"/>
 	<title>{{$.Graph.Name}}</title>
 	<link type="text/css" rel="stylesheet" href="/.static/css/fonts.css">
+	<link type="text/css" rel="stylesheet" href="/.static/css/theme-{{$.Params.CSSTheme}}.css">
 	<link type="text/css" rel="stylesheet" href="/.static/css/main.css">
 	<script src="/.static/js/ace/ace.js" charset="utf-8"></script>
 	<script src="/.static/js/hterm/hterm_all.js" charset="utf-8"></script>
 	<script>
+		var aceTheme = '{{$.Params.AceTheme}}';
 		var graphPath = '{{$.Graph.URLPath}}';
-		var GraphJSON = "{{$.GraphJSON}}";
+		var graphJSON = "{{$.GraphJSON}}";
         hterm.defaultStorage = new lib.Storage.Memory();
 	</script>
 </head>

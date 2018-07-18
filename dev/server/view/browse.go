@@ -31,12 +31,14 @@ type DirectoryEntry struct {
 }
 
 // Browse writes a filesystem browser to the response writer.
-func Browse(w http.ResponseWriter, base string, dir []DirectoryEntry) {
+func Browse(w http.ResponseWriter, base string, dir []DirectoryEntry, params *Params) {
 	d := &struct {
+		Params  *Params
 		Up      string
 		Base    string
 		Entries []DirectoryEntry
 	}{
+		Params:  params,
 		Up:      filepath.Dir(base),
 		Base:    base,
 		Entries: dir,

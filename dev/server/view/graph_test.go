@@ -28,6 +28,7 @@ func TestGraphEditorTemplate(t *testing.T) {
 	// Smoke testing the editor template.
 	for name, g := range model.TestGraphs {
 		ei := &editorInput{
+			Params:              &Params{AceTheme: "chrome", CSSTheme: "default"},
 			Graph:               g,
 			GraphJSON:           `{"json": true}`,
 			PartTypes:           model.PartTypes,

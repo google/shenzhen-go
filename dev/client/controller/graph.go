@@ -34,6 +34,8 @@ var (
 	ace   = dom.GlobalAce()
 	hterm = dom.GlobalHterm()
 
+	aceTheme = dom.Global("aceTheme").String()
+
 	_ view.GraphController = (*graphController)(nil)
 )
 
@@ -72,9 +74,8 @@ func setupAceView(id, mode string) *dom.AceSession {
 	if e == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
-	e.SetTheme(dom.AceChromeTheme)
-	return e.Session().
-		SetMode(mode)
+	e.SetTheme("ace/theme/" + aceTheme)
+	return e.Session().SetMode(mode)
 }
 
 // NewGraphController returns a new controller for a graph, and binds outlets.

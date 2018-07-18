@@ -25,6 +25,7 @@ func Cache(get <-chan struct {
 	Key  int
 	Data []byte
 }) {
+	// Cache
 	multiplicity := runtime.NumCPU()
 
 	const bytesLimit = 1048576
@@ -48,15 +49,12 @@ func Cache(get <-chan struct {
 		go func() {
 			defer multWG.Done()
 
+		handleLoop:
 			for {
-				if get == nil && put == nil {
-					break
-				}
 				select {
 				case g, open := <-get:
 					if !open {
-						get = nil
-						continue
+						break handleLoop
 					}
 					mu.RLock()
 					e, ok := cache[g.Key]
@@ -136,6 +134,7 @@ func Get_random_items(keys chan<- struct {
 	Key int
 	Ctx struct{}
 }) {
+	// Get random items
 
 	defer func() {
 		close(keys)
@@ -155,6 +154,7 @@ func Print_hits(gets <-chan struct {
 	Ctx  struct{}
 	Data []byte
 }) {
+	// Print hits
 
 	for g := range gets {
 		fmt.Printf("Hit: %v (ctx %v, size %v)\n", g.Key, g.Ctx, len(g.Data))
@@ -165,6 +165,7 @@ func Print_misses(keys <-chan struct {
 	Key int
 	Ctx struct{}
 }) {
+	// Print misses
 
 	for k := range keys {
 		fmt.Printf("Miss: %v\n", k)
@@ -175,6 +176,7 @@ func Put_random_sizes(puts chan<- struct {
 	Key  int
 	Data []byte
 }) {
+	// Put random sizes
 
 	defer func() {
 		close(puts)

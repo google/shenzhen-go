@@ -26,6 +26,7 @@ import (
 var graphEditorTemplate = template.Must(template.New("graphEditor").Parse(string(templateResources["templates/graph.html"])))
 
 type editorInput struct {
+	Params              *Params
 	Graph               *model.Graph
 	GraphJSON           string
 	PartTypes           map[string]*model.PartType
@@ -38,7 +39,7 @@ type editorInput struct {
 }
 
 // Graph displays a graph.
-func Graph(w http.ResponseWriter, g *model.Graph) {
+func Graph(w http.ResponseWriter, g *model.Graph, params *Params) {
 	gj, err := json.Marshal(g)
 	if err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
@@ -47,6 +48,7 @@ func Graph(w http.ResponseWriter, g *model.Graph) {
 	}
 
 	d := &editorInput{
+		Params:              params,
 		Graph:               g,
 		GraphJSON:           string(gj),
 		PartTypes:           model.PartTypes,

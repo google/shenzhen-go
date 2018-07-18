@@ -1,40 +1,28 @@
-:root {
-  --link-colour: #05d;
-  --link-hover-colour: #07f;
-  --link-destructive-colour: #d03;
-  --link-destructive-hover-colour: #f06;
-
-  --diagram-channel-colour: #000;
-  --diagram-channel-selected-colour: #09f;
-  --diagram-channel-error-colour: #d03;
-
-  --font-family: Go,'San Francisco','Helvetica Neue',Helvetica,Arial,sans-serif;
-  --font-family-mono: 'Go Mono','Fira Code',Menlo,monospace;
-}
-
 body {
-	font-family: var(--font-family);
-	float: none;
-	margin: 0;
-	display: flex;
-	flex-flow: column;
-	height: 100%;
-	max-height: 100%;
+    font-family: var(--font-family);
+    color: var(--text-colour);
+    background-color: var(--background-colour);
+    float: none;
+    margin: 0;
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+    max-height: 100%;
 }
 
 span.link {
-	color: var(--link-colour);
-	text-decoration: none;
-	cursor: pointer;
+    color: var(--link-colour);
+    text-decoration: none;
+    cursor: pointer;
 }
 
 span.link.selected {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 span.link:hover {
-	color: var(--link-hover-colour);
-	text-decoration: underline;
+    color: var(--link-hover-colour);
+    text-decoration: underline;
 }
 
 span.link.destructive {
@@ -45,17 +33,19 @@ span.link.destructive:hover {
     color: var(--link-destructive-hover-colour);
 }
 
-a:link, a:visited {
-	color: var(--link-colour);
-	text-decoration: none;
+a:link,
+a:visited {
+    color: var(--link-colour);
+    text-decoration: none;
 }
 
 a:hover {
-	color: var(--link-hover-colour);
-	text-decoration: underline;
+    color: var(--link-hover-colour);
+    text-decoration: underline;
 }
 
-a.destructive:link, a.destructive:visited {
+a.destructive:link,
+a.destructive:visited {
     color: var(--link-destructive-colour);
 }
 
@@ -64,114 +54,121 @@ a.destructive:hover {
 }
 
 code {
-	font-family: var(--font-family-mono);
-	color: #066;
+    font-family: var(--font-family-mono);
+    color: var(--text-colour-code);
 }
 
-input {
-	font-family: var(--font-family-mono);
-	font-size: 12pt;
+input,
+select,
+textarea {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size);
+    background-color: var(--background-colour);
+	color: var(--text-colour);
+
+	border-color: var(--divider-colour);
+	border-style: solid;
+	border-radius: 4px;
+	border-width: 1px;
+	padding: 8px;
 }
 
 select {
-	font-family: var(--font-family);
-	font-size: 12pt;
+    font-family: var(--font-family);
 }
 
-textarea {
-	font-family: var(--font-family-mono);
-	font-size: 12pt;
-}
-
-div.form input[type=text], div.form select, div.form textarea {
-	width: 100%;
-	margin: 8px 0;
-	display: inline-block;
-	box-sizing: border-box;
+div.form input[type=text],
+div.form select,
+div.form textarea {
+    width: 100%;
+    margin: 8px 0;
+    display: inline-block;
+    box-sizing: border-box;
 }
 
 div.formfield {
-	width: 100%;
-	margin-top: 12px;
+    width: 100%;
+    margin-top: 12px;
 }
 
 div.browse-container {
-	margin: 0 auto 8px;
-	min-width: 800px;
+    margin: 0 auto 8px;
+    min-width: 800px;
 }
 
 div.head {
-	padding: 6px;
-	flex: 0 1 auto;
-	border-bottom-style: solid;
-	border-bottom-color: #aaa;
-	border-bottom-width: 1px;
+    padding: 6px;
+    flex: 0 1 auto;
+    border-bottom-style: solid;
+    border-bottom-color: var(--divider-colour);
+    border-bottom-width: 1px;
 }
 
 div.box {
-	display: flex;
-	flex-flow: row;
-	flex: 0 1 auto;
+    display: flex;
+    flex-flow: row;
+    flex: 0 1 auto;
 }
+
 div.container {
-	flex: 1 1 50%;
+    flex: 1 1 50%;
 }
 
 div#diagram-container {
-	overflow: scroll;
+    overflow: scroll;
 }
 
 div#panels-container {
-	display: flex;
-	flex-flow: column;
+    display: flex;
+    flex-flow: column;
 }
 
 div.panel {
-	display: flex;
-	flex-flow: column;
-	flex: auto;
-	overflow: scroll;
+    display: flex;
+    flex-flow: column;
+    flex: auto;
+    overflow: scroll;
 }
 
 div.panel.padded {
-	padding: 6px;
+    padding: 6px;
 }
 
 div.node-panel {
-	display: flex;
-	flex-flow: column;
-	flex: auto;
+    display: flex;
+    flex-flow: column;
+    flex: auto;
 }
 
 div.hcentre {
-	text-align: center;
+    text-align: center;
 }
 
 table.browse {
-	font-family: var(--font-family-mono);
-	font-size: 12pt;
-	margin-top: 16pt;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size);
+    margin-top: 16pt;
 }
 
 fieldset {
-	margin: 4px;
+    margin: 4px;
 }
 
 fieldset#pathtemplate {
-	display: none;
+    display: none;
 }
 
 .dropdown {
     position: relative;
-	display: inline-block;
-	margin-left: 2ex;
+    display: inline-block;
+    margin-left: 2ex;
 }
 
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #fff;
-    box-shadow: 0px 6px 12px 0px rgba(0,0,0,0.2);
+    background-color: var(--dropdown-background-colour);
+    box-shadow: 0px 6px 12px 0px var(--drop-shadow-colour);
     padding: 4px 4px;
     z-index: 1;
 }
@@ -181,56 +178,55 @@ fieldset#pathtemplate {
 }
 
 .dropdown-content ul {
-	list-style-type: none;
-   	margin: 0;
-   	padding: 0;
-   	overflow: hidden;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .dropdown-content ul li {
-	white-space: nowrap;
-	margin: 4px;
+    white-space: nowrap;
+    margin: 4px;
 }
 
 div.codeedit {
-	font-family: var(--font-family-mono);
-	font-size: 14px;
-	flex: auto;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size);
+    flex: auto;
 }
 
 div.terminal {
-	position: relative;
-	width: 100%;
-	height: 100%;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 svg#diagram {
-	background: #f8f8ff;
+    background: var(--diagram-background-colour);
 }
 
 svg#diagram .draggable {
-	cursor: grab;
+    cursor: grab;
 }
 
 svg#diagram .draggable.dragging {
-	cursor: grabbing;
+    cursor: grabbing;
 }
 
 svg#diagram g.textbox text {
-	font-family: Go; 
-	font-size: 16; 
-	user-select: none; 
-	pointer-events: none;
-
-	alignment-baseline: middle;
-	dominant-baseline: middle;
-	text-anchor: middle;
+    fill: var(--text-colour);
+    font: normal var(--font-size) var(--font-family);
+    user-select: none;
+    pointer-events: none;
+    alignment-baseline: middle;
+    dominant-baseline: middle;
+    text-anchor: middle;
 }
 
 svg#diagram g.textbox rect {
-	fill: #faffee; 
-	stroke: #636e48; 
-	stroke-width: 1;
+    fill: var(--diagram-default-box-fill);
+    stroke: var(--diagram-default-box-stroke);
+    stroke-width: 1;
 }
 
 svg#diagram g.textbox text::selection {
@@ -238,61 +234,61 @@ svg#diagram g.textbox text::selection {
 }
 
 svg#diagram g.node g.textbox rect {
-	fill: #e0f0ff;
-	stroke: #45607a;
-	stroke-width: 1;
+    fill: var(--diagram-node-fill);
+    stroke: var(--diagram-node-stroke);
+    stroke-width: 1;
 }
 
 svg#diagram g.node.selected g.textbox rect {
-	fill: #bee0ff;
-	stroke-width: 2;
+    fill: var(--diagram-node-selected-fill);
+    stroke-width: 2;
 }
 
 svg#diagram g.node g.pin circle {
-	fill: var(--diagram-channel-colour);
+    fill: var(--diagram-channel-colour);
 }
 
 svg#diagram g.node g.pin.selected circle {
-	fill: var(--diagram-channel-selected-colour);
+    fill: var(--diagram-channel-selected-colour);
 }
 
 svg#diagram g.node g.pin.error circle {
-	fill: var(--diagram-channel-error-colour);
+    fill: var(--diagram-channel-error-colour);
 }
 
 svg#diagram g.channel line {
-	stroke: var(--diagram-channel-colour);
-	stroke-width: 2;
+    stroke: var(--diagram-channel-colour);
+    stroke-width: 2;
 }
 
 svg#diagram g.channel path {
-	fill: var(--diagram-channel-colour);
+    fill: var(--diagram-channel-colour);
 }
 
 svg#diagram g.channel circle {
-	fill: var(--diagram-channel-colour);
+    fill: var(--diagram-channel-colour);
 }
 
 svg#diagram g.channel.selected line {
-	stroke: var(--diagram-channel-selected-colour);
+    stroke: var(--diagram-channel-selected-colour);
 }
 
 svg#diagram g.channel.selected path {
-	fill: var(--diagram-channel-selected-colour);
+    fill: var(--diagram-channel-selected-colour);
 }
 
 svg#diagram g.channel.selected circle {
-	fill: var(--diagram-channel-selected-colour);
+    fill: var(--diagram-channel-selected-colour);
 }
 
 svg#diagram g.channel.error line {
-	stroke: var(--diagram-channel-error-colour);
+    stroke: var(--diagram-channel-error-colour);
 }
 
 svg#diagram g.channel.error path {
-	fill: var(--diagram-channel-error-colour);
+    fill: var(--diagram-channel-error-colour);
 }
 
 svg#diagram g.channel.error circle {
-	fill: var(--diagram-channel-error-colour);
+    fill: var(--diagram-channel-error-colour);
 }

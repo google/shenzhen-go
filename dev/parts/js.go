@@ -26,6 +26,8 @@ import (
 var (
 	doc = dom.CurrentDocument()
 	ace = dom.GlobalAce()
+
+	aceTheme = dom.Global("aceTheme").String()
 )
 
 func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
@@ -33,7 +35,7 @@ func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
 	if e == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
-	e.SetTheme(dom.AceChromeTheme)
+	e.SetTheme("ace/theme/" + aceTheme)
 	return e.Session().
 		SetMode(mode).
 		SetUseSoftTabs(false).

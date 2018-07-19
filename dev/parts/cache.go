@@ -179,7 +179,11 @@ handleLoop:
 			}
 			{{if .Mult}}mu.Unlock(){{end}}
 		}
-	}`))
+	}
+	if put != nil {
+		for range put {}
+	}
+	`))
 )
 
 func init() {

@@ -309,6 +309,11 @@ func Cache(get <-chan struct {
 					mu.Unlock()
 				}
 			}
+			if put != nil {
+				for range put {
+				}
+			}
+
 		}()
 	}
 }

@@ -56,6 +56,7 @@
 		"HTTP GET requests": {
 			"part": {
 				"imports": [
+					"\"io\"",
 					"\"io/ioutil\"",
 					"\"net/http\"",
 					""
@@ -84,7 +85,7 @@
 					"\t\t}",
 					"\t\tdefer resp.Body.Close()",
 					"\t\tcodes[resp.StatusCode]++",
-					"\t\tif _, err := ioutil.ReadAll(resp.Body); err != nil {",
+					"\t\tif _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {",
 					"\t\t\treturn",
 					"\t\t}",
 					"\t}()",
@@ -109,8 +110,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 244,
-			"y": 216,
+			"x": 243,
+			"y": 222,
 			"connections": {
 				"interrupt": "channel0",
 				"summary": "channel1"

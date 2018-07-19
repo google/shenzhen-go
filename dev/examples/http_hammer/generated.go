@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -72,7 +73,7 @@ func HTTP_GET_requests(interrupt <-chan struct{}, summary chan<- map[int]int) {
 					}
 					defer resp.Body.Close()
 					codes[resp.StatusCode]++
-					if _, err := ioutil.ReadAll(resp.Body); err != nil {
+					if _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {
 						return
 					}
 				}()

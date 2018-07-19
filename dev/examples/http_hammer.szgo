@@ -1,0 +1,166 @@
+{
+	"name": "HTTP Server Load Tester",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/http_hammer",
+	"is_command": true,
+	"nodes": {
+		"Aggregate and print": {
+			"part": {
+				"imports": [
+					"\"fmt\"",
+					"\"sort\"",
+					"\"time\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"start := time.Now()",
+					"sum := make(map[int]int)",
+					"for s := range summary {",
+					"\tfor k, n := range s {",
+					"\t\tsum[k] += n",
+					"\t}",
+					"}",
+					"dur := time.Since(start)",
+					"fmt.Printf(\"Duration: %v\\n\", dur)",
+					"keys := make([]int, 0, len(sum))",
+					"for k := range sum {",
+					"\tkeys = append(keys, k)",
+					"}",
+					"sort.Ints(keys)",
+					"for _, k := range keys {",
+					"\tfmt.Printf(\"Status %d: %d (%f / sec) \\n\", k, sum[k], float64(sum[k])/dur.Seconds())",
+					"}",
+					""
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"summary": {
+						"type": "map[int]int",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 263,
+			"y": 339,
+			"connections": {
+				"summary": "channel1"
+			}
+		},
+		"HTTP GET requests": {
+			"part": {
+				"imports": [
+					"\"io/ioutil\"",
+					"\"net/http\"",
+					""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"codes := make(map[int]int)",
+					"url := fmt.Sprintf(\"http://localhost:8765/mandelbrot?x=%d\u0026y=%d\u0026z=0\",",
+					"\tinstanceNumber%2 - 1,",
+					"\t(instanceNumber/2)%2 - 1)",
+					"spamLoop:",
+					"for {",
+					"\tselect {",
+					"\tcase \u003c-interrupt:",
+					"\t\tbreak spamLoop",
+					"\tdefault:",
+					"\t\t// Nop.",
+					"\t}",
+					"\tfunc() {",
+					"\t\t",
+					"\t\tresp, err := http.Get(url)",
+					"\t\tif err != nil {",
+					"\t\t\treturn",
+					"\t\t}",
+					"\t\tdefer resp.Body.Close()",
+					"\t\tcodes[resp.StatusCode]++",
+					"\t\tif _, err := ioutil.ReadAll(resp.Body); err != nil {",
+					"\t\t\treturn",
+					"\t\t}",
+					"\t}()",
+					"}",
+					"summary \u003c- codes"
+				],
+				"tail": [
+					"close(summary)"
+				],
+				"pins": {
+					"interrupt": {
+						"type": "struct{}",
+						"dir": "in"
+					},
+					"summary": {
+						"type": "map[int]int",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 244,
+			"y": 216,
+			"connections": {
+				"interrupt": "channel0",
+				"summary": "channel1"
+			}
+		},
+		"Wait for ^C": {
+			"part": {
+				"imports": [
+					"\"fmt\"",
+					"\"os/signal\"",
+					"\"os\""
+				],
+				"head": [
+					"fmt.Println(\"Press Ctrl-C or send SIGINT to stop\")",
+					"it := make(chan os.Signal, 1)",
+					"signal.Notify(it, os.Interrupt)",
+					"\u003c-it",
+					"fmt.Println()",
+					"close(interrupt)"
+				],
+				"body": [
+					""
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"interrupt": {
+						"type": "struct{}",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 295,
+			"y": 102,
+			"connections": {
+				"interrupt": "channel0"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 1
+		},
+		"channel1": {
+			"cap": 0
+		}
+	}
+}

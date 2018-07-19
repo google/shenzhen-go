@@ -1,0 +1,34 @@
+{
+	"name": "Interrupt",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/interrupt",
+	"is_command": true,
+	"nodes": {
+		"Code": {
+			"part": {
+				"imports": [
+					"\"fmt\"",
+					"\"os\"",
+					"\"os/signal\""
+				],
+				"head": null,
+				"body": [
+					"fmt.Println(\"Press Ctrl-C or send SIGINT to stop\")",
+					"it := make(chan os.Signal, 1)",
+					"signal.Notify(it, os.Interrupt)",
+					"\u003c-it",
+					"fmt.Println(\"Interrupted!\")"
+				],
+				"tail": null,
+				"pins": {}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 295,
+			"y": 260,
+			"connections": {}
+		}
+	},
+	"channels": {}
+}

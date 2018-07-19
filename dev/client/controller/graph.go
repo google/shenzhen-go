@@ -335,8 +335,6 @@ func (c *graphController) ShowHterm() {
 }
 
 func (c *graphController) Run(ctx context.Context) error {
-	// TODO: Implement ^C / stop
-
 	c.ShowHterm()
 	c.htermTerminal.ClearHome()
 
@@ -370,6 +368,9 @@ func (c *graphController) Run(ctx context.Context) error {
 			buf = buf[:len(buf)-1]
 			// I have no idea what I'm doing, do I
 			tio.Print("\b \b")
+		case "\x03":
+			rc.Send(&pb.Input{In: s})
+			tio.Print("^C")
 		default:
 			buf = append(buf, s...)
 			tio.Print(s)

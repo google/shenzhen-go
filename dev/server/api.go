@@ -109,6 +109,9 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 	if err != nil {
 		return status.Errorf(codes.Internal, "attaching stdin pipe: %v", err)
 	}
+	cmd.Stdout, cmd.Stderr = stdout, stderr
+	// go run forks a child, when we
+	setpgid(cmd)
 	go func() {
 		for {
 			in, err := svr.Recv()
@@ -119,17 +122,25 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 			if _, err := stdin.Write([]byte(in.In)); err != nil {
 				return
 			}
+			if in.In == "\x03" { // ^C
+				//log.Printf("svr.Recv got ^C, sending os.Interrupt to %d\n", cmd.Process.Pid)
+				if err := interrupt(cmd.Process); err != nil {
+					fmt.Fprintf(stderr, "(interrupt(%d) = %v\n", cmd.Process.Pid, err)
+				}
+			}
 		}
 	}()
-	cmd.Stdout, cmd.Stderr = stdout, stderr
+	defer func() {
+		msg := "failed"
+		if cmd.ProcessState.Success() {
+			msg = "succeeded"
+		}
+		fmt.Fprintf(stderr, "(process %s)\n", msg)
+	}()
 	if err := cmd.Run(); err != nil {
-		return status.Errorf(codes.Aborted, "run failed: %v", err)
+		//fmt.Fprintf(stderr, "(process run failed: %v)", err)
+		return status.Errorf(codes.Aborted, "cmd.Run() = %v", err)
 	}
-	msg := "failed"
-	if cmd.ProcessState.Success() {
-		msg = "succeeded"
-	}
-	fmt.Fprintf(stderr, "(process %s)\n", msg)
 	return nil
 }
 

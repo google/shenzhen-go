@@ -109,9 +109,9 @@
 			"part_type": "Code",
 			"enabled": true,
 			"wait": true,
-			"multiplicity": "N",
-			"x": 243,
-			"y": 222,
+			"multiplicity": "2*N",
+			"x": 237,
+			"y": 223,
 			"connections": {
 				"interrupt": "channel0",
 				"summary": "channel1"
@@ -158,7 +158,7 @@
 	},
 	"channels": {
 		"channel0": {
-			"cap": 1
+			"cap": 0
 		},
 		"channel1": {
 			"cap": 0

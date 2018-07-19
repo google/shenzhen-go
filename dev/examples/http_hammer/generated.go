@@ -41,7 +41,7 @@ func Aggregate_and_print(summary <-chan map[int]int) {
 
 func HTTP_GET_requests(interrupt <-chan struct{}, summary chan<- map[int]int) {
 	// HTTP GET requests
-	multiplicity := runtime.NumCPU()
+	multiplicity := 2 * runtime.NumCPU()
 
 	defer func() {
 		close(summary)
@@ -96,7 +96,7 @@ func Wait_for_C(interrupt chan<- struct{}) {
 
 func main() {
 
-	channel0 := make(chan struct{}, 1)
+	channel0 := make(chan struct{}, 0)
 	channel1 := make(chan map[int]int, 0)
 
 	var wg sync.WaitGroup

@@ -56,12 +56,12 @@ func (g *Graph) nearestPoint(x, y float64) (dist float64, pt Pointer) {
 }
 
 // goroutines because cannot block in callback
-func (g *Graph) save(dom.Object)     { go g.reallySave() }
-func (g *Graph) revert(dom.Object)   { go g.reallyRevert() }
-func (g *Graph) generate(dom.Object) { go g.reallyGenerate() }
-func (g *Graph) build(dom.Object)    { go g.reallyBuild() }
-func (g *Graph) install(dom.Object)  { go g.reallyInstall() }
-func (g *Graph) run(dom.Object)      { go g.reallyRun() }
+func (g *Graph) save(e dom.Object)     { g.view.commitSelected(e); go g.reallySave() }
+func (g *Graph) revert(e dom.Object)   { g.view.commitSelected(e); go g.reallyRevert() }
+func (g *Graph) generate(e dom.Object) { g.view.commitSelected(e); go g.reallyGenerate() }
+func (g *Graph) build(e dom.Object)    { g.view.commitSelected(e); go g.reallyBuild() }
+func (g *Graph) install(e dom.Object)  { g.view.commitSelected(e); go g.reallyInstall() }
+func (g *Graph) run(e dom.Object)      { g.view.commitSelected(e); go g.reallyRun() }
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {

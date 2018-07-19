@@ -309,11 +309,6 @@ func Cache(get <-chan struct {
 					mu.Unlock()
 				}
 			}
-			if put != nil {
-				for range put {
-				}
-			}
-
 		}()
 	}
 }
@@ -347,6 +342,31 @@ func Duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPRequest) {
 			for r := range in {
 				h.ServeHTTP(r.ResponseWriter, r.Request)
 				r.Close()
+			}
+		}()
+	}
+}
+
+func Error(inputs <-chan *parts.HTTPRequest, outputs chan<- interface{}) {
+	// Error
+	multiplicity := runtime.NumCPU()
+
+	defer func() {
+		if outputs != nil {
+			close(outputs)
+		}
+	}()
+	var multWG sync.WaitGroup
+	multWG.Add(multiplicity)
+	defer multWG.Wait()
+	for n := 0; n < multiplicity; n++ {
+		go func() {
+			defer multWG.Done()
+			for input := range inputs {
+				func() {
+					http.Error(input, "server overload", http.StatusServiceUnavailable)
+					input.Close()
+				}()
 			}
 		}()
 	}
@@ -621,7 +641,7 @@ func Mandelbrot_duration(in <-chan *parts.HTTPRequest, out chan<- *parts.HTTPReq
 			Help:      "Durations of requests",
 			Buckets:   []float64(nil),
 		},
-		[]string(nil))
+		[]string{"code"})
 	prometheus.MustRegister(sum)
 
 	defer func() {
@@ -667,17 +687,17 @@ func Mux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HTTPRequest
 	multiplicity := runtime.NumCPU()
 	mux := http.NewServeMux()
 	outLabels := make(map[parts.HTTPHandler]string)
-	mux.Handle("/", parts.HTTPHandler(root))
-	outLabels[root] = "root"
 	mux.Handle("/mandelbrot", parts.HTTPHandler(mandelbrot))
 	outLabels[mandelbrot] = "mandelbrot"
 	mux.Handle("/metrics", parts.HTTPHandler(metrics))
 	outLabels[metrics] = "metrics"
+	mux.Handle("/", parts.HTTPHandler(root))
+	outLabels[root] = "root"
 
 	defer func() {
-		close(root)
 		close(mandelbrot)
 		close(metrics)
+		close(root)
 
 	}()
 	var multWG sync.WaitGroup
@@ -717,6 +737,52 @@ func Mux(mandelbrot chan<- *parts.HTTPRequest, metrics chan<- *parts.HTTPRequest
 				hh <- req
 			}
 		}()
+	}
+}
+
+func Queue(drop chan<- *parts.HTTPRequest, input <-chan *parts.HTTPRequest, output chan<- *parts.HTTPRequest) {
+	// Queue
+	const maxItems = 1024
+	defer func() {
+		close(output)
+		if drop != nil {
+			close(drop)
+		}
+	}()
+
+	queue := make([]*parts.HTTPRequest, 0, maxItems)
+	for {
+		if len(queue) == 0 {
+			if input == nil {
+				break
+			}
+			in, open := <-input
+			if !open {
+				break
+			}
+			queue = append(queue, in)
+		}
+		idx := len(queue) - 1
+		out := queue[idx]
+		select {
+		case in, open := <-input:
+			if !open {
+				input = nil
+				break // select
+			}
+			queue = append(queue, in)
+			if len(queue) <= maxItems {
+				break // select
+			}
+			// Drop least-recently read item, but don't block.
+			select {
+			case drop <- queue[0]:
+			default:
+			}
+			queue = queue[1:]
+		case output <- out:
+			queue = queue[:idx]
+		}
 	}
 }
 
@@ -801,6 +867,8 @@ func main() {
 		Ctx  *parts.HTTPRequest
 		Data []byte
 	}, 0)
+	channel12 := make(chan *parts.HTTPRequest, 0)
+	channel13 := make(chan *parts.HTTPRequest, 100)
 	channel2 := make(chan error, 0)
 	channel3 := make(chan *parts.HTTPRequest, 0)
 	channel4 := make(chan *parts.HTTPRequest, 0)
@@ -838,7 +906,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Extract_parameters(channel7, channel8)
+		Error(channel13, nil)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Extract_parameters(channel6, channel8)
 		wg.Done()
 	}()
 
@@ -868,7 +942,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Mandelbrot_duration(channel6, channel7)
+		Mandelbrot_duration(channel12, channel7)
 		wg.Done()
 	}()
 
@@ -880,7 +954,13 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		Mux(channel6, channel3, channel0, channel4)
+		Mux(channel12, channel3, channel0, channel4)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		Queue(channel13, channel7, channel6)
 		wg.Done()
 	}()
 

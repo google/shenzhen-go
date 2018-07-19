@@ -13,8 +13,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 170,
-			"y": 667,
+			"x": 286,
+			"y": 737,
 			"connections": {
 				"get": "channel8",
 				"hit": "channel11",
@@ -37,6 +37,30 @@
 			"connections": {
 				"in": "channel4",
 				"out": "channel5"
+			}
+		},
+		"Error": {
+			"part": {
+				"imports": [
+					"\"net/http\"",
+					"\"github.com/google/shenzhen-go/dev/parts\""
+				],
+				"body": [
+					"http.Error(input, \"server overload\", http.StatusServiceUnavailable)",
+					"input.Close()"
+				],
+				"input_type": "*parts.HTTPRequest",
+				"output_type": "$AnyOut"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "N",
+			"x": 65,
+			"y": 629,
+			"connections": {
+				"inputs": "channel13",
+				"outputs": "nil"
 			}
 		},
 		"Extract parameters": {
@@ -81,10 +105,10 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 104,
-			"y": 554,
+			"x": 220,
+			"y": 629,
 			"connections": {
-				"inputs": "channel7",
+				"inputs": "channel6",
 				"outputs": "channel8"
 			}
 		},
@@ -98,6 +122,7 @@
 					"\"math\"",
 					"\"math/cmplx\"",
 					"\"net/http\"",
+					"\"time\"",
 					"\"github.com/google/shenzhen-go/dev/parts\""
 				],
 				"body": [
@@ -165,8 +190,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 346,
-			"y": 669,
+			"x": 482,
+			"y": 739,
 			"connections": {
 				"inputs": "channel9",
 				"outputs": "channel10"
@@ -178,7 +203,7 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 350,
+			"x": 351,
 			"y": 157,
 			"connections": {
 				"errors": "channel2",
@@ -304,7 +329,7 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 196,
+			"x": 208,
 			"y": 291,
 			"connections": {
 				"errors": "channel2"
@@ -313,17 +338,17 @@
 		"Mandelbrot duration": {
 			"part": {
 				"instrumenter": "Duration",
-				"label_code": false,
+				"label_code": true,
 				"label_method": false
 			},
 			"part_type": "PrometheusInstrumentHandler",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 100,
-			"y": 446,
+			"x": 107,
+			"y": 410,
 			"connections": {
-				"in": "channel6",
+				"in": "channel12",
 				"out": "channel7"
 			}
 		},
@@ -333,8 +358,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 374,
-			"y": 448,
+			"x": 373,
+			"y": 411,
 			"connections": {
 				"requests": "channel3"
 			}
@@ -355,10 +380,27 @@
 			"x": 387,
 			"y": 298,
 			"connections": {
-				"mandelbrot": "channel6",
+				"mandelbrot": "channel12",
 				"metrics": "channel3",
 				"requests": "channel0",
 				"root": "channel4"
+			}
+		},
+		"Queue": {
+			"part": {
+				"mode": "lifo",
+				"max_items": 1024
+			},
+			"part_type": "Queue",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 172,
+			"y": 523,
+			"connections": {
+				"drop": "channel13",
+				"input": "channel7",
+				"output": "channel6"
 			}
 		},
 		"Serve from cache": {
@@ -383,8 +425,8 @@
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "N",
-			"x": 111,
-			"y": 773,
+			"x": 225,
+			"y": 849,
 			"connections": {
 				"inputs": "channel11",
 				"outputs": "nil"
@@ -454,6 +496,12 @@
 		},
 		"channel11": {
 			"cap": 0
+		},
+		"channel12": {
+			"cap": 0
+		},
+		"channel13": {
+			"cap": 100
 		},
 		"channel2": {
 			"cap": 0

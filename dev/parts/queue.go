@@ -138,7 +138,11 @@ func (q *Queue) Impl(n *model.Node) model.PartImpl {
 				if input == nil {
 					break
 				}
-				queue = append(queue, <-input)
+				in, open := <-input
+				if !open {
+					break
+				}
+				queue = append(queue, in)
 			}
 			idx := %s
 			out := queue[idx]

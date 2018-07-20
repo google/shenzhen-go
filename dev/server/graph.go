@@ -77,9 +77,9 @@ func GeneratePackage(out io.Writer, g *model.Graph) (string, error) {
 		return "", err
 	}
 	pp := filepath.Join(gp, "src", g.PackagePath)
-	if err := os.Mkdir(pp, os.FileMode(0755)); err != nil {
-		log.Printf("Could not make path %q, continuing: %v", pp, err)
-		fmt.Fprintf(out, "os.Mkdir(pp, 0755) = error %v (continuing anyway)\n", err)
+	if err := os.MkdirAll(pp, os.FileMode(0755)); err != nil {
+		fmt.Fprintf(out, "os.MkdirAll(pp, 0755) = error %v)\n", err)
+		return "", err
 	}
 	mp := filepath.Join(pp, "generated.go")
 	f, err := os.Create(mp)

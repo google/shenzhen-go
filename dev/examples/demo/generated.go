@@ -11,6 +11,7 @@ var _ = runtime.Compiler
 
 /* Node 1 reads a user-entered number. */
 func Node_1(qux chan<- int) {
+	// Node 1
 
 	fmt.Println("Node 1: Started.")
 	fmt.Print("Enter a number: ")
@@ -23,6 +24,7 @@ func Node_1(qux chan<- int) {
 
 /* Node 2 prints the value it receives. */
 func Node_2(foo <-chan int) {
+	// Node 2
 
 	fmt.Println("Node 2: Started.")
 	fmt.Println("Node 2: Waiting on foo...")

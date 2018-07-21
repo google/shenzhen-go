@@ -121,20 +121,16 @@ func GenerateRunner(out io.Writer, g *model.Graph) (string, error) {
 	return path, nil
 }
 
-func finalStatus(out io.Writer, cmd *exec.Cmd) {
-	msg := "failed"
-	if cmd.ProcessState.Success() {
-		msg = "succeeded"
-	}
-	fmt.Fprintf(out, "(process %s)\n", msg)
-}
-
 func runCmd(out io.Writer, cmd *exec.Cmd) error {
 	fmt.Fprintf(out, "%v\n", cmd.Args)
 	cmd.Stdout = out
 	cmd.Stderr = out
-	defer finalStatus(out, cmd)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(out, "(process %v)\n", err)
+		return err
+	}
+	fmt.Fprintln(out, "(process succeeded)")
+	return nil
 }
 
 // Build saves the graph as Go source code and tries to "go build" it.

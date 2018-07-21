@@ -130,17 +130,11 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 			}
 		}
 	}()
-	defer func() {
-		msg := "failed"
-		if cmd.ProcessState.Success() {
-			msg = "succeeded"
-		}
-		fmt.Fprintf(stderr, "(process %s)\n", msg)
-	}()
 	if err := cmd.Run(); err != nil {
-		//fmt.Fprintf(stderr, "(process run failed: %v)", err)
+		fmt.Fprintf(stderr, "(process %v)", err)
 		return status.Errorf(codes.Aborted, "cmd.Run() = %v", err)
 	}
+	fmt.Fprintln(stderr, "(process succeeded)")
 	return nil
 }
 

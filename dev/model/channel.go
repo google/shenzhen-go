@@ -29,6 +29,8 @@ type Channel struct {
 // NodePin is a simple tuple of node name, pin name.
 type NodePin struct{ Node, Pin string }
 
+func (np NodePin) String() string { return np.Node + "." + np.Pin }
+
 // AddPin is sugar for `c.Pins[NodePin{Node: node, Pin: pin}] = struct{}{}`.
 // It doesn't update the node.
 func (c *Channel) AddPin(node, pin string) {

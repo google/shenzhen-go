@@ -17,6 +17,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 
@@ -221,10 +222,12 @@ func (g *Graph) RefreshChannelsPins() {
 type TypeIncompatibilityError struct {
 	Summary string
 	Source  error
+	Channel *Channel
+	Pin     NodePin
 }
 
 func (e *TypeIncompatibilityError) Error() string {
-	return e.Summary
+	return fmt.Sprintf("%s: %v", e.Summary, e.Source)
 }
 
 // InferTypes resolves the types of channels and generic pins.
@@ -307,8 +310,10 @@ func (g *Graph) inferAndRefineChan(c *Channel) (map[*Channel]struct{}, error) {
 		// Make inferences; at the end, c.Type and ptype must be the same fully refined type.
 		if err := g.types.Infer(c.Type, ptype); err != nil {
 			return nil, &TypeIncompatibilityError{
-				Summary: "channel connected to incompatible types",
+				Summary: fmt.Sprintf("types of %q and %q are incompatible", c.Name, np),
 				Source:  err,
+				Channel: c,
+				Pin:     np,
 			}
 		}
 
@@ -316,8 +321,9 @@ func (g *Graph) inferAndRefineChan(c *Channel) (map[*Channel]struct{}, error) {
 		cimp, err := c.Type.Refine(g.types)
 		if err != nil {
 			return nil, &TypeIncompatibilityError{
-				Summary: "channel type refinement failed",
+				Summary: fmt.Sprintf("refining type for %q", c.Name),
 				Source:  err,
+				Channel: c,
 			}
 		}
 		if cimp {
@@ -345,7 +351,12 @@ func (n *Node) applyTypeParams(types source.TypeInferenceMap) (next source.Strin
 	for pn, pt := range n.PinTypes {
 		changed, err := pt.Refine(types)
 		if err != nil {
-			return nil, err
+			np := NodePin{n.Name, pn}
+			return nil, &TypeIncompatibilityError{
+				Summary: fmt.Sprintf("refining type for %q", np),
+				Source:  err,
+				Pin:     np,
+			}
 		}
 		if !changed { // Refine had no effect, not worth investigating channel.
 			continue

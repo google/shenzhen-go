@@ -9,7 +9,7 @@ fi
 go install github.com/google/shenzhen-go/scripts/embed
 
 pushd $GOPATH/src/github.com/google/shenzhen-go/dev/server/view
-# Statically embed resources
+# Statically embed all resources, including client.js.
 go generate
 popd
 

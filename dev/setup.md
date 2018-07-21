@@ -12,6 +12,7 @@ TODO(josh): Validate on a fresh machine
     2.  `go get -u -v github.com/golang/protobuf/protoc-gen-go`
     3.  `go get -u -v github.com/gopherjs/gopherjs`
     4.  `go get -u -v github.com/johanbrandhorst/protobuf/protoc-gen-gopherjs`
+4.  (a) If on Linux: `sudo apt install webkit2gtk-4.0
 5.  `go get -u -v github.com/google/shenzhen-go/dev/cmd/shenzhen-go`
 6.  `cd $GOPATH/src/github.com/google/shenzhen-go/dev`
 7.  `./fullbuild.sh`

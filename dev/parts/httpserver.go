@@ -149,7 +149,6 @@ func (s *HTTPServer) Impl(*model.Node) model.PartImpl {
 	}`)
 	return model.PartImpl{
 		Imports: []string{
-			`"context"`,
 			`"net/http"`,
 			`"github.com/google/shenzhen-go/dev/parts"`,
 		},

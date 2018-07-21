@@ -29,4 +29,6 @@ Clone() model.Part
 Impl(n *model.Node) model.PartImpl
 Pins() pin.Map
 TypeKey() string
+
+GainFocus()
 */

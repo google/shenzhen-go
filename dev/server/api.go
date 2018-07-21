@@ -110,7 +110,7 @@ func (c *server) Run(svr pb.ShenzhenGo_RunServer) error {
 		return status.Errorf(codes.Internal, "attaching stdin pipe: %v", err)
 	}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
-	// go run forks a child, when we
+	// go run compiles and forks a temporary binary. Need to control it as a process group.
 	setpgid(cmd)
 	go func() {
 		for {

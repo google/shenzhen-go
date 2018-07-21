@@ -73,27 +73,27 @@ func GeneratePackage(out io.Writer, g *model.Graph) (string, error) {
 	fmt.Fprintln(out, "[GeneratePackage]")
 	gp, err := source.GoPath()
 	if err != nil {
-		fmt.Fprintf(out, "source.GoPath() = error %v\n(GeneratePackage failed)\n", err)
+		fmt.Fprintf(out, "source.GoPath() = %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	pp := filepath.Join(gp, "src", g.PackagePath)
 	if err := os.MkdirAll(pp, os.FileMode(0755)); err != nil {
-		fmt.Fprintf(out, "os.MkdirAll(pp, 0755) = error %v)\n", err)
+		fmt.Fprintf(out, "os.MkdirAll(pp, 0755) = %v)\n", err)
 		return "", err
 	}
 	mp := filepath.Join(pp, "generated.go")
 	f, err := os.Create(mp)
 	if err != nil {
-		fmt.Fprintf(out, "os.Create(mp) = error %v\n(GeneratePackage failed)\n", err)
+		fmt.Fprintf(out, "os.Create(mp) = %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	defer f.Close()
 	if err := g.WriteGoTo(f); err != nil {
-		fmt.Fprintf(out, "g.WriteGoTo(f) = error %v\n(GeneratePackage failed)\n", err)
+		fmt.Fprintf(out, "g.WriteGoTo(f) = %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	if err := f.Close(); err != nil {
-		fmt.Fprintf(out, "f.Close() = error %v\n(GeneratePackage failed)\n", err)
+		fmt.Fprintf(out, "f.Close() = %v\n(GeneratePackage failed)\n", err)
 		return "", err
 	}
 	fmt.Fprintln(out, "(GeneratePackage succeeded)")
@@ -114,7 +114,7 @@ func GenerateRunner(out io.Writer, g *model.Graph) (string, error) {
 	fmt.Fprintln(out, "[GenerateRunner]")
 	path, err := writeTempRunner(g)
 	if err != nil {
-		fmt.Fprintf(out, "writeTempRunner(g) = error %v\n(GenerateRunner failed)\n", err)
+		fmt.Fprintf(out, "writeTempRunner(g) = %v\n(GenerateRunner failed)\n", err)
 		return "", err
 	}
 	fmt.Fprintln(out, "(GenerateRunner succeeded)")
@@ -183,7 +183,7 @@ func renderGraph(g *serveGraph, w http.ResponseWriter, r *http.Request, uiParams
 
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "Unsupported verb %q", r.Method)
+		fmt.Fprintf(w, "Unsupported method %q", r.Method)
 		return
 	}
 

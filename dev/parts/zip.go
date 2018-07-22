@@ -33,6 +33,44 @@ const (
 	ZipUntilLastClose  ZipFinishMode = "last"
 )
 
+func init() {
+	model.RegisterPartType("Zip", "Flow", &model.PartType{
+		New: func() model.Part {
+			return &Zip{
+				InputNum:   2,
+				FinishMode: ZipUntilFirstClose,
+			}
+		},
+		Panels: []model.PartPanel{
+			{
+				Name: "Zip",
+				Editor: `<div class="form">
+				<div class="formfield">
+					<label>Number of inputs: <input id="zip-inputnum" type="number"></input></label>
+				</div>
+				<div class="formfield">
+					<label for="zip-finishmode">Finish mode</label>
+					<select id="zip-finishmode" name="zip-finishmode">
+						<option value="first">Send until first closure</option>
+						<option value="last">Send until last closure</option>
+					</select>
+				</div></div>`,
+			},
+			{
+				Name: "Help",
+				Editor: `<div>
+			<p>A Zip part combines multiple inputs in lockstep into a single struct.
+			The number of inputs is configurable, as is the behaviour on input closure - 
+			either to stop sending as soon as any input is closed, or when all inputs
+			are closed.</p><p>
+			Regardless of finish mode, all input values will be consumed.
+			</p>
+			</div>`,
+			},
+		},
+	})
+}
+
 // Zip implements a "zipper" part, that combines inputs in lockstep.
 type Zip struct {
 	InputNum   uint          `json:"input_num"`
@@ -43,7 +81,7 @@ func (z Zip) outputType(types map[string]*source.Type) string {
 	fs := make([]string, 0, z.InputNum)
 	for i := uint(0); i < z.InputNum; i++ {
 		tp := fmt.Sprintf("$T%d", i)
-		if types == nil {
+		if types != nil {
 			tp = types[tp].String()
 		}
 		fs = append(fs, fmt.Sprintf("Field%d %s", i, tp))
@@ -58,29 +96,36 @@ func (z Zip) Clone() model.Part { return z }
 // Impl returns an implementation for this part.
 func (z Zip) Impl(n *model.Node) model.PartImpl {
 	bb, wb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
-	bb.WriteString("for {\n")
-	if z.FinishMode == ZipUntilLastClose {
-		bb.WriteString("\tallClosed := true\n")
-	}
+	bb.WriteString(`for {
+		allClosed, send := true, true
+	`)
 	for i := uint(0); i < z.InputNum; i++ {
-		in := fmt.Sprintf("input%d", i)
-		if n.Connections[in] == "nil" {
+		input := fmt.Sprintf("input%d", i)
+		if n.Connections[input] == "nil" {
 			continue
 		}
-		fmt.Fprintf(bb, "\tin%d, open := <- %s\n\tif ", i, in)
-		switch z.FinishMode {
-		case ZipUntilFirstClose:
-			bb.WriteString("!open {\t\tbreak\n\t}\n")
-		case ZipUntilLastClose:
-			bb.WriteString("open {\t\tallClosed = false\n\t}\n")
+		fmt.Fprintf(bb, `	in%d, open := <- %s
+			if open {
+				allClosed = false
+			}`, i, input)
+		if z.FinishMode == ZipUntilFirstClose {
+			bb.WriteString(` else {
+				send = false
+			}
+		`)
 		}
 
-		fmt.Fprintf(wb, "\t\tField%d: in%d\n", i, i)
+		fmt.Fprintf(wb, "Field%d: in%d\n", i, i)
 	}
-	if z.FinishMode == ZipUntilLastClose {
-		bb.WriteString("\tif allClosed { break }\n")
+	bb.WriteString("if allClosed {\nbreak\n}\n")
+	if z.FinishMode == ZipUntilFirstClose {
+		bb.WriteString("if send {\n")
 	}
-	fmt.Fprintf(bb, "\toutput <- %s{%s}\n}", z.outputType(n.TypeParams), wb.String())
+	fmt.Fprintf(bb, "output <- %s{%s}\n}", z.outputType(n.TypeParams), wb.String())
+	if z.FinishMode == ZipUntilFirstClose {
+		bb.WriteString("}\n")
+	}
+
 	tail := "close(output)"
 	if n.Connections["output"] == "nil" {
 		tail = ""

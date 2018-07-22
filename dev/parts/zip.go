@@ -97,22 +97,21 @@ func (z Zip) Clone() model.Part { return z }
 func (z Zip) Impl(n *model.Node) model.PartImpl {
 	bb, wb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	bb.WriteString(`for {
-		allClosed, send := true, true
+		allClosed := true
 	`)
+	if z.FinishMode == ZipUntilFirstClose {
+		bb.WriteString("send := true\n")
+	}
 	for i := uint(0); i < z.InputNum; i++ {
 		input := fmt.Sprintf("input%d", i)
 		if n.Connections[input] == "nil" {
 			continue
 		}
 		fmt.Fprintf(bb, `	in%d, open := <- %s
-			if open {
-				allClosed = false
-			}`, i, input)
+			allClosed = allClosed && !open
+		`, i, input)
 		if z.FinishMode == ZipUntilFirstClose {
-			bb.WriteString(` else {
-				send = false
-			}
-		`)
+			bb.WriteString("send = send && open\n")
 		}
 
 		fmt.Fprintf(wb, "Field%d: in%d,\n", i, i)
@@ -121,7 +120,7 @@ func (z Zip) Impl(n *model.Node) model.PartImpl {
 	if z.FinishMode == ZipUntilFirstClose {
 		bb.WriteString("if !send {\ncontinue\n}\n")
 	}
-	fmt.Fprintf(bb, "output <- %s{%s}\n}", z.outputType(n.TypeParams), wb.String())
+	fmt.Fprintf(bb, "output <- %s{\n%s}\n}", z.outputType(n.TypeParams), wb.String())
 
 	tail := "close(output)"
 	if n.Connections["output"] == "nil" {

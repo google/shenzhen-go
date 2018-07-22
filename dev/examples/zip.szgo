@@ -1,60 +1,42 @@
 {
-	"name": "",
+	"name": "Zip",
 	"package_path": "github.com/google/shenzhen-go/dev/examples/zip",
 	"is_command": false,
 	"nodes": {
-		"Transform": {
-			"part": {
-				"imports": null,
-				"body": null,
-				"input_type": "$AnyIn",
-				"output_type": "$AnyOut"
-			},
-			"part_type": "Transform",
+		"Closer": {
+			"part": {},
+			"part_type": "Closer",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 186,
+			"x": 196,
 			"y": 169,
 			"connections": {
-				"inputs": "nil",
-				"outputs": "channel0"
+				"output": "channel1"
 			}
 		},
-		"Transform 2": {
-			"part": {
-				"imports": null,
-				"body": null,
-				"input_type": "$AnyIn",
-				"output_type": "$AnyOut"
-			},
-			"part_type": "Transform",
+		"Closer 2": {
+			"part": {},
+			"part_type": "Closer",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 341,
-			"y": 161,
+			"x": 356,
+			"y": 163,
 			"connections": {
-				"inputs": "nil",
-				"outputs": "channel1"
+				"output": "channel0"
 			}
 		},
-		"Transform 3": {
-			"part": {
-				"imports": null,
-				"body": null,
-				"input_type": "$AnyIn",
-				"output_type": "$AnyOut"
-			},
-			"part_type": "Transform",
+		"Sink": {
+			"part": {},
+			"part_type": "Sink",
 			"enabled": true,
 			"wait": true,
 			"multiplicity": "1",
-			"x": 229,
-			"y": 448,
+			"x": 269,
+			"y": 443,
 			"connections": {
-				"inputs": "channel2",
-				"outputs": "nil"
+				"input": "channel2"
 			}
 		},
 		"Zip": {
@@ -69,8 +51,8 @@
 			"x": 273,
 			"y": 307,
 			"connections": {
-				"input0": "channel0",
-				"input1": "channel1",
+				"input0": "channel1",
+				"input1": "channel0",
 				"output": "channel2"
 			}
 		}

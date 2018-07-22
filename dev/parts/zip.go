@@ -21,6 +21,7 @@ import (
 
 	"github.com/google/shenzhen-go/dev/model"
 	"github.com/google/shenzhen-go/dev/model/pin"
+	"github.com/google/shenzhen-go/dev/source"
 )
 
 // ZipFinishMode is the finish point of a Zip part.
@@ -38,10 +39,15 @@ type Zip struct {
 	FinishMode ZipFinishMode `json:"finish_mode"`
 }
 
-func (z Zip) outputType() string {
+func (z Zip) outputType(types map[string]*source.Type) string {
 	fs := make([]string, 0, z.InputNum)
 	for i := uint(0); i < z.InputNum; i++ {
-		fs = append(fs, fmt.Sprintf("Field%d $T%d", i, i))
+		tp := fmt.Sprintf("$T%d", i)
+		if types == nil {
+			tp = types[tp].String()
+		}
+		fs = append(fs, fmt.Sprintf("Field%d %s", i, tp))
+
 	}
 	return "struct { " + strings.Join(fs, ";") + " }"
 }
@@ -51,34 +57,37 @@ func (z Zip) Clone() model.Part { return z }
 
 // Impl returns an implementation for this part.
 func (z Zip) Impl(n *model.Node) model.PartImpl {
-	bb, wb, tb := bytes.NewBuffer(nil), bytes.NewBuffer(nil), bytes.NewBuffer(nil)
+	bb, wb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	bb.WriteString("for {\n")
 	if z.FinishMode == ZipUntilLastClose {
 		bb.WriteString("\tallClosed := true\n")
 	}
 	for i := uint(0); i < z.InputNum; i++ {
-		if n.Connections[fmt.Sprintf("input%d", i)] == "nil" {
+		in := fmt.Sprintf("input%d", i)
+		if n.Connections[in] == "nil" {
 			continue
 		}
-		fmt.Fprintf(bb, "\tin%d, open := <- input%d\n\tif ", i, i)
+		fmt.Fprintf(bb, "\tin%d, open := <- %s\n\tif ", i, in)
 		switch z.FinishMode {
 		case ZipUntilFirstClose:
-			bb.WriteString("!open {\t\tbreak")
+			bb.WriteString("!open {\t\tbreak\n\t}\n")
 		case ZipUntilLastClose:
-			bb.WriteString("open {\t\tallClosed = false")
+			bb.WriteString("open {\t\tallClosed = false\n\t}\n")
 		}
-		bb.WriteString("\n\t}\n")
 
 		fmt.Fprintf(wb, "\t\tField%d: in%d\n", i, i)
-		fmt.Fprintf(tb, "\tclose(input%d)\n", i)
 	}
 	if z.FinishMode == ZipUntilLastClose {
 		bb.WriteString("\tif allClosed { break }\n")
 	}
-	fmt.Fprintf(bb, "\toutput <- %s{%s}\n}", z.outputType(), wb.String())
+	fmt.Fprintf(bb, "\toutput <- %s{%s}\n}", z.outputType(n.TypeParams), wb.String())
+	tail := "close(output)"
+	if n.Connections["output"] == "nil" {
+		tail = ""
+	}
 	return model.PartImpl{
 		Body: bb.String(),
-		Tail: tb.String(),
+		Tail: tail,
 	}
 }
 
@@ -87,15 +96,14 @@ func (z Zip) Pins() pin.Map {
 	m := pin.NewMap(&pin.Definition{
 		Name:      "output",
 		Direction: pin.Output,
-		Type:      z.outputType(),
+		Type:      z.outputType(nil),
 	})
 	for i := uint(0); i < z.InputNum; i++ {
 		name := fmt.Sprintf("input%d", i)
-		tp := fmt.Sprintf("$T%d", i)
 		m[name] = &pin.Definition{
 			Name:      name,
 			Direction: pin.Input,
-			Type:      tp,
+			Type:      fmt.Sprintf("$T%d", i),
 		}
 	}
 	return m

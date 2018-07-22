@@ -8,52 +8,15 @@ import (
 
 var _ = runtime.Compiler
 
-func Closer(output chan<- interface{}) {
-	// Closer
-
-	defer func() {
-		close(output)
-	}()
-
-}
-
-func Closer_2(output chan<- interface{}) {
-	// Closer 2
-
-	defer func() {
-		close(output)
-	}()
-
-}
-
-func Sink(input <-chan struct {
-	Field0 interface{}
-	Field1 interface{}
-}) {
-	// Sink
-
-	for range input {
-	}
-}
-
 func Zip(input0 <-chan interface{}, input1 <-chan interface{}, output chan<- struct {
 	Field0 interface{}
 	Field1 interface{}
 }) {
 	// Zip
 
-	defer func() {
-		close(output)
-	}()
 	for {
 		allClosed := true
 		send := true
-		in0, open := <-input0
-		allClosed = allClosed && !open
-		send = send && open
-		in1, open := <-input1
-		allClosed = allClosed && !open
-		send = send && open
 		if allClosed {
 			break
 		}
@@ -63,10 +26,7 @@ func Zip(input0 <-chan interface{}, input1 <-chan interface{}, output chan<- str
 		output <- struct {
 			Field0 interface{}
 			Field1 interface{}
-		}{
-			Field0: in0,
-			Field1: in1,
-		}
+		}{}
 	}
 }
 
@@ -75,36 +35,11 @@ func Zip(input0 <-chan interface{}, input1 <-chan interface{}, output chan<- str
 // finish" to finish before returning.
 func Run() {
 
-	channel0 := make(chan interface{}, 0)
-	channel1 := make(chan interface{}, 0)
-	channel2 := make(chan struct {
-		Field0 interface{}
-		Field1 interface{}
-	}, 0)
-
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
-		Closer(channel1)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		Closer_2(channel0)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		Sink(channel2)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		Zip(channel1, channel0, channel2)
+		Zip(nil, nil, nil)
 		wg.Done()
 	}()
 

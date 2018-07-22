@@ -95,6 +95,10 @@ func (z Zip) Clone() model.Part { return z }
 
 // Impl returns an implementation for this part.
 func (z Zip) Impl(n *model.Node) model.PartImpl {
+	if n.Connections["output"] == "nil" {
+		return model.PartImpl{}
+	}
+
 	bb, wb := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	bb.WriteString(`for {
 		allClosed := true
@@ -122,13 +126,9 @@ func (z Zip) Impl(n *model.Node) model.PartImpl {
 	}
 	fmt.Fprintf(bb, "output <- %s{\n%s}\n}", z.outputType(n.TypeParams), wb.String())
 
-	tail := "close(output)"
-	if n.Connections["output"] == "nil" {
-		tail = ""
-	}
 	return model.PartImpl{
 		Body: bb.String(),
-		Tail: tail,
+		Tail: "close(output)",
 	}
 }
 

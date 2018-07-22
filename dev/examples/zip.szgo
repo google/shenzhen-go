@@ -1,0 +1,89 @@
+{
+	"name": "",
+	"package_path": "github.com/google/shenzhen-go/dev/examples/zip",
+	"is_command": false,
+	"nodes": {
+		"Transform": {
+			"part": {
+				"imports": null,
+				"body": null,
+				"input_type": "$AnyIn",
+				"output_type": "$AnyOut"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 186,
+			"y": 169,
+			"connections": {
+				"inputs": "nil",
+				"outputs": "channel0"
+			}
+		},
+		"Transform 2": {
+			"part": {
+				"imports": null,
+				"body": null,
+				"input_type": "$AnyIn",
+				"output_type": "$AnyOut"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 341,
+			"y": 161,
+			"connections": {
+				"inputs": "nil",
+				"outputs": "channel1"
+			}
+		},
+		"Transform 3": {
+			"part": {
+				"imports": null,
+				"body": null,
+				"input_type": "$AnyIn",
+				"output_type": "$AnyOut"
+			},
+			"part_type": "Transform",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 229,
+			"y": 448,
+			"connections": {
+				"inputs": "channel2",
+				"outputs": "nil"
+			}
+		},
+		"Zip": {
+			"part": {
+				"input_num": 2,
+				"finish_mode": "first"
+			},
+			"part_type": "Zip",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 273,
+			"y": 307,
+			"connections": {
+				"input0": "channel0",
+				"input1": "channel1",
+				"output": "channel2"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 0
+		},
+		"channel1": {
+			"cap": 0
+		},
+		"channel2": {
+			"cap": 0
+		}
+	}
+}

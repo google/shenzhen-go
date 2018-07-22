@@ -115,16 +115,13 @@ func (z Zip) Impl(n *model.Node) model.PartImpl {
 		`)
 		}
 
-		fmt.Fprintf(wb, "Field%d: in%d\n", i, i)
+		fmt.Fprintf(wb, "Field%d: in%d,\n", i, i)
 	}
 	bb.WriteString("if allClosed {\nbreak\n}\n")
 	if z.FinishMode == ZipUntilFirstClose {
-		bb.WriteString("if send {\n")
+		bb.WriteString("if !send {\ncontinue\n}\n")
 	}
 	fmt.Fprintf(bb, "output <- %s{%s}\n}", z.outputType(n.TypeParams), wb.String())
-	if z.FinishMode == ZipUntilFirstClose {
-		bb.WriteString("}\n")
-	}
 
 	tail := "close(output)"
 	if n.Connections["output"] == "nil" {

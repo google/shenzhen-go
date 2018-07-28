@@ -42,10 +42,16 @@ type TypeParam struct {
 // Each type parameter may belong to a different scope after refinement,
 // but each Type is constructed initially within a single scope.
 type Type struct {
-	spec          string
-	expr          ast.Expr
+	// The original type string and its parsed mangled ast.Expr form.
+	spec string
+	expr ast.Expr
+
+	// Used for tracking type parameters.
 	paramToIdents map[TypeParam][]modIdent
 	identToParam  map[*ast.Ident]TypeParam
+
+	// Used for tracking import usage to enable deconflicting imports.
+	selectorToScope map[*ast.SelectorExpr]string
 }
 
 // mangle/unmangle assume that paramPrefix is invalid in a regular Go type, which
@@ -80,8 +86,8 @@ func MustNewType(scope, t string) *Type {
 }
 
 // NewType parses a generic type string into a Type.
-// All parameters are assumed to belong to the one given scope.
-// If t is not parametrised, scope is ignored.
+// All parameters and selector expressions are assumed to belong
+// to the one given scope.
 func NewType(scope, t string) (*Type, error) {
 	expr, err := parser.ParseExpr(mangle(t))
 	if err != nil {
@@ -92,12 +98,18 @@ func NewType(scope, t string) (*Type, error) {
 	}
 	identToParam := make(map[*ast.Ident]TypeParam)
 	paramToIdents := make(map[TypeParam][]modIdent)
+	selToScope := make(map[*ast.SelectorExpr]string)
 	pt := parentTracker{
 		parent: nil,
 		f: func(par, n ast.Node) bool {
 			id, ok := n.(*ast.Ident)
 			if !ok {
 				return true
+			}
+			if sel, ok := par.(*ast.SelectorExpr); ok && sel.X == id {
+				// sel is a selector of the form identA.identB,
+				// probably usage of a type in another castle^Wpackage.
+				selToScope[sel] = scope
 			}
 			if !strings.HasPrefix(id.Name, mangledParamPrefix) {
 				return true
@@ -116,10 +128,11 @@ func NewType(scope, t string) (*Type, error) {
 	}
 	ast.Walk(pt, expr)
 	return &Type{
-		spec:          t,
-		paramToIdents: paramToIdents,
-		identToParam:  identToParam,
-		expr:          expr,
+		spec:            t,
+		paramToIdents:   paramToIdents,
+		identToParam:    identToParam,
+		selectorToScope: selToScope,
+		expr:            expr,
 	}, nil
 }
 
@@ -131,10 +144,11 @@ func (p *Type) clone() *Type {
 		return p
 	}
 	q := &Type{
-		spec:          p.spec,
-		paramToIdents: make(map[TypeParam][]modIdent),
-		identToParam:  make(map[*ast.Ident]TypeParam),
-		expr:          nil,
+		spec:            p.spec,
+		paramToIdents:   make(map[TypeParam][]modIdent),
+		identToParam:    make(map[*ast.Ident]TypeParam),
+		selectorToScope: make(map[*ast.SelectorExpr]string),
+		expr:            nil,
 	}
 	ast.Walk(cloneWalker{oldtype: p, newtype: q}, p.expr)
 	return q
@@ -161,6 +175,14 @@ func (cw cloneWalker) Visit(m ast.Node) ast.Visitor {
 				parent: cw.newpar,
 				ident:  nid,
 			})
+		}
+	}
+
+	// If m is a selector expr with a scope, n is the same in the new type.
+	if sel, ok := m.(*ast.SelectorExpr); ok {
+		if scope := cw.oldtype.selectorToScope[sel]; scope != "" {
+			nsel := n.(*ast.SelectorExpr)
+			cw.newtype.selectorToScope[nsel] = scope
 		}
 	}
 
@@ -257,10 +279,11 @@ func (cw cloneWalker) Visit(m ast.Node) ast.Visitor {
 func (p *Type) subtype(e ast.Expr) *Type {
 	// Take advantage of cloning technology.
 	return (&Type{
-		spec:          unmangle(types.ExprString(e)),
-		paramToIdents: p.paramToIdents,
-		identToParam:  p.identToParam,
-		expr:          e,
+		spec:            unmangle(types.ExprString(e)),
+		paramToIdents:   p.paramToIdents,
+		identToParam:    p.identToParam,
+		selectorToScope: p.selectorToScope,
+		expr:            e,
 	}).clone()
 }
 
@@ -359,6 +382,40 @@ func (p *Type) refine1(tp TypeParam, subst *Type) error {
 		}
 	}
 	return nil
+}
+
+// RenameQualifier looks for qualified identifiers from the given scope and
+// if the X is an ident matching oldx, then it is renamed to newx. This is
+// useful for renaming an import.
+func (p *Type) RenameQualifier(scope, oldq, newq string) {
+	for sel, sc := range p.selectorToScope {
+		if sc != scope {
+			continue
+		}
+		// sel.X must be an *ast.Ident to be in the map in the first place.
+		id := sel.X.(*ast.Ident)
+		if id.Name != oldq {
+			continue
+		}
+		id.Name = newq
+	}
+}
+
+// ScopedQualifier is a simple pair of strings: a scope and a qualifying identifier
+// (a package name).
+type ScopedQualifier struct{ Scope, Qual string }
+
+// ScopedQualifiers returns a new set with all the qualifiers used in
+// qualified identifiers, and their originating scope.
+func (p *Type) ScopedQualifiers() map[ScopedQualifier]struct{} {
+	m := make(map[ScopedQualifier]struct{})
+	for sel, sc := range p.selectorToScope {
+		m[ScopedQualifier{
+			Scope: sc,
+			Qual:  sel.X.(*ast.Ident).Name,
+		}] = struct{}{}
+	}
+	return m
 }
 
 func (p *Type) String() string {

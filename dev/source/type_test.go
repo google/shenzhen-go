@@ -106,7 +106,7 @@ func TestNewType(t *testing.T) {
 			wantIdents: 1,
 			wantParams: []TypeParam{{"foo", "$T"}},
 		},
-		{ // Here's one I didn't imagine.
+		{
 			scope:      "foo",
 			spec:       "somepackage.$T",
 			wantPlain:  false,
@@ -131,6 +131,20 @@ func TestNewType(t *testing.T) {
 				t.Errorf("Params() diff\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestScopedQualifiers(t *testing.T) {
+	p, err := NewType("scope", "somepackage.Bar")
+	if err != nil {
+		t.Fatalf("NewType(scope, somepackage.Bar) = error %v", err)
+	}
+	got := p.ScopedQualifiers()
+	want := map[ScopedQualifier]struct{}{
+		{"scope", "somepackage"}: {},
+	}
+	if diff, equal := messagediff.PrettyDiff(got, want); !equal {
+		t.Errorf("ScopedQualifiers() diff\n%s", diff)
 	}
 }
 

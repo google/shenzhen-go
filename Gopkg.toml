@@ -53,6 +53,10 @@
   name = "google.golang.org/grpc"
   version = "1.9.2"
 
+[[constraint]]
+  name = "github.com/prometheus/client_golang"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true

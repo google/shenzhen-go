@@ -42,8 +42,7 @@ type TypeParam struct {
 // Each type parameter may belong to a different scope after refinement,
 // but each Type is constructed initially within a single scope.
 type Type struct {
-	// The original type string and its parsed mangled ast.Expr form.
-	spec string
+	// The parsed mangled ast.Expr for the type.
 	expr ast.Expr
 
 	// Used for tracking type parameters.
@@ -128,7 +127,6 @@ func NewType(scope, t string) (*Type, error) {
 	}
 	ast.Walk(pt, expr)
 	return &Type{
-		spec:            t,
 		paramToIdents:   paramToIdents,
 		identToParam:    identToParam,
 		selectorToScope: selToScope,
@@ -144,7 +142,6 @@ func (p *Type) clone() *Type {
 		return p
 	}
 	q := &Type{
-		spec:            p.spec,
 		paramToIdents:   make(map[TypeParam][]modIdent),
 		identToParam:    make(map[*ast.Ident]TypeParam),
 		selectorToScope: make(map[*ast.SelectorExpr]string),
@@ -279,7 +276,6 @@ func (cw cloneWalker) Visit(m ast.Node) ast.Visitor {
 func (p *Type) subtype(e ast.Expr) *Type {
 	// Take advantage of cloning technology.
 	return (&Type{
-		spec:            unmangle(types.ExprString(e)),
 		paramToIdents:   p.paramToIdents,
 		identToParam:    p.identToParam,
 		selectorToScope: p.selectorToScope,
@@ -344,9 +340,6 @@ func (p *Type) Refine(in TypeInferenceMap) (bool, error) {
 				q[tp] = st
 			}
 		}
-	}
-	if changed {
-		p.spec = unmangle(types.ExprString(p.expr))
 	}
 	return changed, nil
 }
@@ -422,7 +415,7 @@ func (p *Type) String() string {
 	if p == nil {
 		return "<unspecified>"
 	}
-	return p.spec
+	return unmangle(types.ExprString(p.expr))
 }
 
 type chanwalker struct {

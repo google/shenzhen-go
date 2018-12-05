@@ -26,6 +26,8 @@ See the getting-started guides at https://google.github.io/shenzhen-go.
 
 Choose one of:
 
+    git clone https://github.com/google/shenzhen-go && cd shenzhen-go && go install
+    git clone https://github.com/google/shenzhen-go && cd shenzhen-go && go install -tags webview
     go get -u github.com/google/shenzhen-go
     go get -u -tags webview github.com/google/shenzhen-go
 

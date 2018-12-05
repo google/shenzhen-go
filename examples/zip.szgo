@@ -1,0 +1,71 @@
+{
+	"name": "Zip",
+	"package_path": "github.com/google/shenzhen-go/examples/zip",
+	"is_command": false,
+	"nodes": {
+		"Closer": {
+			"part": {},
+			"part_type": "Closer",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 196,
+			"y": 169,
+			"connections": {
+				"output": "channel1"
+			}
+		},
+		"Closer 2": {
+			"part": {},
+			"part_type": "Closer",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 356,
+			"y": 163,
+			"connections": {
+				"output": "channel0"
+			}
+		},
+		"Sink": {
+			"part": {},
+			"part_type": "Sink",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 269,
+			"y": 443,
+			"connections": {
+				"input": "channel2"
+			}
+		},
+		"Zip": {
+			"part": {
+				"input_num": 2,
+				"finish_mode": "first"
+			},
+			"part_type": "Zip",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 273,
+			"y": 307,
+			"connections": {
+				"input0": "channel1",
+				"input1": "channel0",
+				"output": "channel2"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 0
+		},
+		"channel1": {
+			"cap": 0
+		},
+		"channel2": {
+			"cap": 0
+		}
+	}
+}

@@ -1,0 +1,102 @@
+{
+	"name": "Key Counter",
+	"package_path": "github.com/google/shenzhen-go/examples/keycount",
+	"is_command": true,
+	"nodes": {
+		"Count words": {
+			"part": {},
+			"part_type": "KeyCounter",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 198,
+			"y": 229,
+			"connections": {
+				"input": "words",
+				"output": "nil",
+				"result": "results"
+			}
+		},
+		"Get words": {
+			"part": {
+				"imports": [
+					"\"fmt\"",
+					"\"strings\"",
+					"\"os\"",
+					"\"bufio\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"fmt.Println(\"Enter a line of text:\")",
+					"s, err := bufio.NewReader(os.Stdin).ReadString('\\n')",
+					"if err != nil {",
+					"\tpanic(err)",
+					"}",
+					"for _, word := range strings.Fields(s) {",
+					"\twords \u003c- word",
+					"}",
+					"close(words)"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"words": {
+						"type": "string",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 207,
+			"y": 111,
+			"connections": {
+				"words": "words"
+			}
+		},
+		"Print summary": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"fmt.Printf(\"Got results: %v\\n\", \u003c-result)"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"result": {
+						"type": "$T",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 213,
+			"y": 358,
+			"connections": {
+				"result": "results"
+			}
+		}
+	},
+	"channels": {
+		"results": {
+			"cap": 0
+		},
+		"words": {
+			"cap": 0
+		}
+	}
+}

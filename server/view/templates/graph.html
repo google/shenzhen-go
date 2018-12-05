@@ -1,0 +1,190 @@
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>{{$.Graph.Name}}</title>
+	<link type="text/css" rel="stylesheet" href="/.static/css/fonts.css">
+	<link type="text/css" rel="stylesheet" href="/.static/css/theme-{{$.Params.CSSTheme}}.css">
+	<link type="text/css" rel="stylesheet" href="/.static/css/main.css">
+	<script src="/.static/js/ace/ace.js" charset="utf-8"></script>
+	<script src="/.static/js/hterm/hterm_all.js" charset="utf-8"></script>
+	<script>
+		var aceTheme = '{{$.Params.AceTheme}}';
+		var graphPath = '{{$.Graph.URLPath}}';
+		var graphJSON = "{{$.GraphJSON}}";
+        hterm.defaultStorage = new lib.Storage.Memory();
+	</script>
+</head>
+<body>
+	<div class="head">
+		<a href="?up" title="Go up to the files in the current directory">Up</a>
+		<div class="dropdown">
+			Graph
+			<div class="dropdown-content"><ul>
+				<li><span id="graph-save" class="link" title="Save current changes to disk">Save</span></li>
+				<li><span id="graph-revert" class="link destructive" title="Revert to last saved file">Revert</span></li>
+				<li><hr/></li>
+				<li><span id="graph-generate" class="link" title="Export the graph to a Go package">Generate</span></li>
+				<li><span id="graph-build" class="link" title="Export the graph to a Go package and 'go build' it">Build</span></li>
+				<li><span id="graph-install" class="link" title="Export the graph to a Go package and 'go install' it">Install</span></li>
+				<li><hr/></li>
+				<li><span id="graph-run" class="link" title="Export the graph to a Go package and 'go run' it">Run</span></li>
+			</ul></div>
+		</div>
+		<div class="dropdown">
+			Create
+			<div class="dropdown-content"><ul>
+			{{range $cat, $types := $.PartTypesByCategory -}}
+				<li>{{$cat}}<ul>
+			{{range $t, $null := $types -}}
+				<li><span class="link" id="node-new-link:{{$t}}">{{$t}}</span></li>
+			{{- end}}
+				</ul></li>
+			{{- end}}
+			</ul></div>
+		</div>
+		<div class="dropdown">
+			Preview 
+			<div class="dropdown-content"><ul>
+				<li><span id="preview-go-link" class="link">Preview Go</span></li>
+				<li><span id="preview-raw-go-link" class="link">Preview Go (no <code>gofmt</code>)</span></li>
+				<li><span id="preview-json-link" class="link">Preview JSON</span></li>
+			</ul></div>
+		</div>
+		<div class="dropdown">
+			Help 
+			<div class="dropdown-content"><ul>
+				<li><span id="help-licenses-link" class="link">View Licences</span></li>
+				<li><span id="help-about-link" class="link">About</span></li>
+			</ul></div>
+		</div>	
+	</div>
+	<div class="box">
+		<div class="container" id="diagram-container">
+			<!-- TODO: is there a good way of organising the size? -->
+			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" draggable="false" />
+		</div>
+		<div class="container" id="panels-container">
+			<div id="graph-properties" class="panel padded">
+				<h3>Graph Properties</h3>
+				<div class="form">
+					<div class="formfield">
+					    <label for="graph-prop-name">Name</label>
+						<input id="graph-prop-name" name="graph-prop-name" type="text" required value="{{$.Graph.Name}}"></input>
+					</div>
+					<div class="formfield">
+					    <label for="graph-prop-package-path">Package path</label>
+						<input id="graph-prop-package-path" name="graph-prop-package-path" type="text" required value="{{$.Graph.PackagePath}}"></input>
+					</div>
+					<div class="formfield">
+						<input id="graph-prop-is-command" name="graph-prop-is-command" type="checkbox" {{if $.Graph.IsCommand}}checked{{end}} title="Selecting this means the generated package line will be 'package main' instead of 'package [packagename]', which allows your package to run as a standalone command and be installed with 'go install'. De-selecting this causes the package to be usable as a library."></input>
+					    <label for="graph-prop-is-command">Is a command?</label>
+					</div>
+				</div>
+			</div>
+			<div id="hterm-panel" class="panel" style="display:none">
+				<div id="hterm-terminal" class="terminal"></div>
+			</div>
+			<div id="preview-go" class="panel" style="display:none">
+				<div id="preview-go-ace" class="codeedit"></div>
+			</div>
+			<div id="preview-json" class="panel" style="display:none">
+				<div id="preview-json-ace" class="codeedit"></div>
+			</div>
+			<div id="channel-properties" class="panel padded" style="display:none">
+				<h3>Channel Properties</h3>
+				<div id="channel-actions" class="head">
+					<span id="channel-delete-link" class="link destructive" title="Delete this channel">Delete</a>
+				</div>
+				<div id="channel-properties-panel" class="form">
+					<div class="formfield">
+						<label for="channel-name">Name</label>
+						<input id="channel-name" name="channel-name" type="text" required value="channel"></input>
+					</div>
+					<div class="formfield">
+						<label>Type</label>
+						<code id="channel-type">type</code>
+					</div>
+					<div class="formfield">
+						<label for="channel-capacity">Capacity</label>
+						<input id="channel-capacity" name="channel-capacity" type="number" required pattern="^[0-9]+$" title="Must be a whole number, at least 0." value="0"></input>
+					</div>
+				</div>
+			</div>
+			<div id="node-properties" class="panel padded" style="display:none">
+				<h3>Node Properties</h3>
+				<div id="node-actions" class="head">
+					<!--
+					<span id="node-clone-link" class="link" title="Make a copy of this goroutine.">Clone</span> | 
+					<span id="node-convert-link" class="link destructive" title="Change this goroutine into a Code goroutine; it cannot be converted back.">Convert to Code</span> | 
+				    -->
+					<span id="node-delete-link" class="link destructive" title="Delete this goroutine">Delete</span>
+				</div>
+				<div id="node-panels" class="head">
+					<span id="node-metadata-link" class="link selected">Properties</span> 
+					{{range $tk, $type := $.PartTypes}}
+					<span id="node-{{$tk}}-links" style="display:none">
+					{{range $type.Panels }}
+					| <span id="node-{{$tk}}-{{.Name}}-link" class="link">{{.Name}}</span>
+					{{end}}
+					</span>
+					{{end}}
+				</div>
+				<div id="node-metadata-panel" class="form">
+					<div class="formfield">
+						<label for="node-name">Name</label>
+						<input id="node-name" name="node-name" type="text" required value="{.Name}"></input>
+					</div>
+					<div class="formfield">
+						<label for="node-comment">Comment</label>
+						<textarea id="node-comment" name="node-comment" rows="4" cols="32"></textarea>
+					</div>
+					<div class="formfield">
+						<input id="node-enabled" name="node-enabled" type="checkbox" checked></input>
+						<label for="node-enabled">Enabled</label>
+					</div>
+					<div class="formfield">
+						<label for="node-multiplicity">Multiplicity</label>
+						<input id="node-multiplicity" name="node-multiplicity" type="text" required value="1" title="An integer expression. You may use literals and `n`, which equals the result of runtime.NumCPU"></input>
+					</div>
+					<div class="formfield">
+						<input id="node-wait" name="node-wait" type="checkbox" checked></input>
+						<label for="node-wait">Wait for this to finish</label>
+					</div>
+				</div>
+				{{range $tk, $type := $.PartTypes}}
+				{{range $type.Panels}}
+				<div class="node-panel" id="node-{{$tk}}-{{.Name}}-panel" style="display:none">
+					{{.Editor}}
+				</div>
+				{{end}}
+				{{end}}
+			</div>
+			<div id="help-licenses-panel" class="panel padded" style="display:none">
+				<h3>Licenses</h3>
+				<h4>Shenzhen Go</h4>
+				<pre>{{$.Licenses.ShenzhenGo}}</pre>
+				<h4>Ace (code editor)</h4>
+				<pre>{{$.Licenses.Ace}}</pre>
+				<h4>Chromium Hterm</h4>
+				<pre>{{$.Licenses.Hterm}}</pre>
+			</div>
+			<div id="help-about-panel" class="panel padded" style="display:none">
+				<h3>Shenzhen Go</h3>
+				(working title)
+				<p>
+					Copyright 2018 Google Inc.
+				</p>
+				<p>
+					Note that this is not an official Google product.
+				</p>
+				<p>
+					<a href="https://github.com/google/shenzhen-go">Get the source code</a><br/>
+					<a href="https://google.github.io/shenzhen-go">Online documentation</a>
+				</p>
+				<!-- TODO: Put build info (git hash, etc) in here via template -->
+			</div>
+		</div>
+	</div>
+	<script src="/.static/client.js"></script>
+</body>
+</html>

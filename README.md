@@ -16,15 +16,7 @@ the [linux.conf.au 2017 Open Source & Games Miniconf](https://linux.conf.au/sche
 
 Read more at https://google.github.io/shenzhen-go.
 
-![Example Graph](example_graph2.png)
-
-## Versions
-
-There are currently TWO versions of Shenzhen Go. 
-
-The original Graphviz-based prototype is "v0", and mostly works, but I'm not working on it anymore. 
-
-The second version, "v1", is not quite ready yet, so for now it lives in the "dev" directory. But I'm working on it.
+![Example Graph](screenshot.png)
 
 ## Getting started
 
@@ -34,9 +26,8 @@ See the getting-started guides at https://google.github.io/shenzhen-go.
 
 Choose one of:
 
-    go get -u github.com/google/shenzhen-go/v0/cmd/shenzhen-go
-    go get -u github.com/google/shenzhen-go/dev/cmd/shenzhen-go
-    go get -u -tags webview github.com/google/shenzhen-go/dev/cmd/shenzhen-go
+    go get -u github.com/google/shenzhen-go
+    go get -u -tags webview github.com/google/shenzhen-go
 
 ## Notes
 
@@ -49,9 +40,7 @@ For discussions, there is [a Google Group](https://groups.google.com/forum/#!for
 
 ## Acknowledgements
 
-### v1 / dev
-
-The dev version wouldn't be nearly as good as it is without the following:
+This project wouldn't be nearly as good as it is without the following:
 
 * The [Ace](https://ace.c9.io/) code editor.
 * [Chrome Hterm](https://chromium.googlesource.com/apps/libapps/+/master/hterm).
@@ -59,7 +48,3 @@ The dev version wouldn't be nearly as good as it is without the following:
 * [gRPC](https://grpc.io/).
 * [Improbable's gRPC-Web for Go](https://github.com/improbable-eng/grpc-web).
 * Johan Brandhorst's [GopherJS bindings for gRPC-Web](https://github.com/johanbrandhorst/protobuf).
-
-### v0
-
-The prototype (v0) relies heavily on Graphviz to function, but does not bundle or vendor any Graphviz components.

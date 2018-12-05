@@ -1,0 +1,85 @@
+{
+	"name": "Demo",
+	"package_path": "github.com/google/shenzhen-go/examples/demo",
+	"is_command": true,
+	"nodes": {
+		"Node 1": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"fmt.Println(\"Node 1: Started.\")",
+					"fmt.Print(\"Enter a number: \")",
+					"var n int",
+					"fmt.Scanf(\"%d\", \u0026n)",
+					"fmt.Printf(\"Node 1: Sending %d on qux...\\n\", n)",
+					"qux \u003c- n",
+					"fmt.Println(\"Node 1: Finished.\")"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"qux": {
+						"type": "int",
+						"dir": "out"
+					}
+				}
+			},
+			"part_type": "Code",
+			"comment": "Node 1 reads a user-entered number.",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 154,
+			"y": 64,
+			"connections": {
+				"qux": "channel0"
+			}
+		},
+		"Node 2": {
+			"part": {
+				"imports": [
+					"\"fmt\""
+				],
+				"head": [
+					""
+				],
+				"body": [
+					"fmt.Println(\"Node 2: Started.\")",
+					"fmt.Println(\"Node 2: Waiting on foo...\")",
+					"fmt.Printf(\"Node 2: Got %v on foo\\n\", \u003c-foo)",
+					"fmt.Println(\"Node 2: Finished.\")"
+				],
+				"tail": [
+					""
+				],
+				"pins": {
+					"foo": {
+						"type": "$T",
+						"dir": "in"
+					}
+				}
+			},
+			"part_type": "Code",
+			"comment": "Node 2 prints the value it receives.",
+			"enabled": true,
+			"wait": true,
+			"multiplicity": "1",
+			"x": 138,
+			"y": 174,
+			"connections": {
+				"foo": "channel0"
+			}
+		}
+	},
+	"channels": {
+		"channel0": {
+			"cap": 0
+		}
+	}
+}

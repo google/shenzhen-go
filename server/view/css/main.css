@@ -1,0 +1,294 @@
+body {
+    font-family: var(--font-family);
+    color: var(--text-colour);
+    background-color: var(--background-colour);
+    float: none;
+    margin: 0;
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+    max-height: 100%;
+}
+
+span.link {
+    color: var(--link-colour);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+span.link.selected {
+    font-weight: bold;
+}
+
+span.link:hover {
+    color: var(--link-hover-colour);
+    text-decoration: underline;
+}
+
+span.link.destructive {
+    color: var(--link-destructive-colour);
+}
+
+span.link.destructive:hover {
+    color: var(--link-destructive-hover-colour);
+}
+
+a:link,
+a:visited {
+    color: var(--link-colour);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-hover-colour);
+    text-decoration: underline;
+}
+
+a.destructive:link,
+a.destructive:visited {
+    color: var(--link-destructive-colour);
+}
+
+a.destructive:hover {
+    color: var(--link-destructive-hover-colour);
+}
+
+code {
+    font-family: var(--font-family-mono);
+    color: var(--text-colour-code);
+}
+
+input,
+select,
+textarea {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size);
+    background-color: var(--background-colour);
+	color: var(--text-colour);
+
+	border-color: var(--divider-colour);
+	border-style: solid;
+	border-radius: 4px;
+	border-width: 1px;
+	padding: 8px;
+}
+
+select {
+    font-family: var(--font-family);
+}
+
+div.form input[type=text],
+div.form select,
+div.form textarea {
+    width: 100%;
+    margin: 8px 0;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+div.formfield {
+    width: 100%;
+    margin-top: 12px;
+}
+
+div.browse-container {
+    margin: 0 auto 8px;
+    min-width: 800px;
+}
+
+div.head {
+    padding: 6px;
+    flex: 0 1 auto;
+    border-bottom-style: solid;
+    border-bottom-color: var(--divider-colour);
+    border-bottom-width: 1px;
+}
+
+div.box {
+    display: flex;
+    flex-flow: row;
+    flex: 0 1 auto;
+}
+
+div.container {
+    flex: 1 1 50%;
+}
+
+div#diagram-container {
+    overflow: scroll;
+}
+
+div#panels-container {
+    display: flex;
+    flex-flow: column;
+}
+
+div.panel {
+    display: flex;
+    flex-flow: column;
+    flex: auto;
+    overflow: scroll;
+}
+
+div.panel.padded {
+    padding: 6px;
+}
+
+div.node-panel {
+    display: flex;
+    flex-flow: column;
+    flex: auto;
+}
+
+div.hcentre {
+    text-align: center;
+}
+
+table.browse {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size);
+    margin-top: 16pt;
+}
+
+fieldset {
+    margin: 4px;
+}
+
+fieldset#pathtemplate {
+    display: none;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    margin-left: 2ex;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--dropdown-background-colour);
+    box-shadow: 0px 6px 12px 0px var(--drop-shadow-colour);
+    padding: 4px 4px;
+    z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.dropdown-content ul li {
+    white-space: nowrap;
+    margin: 4px;
+}
+
+div.codeedit {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size);
+    flex: auto;
+}
+
+div.terminal {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+svg#diagram {
+    background: var(--diagram-background-colour);
+}
+
+svg#diagram .draggable {
+    cursor: grab;
+}
+
+svg#diagram .draggable.dragging {
+    cursor: grabbing;
+}
+
+svg#diagram g.textbox text {
+    fill: var(--text-colour);
+    font: normal var(--font-size) var(--font-family);
+    user-select: none;
+    pointer-events: none;
+    alignment-baseline: middle;
+    dominant-baseline: middle;
+    text-anchor: middle;
+}
+
+svg#diagram g.textbox rect {
+    fill: var(--diagram-default-box-fill);
+    stroke: var(--diagram-default-box-stroke);
+    stroke-width: 1;
+}
+
+svg#diagram g.textbox text::selection {
+    background: none;
+}
+
+svg#diagram g.node g.textbox rect {
+    fill: var(--diagram-node-fill);
+    stroke: var(--diagram-node-stroke);
+    stroke-width: 1;
+}
+
+svg#diagram g.node.selected g.textbox rect {
+    fill: var(--diagram-node-selected-fill);
+    stroke-width: 2;
+}
+
+svg#diagram g.node g.pin circle {
+    fill: var(--diagram-channel-colour);
+}
+
+svg#diagram g.node g.pin.selected circle {
+    fill: var(--diagram-channel-selected-colour);
+}
+
+svg#diagram g.node g.pin.error circle {
+    fill: var(--diagram-channel-error-colour);
+}
+
+svg#diagram g.channel line {
+    stroke: var(--diagram-channel-colour);
+    stroke-width: 2;
+}
+
+svg#diagram g.channel path {
+    fill: var(--diagram-channel-colour);
+}
+
+svg#diagram g.channel circle {
+    fill: var(--diagram-channel-colour);
+}
+
+svg#diagram g.channel.selected line {
+    stroke: var(--diagram-channel-selected-colour);
+}
+
+svg#diagram g.channel.selected path {
+    fill: var(--diagram-channel-selected-colour);
+}
+
+svg#diagram g.channel.selected circle {
+    fill: var(--diagram-channel-selected-colour);
+}
+
+svg#diagram g.channel.error line {
+    stroke: var(--diagram-channel-error-colour);
+}
+
+svg#diagram g.channel.error path {
+    fill: var(--diagram-channel-error-colour);
+}
+
+svg#diagram g.channel.error circle {
+    fill: var(--diagram-channel-error-colour);
+}

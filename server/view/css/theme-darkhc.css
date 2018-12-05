@@ -1,0 +1,28 @@
+:root {
+  --background-colour: #000;
+
+  --dropdown-background-colour: #090909;
+  --drop-shadow-colour: rgba(255, 255, 255, 0.3);
+  --divider-colour: #aaa;
+  
+  --link-colour: #bee0ff;
+  --link-hover-colour: rgb(133, 189, 253);
+  --link-destructive-colour: rgb(255, 143, 169);
+  --link-destructive-hover-colour: rgb(255, 67, 142);
+
+  --diagram-background-colour: #161616;
+  --diagram-channel-colour: rgb(255, 255, 255);
+  --diagram-channel-selected-colour: rgb(133, 189, 253);
+  --diagram-channel-error-colour: rgb(255, 143, 169);
+  --diagram-default-box-fill: #31381d;
+  --diagram-default-box-stroke: #faffee;
+  --diagram-node-fill: #0a1c2c;
+  --diagram-node-stroke: #e0f0ff;
+  --diagram-node-selected-fill: #225280;
+
+  --font-family: Go,'San Francisco','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --font-family-mono: 'Go Mono','Fira Code',Menlo,monospace;
+  --font-size: 12pt;
+  --text-colour: #fff;
+  --text-colour-code: rgb(186, 228, 228);
+}

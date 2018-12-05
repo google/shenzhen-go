@@ -3,14 +3,8 @@
 Contents:
 
 * [Home](index.md)
-* [Getting Started with v1](getting-started-v1.md)
-* [Getting Started with v0](getting-started-v0.md)
+* [Getting Started](getting-started.md)
 * [Roadmap](roadmap.md)
-
-## About versions
-
-There are two versions of Shenzhen Go: the prototype that's deprecated, and the new version that isn't ready yet.
-This guide describes the new version that isn't quite ready yet (`dev`), which will become `v1` when it's ready.
 
 ## Installation
 
@@ -39,7 +33,7 @@ If this prints a `git version ...`, it's working.
 
 To install Shenzhen Go, open a terminal and enter:
 
-    go get -u github.com/google/shenzhen-go/dev/cmd/shenzhen-go
+    go get -u github.com/google/shenzhen-go
 
 This should automatically download all the needed Go packages,
 build the `shenzhen-go` program, and put it in the `go/bin` directory.

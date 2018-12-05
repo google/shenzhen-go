@@ -3,8 +3,7 @@
 Contents:
 
 * [Home](index.md)
-* [Getting Started with v1](getting-started-v1.md)
-* [Getting Started with v0](getting-started-v0.md)
+* [Getting Started](getting-started.md)
 * [Roadmap](roadmap.md)
 
 SHENZHEN GO (working title) is an **experimental** visual Go environment, 

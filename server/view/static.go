@@ -52,7 +52,6 @@ func load(m map[string][]byte) {
 }
 
 func init() {
-	load(clientResources)
 	load(cssResources)
 	load(miscResources)
 	load(jsResources)

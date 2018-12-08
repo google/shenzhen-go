@@ -78,3 +78,24 @@ func GoGetTools() error {
 	}
 	return goGet("github.com/johanbrandhorst/protobuf/protoc-gen-gopherjs")
 }
+
+// Clean removes all of code that can be regenerated.
+func Clean() error {
+	intfs := []string{
+		"proto/go/shenzhen-go.pb.go",
+		"proto/js/shenzhen-go.pb.gopherjs.go",
+		"server/view/js/client.js",
+		"server/view/js/client.js.map",
+		"server/view/static-css.go",
+		"server/view/static-images.go",
+		"server/view/static-js.go",
+		"server/view/static-misc.go",
+		"server/view/static-templates.go",
+	}
+	for _, intf := range intfs {
+		if err := sh.Rm(intf); err != nil {
+			return err
+		}
+	}
+	return nil
+}

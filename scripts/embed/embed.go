@@ -46,6 +46,7 @@ func main() {
 		flag.Usage()
 		return
 	}
+	*base = filepath.FromSlash(*base)
 
 	vlog("Creating %s", *outf)
 	o, err := os.Create(*outf)
@@ -60,7 +61,7 @@ func main() {
 
 	for _, ifs := range flag.Args() {
 		vlog("Processing arg %s", ifs)
-		ms, err := filepath.Glob(filepath.Join(*base, ifs))
+		ms, err := filepath.Glob(filepath.Join(*base, filepath.FromSlash(ifs)))
 		if err != nil {
 			log.Fatalf("Input pattern invalid: %v", err)
 		}

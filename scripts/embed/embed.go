@@ -29,9 +29,9 @@ import (
 )
 
 var (
-	pkg     = flag.String("p", "", "Name of package, required")
-	vn      = flag.String("v", "", "Name of map variable, required")
-	outf    = flag.String("o", "", "Name of output file, required")
+	pkg     = flag.String("pkg", "", "Name of package, required")
+	vn      = flag.String("var", "", "Name of map variable, required")
+	outf    = flag.String("out", "", "Name of output file, required")
 	base    = flag.String("base", ".", "Base directory of input files; similar to tar -C mode")
 	verbose = flag.Bool("verbose", false, "If set, prints additional log messages")
 	gzipit  = flag.Bool("gzip", false, "If set, passes data through gzip compression; checks for existing gzip header first so as not to double-compress")

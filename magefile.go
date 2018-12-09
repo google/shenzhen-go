@@ -43,14 +43,14 @@ func BuildClient() error {
 func Embed() error {
 	mg.Deps(BuildClient)
 
-	embed := sh.RunCmd("go", "run", "scripts/embed/embed.go", "-p", "view", "-base", "server/view")
+	embed := sh.RunCmd("go", "run", "scripts/embed/embed.go", "-pkg", "view", "-base", "server/view")
 
 	embeds := [][]string{
-		{"-v", "cssResources", "-o", "server/view/static-css.go", "-gzip", "css/*.css"},
-		{"-v", "imageResources", "-o", "server/view/static-images.go", "images/*"},
-		{"-v", "jsResources", "-o", "server/view/static-js.go", "-gzip", "js/*", "js/*/*"},
-		{"-v", "miscResources", "-o", "server/view/static-misc.go", "-gzip", "misc/*"},
-		{"-v", "templateResources", "-o", "server/view/static-templates.go", "templates/*.html"},
+		{"-var", "cssResources", "-out", "server/view/static-css.go", "-gzip", "css/*.css"},
+		{"-var", "imageResources", "-out", "server/view/static-images.go", "images/*"},
+		{"-var", "jsResources", "-out", "server/view/static-js.go", "-gzip", "js/*", "js/*/*"},
+		{"-var", "miscResources", "-out", "server/view/static-misc.go", "-gzip", "misc/*"},
+		{"-var", "templateResources", "-out", "server/view/static-templates.go", "templates/*.html"},
 	}
 
 	for _, args := range embeds {

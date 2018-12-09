@@ -50,7 +50,7 @@ func GenGopherJSProtoStubs() error {
 
 // Builds the client into server/view/js/client.js{,.map}.
 func BuildClient() error {
-	mg.Deps(GenGoProtoStubs, GenGopherJSProtoStubs)
+	mg.Deps(GenGopherJSProtoStubs)
 
 	mod, err := target.Dir("server/view/js/client.js", "client")
 	if err != nil {
@@ -99,7 +99,7 @@ func Embed() error {
 
 // Install rebuilds everything and then go-installs.
 func Install() error {
-	mg.Deps(Embed)
+	mg.Deps(Embed, GenGoProtoStubs)
 	return sh.Run("go", "install")
 }
 

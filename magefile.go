@@ -52,7 +52,7 @@ func GenGopherJSProtoStubs() error {
 func BuildClient() error {
 	mg.Deps(GenGopherJSProtoStubs)
 
-	mod, err := target.Dir("server/view/js/client.js", "client")
+	mod, err := target.Dir("server/view/js/client.js", "client", "dom", "parts")
 	if err != nil {
 		return err
 	}

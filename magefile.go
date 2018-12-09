@@ -17,18 +17,48 @@
 package main
 
 import (
+	"path/filepath"
+
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/magefile/mage/target"
 )
 
-// Runs protoc to generate protobuf stubs in proto/{go,js}.
-func GenProtoStubs() error {
-	return sh.Run("protoc", "-I=proto", "shenzhen-go.proto", "--go_out=plugins=grpc:proto/go", "--gopherjs_out=plugins=grpc:proto/js")
+// Runs protoc to generate protobuf stubs in proto/go.
+func GenGoProtoStubs() error {
+	mod, err := target.Path("proto/go/shenzhen-go.pb.go", "proto/shenzhen-go.proto")
+	if err != nil {
+		return err
+	}
+	if !mod {
+		return nil
+	}
+	return sh.Run("protoc", "-I=proto", "shenzhen-go.proto", "--go_out=plugins=grpc:proto/go")
+}
+
+// Runs protoc to generate protobuf stubs in proto/js.
+func GenGopherJSProtoStubs() error {
+	mod, err := target.Path("proto/js/shenzhen-go.pb.gopherjs.go", "proto/shenzhen-go.proto")
+	if err != nil {
+		return err
+	}
+	if !mod {
+		return nil
+	}
+	return sh.Run("protoc", "-I=proto", "shenzhen-go.proto", "--gopherjs_out=plugins=grpc:proto/js")
 }
 
 // Builds the client into server/view/js/client.js{,.map}.
 func BuildClient() error {
-	mg.Deps(GenProtoStubs)
+	mg.Deps(GenGoProtoStubs, GenGopherJSProtoStubs)
+
+	mod, err := target.Dir("server/view/js/client.js", "client")
+	if err != nil {
+		return err
+	}
+	if !mod {
+		return nil
+	}
 
 	// Per the GopherJS README, supported GOOS values are {linux, darwin}.
 	// Force GOOS=linux to support building on Windows, and also
@@ -44,28 +74,26 @@ func Embed() error {
 	mg.Deps(BuildClient)
 
 	embed := sh.RunCmd("go", "run", "scripts/embed/embed.go", "-pkg", "view", "-base", "server/view")
-
-	embeds := [][]string{
-		{"-var", "cssResources", "-out", "server/view/static-css.go", "-gzip", "css/*.css"},
-		{"-var", "imageResources", "-out", "server/view/static-images.go", "images/*"},
-		{"-var", "jsResources", "-out", "server/view/static-js.go", "-gzip", "js/*", "js/*/*"},
-		{"-var", "miscResources", "-out", "server/view/static-misc.go", "-gzip", "misc/*"},
-		{"-var", "templateResources", "-out", "server/view/static-templates.go", "templates/*.html"},
+	embeds := map[string][]string{
+		"css":       {"-var", "cssResources", "-out", "server/view/static-css.go", "-gzip", "css/*.css"},
+		"images":    {"-var", "imageResources", "-out", "server/view/static-images.go", "images/*"},
+		"js":        {"-var", "jsResources", "-out", "server/view/static-js.go", "-gzip", "js/*", "js/*/*"},
+		"misc":      {"-var", "miscResources", "-out", "server/view/static-misc.go", "-gzip", "misc/*"},
+		"templates": {"-var", "templateResources", "-out", "server/view/static-templates.go", "templates/*.html"},
 	}
 
-	for _, args := range embeds {
+	for dir, args := range embeds {
+		mod, err := target.Dir(args[3], filepath.Join("server", "view", dir))
+		if err != nil {
+			return err
+		}
+		if !mod {
+			continue
+		}
 		if err := embed(args...); err != nil {
 			return err
 		}
 	}
-
-	// Since client.js{,.map} are generated in BuildClient, they are no longer needed once embedded.
-	for _, f := range []string{"server/view/js/client.js", "server/view/js/client.js.map"} {
-		if err := sh.Rm(f); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 

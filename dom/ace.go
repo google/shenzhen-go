@@ -16,8 +16,7 @@ package dom
 
 import (
 	"math"
-
-	"github.com/gopherjs/gopherjs/js"
+	"syscall/js"
 )
 
 // Ace editor modes and themes.
@@ -38,8 +37,8 @@ type Ace struct {
 
 // GlobalAce returns the global "ace" object.
 func GlobalAce() *Ace {
-	o := js.Global.Get("ace")
-	if o == nil {
+	o := js.Global().Get("ace")
+	if o == js.Null() {
 		return nil
 	}
 	return &Ace{WrapObject(o)}
@@ -91,10 +90,8 @@ func (s *AceSession) SetUseSoftTabs(b bool) *AceSession {
 }
 
 // On adds a handler (on change, etc).
-func (s *AceSession) On(event string, h func(e Object)) *AceSession {
-	s.Call("on", event, func(e *js.Object) {
-		h(WrapObject(e))
-	})
+func (s *AceSession) On(event string, h Callback) *AceSession {
+	s.Call("on", event, h)
 	return s
 }
 

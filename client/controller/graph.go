@@ -20,12 +20,12 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/client/view"
 	"github.com/google/shenzhen-go/dom"
 	"github.com/google/shenzhen-go/model"
 	pb "github.com/google/shenzhen-go/proto/js"
-	"github.com/gopherjs/gopherjs/js"
 )
 
 const defaultChannelNamePrefix = "channel"
@@ -300,7 +300,7 @@ func (c *graphController) Revert(ctx context.Context) error {
 		return err
 	}
 	// TODO: Less janky reloading. (call into view reload)
-	js.Global.Get("location").Call("reload", true)
+	js.Global().Get("location").Call("reload", true)
 	return nil
 }
 
@@ -329,7 +329,7 @@ func setupHterm(el dom.Element) dom.Terminal {
 
 func (c *graphController) ShowHterm() {
 	c.showRHSPanel(c.htermPanel)
-	if c.htermTerminal.Object == nil {
+	if c.htermTerminal == (dom.Terminal{}) {
 		c.htermTerminal = setupHterm(c.htermContainer)
 	}
 }

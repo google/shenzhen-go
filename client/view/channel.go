@@ -17,6 +17,7 @@ package view
 import (
 	"context"
 	"log"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
@@ -52,8 +53,8 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	// This part works so well it's scary.
 	c.Group.Element.
 		AddEventListener("mousedown", c.view.selecter(c)).
-		AddEventListener("mouseenter", c.mouseEnter).
-		AddEventListener("mouseleave", c.mouseLeave)
+		AddEventListener("mouseenter", dom.NewEventCallback(js.StopPropagation, c.mouseEnter)).
+		AddEventListener("mouseleave", dom.NewEventCallback(0, c.mouseLeave))
 
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).

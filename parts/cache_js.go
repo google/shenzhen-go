@@ -27,15 +27,15 @@ var (
 )
 
 func init() {
-	inputCacheContentBytesLimit.AddEventListener("change", func(dom.Object) {
-		focusedCache.ContentBytesLimit = inputCacheContentBytesLimit.Get("value").Uint64()
-	})
-	inputCacheEnablePrometheus.AddEventListener("change", func(dom.Object) {
+	inputCacheContentBytesLimit.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+		focusedCache.ContentBytesLimit = uint64(inputCacheContentBytesLimit.Get("value").Int())
+	}))
+	inputCacheEnablePrometheus.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedCache.EnablePrometheus = inputCacheEnablePrometheus.Get("checked").Bool()
-	})
-	selectCacheEvictionMode.AddEventListener("change", func(dom.Object) {
+	}))
+	selectCacheEvictionMode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedCache.EvictionMode = CacheEvictionMode(selectCacheEvictionMode.Get("value").String())
-	})
+	}))
 }
 
 func (c *Cache) GainFocus() {

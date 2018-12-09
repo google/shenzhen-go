@@ -14,13 +14,12 @@
 
 package dom
 
-import "github.com/gopherjs/gopherjs/js"
+import "syscall/js"
 
-// Object is some stuff JS objects can do. This is essentially an extracted interface of *js.Object.
+// Object is some stuff JS objects can do. This is essentially an extracted interface of js.Value.
 type Object interface {
 	Get(string) Object
 	Set(string, interface{})
-	Delete(string)
 	Length() int
 	Index(int) Object
 	SetIndex(int, interface{})
@@ -30,27 +29,23 @@ type Object interface {
 	Bool() bool
 	String() string
 	Int() int
-	Int64() int64
-	Uint64() uint64
 	Float() float64
-	Interface() interface{}
-	Unsafe() uintptr
 }
 
-type object struct{ *js.Object }
+type object struct{ js.Value }
 
-// WrapObject returns a wrapper for *js.Object that conforms to Object.
-func WrapObject(o *js.Object) Object { return object{Object: o} }
+// WrapObject returns a wrapper for js.Value that conforms to Object.
+func WrapObject(o js.Value) Object { return object{Value: o} }
 
-func (o object) Get(prop string) Object              { return WrapObject(o.Object.Get(prop)) }
-func (o object) Index(i int) Object                  { return WrapObject(o.Object.Index(i)) }
-func (o object) Invoke(params ...interface{}) Object { return WrapObject(o.Object.Invoke(params...)) }
-func (o object) New(params ...interface{}) Object    { return WrapObject(o.Object.New(params...)) }
+func (o object) Get(prop string) Object              { return WrapObject(o.Value.Get(prop)) }
+func (o object) Index(i int) Object                  { return WrapObject(o.Value.Index(i)) }
+func (o object) Invoke(params ...interface{}) Object { return WrapObject(o.Value.Invoke(params...)) }
+func (o object) New(params ...interface{}) Object    { return WrapObject(o.Value.New(params...)) }
 func (o object) Call(method string, params ...interface{}) Object {
-	return WrapObject(o.Object.Call(method, params...))
+	return WrapObject(o.Value.Call(method, params...))
 }
 
 // Global returns a name from the global namespace.
 func Global(name string) Object {
-	return WrapObject(js.Global.Get(name))
+	return WrapObject(js.Global().Get(name))
 }

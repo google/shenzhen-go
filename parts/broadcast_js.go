@@ -24,9 +24,9 @@ var (
 )
 
 func init() {
-	inputBroadcastOutputNum.AddEventListener("change", func(dom.Object) {
+	inputBroadcastOutputNum.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedBroadcast.OutputNum = uint(inputBroadcastOutputNum.Get("value").Int())
-	})
+	}))
 }
 
 func (b *Broadcast) GainFocus() {

@@ -17,6 +17,7 @@ package view
 
 import (
 	"log"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 	"github.com/google/shenzhen-go/model"
@@ -63,81 +64,81 @@ func Setup(doc dom.Document, gc GraphController) {
 
 	v.diagram.
 		AddEventListener("mousedown", v.selecter(v.graph)).
-		AddEventListener("mousemove", v.diagramMouseMove).
-		AddEventListener("mouseup", v.diagramMouseUp)
+		AddEventListener("mousemove", dom.NewEventCallback(js.StopPropagation, v.diagramMouseMove)).
+		AddEventListener("mouseup", dom.NewEventCallback(js.StopPropagation, v.diagramMouseUp))
 
 	doc.ElementByID("graph-save").
-		AddEventListener("click", v.graph.save)
+		AddEventListener("click", dom.NewEventCallback(0, v.graph.save))
 	doc.ElementByID("graph-revert").
-		AddEventListener("click", v.graph.revert)
+		AddEventListener("click", dom.NewEventCallback(0, v.graph.revert))
 	doc.ElementByID("graph-generate").
-		AddEventListener("click", v.graph.generate)
+		AddEventListener("click", dom.NewEventCallback(0, v.graph.generate))
 	doc.ElementByID("graph-build").
-		AddEventListener("click", v.graph.build)
+		AddEventListener("click", dom.NewEventCallback(0, v.graph.build))
 	doc.ElementByID("graph-install").
-		AddEventListener("click", v.graph.install)
+		AddEventListener("click", dom.NewEventCallback(0, v.graph.install))
 	doc.ElementByID("graph-run").
-		AddEventListener("click", v.graph.run)
+		AddEventListener("click", dom.NewEventCallback(0, v.graph.run))
 
 	doc.ElementByID("preview-go-link").
-		AddEventListener("click", func(dom.Object) { gc.PreviewGo() })
+		AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) { gc.PreviewGo() }))
 	doc.ElementByID("preview-raw-go-link").
-		AddEventListener("click", func(dom.Object) { gc.PreviewRawGo() })
+		AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) { gc.PreviewRawGo() }))
 	doc.ElementByID("preview-json-link").
-		AddEventListener("click", func(dom.Object) { gc.PreviewJSON() })
+		AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) { gc.PreviewJSON() }))
 
 	doc.ElementByID("help-licenses-link").
-		AddEventListener("click", func(dom.Object) { gc.HelpLicenses() })
+		AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) { gc.HelpLicenses() }))
 	doc.ElementByID("help-about-link").
-		AddEventListener("click", func(dom.Object) { gc.HelpAbout() })
+		AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) { gc.HelpAbout() }))
 
 	doc.ElementByID("graph-prop-name").
-		AddEventListener("change", v.graph.commit)
+		AddEventListener("change", dom.NewEventCallback(0, v.graph.commit))
 	doc.ElementByID("graph-prop-package-path").
-		AddEventListener("change", v.graph.commit)
+		AddEventListener("change", dom.NewEventCallback(0, v.graph.commit))
 	doc.ElementByID("graph-prop-is-command").
-		AddEventListener("change", v.graph.commit)
+		AddEventListener("change", dom.NewEventCallback(0, v.graph.commit))
 
 	doc.ElementByID("channel-name").
-		AddEventListener("change", v.commitSelected)
+		AddEventListener("change", dom.NewEventCallback(0, v.commitSelected))
 	doc.ElementByID("channel-capacity").
-		AddEventListener("change", v.commitSelected)
+		AddEventListener("change", dom.NewEventCallback(0, v.commitSelected))
 
 	doc.ElementByID("channel-delete-link").
-		AddEventListener("click", v.deleteSelected)
+		AddEventListener("click", dom.NewEventCallback(0, v.deleteSelected))
 
 	doc.ElementByID("node-name").
-		AddEventListener("change", v.commitSelected)
+		AddEventListener("change", dom.NewEventCallback(0, v.commitSelected))
 	doc.ElementByID("node-enabled").
-		AddEventListener("change", v.commitSelected)
+		AddEventListener("change", dom.NewEventCallback(0, v.commitSelected))
 	doc.ElementByID("node-multiplicity").
-		AddEventListener("change", v.commitSelected)
+		AddEventListener("change", dom.NewEventCallback(0, v.commitSelected))
 	doc.ElementByID("node-wait").
-		AddEventListener("change", v.commitSelected)
+		AddEventListener("change", dom.NewEventCallback(0, v.commitSelected))
 
 	// TODO(josh): reinstate Clone and Convert-To-Code links
 	doc.ElementByID("node-delete-link").
-		AddEventListener("click", v.deleteSelected)
+		AddEventListener("click", dom.NewEventCallback(0, v.deleteSelected))
 
 	doc.ElementByID("node-metadata-link").
-		AddEventListener("click", func(dom.Object) {
+		AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) {
 			v.selectedItem.(*Node).nc.ShowMetadataSubpanel()
-		})
+		}))
 
 	for n, t := range model.PartTypes {
 		n := n
 		doc.ElementByID("node-new-link:"+n).
-			AddEventListener("click", func(dom.Object) {
+			AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) {
 				// Don't block in callback
 				go v.graph.reallyCreateNode(n)
-			})
+			}))
 
 		for _, p := range t.Panels {
 			m := p.Name
 			doc.ElementByID("node-"+n+"-"+m+"-link").
-				AddEventListener("click", func(dom.Object) {
+				AddEventListener("click", dom.NewEventCallback(0, func(dom.Object) {
 					v.selectedItem.(*Node).nc.ShowPartSubpanel(m)
-				})
+				}))
 		}
 
 	}
@@ -149,7 +150,6 @@ func (v *View) showHoverTip(event dom.Object, tip string) {
 		RecomputeWidth().
 		MoveTo(v.diagramCursorPos(event) + hoverTipOffset).
 		Show()
-	event.Call("stopPropagation")
 }
 
 func (v *View) setError(err string) {
@@ -190,19 +190,16 @@ func (v *View) diagramCursorPos(e dom.Object) Point {
 	return Pt(x, y)
 }
 
-func (v *View) dragStarter(d dragStarter) func(dom.Object) {
-	return func(e dom.Object) {
-		e.Call("preventDefault")
+func (v *View) dragStarter(d dragStarter) dom.Callback {
+	return dom.NewEventCallback(js.PreventDefault|js.StopPropagation, func(e dom.Object) {
 		if dr, ok := d.(dragger); ok {
 			v.dragItem = dr
 		}
 		d.dragStart(v.diagramCursorPos(e))
-		e.Call("stopPropagation")
-	}
+	})
 }
 
 func (v *View) diagramMouseMove(e dom.Object) {
-	defer e.Call("stopPropagation")
 	if v.dragItem == nil {
 		return
 	}
@@ -210,7 +207,6 @@ func (v *View) diagramMouseMove(e dom.Object) {
 }
 
 func (v *View) diagramMouseUp(e dom.Object) {
-	defer e.Call("stopPropagation")
 	if v.dragItem == nil {
 		return
 	}
@@ -228,11 +224,10 @@ func (v *View) changeSelection(s selecter) {
 }
 
 // selecter makes an onclick handler for a selectable.
-func (v *View) selecter(s selecter) func(dom.Object) {
-	return func(e dom.Object) {
+func (v *View) selecter(s selecter) dom.Callback {
+	return dom.NewEventCallback(js.StopPropagation, func(dom.Object) {
 		v.changeSelection(s)
-		e.Call("stopPropagation")
-	}
+	})
 }
 
 func (v *View) commitSelected(e dom.Object) {

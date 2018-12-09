@@ -14,21 +14,21 @@
 
 package dom
 
-import "github.com/gopherjs/gopherjs/js"
+import "syscall/js"
 
 // Hterm represents a global hterm object.
 type Hterm struct {
-	*js.Object
+	js.Value
 }
 
 // GlobalHterm gets the global hterm object.
 func GlobalHterm() Hterm {
-	return Hterm{js.Global.Get("hterm")}
+	return Hterm{js.Global().Get("hterm")}
 }
 
 // Terminal represents a Hterm Terminal.
 type Terminal struct {
-	*js.Object
+	js.Value
 }
 
 // NewTerminal creates a new Terminal with the given profile.
@@ -63,7 +63,7 @@ func (t Terminal) ClearHome() {
 
 // IO represents a hterm IO object.
 type IO struct {
-	*js.Object
+	js.Value
 }
 
 // IO returns a terminal's IO.
@@ -83,14 +83,14 @@ func (io IO) Pop() {
 
 // OnVTKeystroke registers a keystroke handler.
 func (io IO) OnVTKeystroke(h func(string)) {
-	io.Set("onVTKeystroke", func(o *js.Object) {
+	io.Set("onVTKeystroke", func(o js.Value) {
 		h(o.String())
 	})
 }
 
 // SendString registers a handler for sendString.
 func (io IO) SendString(h func(string)) {
-	io.Set("sendString", func(o *js.Object) {
+	io.Set("sendString", func(o js.Value) {
 		h(o.String())
 	})
 }

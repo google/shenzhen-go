@@ -52,9 +52,6 @@ func (o *FakeObject) Get(key string) Object {
 // Set sets a property value.
 func (o *FakeObject) Set(key string, value interface{}) { o.Properties[key] = value }
 
-// Delete deletes the property with the given key.
-func (o *FakeObject) Delete(key string) { delete(o.Properties, key) }
-
 // Length returns the length of o.Value.
 func (o *FakeObject) Length() int { return reflect.ValueOf(o.Value).Len() }
 
@@ -95,20 +92,8 @@ func (o *FakeObject) String() string { return o.Value.(string) }
 // Int returns o.Value asserted as an int.
 func (o *FakeObject) Int() int { return o.Value.(int) }
 
-// Int64 returns o.Value asserted as an int64.
-func (o *FakeObject) Int64() int64 { return o.Value.(int64) }
-
-// Uint64 returns o.Value asserted as a uint64.
-func (o *FakeObject) Uint64() uint64 { return o.Value.(uint64) }
-
 // Float returns o.Value asserted as a float64.
 func (o *FakeObject) Float() float64 { return o.Value.(float64) }
-
-// Interface returns o.Value.
-func (o *FakeObject) Interface() interface{} { return o.Value }
-
-// Unsafe returns o.Value asserted as a uintptr.
-func (o *FakeObject) Unsafe() uintptr { return o.Value.(uintptr) }
 
 // FakeClassList implements a virtual classList (DOMTokenList).
 // Unlike a real DOMTokenList, it doesn't preserve order.
@@ -158,6 +143,22 @@ func (c FakeClassList) String() string {
 	return strings.Join(cls, " ")
 }
 
+// FakeCallback is a fake Callback.
+type FakeCallback struct {
+	Fn func([]Object)
+}
+
+// Release does nothing (it does in real JS land).
+func (FakeCallback) Release() {}
+
+// FakeEventCallback is another fake Callback.
+type FakeEventCallback struct {
+	Fn func(Object)
+}
+
+// Release does nothing (it does in real JS land).
+func (FakeEventCallback) Release() {}
+
 // FakeElement implements a virtual DOM element.
 type FakeElement struct {
 	FakeObject
@@ -165,7 +166,7 @@ type FakeElement struct {
 	NamespaceURI   string
 	Attributes     map[string]interface{}
 	Children       []*FakeElement
-	EventListeners map[string][]func(Object)
+	EventListeners map[string][]Callback
 	Classes        FakeClassList
 	parent         *FakeElement
 }
@@ -177,7 +178,7 @@ func MakeFakeElement(class, nsuri string) *FakeElement {
 		Class:          class,
 		NamespaceURI:   nsuri,
 		Attributes:     make(map[string]interface{}),
-		EventListeners: make(map[string][]func(Object)),
+		EventListeners: make(map[string][]Callback),
 		Classes:        make(FakeClassList),
 	}
 }
@@ -237,8 +238,8 @@ outer:
 }
 
 // AddEventListener adds an event listener.
-func (e *FakeElement) AddEventListener(event string, handler func(Object)) Element {
-	e.EventListeners[event] = append(e.EventListeners[event], handler)
+func (e *FakeElement) AddEventListener(event string, cb Callback) Element {
+	e.EventListeners[event] = append(e.EventListeners[event], cb)
 	return e
 }
 

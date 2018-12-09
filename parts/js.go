@@ -30,7 +30,7 @@ var (
 	aceTheme = dom.Global("aceTheme").String()
 )
 
-func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
+func setupAce(id, mode string, handler dom.Callback) *dom.AceSession {
 	e := ace.Edit(id)
 	if e == nil {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
@@ -42,13 +42,13 @@ func setupAce(id, mode string, handler func(dom.Object)) *dom.AceSession {
 		On("change", handler)
 }
 
-func formatHandler(session *dom.AceSession) func(dom.Object) {
-	return func(dom.Object) {
+func formatHandler(session *dom.AceSession) dom.Callback {
+	return dom.NewEventCallback(0, func(dom.Object) {
 		buf, err := format.Source([]byte(session.Value()))
 		if err != nil {
 			log.Printf("Couldn't format: %v", err)
 			return
 		}
 		session.SetValue(string(buf))
-	}
+	})
 }

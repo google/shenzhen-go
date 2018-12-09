@@ -25,12 +25,12 @@ var (
 )
 
 func init() {
-	inputZipInputNum.AddEventListener("change", func(dom.Object) {
+	inputZipInputNum.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedZip.InputNum = uint(inputZipInputNum.Get("value").Int())
-	})
-	selectZipFinishMode.AddEventListener("change", func(dom.Object) {
+	}))
+	selectZipFinishMode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedZip.FinishMode = ZipFinishMode(selectZipFinishMode.Get("value").String())
-	})
+	}))
 }
 
 func (z *Zip) GainFocus() {

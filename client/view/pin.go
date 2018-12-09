@@ -17,6 +17,7 @@ package view
 import (
 	"log"
 	"sort"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
@@ -93,8 +94,8 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", p.view.dragStarter(p)).
 		AddEventListener("mousedown", p.view.selecter(p)).
-		AddEventListener("mouseenter", p.mouseEnter).
-		AddEventListener("mouseleave", p.mouseLeave)
+		AddEventListener("mouseenter", dom.NewEventCallback(js.StopPropagation, p.mouseEnter)).
+		AddEventListener("mouseleave", dom.NewEventCallback(0, p.mouseLeave))
 
 	p.Shape.ClassList().Add("draggable")
 

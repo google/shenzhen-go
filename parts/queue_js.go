@@ -26,12 +26,12 @@ var (
 )
 
 func init() {
-	inputQueueMaxItems.AddEventListener("change", func(dom.Object) {
+	inputQueueMaxItems.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedQueue.MaxItems = inputQueueMaxItems.Get("value").Int()
-	})
-	selectQueueMode.AddEventListener("change", func(dom.Object) {
+	}))
+	selectQueueMode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedQueue.Mode = QueueMode(selectQueueMode.Get("value").String())
-	})
+	}))
 }
 
 func (q *Queue) GainFocus() {

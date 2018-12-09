@@ -32,10 +32,10 @@ var (
 )
 
 func init() {
-	httpServeMuxRoutesSession = setupAce("httpservemux-routes", dom.AceJSONMode, httpServeMuxRoutesChange)
-	inputHTTPServeMuxEnablePrometheus.AddEventListener("change", func(dom.Object) {
+	httpServeMuxRoutesSession = setupAce("httpservemux-routes", dom.AceJSONMode, dom.NewEventCallback(0, httpServeMuxRoutesChange))
+	inputHTTPServeMuxEnablePrometheus.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedHTTPServeMux.EnablePrometheus = inputHTTPServeMuxEnablePrometheus.Get("checked").Bool()
-	})
+	}))
 }
 
 func httpServeMuxRoutesChange(dom.Object) {

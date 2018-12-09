@@ -14,7 +14,7 @@
 
 package dom
 
-import "github.com/gopherjs/gopherjs/js"
+import "syscall/js"
 
 // Well-known Namespace URIs.
 const (
@@ -37,8 +37,8 @@ type document struct {
 
 // CurrentDocument returns the global document object or nil if it does not exist.
 func CurrentDocument() Document {
-	d := js.Global.Get("document")
-	if d == nil {
+	d := js.Global().Get("document")
+	if d == js.Null() {
 		return nil
 	}
 	return document{Element: WrapElement(WrapObject(d))}

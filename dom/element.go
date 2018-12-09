@@ -14,8 +14,6 @@
 
 package dom
 
-import "github.com/gopherjs/gopherjs/js"
-
 // Element represents a DOM element.
 type Element interface {
 	Object
@@ -39,7 +37,7 @@ type Element interface {
 	RemoveChildren(...Element) Element
 
 	// AddEventListener calls the JS method addEventListener, returning the element for chaining.
-	AddEventListener(string, func(Object)) Element
+	AddEventListener(string, Callback) Element
 
 	// Show sets the display attribute of the style to "", returning the element for chaining.
 	Show() Element
@@ -101,8 +99,8 @@ func (e element) RemoveChildren(children ...Element) Element {
 	return e
 }
 
-func (e element) AddEventListener(event string, handler func(Object)) Element {
-	e.Call("addEventListener", event, func(o *js.Object) { handler(WrapObject(o)) })
+func (e element) AddEventListener(event string, cb Callback) Element {
+	e.Call("addEventListener", event, cb)
 	return e
 }
 

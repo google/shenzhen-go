@@ -28,15 +28,15 @@ var (
 )
 
 func init() {
-	selectPromInstHandlerInstrumenter.AddEventListener("change", func(dom.Object) {
+	selectPromInstHandlerInstrumenter.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedPromInstHandler.Instrumenter = PrometheusInstrumenter(selectPromInstHandlerInstrumenter.Get("value").String())
-	})
-	inputPromInstHandlerLabelCode.AddEventListener("change", func(dom.Object) {
+	}))
+	inputPromInstHandlerLabelCode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedPromInstHandler.LabelCode = inputPromInstHandlerLabelCode.Get("checked").Bool()
-	})
-	inputPromInstHandlerLabelMethod.AddEventListener("change", func(dom.Object) {
+	}))
+	inputPromInstHandlerLabelMethod.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedPromInstHandler.LabelMethod = inputPromInstHandlerLabelMethod.Get("checked").Bool()
-	})
+	}))
 }
 
 func (h *PrometheusInstrumentHandler) GainFocus() {

@@ -24,9 +24,9 @@ var (
 )
 
 func init() {
-	inputGatherInputNum.AddEventListener("change", func(dom.Object) {
+	inputGatherInputNum.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedGather.InputNum = uint(inputGatherInputNum.Get("value").Int())
-	})
+	}))
 }
 
 func (g *Gather) GainFocus() {

@@ -20,8 +20,7 @@ package main
 import (
 	"net/url"
 	"strings"
-
-	"github.com/gopherjs/gopherjs/js"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/client/controller"
 	"github.com/google/shenzhen-go/client/view"
@@ -39,8 +38,8 @@ func main() {
 	}
 	apiURL.Path = ""
 	client := pb.NewShenzhenGoClient(apiURL.String())
-	initial := js.Global.Get("graphJSON").String()
-	graphPath := js.Global.Get("graphPath").String()
+	initial := js.Global().Get("graphJSON").String()
+	graphPath := js.Global().Get("graphPath").String()
 	g, err := model.LoadJSON(strings.NewReader(initial), graphPath, "")
 	if err != nil {
 		panic(err)

@@ -34,15 +34,15 @@ var (
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	transformImportsSession = setupAce("transform-imports", dom.AceGoMode, transformImportsChange)
-	transformBodySession = setupAce("transform-body", dom.AceGoMode, transformBodyChange)
+	transformImportsSession = setupAce("transform-imports", dom.AceGoMode, dom.NewEventCallback(0, transformImportsChange))
+	transformBodySession = setupAce("transform-body", dom.AceGoMode, dom.NewEventCallback(0, transformBodyChange))
 
-	inputTransformInputType.AddEventListener("change", func(dom.Object) {
+	inputTransformInputType.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedTransform.InputType = inputTransformInputType.Get("value").String()
-	})
-	inputTransformOutputType.AddEventListener("change", func(dom.Object) {
+	}))
+	inputTransformOutputType.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedTransform.OutputType = inputTransformOutputType.Get("value").String()
-	})
+	}))
 	linkTransformFormat.AddEventListener("click", formatHandler(transformBodySession))
 }
 

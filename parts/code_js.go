@@ -37,11 +37,11 @@ var (
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	codePinsSession = setupAce("code-pins", dom.AceJSONMode, codePinsChange)
-	codeImportsSession = setupAce("code-imports", dom.AceGoMode, codeImportsChange)
-	codeHeadSession = setupAce("code-head", dom.AceGoMode, codeHeadChange)
-	codeBodySession = setupAce("code-body", dom.AceGoMode, codeBodyChange)
-	codeTailSession = setupAce("code-tail", dom.AceGoMode, codeTailChange)
+	codePinsSession = setupAce("code-pins", dom.AceJSONMode, dom.NewEventCallback(0, codePinsChange))
+	codeImportsSession = setupAce("code-imports", dom.AceGoMode, dom.NewEventCallback(0, codeImportsChange))
+	codeHeadSession = setupAce("code-head", dom.AceGoMode, dom.NewEventCallback(0, codeHeadChange))
+	codeBodySession = setupAce("code-body", dom.AceGoMode, dom.NewEventCallback(0, codeBodyChange))
+	codeTailSession = setupAce("code-tail", dom.AceGoMode, dom.NewEventCallback(0, codeTailChange))
 
 	linkCodeFormatHead.AddEventListener("click", formatHandler(codeHeadSession))
 	linkCodeFormatBody.AddEventListener("click", formatHandler(codeBodySession))

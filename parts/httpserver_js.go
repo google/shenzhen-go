@@ -41,8 +41,8 @@ var (
 	focusedHTTPServer *HTTPServer
 )
 
-func durationChange(change func(time.Duration)) func(dom.Object) {
-	return func(ev dom.Object) {
+func durationChange(change func(time.Duration)) dom.Callback {
+	return dom.NewEventCallback(0, func(ev dom.Object) {
 		in := ev.Get("target").Get("value").String()
 		t, err := time.ParseDuration(in)
 		if err != nil {
@@ -50,7 +50,7 @@ func durationChange(change func(time.Duration)) func(dom.Object) {
 			return
 		}
 		change(t)
-	}
+	})
 }
 
 func init() {
@@ -58,9 +58,9 @@ func init() {
 	httpServerOutlets.inputReadHeaderTimeout.AddEventListener("change", durationChange(setReadHeaderTimeout))
 	httpServerOutlets.inputWriteTimeout.AddEventListener("change", durationChange(setWriteTimeout))
 	httpServerOutlets.inputIdleTimeout.AddEventListener("change", durationChange(setIdleTimeout))
-	httpServerOutlets.inputMaxHeaderBytes.AddEventListener("change", func(dom.Object) {
+	httpServerOutlets.inputMaxHeaderBytes.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
 		focusedHTTPServer.MaxHeaderBytes = httpServerOutlets.inputMaxHeaderBytes.Get("value").Int()
-	})
+	}))
 }
 
 func setReadTimeout(t time.Duration)       { focusedHTTPServer.ReadTimeout = t }

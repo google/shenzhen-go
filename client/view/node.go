@@ -62,7 +62,7 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 		MinWidth: float64(nodeWidthPerPin * (max(len(n.Inputs), len(n.Outputs)) + 1)),
 	}
 	n.TextBox.
-		MakeElements(doc, n.Group).
+		MakeElements(doc, n.Group.Element).
 		SetHeight(nodeHeight).
 		SetText(n.nc.Name()).
 		RecomputeWidth()
@@ -74,7 +74,7 @@ func (n *Node) MakeElements(doc dom.Document, parent dom.Element) *Node {
 
 	// Pins
 	for _, p := range n.AllPins {
-		p.MakeElements(doc, n.Group)
+		p.MakeElements(doc, n.Group.Element)
 		p.node = n
 	}
 	n.updatePinPositions()
@@ -188,7 +188,7 @@ func (n *Node) refresh() {
 		}
 		allPins = append(allPins, q)
 
-		q.MakeElements(n.view.doc, n.Group)
+		q.MakeElements(n.view.doc, n.Group.Element)
 		if q.channel == nil {
 			return
 		}

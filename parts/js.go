@@ -19,6 +19,7 @@ package parts
 import (
 	"go/format"
 	"log"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
@@ -27,12 +28,12 @@ var (
 	doc = dom.CurrentDocument()
 	ace = dom.GlobalAce()
 
-	aceTheme = dom.Global("aceTheme").String()
+	aceTheme = js.Global().Get("aceTheme").String()
 )
 
-func setupAce(id, mode string, handler dom.Callback) *dom.AceSession {
+func setupAce(id, mode string, handler js.Callback) dom.AceSession {
 	e := ace.Edit(id)
-	if e == nil {
+	if e.Value == js.Null() {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
 	e.SetTheme("ace/theme/" + aceTheme)
@@ -42,13 +43,13 @@ func setupAce(id, mode string, handler dom.Callback) *dom.AceSession {
 		On("change", handler)
 }
 
-func formatHandler(session *dom.AceSession) dom.Callback {
-	return dom.NewEventCallback(0, func(dom.Object) {
-		buf, err := format.Source([]byte(session.Value()))
+func formatHandler(session dom.AceSession) js.Callback {
+	return js.NewEventCallback(0, func(js.Value) {
+		buf, err := format.Source([]byte(session.Contents()))
 		if err != nil {
 			log.Printf("Couldn't format: %v", err)
 			return
 		}
-		session.SetValue(string(buf))
+		session.SetContents(string(buf))
 	})
 }

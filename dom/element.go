@@ -14,108 +14,75 @@
 
 package dom
 
+import "syscall/js"
+
 // Element represents a DOM element.
-type Element interface {
-	Object
-
-	// ID returns the element ID.
-	ID() string
-
-	// GetAttribute gets the JS getAttribute method, returning the requested attribute.
-	GetAttribute(string) Object
-
-	// SetAttribute calls the JS setAttribute method, returning the element for chaining.
-	SetAttribute(string, interface{}) Element
-
-	// RemoveAttribute calls the JS removeAttribute method, returning the element for chaining.
-	RemoveAttribute(string) Element
-
-	// AddChildren calls the JS method appendChild for each element, returning the element for chaining.
-	AddChildren(...Element) Element
-
-	// RemoveChildren calls the JS method removeChild for each element, returning the element for chaining.
-	RemoveChildren(...Element) Element
-
-	// AddEventListener calls the JS method addEventListener, returning the element for chaining.
-	AddEventListener(string, Callback) Element
-
-	// Show sets the display attribute of the style to "", returning the element for chaining.
-	Show() Element
-
-	// Hide sets the display attribute of the style to "none", returning the element for chaining.
-	Hide() Element
-
-	// Display sets the display attribute of the style to the given value, returning the element for chaining.
-	Display(string) Element
-
-	// Parent returns the parent element.
-	Parent() Element
-
-	// ClassList returns the classList.
-	ClassList() ClassList
+type Element struct {
+	js.Value
 }
 
-type element struct {
-	Object
-}
-
-// WrapElement turns a Object into an Element, or returns nil if o is nil.
-func WrapElement(o Object) Element {
-	if o == nil {
-		return nil
-	}
-	return element{Object: o}
-}
-
-func (e element) ID() string {
+// ID returns the element ID.
+func (e Element) ID() string {
 	return e.Get("id").String()
 }
 
-func (e element) GetAttribute(attr string) Object {
+// GetAttribute gets the JS getAttribute method, returning the requested attribute.
+func (e Element) GetAttribute(attr string) js.Value {
 	return e.Call("getAttribute", attr)
 }
 
-func (e element) SetAttribute(attr string, value interface{}) Element {
+// SetAttribute calls the JS setAttribute method, returning the element for chaining.
+func (e Element) SetAttribute(attr string, value interface{}) Element {
 	e.Call("setAttribute", attr, value)
 	return e
 }
 
-func (e element) RemoveAttribute(attr string) Element {
+// RemoveAttribute calls the JS removeAttribute method, returning the element for chaining.
+func (e Element) RemoveAttribute(attr string) Element {
 	e.Call("removeAttribute", attr)
 	return e
 }
 
-func (e element) AddChildren(children ...Element) Element {
+// AddChildren calls the JS method appendChild for each element, returning the element for chaining.
+func (e Element) AddChildren(children ...Element) Element {
 	for _, c := range children {
-		e.Call("appendChild", c)
+		e.Call("appendChild", c.Value)
 	}
 	return e
 }
 
-func (e element) RemoveChildren(children ...Element) Element {
+// RemoveChildren calls the JS method removeChild for each element, returning the element for chaining.
+func (e Element) RemoveChildren(children ...Element) Element {
 	for _, c := range children {
-		e.Call("removeChild", c)
+		e.Call("removeChild", c.Value)
 	}
 	return e
 }
 
-func (e element) AddEventListener(event string, cb Callback) Element {
+// AddEventListener calls the JS method addEventListener, returning the element for chaining.
+func (e Element) AddEventListener(event string, cb js.Callback) Element {
 	e.Call("addEventListener", event, cb)
 	return e
 }
 
-func (e element) Show() Element { return e.Display("") }
-func (e element) Hide() Element { return e.Display("none") }
+// Show sets the display attribute of the style to "", returning the element for chaining.
+func (e Element) Show() Element { return e.Display("") }
 
-func (e element) Display(style string) Element {
+// Hide sets the display attribute of the style to "none", returning the element for chaining.
+func (e Element) Hide() Element { return e.Display("none") }
+
+// Display sets the display attribute of the style to the given value, returning the element for chaining.
+func (e Element) Display(style string) Element {
 	e.Get("style").Set("display", style)
 	return e
 }
 
-func (e element) Parent() Element {
-	return WrapElement(e.Get("parentElement"))
+// Parent returns the parent element.
+func (e Element) Parent() Element {
+	return Element{Value: e.Get("parentElement")}
 }
 
-func (e element) ClassList() ClassList {
-	return classList{e.Get("classList")}
+// ClassList returns the classList.
+func (e Element) ClassList() ClassList {
+	return ClassList{Value: e.Get("classList")}
 }

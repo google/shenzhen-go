@@ -53,8 +53,8 @@ func (c *Channel) MakeElements(doc dom.Document, parent dom.Element) {
 	// This part works so well it's scary.
 	c.Group.Element.
 		AddEventListener("mousedown", c.view.selecter(c)).
-		AddEventListener("mouseenter", dom.NewEventCallback(js.StopPropagation, c.mouseEnter)).
-		AddEventListener("mouseleave", dom.NewEventCallback(0, c.mouseLeave))
+		AddEventListener("mouseenter", js.NewEventCallback(js.StopPropagation, c.mouseEnter)).
+		AddEventListener("mouseleave", js.NewEventCallback(0, c.mouseLeave))
 
 	c.steiner = doc.MakeSVGElement("circle").
 		SetAttribute("r", pinRadius).
@@ -90,12 +90,12 @@ func (c *Channel) reallyCommit() {
 	}
 }
 
-func (c *Channel) mouseEnter(e dom.Object) {
+func (c *Channel) mouseEnter(e js.Value) {
 	log.Print("*Channel.mouseEnter")
 	c.view.showHoverTip(e, c.cc.Name())
 }
 
-func (c *Channel) mouseLeave(dom.Object) {
+func (c *Channel) mouseLeave(js.Value) {
 	c.view.hoverTip.Hide()
 }
 

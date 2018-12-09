@@ -46,4 +46,5 @@ func main() {
 	}
 	gc := controller.NewGraphController(doc, g, client)
 	view.Setup(doc, gc)
+	select {}
 }

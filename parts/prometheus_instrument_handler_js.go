@@ -16,7 +16,7 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dom"
+import "syscall/js"
 
 var (
 	selectPromInstHandlerInstrumenter = doc.ElementByID("prometheusinstrumenthandler_instrumenter")
@@ -28,13 +28,13 @@ var (
 )
 
 func init() {
-	selectPromInstHandlerInstrumenter.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	selectPromInstHandlerInstrumenter.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedPromInstHandler.Instrumenter = PrometheusInstrumenter(selectPromInstHandlerInstrumenter.Get("value").String())
 	}))
-	inputPromInstHandlerLabelCode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputPromInstHandlerLabelCode.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedPromInstHandler.LabelCode = inputPromInstHandlerLabelCode.Get("checked").Bool()
 	}))
-	inputPromInstHandlerLabelMethod.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputPromInstHandlerLabelMethod.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedPromInstHandler.LabelMethod = inputPromInstHandlerLabelMethod.Get("checked").Bool()
 	}))
 }

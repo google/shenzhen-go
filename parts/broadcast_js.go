@@ -16,7 +16,7 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dom"
+import "syscall/js"
 
 var (
 	inputBroadcastOutputNum = doc.ElementByID("broadcast-outputnum")
@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	inputBroadcastOutputNum.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputBroadcastOutputNum.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedBroadcast.OutputNum = uint(inputBroadcastOutputNum.Get("value").Int())
 	}))
 }

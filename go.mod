@@ -21,6 +21,7 @@ require (
 	github.com/prometheus/procfs v0.0.0-20180725123919-05ee40e3a273 // indirect
 	github.com/rs/cors v1.5.0 // indirect
 	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/tdewolff/parse v2.3.4+incompatible
 	github.com/zserge/webview v0.0.0-20180509070823-016c6ffd99f3
 	golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81
 	golang.org/x/net v0.0.0-20180906233101-161cd47e91fd

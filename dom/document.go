@@ -22,36 +22,27 @@ const (
 	XHTMLNamespaceURI = "http://www.w3.org/1999/xhtml"
 )
 
-// Document describes some things the JS document global can do.
-type Document interface {
-	Element
-
-	ElementByID(string) Element
-	MakeTextNode(string) Element
-	MakeSVGElement(string) Element
-}
-
-type document struct {
+// Document helps with some things the JS document global can do.
+type Document struct {
 	Element
 }
 
 // CurrentDocument returns the global document object or nil if it does not exist.
 func CurrentDocument() Document {
-	d := js.Global().Get("document")
-	if d == js.Null() {
-		return nil
-	}
-	return document{Element: WrapElement(WrapObject(d))}
+	return Document{Element: Element{Value: js.Global().Get("document")}}
 }
 
-func (d document) ElementByID(id string) Element {
-	return WrapElement(d.Call("getElementById", id))
+// ElementByID fetches an element by its id.
+func (d Document) ElementByID(id string) Element {
+	return Element{d.Call("getElementById", id)}
 }
 
-func (d document) MakeTextNode(text string) Element {
-	return WrapElement(d.Call("createTextNode", text))
+// MakeTextNode creates a new text node.
+func (d Document) MakeTextNode(text string) Element {
+	return Element{d.Call("createTextNode", text)}
 }
 
-func (d document) MakeSVGElement(n string) Element {
-	return WrapElement(d.Call("createElementNS", SVGNamespaceURI, n))
+// MakeSVGElement creates a new element in the SVG namespace.
+func (d Document) MakeSVGElement(n string) Element {
+	return Element{d.Call("createElementNS", SVGNamespaceURI, n)}
 }

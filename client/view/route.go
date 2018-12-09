@@ -36,7 +36,7 @@ type Route struct {
 // as a child of the channel's group.
 func NewRoute(doc dom.Document, parent Group, src, dst Pointer) *Route {
 	r := &Route{
-		Group: NewGroup(doc, parent),
+		Group: NewGroup(doc, parent.Element),
 		line:  doc.MakeSVGElement("line"),
 		arrow: doc.MakeSVGElement("path"),
 		src:   src,

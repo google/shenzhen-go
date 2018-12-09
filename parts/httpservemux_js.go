@@ -19,12 +19,13 @@ package parts
 import (
 	"encoding/json"
 	"log"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
 
 var (
-	httpServeMuxRoutesSession *dom.AceSession
+	httpServeMuxRoutesSession dom.AceSession
 
 	inputHTTPServeMuxEnablePrometheus = doc.ElementByID("httpservemux-enableprometheus")
 
@@ -32,15 +33,15 @@ var (
 )
 
 func init() {
-	httpServeMuxRoutesSession = setupAce("httpservemux-routes", dom.AceJSONMode, dom.NewEventCallback(0, httpServeMuxRoutesChange))
-	inputHTTPServeMuxEnablePrometheus.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	httpServeMuxRoutesSession = setupAce("httpservemux-routes", dom.AceJSONMode, js.NewEventCallback(0, httpServeMuxRoutesChange))
+	inputHTTPServeMuxEnablePrometheus.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedHTTPServeMux.EnablePrometheus = inputHTTPServeMuxEnablePrometheus.Get("checked").Bool()
 	}))
 }
 
-func httpServeMuxRoutesChange(dom.Object) {
+func httpServeMuxRoutesChange(js.Value) {
 	routes := make(map[string]string)
-	if err := json.Unmarshal([]byte(httpServeMuxRoutesSession.Value()), &routes); err != nil {
+	if err := json.Unmarshal([]byte(httpServeMuxRoutesSession.Contents()), &routes); err != nil {
 		log.Printf("Couldn't unmarshal httpServeMuxRoutesSession value into a map[string]string: %v", err)
 		return
 	}
@@ -54,6 +55,6 @@ func (m *HTTPServeMux) GainFocus() {
 		// ... how?
 		log.Fatalf("Couldn't marshal a map[string]string to JSON: %v", err)
 	}
-	httpServeMuxRoutesSession.SetValue(string(routes))
+	httpServeMuxRoutesSession.SetContents(string(routes))
 	inputHTTPServeMuxEnablePrometheus.Set("checked", focusedHTTPServeMux.EnablePrometheus)
 }

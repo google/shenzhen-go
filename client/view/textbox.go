@@ -78,7 +78,11 @@ func (b *TextBox) SetWidth(w float64) *TextBox {
 
 // Width returns the current width.
 func (b *TextBox) Width() float64 {
-	return b.Rect.GetAttribute("width").Float()
+	f, err := dom.Float(b.Rect.GetAttribute("width"))
+	if err != nil {
+		panic(err)
+	}
+	return f
 }
 
 // RecomputeWidth resizes the textbox to fit all text (plus a margin).

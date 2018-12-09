@@ -14,47 +14,54 @@
 
 package dom
 
-// ClassList abstracts the DOMTokenList returned by element.classList.
-type ClassList interface {
-	Add(classes ...string)
-	Remove(classes ...string)
-	Toggle(class string)
-	Contains(class string) bool
-	Replace(oldClass, newClass string)
-}
+import "syscall/js"
 
-type classList struct {
-	Object
+// ClassList provides helpful wrappers for the DOMTokenList returned by element.classList.
+type ClassList struct {
+	js.Value
 }
 
 // Probably premature optimisation.
-func (c classList) oneTwoMany(f string, cs ...string) {
+func (c ClassList) oneTwoMany(f string, cs ...string) {
 	switch len(cs) {
 	case 0:
 		return
 	case 1:
-		c.Object.Call(f, cs[0])
+		c.Call(f, cs[0])
 	case 2:
-		c.Object.Call(f, cs[0], cs[1])
+		c.Call(f, cs[0], cs[1])
 	case 3:
-		c.Object.Call(f, cs[0], cs[1], cs[2])
+		c.Call(f, cs[0], cs[1], cs[2])
 	default:
 		args := make([]interface{}, 0, len(cs))
 		for _, c := range cs {
 			args = append(args, c)
 		}
-		c.Object.Call(f, args...)
+		c.Call(f, args...)
 	}
 }
 
-func (c classList) Add(classes ...string) {
+// Add adds classes to the classlist.
+func (c ClassList) Add(classes ...string) {
 	c.oneTwoMany("add", classes...)
 }
 
-func (c classList) Remove(classes ...string) {
+// Remove removes classess from the classlist.
+func (c ClassList) Remove(classes ...string) {
 	c.oneTwoMany("remove", classes...)
 }
 
-func (c classList) Toggle(class string)               { c.Object.Call("toggle", class) }
-func (c classList) Contains(class string) bool        { return c.Object.Call("contains", class).Bool() }
-func (c classList) Replace(oldClass, newClass string) { c.Object.Call("replace", oldClass, newClass) }
+// Toggle calls "toggle" on the classlist.
+func (c ClassList) Toggle(class string) {
+	c.Call("toggle", class)
+}
+
+// Contains checks for an existing class.
+func (c ClassList) Contains(class string) bool {
+	return c.Call("contains", class).Bool()
+}
+
+// Replace replaces an old class with a new class.
+func (c ClassList) Replace(oldClass, newClass string) {
+	c.Call("replace", oldClass, newClass)
+}

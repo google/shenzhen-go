@@ -16,6 +16,7 @@ package view
 
 import (
 	"fmt"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
@@ -28,7 +29,7 @@ type Group struct {
 // NewGroup creates an SVG group in the given document.
 func NewGroup(doc dom.Document, parent dom.Element) Group {
 	g := Group{doc.MakeSVGElement("g")}
-	parent.AddChildren(g)
+	parent.AddChildren(g.Element)
 	return g
 }
 
@@ -40,23 +41,23 @@ func (g Group) MoveTo(p Point) Group {
 
 // AddTo adds the group to the given parent element.
 func (g Group) AddTo(parent dom.Element) Group {
-	parent.AddChildren(g)
+	parent.AddChildren(g.Element)
 	return g
 }
 
 // Remove removes the group from the parent, if set.
 func (g Group) Remove() {
-	if g.Element == nil {
+	if g.Element == (dom.Element{}) || g.Element.Value == js.Null() {
 		return
 	}
 	p := g.Element.Parent()
-	if p == nil {
+	if p == (dom.Element{}) || p.Value == js.Null() {
 		return
 	}
-	p.RemoveChildren(g)
+	p.RemoveChildren(g.Element)
 }
 
 // BringToFront re-adds the group to the parent.
 func (g Group) BringToFront() {
-	g.Parent().AddChildren(g)
+	g.Parent().AddChildren(g.Element)
 }

@@ -16,7 +16,7 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dom"
+import "syscall/js"
 
 var (
 	inputZipInputNum    = doc.ElementByID("zip-inputnum")
@@ -25,10 +25,10 @@ var (
 )
 
 func init() {
-	inputZipInputNum.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputZipInputNum.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedZip.InputNum = uint(inputZipInputNum.Get("value").Int())
 	}))
-	selectZipFinishMode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	selectZipFinishMode.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedZip.FinishMode = ZipFinishMode(selectZipFinishMode.Get("value").String())
 	}))
 }

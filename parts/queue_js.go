@@ -16,7 +16,7 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dom"
+import "syscall/js"
 
 var (
 	inputQueueMaxItems = doc.ElementByID("queue-maxitems")
@@ -26,10 +26,10 @@ var (
 )
 
 func init() {
-	inputQueueMaxItems.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputQueueMaxItems.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedQueue.MaxItems = inputQueueMaxItems.Get("value").Int()
 	}))
-	selectQueueMode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	selectQueueMode.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedQueue.Mode = QueueMode(selectQueueMode.Get("value").String())
 	}))
 }

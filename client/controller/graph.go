@@ -34,7 +34,7 @@ var (
 	ace   = dom.GlobalAce()
 	hterm = dom.GlobalHterm()
 
-	aceTheme = dom.Global("aceTheme").String()
+	aceTheme = js.Global().Get("aceTheme").String()
 
 	_ view.GraphController = (*graphController)(nil)
 )
@@ -56,8 +56,8 @@ type graphController struct {
 	nodePropertiesPanel    dom.Element
 	previewGoPanel         dom.Element
 	previewJSONPanel       dom.Element
-	previewGoSession       *dom.AceSession
-	previewJSONSession     *dom.AceSession
+	previewGoSession       dom.AceSession
+	previewJSONSession     dom.AceSession
 
 	// Graph properties panel inputs
 	graphNameTextInput        dom.Element
@@ -69,9 +69,9 @@ type graphController struct {
 	nodeSharedOutlets    *nodeSharedOutlets
 }
 
-func setupAceView(id, mode string) *dom.AceSession {
+func setupAceView(id, mode string) dom.AceSession {
 	e := ace.Edit(id)
-	if e == nil {
+	if e.Value == js.Null() {
 		log.Fatalf("Couldn't ace.edit(%q)", id)
 	}
 	e.SetTheme("ace/theme/" + aceTheme)
@@ -418,7 +418,7 @@ func (c *graphController) PreviewRawGo() {
 		// TODO: better place to put output?
 		g = "/* Couldn't generate raw Go: \n" + err.Error() + " */"
 	}
-	c.previewGoSession.SetValue(g)
+	c.previewGoSession.SetContents(g)
 	c.showRHSPanel(c.previewGoPanel)
 }
 
@@ -428,7 +428,7 @@ func (c *graphController) PreviewGo() {
 		// TODO: better place to put output?
 		g = "/* Couldn't generate Go: \n" + err.Error() + " */"
 	}
-	c.previewGoSession.SetValue(g)
+	c.previewGoSession.SetContents(g)
 	c.showRHSPanel(c.previewGoPanel)
 }
 
@@ -438,7 +438,7 @@ func (c *graphController) PreviewJSON() {
 		// TODO: better place to put output?
 		g = `{"error": "Couldn't generate JSON: ` + err.Error() + `"}`
 	}
-	c.previewJSONSession.SetValue(g)
+	c.previewJSONSession.SetContents(g)
 	c.showRHSPanel(c.previewJSONPanel)
 }
 

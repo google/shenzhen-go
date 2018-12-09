@@ -16,7 +16,7 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dom"
+import "syscall/js"
 
 var (
 	inputCacheContentBytesLimit = doc.ElementByID("cache-contentbyteslimit")
@@ -27,13 +27,13 @@ var (
 )
 
 func init() {
-	inputCacheContentBytesLimit.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputCacheContentBytesLimit.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedCache.ContentBytesLimit = uint64(inputCacheContentBytesLimit.Get("value").Int())
 	}))
-	inputCacheEnablePrometheus.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputCacheEnablePrometheus.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedCache.EnablePrometheus = inputCacheEnablePrometheus.Get("checked").Bool()
 	}))
-	selectCacheEvictionMode.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	selectCacheEvictionMode.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedCache.EvictionMode = CacheEvictionMode(selectCacheEvictionMode.Get("value").String())
 	}))
 }

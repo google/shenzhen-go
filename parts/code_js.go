@@ -20,13 +20,14 @@ import (
 	"encoding/json"
 	"log"
 	"strings"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 	"github.com/google/shenzhen-go/model/pin"
 )
 
 var (
-	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession *dom.AceSession
+	codePinsSession, codeImportsSession, codeHeadSession, codeBodySession, codeTailSession dom.AceSession
 
 	linkCodeFormatHead = doc.ElementByID("code-format-head-link")
 	linkCodeFormatBody = doc.ElementByID("code-format-body-link")
@@ -37,40 +38,40 @@ var (
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	codePinsSession = setupAce("code-pins", dom.AceJSONMode, dom.NewEventCallback(0, codePinsChange))
-	codeImportsSession = setupAce("code-imports", dom.AceGoMode, dom.NewEventCallback(0, codeImportsChange))
-	codeHeadSession = setupAce("code-head", dom.AceGoMode, dom.NewEventCallback(0, codeHeadChange))
-	codeBodySession = setupAce("code-body", dom.AceGoMode, dom.NewEventCallback(0, codeBodyChange))
-	codeTailSession = setupAce("code-tail", dom.AceGoMode, dom.NewEventCallback(0, codeTailChange))
+	codePinsSession = setupAce("code-pins", dom.AceJSONMode, js.NewEventCallback(0, codePinsChange))
+	codeImportsSession = setupAce("code-imports", dom.AceGoMode, js.NewEventCallback(0, codeImportsChange))
+	codeHeadSession = setupAce("code-head", dom.AceGoMode, js.NewEventCallback(0, codeHeadChange))
+	codeBodySession = setupAce("code-body", dom.AceGoMode, js.NewEventCallback(0, codeBodyChange))
+	codeTailSession = setupAce("code-tail", dom.AceGoMode, js.NewEventCallback(0, codeTailChange))
 
 	linkCodeFormatHead.AddEventListener("click", formatHandler(codeHeadSession))
 	linkCodeFormatBody.AddEventListener("click", formatHandler(codeBodySession))
 	linkCodeFormatTail.AddEventListener("click", formatHandler(codeTailSession))
 }
 
-func codePinsChange(dom.Object) {
+func codePinsChange(js.Value) {
 	var p pin.Map
-	if err := json.Unmarshal([]byte(codePinsSession.Value()), &p); err != nil {
+	if err := json.Unmarshal([]byte(codePinsSession.Contents()), &p); err != nil {
 		log.Printf("Couldn't unmarshal codePinsSession value into a pin.Map: %v", err)
 		return
 	}
 	focusedCode.PinMap = p
 }
 
-func codeImportsChange(dom.Object) {
-	focusedCode.Imports = stripCR(strings.Split(codeImportsSession.Value(), "\n"))
+func codeImportsChange(js.Value) {
+	focusedCode.Imports = stripCR(strings.Split(codeImportsSession.Contents(), "\n"))
 }
 
-func codeHeadChange(dom.Object) {
-	focusedCode.Head = stripCR(strings.Split(codeHeadSession.Value(), "\n"))
+func codeHeadChange(js.Value) {
+	focusedCode.Head = stripCR(strings.Split(codeHeadSession.Contents(), "\n"))
 }
 
-func codeBodyChange(dom.Object) {
-	focusedCode.Body = stripCR(strings.Split(codeBodySession.Value(), "\n"))
+func codeBodyChange(js.Value) {
+	focusedCode.Body = stripCR(strings.Split(codeBodySession.Contents(), "\n"))
 }
 
-func codeTailChange(dom.Object) {
-	focusedCode.Tail = stripCR(strings.Split(codeTailSession.Value(), "\n"))
+func codeTailChange(js.Value) {
+	focusedCode.Tail = stripCR(strings.Split(codeTailSession.Contents(), "\n"))
 }
 
 func (c *Code) GainFocus() {
@@ -80,9 +81,9 @@ func (c *Code) GainFocus() {
 		// ...How?
 		log.Fatalf("Couldn't marshal a pin.Map to JSON: %v", err)
 	}
-	codePinsSession.SetValue(string(p))
-	codeImportsSession.SetValue(strings.Join(c.Imports, "\n"))
-	codeHeadSession.SetValue(strings.Join(c.Head, "\n"))
-	codeBodySession.SetValue(strings.Join(c.Body, "\n"))
-	codeTailSession.SetValue(strings.Join(c.Tail, "\n"))
+	codePinsSession.SetContents(string(p))
+	codeImportsSession.SetContents(strings.Join(c.Imports, "\n"))
+	codeHeadSession.SetContents(strings.Join(c.Head, "\n"))
+	codeBodySession.SetContents(strings.Join(c.Body, "\n"))
+	codeTailSession.SetContents(strings.Join(c.Tail, "\n"))
 }

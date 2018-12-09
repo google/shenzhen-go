@@ -16,7 +16,7 @@
 
 package parts
 
-import "github.com/google/shenzhen-go/dom"
+import "syscall/js"
 
 var (
 	inputGatherInputNum = doc.ElementByID("gather-inputnum")
@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	inputGatherInputNum.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputGatherInputNum.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedGather.InputNum = uint(inputGatherInputNum.Get("value").Int())
 	}))
 }

@@ -74,11 +74,11 @@ func (p *Pin) dragStart(pt Point) {
 
 func (p *Pin) hoverText() string { return p.pc.Name() + " (" + p.pc.Type() + ")" }
 
-func (p *Pin) mouseEnter(e dom.Object) {
+func (p *Pin) mouseEnter(e js.Value) {
 	p.view.showHoverTip(e, p.hoverText())
 }
 
-func (p *Pin) mouseLeave(dom.Object) {
+func (p *Pin) mouseLeave(js.Value) {
 	p.view.hoverTip.Hide()
 }
 
@@ -94,8 +94,8 @@ func (p *Pin) MakeElements(doc dom.Document, parent dom.Element) *Pin {
 		SetAttribute("r", pinRadius).
 		AddEventListener("mousedown", p.view.dragStarter(p)).
 		AddEventListener("mousedown", p.view.selecter(p)).
-		AddEventListener("mouseenter", dom.NewEventCallback(js.StopPropagation, p.mouseEnter)).
-		AddEventListener("mouseleave", dom.NewEventCallback(0, p.mouseLeave))
+		AddEventListener("mouseenter", js.NewEventCallback(js.StopPropagation, p.mouseEnter)).
+		AddEventListener("mouseleave", js.NewEventCallback(0, p.mouseLeave))
 
 	p.Shape.ClassList().Add("draggable")
 

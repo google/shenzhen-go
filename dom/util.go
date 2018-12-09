@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package view
+package dom
 
-import "testing"
+import (
+	"fmt"
+	"strconv"
+	"syscall/js"
+)
 
-func TestPinDragScenarios(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "TODO",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			// TODO
-		})
+// Float converts a js.Value to a float. If the Value is a Float, it calls x.Float.
+// If the value is a string, it uses ParseFloat. Otherwise, it returns an error.
+func Float(x js.Value) (float64, error) {
+	switch x.Type() {
+	case js.TypeNumber:
+		return x.Float(), nil
+	case js.TypeString:
+		return strconv.ParseFloat(x.String(), 64)
+	default:
+		return 0, fmt.Errorf("value not convertible to float: %v", x)
 	}
 }

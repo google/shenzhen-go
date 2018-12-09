@@ -18,6 +18,7 @@ package parts
 
 import (
 	"log"
+	"syscall/js"
 	"time"
 
 	"github.com/google/shenzhen-go/dom"
@@ -41,8 +42,8 @@ var (
 	focusedHTTPServer *HTTPServer
 )
 
-func durationChange(change func(time.Duration)) dom.Callback {
-	return dom.NewEventCallback(0, func(ev dom.Object) {
+func durationChange(change func(time.Duration)) js.Callback {
+	return js.NewEventCallback(0, func(ev js.Value) {
 		in := ev.Get("target").Get("value").String()
 		t, err := time.ParseDuration(in)
 		if err != nil {
@@ -58,7 +59,7 @@ func init() {
 	httpServerOutlets.inputReadHeaderTimeout.AddEventListener("change", durationChange(setReadHeaderTimeout))
 	httpServerOutlets.inputWriteTimeout.AddEventListener("change", durationChange(setWriteTimeout))
 	httpServerOutlets.inputIdleTimeout.AddEventListener("change", durationChange(setIdleTimeout))
-	httpServerOutlets.inputMaxHeaderBytes.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	httpServerOutlets.inputMaxHeaderBytes.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedHTTPServer.MaxHeaderBytes = httpServerOutlets.inputMaxHeaderBytes.Get("value").Int()
 	}))
 }

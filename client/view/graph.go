@@ -19,6 +19,7 @@ import (
 	"log"
 	"math"
 	"math/cmplx"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
@@ -56,12 +57,12 @@ func (g *Graph) nearestPoint(x, y float64) (dist float64, pt Pointer) {
 }
 
 // goroutines because cannot block in callback
-func (g *Graph) save(e dom.Object)     { g.view.commitSelected(e); go g.reallySave() }
-func (g *Graph) revert(e dom.Object)   { g.view.commitSelected(e); go g.reallyRevert() }
-func (g *Graph) generate(e dom.Object) { g.view.commitSelected(e); go g.reallyGenerate() }
-func (g *Graph) build(e dom.Object)    { g.view.commitSelected(e); go g.reallyBuild() }
-func (g *Graph) install(e dom.Object)  { g.view.commitSelected(e); go g.reallyInstall() }
-func (g *Graph) run(e dom.Object)      { g.view.commitSelected(e); go g.reallyRun() }
+func (g *Graph) save(e js.Value)     { g.view.commitSelected(e); go g.reallySave() }
+func (g *Graph) revert(e js.Value)   { g.view.commitSelected(e); go g.reallyRevert() }
+func (g *Graph) generate(e js.Value) { g.view.commitSelected(e); go g.reallyGenerate() }
+func (g *Graph) build(e js.Value)    { g.view.commitSelected(e); go g.reallyBuild() }
+func (g *Graph) install(e js.Value)  { g.view.commitSelected(e); go g.reallyInstall() }
+func (g *Graph) run(e js.Value)      { g.view.commitSelected(e); go g.reallyRun() }
 
 func (g *Graph) reallySave() {
 	if err := g.gc.Save(context.TODO()); err != nil {
@@ -99,7 +100,7 @@ func (g *Graph) reallyRun() {
 	}
 }
 
-func (g *Graph) commit(dom.Object) {
+func (g *Graph) commit(js.Value) {
 	go g.reallyCommit() // cannot block in callback
 }
 
@@ -134,7 +135,7 @@ func (g *Graph) MakeElements(doc dom.Document, parent dom.Element) {
 			Pins:   make(map[*Pin]*Route),
 		}
 		g.Channels[cc.Name()] = ch
-		ch.MakeElements(doc, g.Group)
+		ch.MakeElements(doc, g.Group.Element)
 	})
 
 	// (Re-)add all nodes.
@@ -197,5 +198,5 @@ func (g *Graph) addNode(nc NodeController) {
 	m.Inputs, m.Outputs = m.AllPins[:inputs], m.AllPins[inputs:]
 
 	g.Nodes[nc.Name()] = m
-	m.MakeElements(g.doc, g.Group)
+	m.MakeElements(g.doc, g.Group.Element)
 }

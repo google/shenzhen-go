@@ -18,12 +18,13 @@ package parts
 
 import (
 	"strings"
+	"syscall/js"
 
 	"github.com/google/shenzhen-go/dom"
 )
 
 var (
-	transformImportsSession, transformBodySession *dom.AceSession
+	transformImportsSession, transformBodySession dom.AceSession
 
 	inputTransformInputType  = doc.ElementByID("transform-inputtype")
 	inputTransformOutputType = doc.ElementByID("transform-outputtype")
@@ -34,30 +35,30 @@ var (
 
 // Needed to resolve initialization cycle. handleFoo uses the value loaded here.
 func init() {
-	transformImportsSession = setupAce("transform-imports", dom.AceGoMode, dom.NewEventCallback(0, transformImportsChange))
-	transformBodySession = setupAce("transform-body", dom.AceGoMode, dom.NewEventCallback(0, transformBodyChange))
+	transformImportsSession = setupAce("transform-imports", dom.AceGoMode, js.NewEventCallback(0, transformImportsChange))
+	transformBodySession = setupAce("transform-body", dom.AceGoMode, js.NewEventCallback(0, transformBodyChange))
 
-	inputTransformInputType.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputTransformInputType.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedTransform.InputType = inputTransformInputType.Get("value").String()
 	}))
-	inputTransformOutputType.AddEventListener("change", dom.NewEventCallback(0, func(dom.Object) {
+	inputTransformOutputType.AddEventListener("change", js.NewEventCallback(0, func(js.Value) {
 		focusedTransform.OutputType = inputTransformOutputType.Get("value").String()
 	}))
 	linkTransformFormat.AddEventListener("click", formatHandler(transformBodySession))
 }
 
-func transformImportsChange(dom.Object) {
-	focusedTransform.Imports = stripCR(strings.Split(transformImportsSession.Value(), "\n"))
+func transformImportsChange(js.Value) {
+	focusedTransform.Imports = stripCR(strings.Split(transformImportsSession.Contents(), "\n"))
 }
 
-func transformBodyChange(dom.Object) {
-	focusedTransform.Body = stripCR(strings.Split(transformBodySession.Value(), "\n"))
+func transformBodyChange(js.Value) {
+	focusedTransform.Body = stripCR(strings.Split(transformBodySession.Contents(), "\n"))
 }
 
 func (t *Transform) GainFocus() {
 	focusedTransform = t
 	inputTransformInputType.Set("value", t.InputType)
 	inputTransformOutputType.Set("value", t.OutputType)
-	transformImportsSession.SetValue(strings.Join(t.Imports, "\n"))
-	transformBodySession.SetValue(strings.Join(t.Body, "\n"))
+	transformImportsSession.SetContents(strings.Join(t.Imports, "\n"))
+	transformBodySession.SetContents(strings.Join(t.Body, "\n"))
 }

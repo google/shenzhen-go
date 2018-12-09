@@ -48,11 +48,11 @@ func GenGopherJSProtoStubs() error {
 	return sh.Run("protoc", "-I=proto", "shenzhen-go.proto", "--gopherjs_out=plugins=grpc:proto/js")
 }
 
-// Builds the client into server/view/js/client.js{,.map}.
+// Builds the client into server/view/js/client.wasm.
 func BuildClient() error {
 	mg.Deps(GenGopherJSProtoStubs)
 
-	mod, err := target.Dir("server/view/js/client.js", "client")
+	mod, err := target.Dir("server/view/js/client.wasm", "client")
 	if err != nil {
 		return err
 	}
@@ -60,13 +60,11 @@ func BuildClient() error {
 		return nil
 	}
 
-	// Per the GopherJS README, supported GOOS values are {linux, darwin}.
-	// Force GOOS=linux to support building on Windows, and also
-	// help keep the file stable (I dev on both Linux and macOS).
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "js",
+		"GOARCH": "wasm",
 	}
-	return sh.RunWith(env, "gopherjs", "build", "-o", "server/view/js/client.js", "github.com/google/shenzhen-go/client")
+	return sh.RunWith(env, "go", "build", "-o", "server/view/js/client.wasm", "github.com/google/shenzhen-go/client")
 }
 
 // Embeds static content into static-*.go files in the server/view package.
@@ -107,9 +105,6 @@ func Install() error {
 func GoGetTools() error {
 	goGet := sh.RunCmd("go", "get", "-u")
 
-	if err := goGet("github.com/gopherjs/gopherjs"); err != nil {
-		return err
-	}
 	if err := goGet("github.com/golang/protobuf/protoc-gen-go"); err != nil {
 		return err
 	}
@@ -121,8 +116,7 @@ func Clean() error {
 	intfs := []string{
 		"proto/go/shenzhen-go.pb.go",
 		"proto/js/shenzhen-go.pb.gopherjs.go",
-		"server/view/js/client.js",
-		"server/view/js/client.js.map",
+		"server/view/js/client.wasm",
 		"server/view/static-css.go",
 		"server/view/static-images.go",
 		"server/view/static-js.go",

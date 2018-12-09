@@ -7,6 +7,7 @@
 	<link type="text/css" rel="stylesheet" href="/.static/css/main.css">
 	<script src="/.static/js/ace/ace.js" charset="utf-8"></script>
 	<script src="/.static/js/hterm/hterm_all.js" charset="utf-8"></script>
+	<script src="/.static/js/wasm_exec.js" charset="utf-8"></script>
 	<script>
 		var aceTheme = '{{$.Params.AceTheme}}';
 		var graphPath = '{{$.Graph.URLPath}}';
@@ -61,7 +62,7 @@
 	<div class="box">
 		<div class="container" id="diagram-container">
 			<!-- TODO: is there a good way of organising the size? -->
-			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" draggable="false" />
+			<svg id="diagram" width="1600" height="1600" viewBox="0 0 1600 1600" draggable="false"></svg>
 		</div>
 		<div class="container" id="panels-container">
 			<div id="graph-properties" class="panel padded">
@@ -185,6 +186,11 @@
 			</div>
 		</div>
 	</div>
-	<script src="/.static/js/client.js"></script>
+	<script>
+		const go = new Go();
+		WebAssembly.instantiateStreaming(fetch("/.static/js/client.wasm"), go.importObject).then((result) => {
+			go.run(result.instance);
+		});
+	</script>
 </body>
 </html>

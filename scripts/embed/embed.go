@@ -46,7 +46,7 @@ func vlog(format string, v ...interface{}) {
 
 // gzipContent returns a gzipped version of the input, unless the input is already gzipped, in which case
 // it returns the input unmodified.
-func gzipContent(in []byte, name string) []byte {
+func gzipContent(in []byte, name string, mtime time.Time) []byte {
 	// Already gzipped?
 	if bytes.Equal(in[:2], []byte{0x1f, 0x8b}) {
 		return in
@@ -56,7 +56,7 @@ func gzipContent(in []byte, name string) []byte {
 	// and this level is coming straight from the gzip package.
 	gw, _ := gzip.NewWriterLevel(buf, gzip.BestCompression)
 	gw.Header.Name = name
-	gw.Header.ModTime = time.Now()
+	gw.Header.ModTime = mtime
 	// Ignoring errors: Writes to buffers don't error.
 	gw.Write(in)
 	gw.Close()
@@ -90,6 +90,15 @@ func main() {
 		}
 		for _, m := range ms {
 			vlog("Processing file %s", m)
+			fi, err := os.Stat(m)
+			if err != nil {
+				vlog("Cannot stat input file, skipping: %v", err)
+				continue
+			}
+			if fi.IsDir() {
+				// Skip directories caught in glob.
+				continue
+			}
 			i, err := ioutil.ReadFile(m)
 			if err != nil {
 				vlog("Cannot read input file, skipping: %v", err)
@@ -103,7 +112,7 @@ func main() {
 			if *gzipit {
 				name := filepath.Base(m)
 				vlog("Applying gzip compression to content of %s", name)
-				i = gzipContent(i, name)
+				i = gzipContent(i, name, fi.ModTime())
 			}
 			fmt.Fprintf(w, "\t%q: []byte(%q),\n", filepath.ToSlash(r), string(i))
 		}

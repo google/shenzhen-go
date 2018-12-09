@@ -17,48 +17,9 @@
 package main
 
 import (
-	"compress/gzip"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
-
-// gzips a file, overwriting the original. Does not do a file dance.
-func inPlaceGzip(path string) error {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	if fi.IsDir() {
-		return fmt.Errorf("inPlaceGzip: got directory %q, want a file", path)
-	}
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	o, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer o.Close()
-	g, err := gzip.NewWriterLevel(o, gzip.BestCompression)
-	if err != nil {
-		return err
-	}
-	g.Header.Name = filepath.Base(path)
-	g.Header.ModTime = fi.ModTime()
-	if _, err := g.Write(b); err != nil {
-		return err
-	}
-	if err := g.Close(); err != nil {
-		return err
-	}
-	return o.Close()
-}
 
 // Runs protoc to generate protobuf stubs in proto/{go,js}.
 func GenProtoStubs() error {
@@ -75,14 +36,7 @@ func BuildClient() error {
 	env := map[string]string{
 		"GOOS": "linux",
 	}
-	if err := sh.RunWith(env, "gopherjs", "build", "-o", "server/view/js/client.js", "github.com/google/shenzhen-go/client"); err != nil {
-		return err
-	}
-	// The server transparently handles gzipped embedded content.
-	if err := inPlaceGzip("server/view/js/client.js"); err != nil {
-		return err
-	}
-	return inPlaceGzip("server/view/js/client.js.map")
+	return sh.RunWith(env, "gopherjs", "build", "-o", "server/view/js/client.js", "github.com/google/shenzhen-go/client")
 }
 
 // Embeds static content into static-*.go files in the server/view package.
@@ -104,6 +58,14 @@ func Embed() error {
 			return err
 		}
 	}
+
+	// Since client.js{,.map} are generated in BuildClient, they are no longer needed once embedded.
+	for _, f := range []string{"server/view/js/client.js", "server/view/js/client.js.map"} {
+		if err := sh.Rm(f); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

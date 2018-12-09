@@ -17,12 +17,15 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 var (
@@ -30,7 +33,8 @@ var (
 	vn      = flag.String("v", "", "Name of map variable, required")
 	outf    = flag.String("o", "", "Name of output file, required")
 	base    = flag.String("base", ".", "Base directory of input files; similar to tar -C mode")
-	verbose = flag.Bool("verbose", false, "Prints additional log messages")
+	verbose = flag.Bool("verbose", false, "If set, prints additional log messages")
+	gzipit  = flag.Bool("gzip", false, "If set, passes data through gzip compression; checks for existing gzip header first so as not to double-compress")
 )
 
 func vlog(format string, v ...interface{}) {
@@ -38,6 +42,25 @@ func vlog(format string, v ...interface{}) {
 		return
 	}
 	log.Printf(format, v...)
+}
+
+// gzipContent returns a gzipped version of the input, unless the input is already gzipped, in which case
+// it returns the input unmodified.
+func gzipContent(in []byte, name string) []byte {
+	// Already gzipped?
+	if bytes.Equal(in[:2], []byte{0x1f, 0x8b}) {
+		return in
+	}
+	buf := new(bytes.Buffer)
+	// Ignoring error here, because gzip.NewWriterLevel only returns err != nil if the level is invalid,
+	// and this level is coming straight from the gzip package.
+	gw, _ := gzip.NewWriterLevel(buf, gzip.BestCompression)
+	gw.Header.Name = name
+	gw.Header.ModTime = time.Now()
+	// Ignoring errors: Writes to buffers don't error.
+	gw.Write(in)
+	gw.Close()
+	return buf.Bytes()
 }
 
 func main() {
@@ -76,6 +99,11 @@ func main() {
 			if err != nil {
 				vlog("Cannot compute relative path, skipping: %v", err)
 				continue
+			}
+			if *gzipit {
+				name := filepath.Base(m)
+				vlog("Applying gzip compression to content of %s", name)
+				i = gzipContent(i, name)
 			}
 			fmt.Fprintf(w, "\t%q: []byte(%q),\n", filepath.ToSlash(r), string(i))
 		}

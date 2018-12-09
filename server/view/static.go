@@ -16,8 +16,11 @@ package view
 
 import (
 	"bytes"
+	"compress/gzip"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/image/font/gofont/gobold"
@@ -32,7 +35,10 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-var staticMap = map[string][]byte{
+type staticHandler map[string][]byte
+
+// Static serves "static resources".
+var Static = staticHandler{
 	"fonts/GoMedium-Italic.ttf":   gomediumitalic.TTF,
 	"fonts/Go-Italic.ttf":         goitalic.TTF,
 	"fonts/Go-Bold.ttf":           gobold.TTF,
@@ -45,31 +51,79 @@ var staticMap = map[string][]byte{
 	"fonts/GoMono-BoldItalic.ttf": gomonobolditalic.TTF,
 }
 
-func load(m map[string][]byte) {
+func init() {
+	Static.load(cssResources)
+	Static.load(miscResources)
+	Static.load(jsResources)
+}
+
+func (h staticHandler) load(m map[string][]byte) {
 	for k, v := range m {
-		staticMap[k] = v
+		h[k] = v
 	}
 }
 
-func init() {
-	load(cssResources)
-	load(miscResources)
-	load(jsResources)
-}
-
-type staticHandler struct{}
-
-// Static serves "static resources".
-var Static staticHandler
-
-func (staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s static: %s", r.Method, r.URL)
-	d := staticMap[r.URL.Path]
+	d := h[r.URL.Path]
 	if d == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	w.Header().Add("Cache-Control", "public")
-	w.Header().Add("Cache-Control", "max-age=86400")
-	http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+	hdr := w.Header()
+	hdr.Set("Cache-Control", "public")
+	hdr.Set("Cache-Control", "max-age=86400")
+
+	// Transparently handle gzipped content.
+	// The content is being gzipped to reduce the binary and source code size.
+	// The typical use case is running the server locally, so network is ignored.
+	// So instead of on-the-fly gzipping of un-compressed content,
+	// it does ..... on-the-fly un-gzipping of pre-compressed content, if gzip happens to be disallowed.
+
+	// Content is not gzipped?
+	if !bytes.Equal(d[:2], []byte{0x1f, 0x8b}) {
+		//log.Printf("%s static: %s is not gzipped", r.Method, r.URL)
+		http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+		return
+	}
+
+	// Is gzip ok?
+	aeh := r.Header.Get("Accept-Encoding")
+	if aeh == "" {
+		//log.Printf("%s static: Accept-Encoding not specified, sending gzip data", r.Method)
+		hdr.Set("Content-Encoding", "gzip")
+		http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+		return
+	}
+	for _, ae := range strings.Split(aeh, ",") {
+		bits := strings.Split(strings.TrimSpace(ae), ";")
+		if bits[0] != "gzip" && bits[0] != "*" {
+			continue
+		}
+		// If q is present, ensure q > 0.
+		if len(bits) == 2 && bits[1] == "q=0" {
+			// If gzip;q=0 specifically, no gzip for you.
+			if bits[0] == "gzip" {
+				break
+			}
+			continue
+		}
+		//log.Printf("%s static: Accept-Encoding allows gzip, sending gzip data", r.Method)
+		hdr.Set("Content-Encoding", "gzip")
+		http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+		return
+	}
+
+	//log.Printf("%s static: Accept-Encoding disallows gzip, decompressing on-the-fly", r.Method)
+	gr, err := gzip.NewReader(bytes.NewReader(d))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	d2, err := ioutil.ReadAll(gr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d2))
 }

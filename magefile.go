@@ -17,9 +17,48 @@
 package main
 
 import (
+	"compress/gzip"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
+
+// gzips a file, overwriting the original. Does not do a file dance.
+func inPlaceGzip(path string) error {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if fi.IsDir() {
+		return fmt.Errorf("inPlaceGzip: got directory %q, want a file", path)
+	}
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	o, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer o.Close()
+	g, err := gzip.NewWriterLevel(o, gzip.BestCompression)
+	if err != nil {
+		return err
+	}
+	g.Header.Name = filepath.Base(path)
+	g.Header.ModTime = fi.ModTime()
+	if _, err := g.Write(b); err != nil {
+		return err
+	}
+	if err := g.Close(); err != nil {
+		return err
+	}
+	return o.Close()
+}
 
 // Runs protoc to generate protobuf stubs in proto/{go,js}.
 func GenProtoStubs() error {
@@ -36,28 +75,36 @@ func BuildClient() error {
 	env := map[string]string{
 		"GOOS": "linux",
 	}
-	return sh.RunWith(env, "gopherjs", "build", "-o", "server/view/js/client.js", "github.com/google/shenzhen-go/client")
+	if err := sh.RunWith(env, "gopherjs", "build", "-o", "server/view/js/client.js", "github.com/google/shenzhen-go/client"); err != nil {
+		return err
+	}
+	// The server transparently handles gzipped embedded content.
+	if err := inPlaceGzip("server/view/js/client.js"); err != nil {
+		return err
+	}
+	return inPlaceGzip("server/view/js/client.js.map")
 }
 
 // Embeds static content into static-*.go files in the server/view package.
 func Embed() error {
 	mg.Deps(BuildClient)
 
-	embed := sh.RunCmd("go", "run", "scripts/embed/embed.go")
+	embed := sh.RunCmd("go", "run", "scripts/embed/embed.go", "-p", "view", "-base", "server/view")
 
-	if err := embed("-p", "view", "-v", "cssResources", "-o", "server/view/static-css.go", "-base", "server/view", "css/*.css"); err != nil {
-		return err
+	embeds := [][]string{
+		{"-v", "cssResources", "-o", "server/view/static-css.go", "-gzip", "css/*.css"},
+		{"-v", "imageResources", "-o", "server/view/static-images.go", "images/*"},
+		{"-v", "jsResources", "-o", "server/view/static-js.go", "-gzip", "js/*", "js/*/*"},
+		{"-v", "miscResources", "-o", "server/view/static-misc.go", "-gzip", "misc/*"},
+		{"-v", "templateResources", "-o", "server/view/static-templates.go", "templates/*.html"},
 	}
-	if err := embed("-p", "view", "-v", "imageResources", "-o", "server/view/static-images.go", "-base", "server/view", "images/*"); err != nil {
-		return err
+
+	for _, args := range embeds {
+		if err := embed(args...); err != nil {
+			return err
+		}
 	}
-	if err := embed("-p", "view", "-v", "jsResources", "-o", "server/view/static-js.go", "-base", "server/view", "js/*", "js/*/*"); err != nil {
-		return err
-	}
-	if err := embed("-p", "view", "-v", "miscResources", "-o", "server/view/static-misc.go", "-base", "server/view", "misc/*"); err != nil {
-		return err
-	}
-	return embed("-p", "view", "-v", "templateResources", "-o", "server/view/static-templates.go", "-base", "server/view", "templates/*.html")
+	return nil
 }
 
 // Install rebuilds everything and then go-installs.

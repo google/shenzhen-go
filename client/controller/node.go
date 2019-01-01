@@ -21,7 +21,7 @@ import (
 	"github.com/google/shenzhen-go/client/view"
 	"github.com/google/shenzhen-go/dom"
 	"github.com/google/shenzhen-go/model"
-	pb "github.com/google/shenzhen-go/proto/js"
+	pb "github.com/google/shenzhen-go/proto/go"
 )
 
 type partEditor struct {

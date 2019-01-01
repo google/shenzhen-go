@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/websocket v1.2.0 // indirect
 	github.com/improbable-eng/grpc-web v0.0.0-20180502145718-72eb701d6f32
 	github.com/johanbrandhorst/protobuf v0.6.2
+	github.com/magefile/mage v1.8.0
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 // indirect
 	github.com/onsi/ginkgo v1.7.0 // indirect

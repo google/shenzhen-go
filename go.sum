@@ -20,6 +20,8 @@ github.com/improbable-eng/grpc-web v0.0.0-20180502145718-72eb701d6f32 h1:StTcph/
 github.com/improbable-eng/grpc-web v0.0.0-20180502145718-72eb701d6f32/go.mod h1:6hRR09jOEG81ADP5wCQju1z71g6OL4eEvELdran/3cs=
 github.com/johanbrandhorst/protobuf v0.6.2 h1:3NZ4VcwRzfj0hsdXgVhziXtar2ijWObFQNpfEdkqbrM=
 github.com/johanbrandhorst/protobuf v0.6.2/go.mod h1:B/uVA4AcXtCUytXZyu2PjnIQv85aXogvVWyHPPdkDBE=
+github.com/magefile/mage v1.8.0 h1:mzL+xIopvPURVBwHG9A50JcjBO+xV3b5iZ7khFRI+5E=
+github.com/magefile/mage v1.8.0/go.mod h1:IUDi13rsHje59lecXokTfGX0QIzO45uVPlXnJYsXepA=
 github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 h1:F9x/1yl3T2AeKLr2AMdilSD8+f9bvMnNN8VS5iDtovc=

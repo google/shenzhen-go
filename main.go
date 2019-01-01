@@ -16,6 +16,7 @@
 package main
 
 import (
+	"strings"
 	"errors"
 	"flag"
 	"fmt"
@@ -141,14 +142,11 @@ func serve(addr chan<- net.Addr) error {
 		IdleTimeout:       120 * time.Second,
 		Addr:              ln.Addr().String(),
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			switch {
-			case ws.IsGrpcWebRequest(r):
-				ws.HandleGrpcWebRequest(w, r)
-			case ws.IsGrpcWebSocketRequest(r):
-				ws.HandleGrpcWebsocketRequest(w, r)
-			default:
-				http.DefaultServeMux.ServeHTTP(w, r)
+			if strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+				ws.ServeHTTP(w, r)
+				return
 			}
+			http.DefaultServeMux.ServeHTTP(w, r)
 		}),
 	}
 	if err := svr.Serve(ln); err != nil {

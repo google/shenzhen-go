@@ -53,8 +53,8 @@ var Static = staticHandler{
 
 func init() {
 	Static.load(cssResources)
-	Static.load(miscResources)
 	Static.load(jsResources)
+	Static.load(miscResources)
 }
 
 func (h staticHandler) load(m map[string][]byte) {
@@ -65,7 +65,8 @@ func (h staticHandler) load(m map[string][]byte) {
 
 func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s static: %s", r.Method, r.URL)
-	d := h[r.URL.Path]
+	name := r.URL.Path
+	d := h[name]
 	if d == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
@@ -73,6 +74,11 @@ func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hdr := w.Header()
 	hdr.Set("Cache-Control", "public")
 	hdr.Set("Cache-Control", "max-age=86400")
+
+	// Fix for LICENSE files not being detected correctly
+	if strings.HasSuffix(name, "/LICENSE") {
+		hdr.Set("Content-Type", "text/plain")
+	}
 
 	// Transparently handle gzipped content.
 	// The content is being gzipped to reduce the binary and source code size.
@@ -83,7 +89,7 @@ func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Content is not gzipped?
 	if !bytes.Equal(d[:2], []byte{0x1f, 0x8b}) {
 		//log.Printf("%s static: %s is not gzipped", r.Method, r.URL)
-		http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+		http.ServeContent(w, r, name, time.Now(), bytes.NewReader(d))
 		return
 	}
 
@@ -92,7 +98,7 @@ func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if aeh == "" {
 		//log.Printf("%s static: Accept-Encoding not specified, sending gzip data", r.Method)
 		hdr.Set("Content-Encoding", "gzip")
-		http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+		http.ServeContent(w, r, name, time.Now(), bytes.NewReader(d))
 		return
 	}
 	for _, ae := range strings.Split(aeh, ",") {
@@ -110,7 +116,7 @@ func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		//log.Printf("%s static: Accept-Encoding allows gzip, sending gzip data", r.Method)
 		hdr.Set("Content-Encoding", "gzip")
-		http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d))
+		http.ServeContent(w, r, name, time.Now(), bytes.NewReader(d))
 		return
 	}
 
@@ -125,5 +131,5 @@ func (h staticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.ServeContent(w, r, r.URL.Path, time.Now(), bytes.NewReader(d2))
+	http.ServeContent(w, r, name, time.Now(), bytes.NewReader(d2))
 }

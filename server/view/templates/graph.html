@@ -161,12 +161,10 @@
 			</div>
 			<div id="help-licenses-panel" class="panel padded" style="display:none">
 				<h3>Licenses</h3>
-				<h4>Shenzhen Go</h4>
-				<pre>{{$.Licenses.ShenzhenGo}}</pre>
-				<h4>Ace (code editor)</h4>
-				<pre>{{$.Licenses.Ace}}</pre>
-				<h4>Chromium Hterm</h4>
-				<pre>{{$.Licenses.Hterm}}</pre>
+				{{range $.Licenses}}
+				<h4>{{.Component}}</h4>
+				<iframe src="{{.URL}}"></iframe>
+				{{end}}
 			</div>
 			<div id="help-about-panel" class="panel padded" style="display:none">
 				<h3>Shenzhen Go</h3>

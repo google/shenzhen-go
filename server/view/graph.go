@@ -31,11 +31,12 @@ type editorInput struct {
 	GraphJSON           string
 	PartTypes           map[string]*model.PartType
 	PartTypesByCategory map[string]map[string]*model.PartType
-	Licenses            struct {
-		ShenzhenGo string
-		Ace        string
-		Hterm      string
-	}
+	Licenses            []license
+}
+
+type license struct {
+	Component string
+	URL       template.URL
 }
 
 // Graph displays a graph.
@@ -54,9 +55,11 @@ func Graph(w http.ResponseWriter, g *model.Graph, params *Params) {
 		PartTypes:           model.PartTypes,
 		PartTypesByCategory: model.PartTypesByCategory,
 	}
-	d.Licenses.ShenzhenGo = string(miscResources["misc/LICENSE"])
-	d.Licenses.Ace = string(jsResources["js/ace/LICENSE"])
-	d.Licenses.Hterm = string(jsResources["js/hterm/LICENSE"])
+	d.Licenses = []license{
+		{"Shenzhen Go", "/.static/misc/LICENSE"},
+		{"Ace (code editor)", "/.static/js/ace/LICENSE"},
+		{"Chromium Hterm", "/.static/js/hterm/LICENSE"},
+	}
 	if err := graphEditorTemplate.Execute(w, d); err != nil {
 		log.Printf("Could not execute graph editor template: %v", err)
 		http.Error(w, "Could not execute graph editor template", http.StatusInternalServerError)

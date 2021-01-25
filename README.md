@@ -1,6 +1,6 @@
 # "SHENZHEN GO" (working title)
 
-[![Build Status](https://travis-ci.org/google/shenzhen-go.svg?branch=master)](https://travis-ci.org/google/shenzhen-go) [![Doc Status](https://godoc.org/github.com/google/shenzhen-go?status.svg)](https://godoc.org/github.com/google/shenzhen-go) [![license](https://img.shields.io/github/license/google/shenzhen-go.svg?maxAge=2592000)](https://github.com/google/shenzhen-go/blob/master/LICENSE)
+[![Doc Status](https://godoc.org/github.com/google/shenzhen-go?status.svg)](https://godoc.org/github.com/google/shenzhen-go) [![license](https://img.shields.io/github/license/google/shenzhen-go.svg?maxAge=2592000)](https://github.com/google/shenzhen-go/blob/main/LICENSE)
 
 SHENZHEN GO (working title) is an **experimental** visual Go environment, 
 inspired by programming puzzle games such as TIS-100 and SHENZHEN I/O.
@@ -45,7 +45,7 @@ For discussions, there is [a Google Group](https://groups.google.com/forum/#!for
 This project wouldn't be nearly as good as it is without the following:
 
 * The [Ace](https://ace.c9.io/) code editor.
-* [Chrome Hterm](https://chromium.googlesource.com/apps/libapps/+/master/hterm).
+* [Chrome Hterm](https://chromium.googlesource.com/apps/libapps/).
 * [GopherJS](https://github.com/gopherjs/gopherjs).
 * [gRPC](https://grpc.io/).
 * [Improbable's gRPC-Web for Go](https://github.com/improbable-eng/grpc-web).
